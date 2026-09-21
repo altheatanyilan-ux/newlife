@@ -2330,7 +2330,13 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-stage.here{border-color:var(--page-accent);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 12%,transparent)}
 .jz-stage.shut{opacity:.5}
-.jz-shead{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:baseline}
+/* four columns now, not three: the number, the name, the difficulty badge
+   and the count. Left at three, the badge wrapped onto a second row and
+   pushed the count under the title on every stage. */
+.jz-shead{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:11px;
+  align-items:baseline}
+@media (max-width:560px){.jz-shead{grid-template-columns:auto minmax(0,1fr) auto}
+  .jz-shead .jz-diff{grid-column:2;justify-self:start}}
 .jz-sn{font-size:1.4rem;opacity:.35;line-height:1}
 .jz-st{display:flex;flex-direction:column;gap:2px;min-width:0}
 .jz-st b{font-size:1.02rem}
@@ -2432,6 +2438,48 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-chow{font-size:.9rem;margin:18px 0 10px}
 .btn.lg{padding:11px 26px;font-size:1rem}
 @media (max-width:640px){.jz-ckey{font-size:2.6rem}.jz-cprompt{font-size:1.2rem}}
+
+/* the enrichment layer: what to listen to, what goes wrong, how you know */
+.jz-diff{font-family:var(--mono);font-size:.56rem;letter-spacing:.09em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:20px;padding:2px 8px;color:var(--muted);
+  white-space:nowrap;align-self:center}
+/* five rungs, and the badge should read as one glance rather than as a word */
+.jz-diff[data-jzd="beginner"]{color:#7f916a;border-color:color-mix(in srgb,#7f916a 45%,var(--line))}
+.jz-diff[data-jzd="moderate"]{color:#6b7f8e;border-color:color-mix(in srgb,#6b7f8e 45%,var(--line))}
+.jz-diff[data-jzd="challenging"]{color:#b08968;border-color:color-mix(in srgb,#b08968 45%,var(--line))}
+.jz-diff[data-jzd="advanced"]{color:#c47832;border-color:color-mix(in srgb,#c47832 50%,var(--line))}
+.jz-diff[data-jzd="professional"]{color:#c4484e;border-color:color-mix(in srgb,#c4484e 50%,var(--line))}
+/* something inherited from the stage, or a checklist nobody wrote: said
+   rather than hidden, so a fallback is never mistaken for a citation */
+.jz-inherit{font-style:normal;font-family:var(--mono);font-size:.54rem;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--faint);border-bottom:1px dotted var(--line);cursor:help}
+.jz-howlong p{font-size:.84rem;color:var(--muted)}
+.jz-mistakes ul,.jz-conns ul{margin:7px 0 0;padding-left:17px;display:flex;
+  flex-direction:column;gap:5px}
+.jz-mistakes li,.jz-conns li{font-size:.83rem;line-height:1.5;max-width:62ch}
+.jz-mistakes li::marker{color:#c4484e}
+.jz-conns li::marker{color:var(--page-accent)}
+.jz-rec{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+.jz-rec:first-of-type{border-top:0;padding-top:0}
+.jz-recwho{font-size:.86rem}
+.jz-recwhat{font-size:.6rem;color:var(--faint);letter-spacing:.04em;margin-top:2px}
+.jz-recfor{font-size:.82rem !important;color:var(--muted);margin-top:5px !important}
+.jz-challenge{background:color-mix(in srgb,var(--page-accent) 5%,transparent)}
+/* the checkpoints, which are the one thing in this room you tick yourself */
+.jz-checks{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-top:14px}
+.jz-check{display:flex;gap:9px;align-items:flex-start;font-size:.85rem;line-height:1.5;
+  padding:5px 0;cursor:pointer;border-top:1px dashed color-mix(in srgb,var(--line) 60%,transparent)}
+.jz-check:first-of-type{border-top:0}
+.jz-check input{margin-top:3px;flex:0 0 auto}
+.jz-check.on > span{color:var(--muted);text-decoration:line-through;
+  text-decoration-color:color-mix(in srgb,var(--page-accent) 60%,transparent)}
+/* a checkpoint card: the exercise's name above, the claim in the middle */
+.jz-cwhat{font-size:.62rem;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;
+  margin:0 0 10px}
+.jz-ctag{font-size:.58rem;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;
+  margin:12px 0 0}
+.jz-cto{color:var(--muted);font-size:2.2rem}
+@media (max-width:640px){.jz-cto{font-size:1.7rem}}
 
 /* planning the week: the parts of a life, and the few things being carried */
 .wp-aspect{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(0,1.6fr);gap:10px;
@@ -56262,6 +56310,9 @@ function jazzFlashHTML(){
       </div>
       ${st.keyMode === 'custom' ? `<div class="jz-keypick" style="margin-top:8px">${JAZZ_KEY_NAMES.map(k =>
         `<button class="jz-k${st.customKeys.includes(k) ? ' on' : ''}" data-jzck="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div>` : ''}
+      <div class="sc" style="margin-top:14px">What the cards ask</div>
+      <label class="jz-gate mono"><input type="checkbox" id="jzChecks" ${st.checks ? 'checked' : ''}>
+        the checkpoints too — at tempo, from memory, eyes shut</label>
       <div class="sc" style="margin-top:14px">How many cards</div>
       <div class="row" style="gap:8px;flex-wrap:wrap">${[5, 10, 15, 25, 40].map(n =>
         `<button class="btn sm ${st.cards === n ? 'primary' : 'ghost'}" data-jzn="${n}">${n}</button>`).join('')}</div>
@@ -56291,6 +56342,8 @@ function bindJazzFlash(root){
     b.classList.toggle('on', at < 0); saveNow(); });
   $$('[data-jzn]', root).forEach(b => b.onclick = () => {
     st.cards = +b.dataset.jzn; saveNow(); rerender(); });
+  const chk = root.querySelector('#jzChecks');
+  if(chk) chk.onchange = () => { st.checks = chk.checked; saveNow(); sound('click'); };
   const go = root.querySelector('#jzBegin');
   if(go) go.onclick = () => {
     const cards = jazzDeal(st.syllabus, st.cards, st.keyMode, st.customKeys);
@@ -56308,8 +56361,10 @@ function bindJazzFlash(root){
 /* what the card asked for, said back over the answer */
 function jazzCardSaid(ex, card){
   const key = jazzPretty(card.key);
+  const where = card.toKey ? `${key} → ${jazzPretty(card.toKey)}` : key;
+  if(card.check) return `${ex.name} — ${jazzCheckAsk(card.check)} — ${where}`;
   return card.interval ? `${ex.name} — ${jazzSayInterval(card.interval)} from ${key}`
-    : `${ex.ask} ${key}`;
+    : `${ex.ask} ${where}`;
 }
 function jazzCardHTML(){
   const f = jazzUi().flash;
@@ -56324,6 +56379,7 @@ function jazzCardHTML(){
     ${f.shown ? `
       <p class="jz-cask mono">${esc(jazzCardSaid(ex, card))}</p>
       <div class="jz-stage-box"><div class="jz-score" id="jzCardScore"></div></div>
+      ${card.toKey ? `<div class="jz-stage-box"><div class="jz-score" id="jzCardScore2"></div></div>` : ''}
       <p class="jz-chow">Did you have it?</p>
       <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap">
         <button class="btn ghost danger" data-jzg="couldnt">✗ Couldn’t</button>
@@ -56331,10 +56387,19 @@ function jazzCardHTML(){
         <button class="btn primary" data-jzg="nailed">✓ Had it</button>
       </div>`
     : `
-      <p class="jz-cprompt serif">${esc(ex.ask)}</p>
+      <!-- A checkpoint card asks the other question about the same pattern:
+           not "can you find it" but "can you do it at a hundred and twenty,
+           with your eyes shut, naming the third and seventh". The exercise's
+           own name stays above it, because the checkpoint on its own does
+           not say what it is a checkpoint OF. -->
+      ${card.check ? `<p class="jz-cwhat mono">${esc(ex.name)}</p>
+        <p class="jz-cprompt serif">${esc(jazzCheckAsk(card.check))}</p>
+        <p class="jz-ctag mono">a checkpoint</p>`
+      : `<p class="jz-cprompt serif">${esc(ex.ask)}</p>`}
       ${card.interval ? `<p class="jz-cint serif">${esc(jazzSayInterval(card.interval))}</p>
         <p class="jz-cfrom mono">from</p>` : ''}
-      <p class="jz-ckey serif">${esc(jazzPretty(card.key))}</p>
+      <p class="jz-ckey serif">${esc(jazzPretty(card.key))}${
+        card.toKey ? ` <span class="jz-cto">→ ${esc(jazzPretty(card.toKey))}</span>` : ''}</p>
       <div class="row" style="justify-content:center;margin-top:26px">
         <button class="btn primary lg" id="jzShow">Show me</button></div>
       <p class="jz-chint mono">play it first — the card is worth nothing if you look</p>`}
@@ -56352,7 +56417,11 @@ function bindJazzCard(root){
   /* the answer is written out for the distance the card asked for, not for
      whatever the exercise page happened to be left on */
   if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: card.interval});
-    if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml); }
+    if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml);
+    /* a card about moving between two keys has to show both of them, or the
+       answer is only half of what was asked */
+    if(card.toKey){ const two = jazzScoreXml(ex, card.toKey, {interval: card.interval});
+      if(two) jazzEngrave(root.querySelector('#jzCardScore2'), two); } }
   $$('[data-jzg]', root).forEach(b => b.onclick = () => {
     const how = b.dataset.jzg;
     jazzGrade(card.exerciseId, card.key, how, f.seconds);
@@ -56375,6 +56444,932 @@ function jazzEndSession(finished){
   }
   navigate('#/jazz');
   rerender();
+}
+/* ============================================================
+   THE ENRICHMENT LAYER — what a teacher says and a textbook leaves out.
+
+   The catalogue beside this one is complete about WHAT to play. It is silent
+   about everything a professor supplies in the room: the record this came
+   off, the mistake everyone makes in week two, how to tell whether you
+   actually have it, and what to do with it once you do. That silence is the
+   whole difference between working through a book alone and being taught.
+
+   So nine fields, at two levels.
+
+   ON A STAGE: where this music came from, how hard it is, and how long it
+   honestly takes. The last one matters more than it looks. A student four
+   weeks into Type A/B voicings who thinks it should have taken one is about
+   to conclude they have no talent, and the true answer — "three to five
+   weeks, and most people hit a wall in the first" — is the single most
+   useful thing anybody can tell them.
+
+   ON AN EXERCISE: what to listen to, what goes wrong, how to know you have
+   it, when you would ever use it, what it connects to, how to practise it,
+   and one open-ended thing to make with it.
+
+   WHAT IS WRITTEN AND WHAT IS DERIVED, because the difference should not
+   have to be guessed at. Every stage here is written. Every exercise has its
+   own whenToUse, connections, practiceStrategy and creativeChallenge,
+   written for that exercise. The listening is written per stage and per
+   exercise where a specific track belongs to it — a stage's records are the
+   fallback rather than a repetition. And a mastery checklist is written
+   where the source has one and DERIVED otherwise, by the escalation the
+   brief asks for: slowly → at tempo → in all twelve → from memory → inside a
+   tune. A derived checklist says so, so that a checkpoint nobody wrote is
+   never mistaken for one somebody did.
+
+   FOUR STAGES IN THE BRIEF ARE NOT IN THIS CATALOGUE. It asks for 6A
+   (chord-scale theory), 13 (Mantooth voicings), 15 (constant structures) and
+   V1–V3 (scat). This room's ladder is P0 and 1–12, out of Siskind, and
+   inventing four stages of exercises to hang metadata on would be inventing
+   a curriculum rather than enriching one. Their material is folded into the
+   stages that do exist and are about the same thing: the chord-scale
+   material into stage 8, the quartal and Mantooth material into 8.3b and
+   8.3c, the constant-structure material into 10.4. Nothing is lost; nothing
+   is fabricated to hold it.
+   ============================================================ */
+
+/* The five the brief names, in order, so a badge can be drawn from them. */
+const JAZZ_DIFFICULTY = ['beginner', 'moderate', 'challenging', 'advanced', 'professional'];
+
+/* ---------- the stages ---------- */
+const JAZZ_STAGE_RICH = {
+  'P0': {
+    expectedDifficulty: 'beginner',
+    typicalTimeToMaster: '1–2 weeks for the common distances — fourth, fifth, major third. Three to four weeks before the hard ones — tritone, minor seventh, major seventh — feel instant from any root. The full hundred and forty-four cells of the matrix usually take six to eight weeks of five minutes a day.',
+    historicalContext: 'Interval recognition has been the foundation of Western musical training since Guido d’Arezzo invented solfège in the eleventh century. In jazz it became urgent in the bebop era of the 1940s, when Parker and Gillespie pushed tempo and harmonic density past the point where anybody could calculate consciously and keep up. Ear-training at Berklee and every other jazz school still begins here, before a single chord or scale.',
+    commonMistakes: ['Drilling only from the comfortable roots. The whole point is to make G flat and B feel like C.',
+      'Counting semitones on your fingers. If you are still counting, you are recognising rather than hearing — slow down.'],
+    listeningAssignments: [
+      {artist:'John Coltrane', track:'Giant Steps', album:'Giant Steps', year:1959, label:'Atlantic', timestamp:'0:00–0:15',
+       listenFor:'Fifteen seconds. Coltrane moves through key centres a major third apart at a tempo that makes conscious calculation impossible. This is what the matrix is for.'}]},
+  1: {
+    expectedDifficulty: 'beginner',
+    typicalTimeToMaster: 'Two to three weeks. Anybody with piano behind them gets these in a few keys quickly, but twelve roots by five chord types is sixty shapes, and the goal is instant recall rather than slow construction.',
+    historicalContext: 'The three basic seventh chords — major, minor, dominant — are the harmonic vocabulary that has defined jazz since the swing era of the 1930s. Ellington’s arrangers used exactly these qualities, and every lead sheet in the Real Book is built out of them. The half-diminished came forward in bebop as the ii chord of the minor two-five-one.',
+    commonMistakes: ['Playing them too low. Siskind: lowest note above the F below the staff, highest below the G above it. Low voicings are mud.',
+      'Memorising four separate notes instead of the formula. A formula transposes; a handful of note names does not.'],
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Freddie Freeloader', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:null,
+       listenFor:'Siskind’s first guided listening. Follow Wynton Kelly’s piano — his chords are what defines the harmony. The major seventh has a bright, slightly nostalgic quality you will hear on every I chord.'},
+      {artist:'Bill Evans', track:'Peace Piece', album:'Everybody Digs Bill Evans', year:1958, label:'Riverside', timestamp:null,
+       listenFor:'A hypnotic major vamp. Listen to the shimmer of the major seventh interval itself, held for minutes at a time.'}]},
+  2: {
+    expectedDifficulty: 'beginner',
+    typicalTimeToMaster: 'Three to four weeks for root position in all twelve. Shell voicings add another two. Most players come back to this stage for the rest of their lives — nobody finishes two-five-one practice.',
+    historicalContext: 'The two-five-one is the DNA of jazz harmony, in virtually every standard written between 1920 and 1960. Porter, Gershwin and Rodgers all built songs on it, and the bebop players wrote hundreds of contrafacts — new melodies over the changes of existing tunes. Siskind: it "makes up a high percentage of the harmonic landscape of jazz standards."',
+    commonMistakes: ['Only practising Siskind’s Set A (C→B♭→A♭→G♭→E→D) and never Set B (D♭→B→A→G→F→E♭). Half the keys never come round.',
+      'Missing the transformation between keys: the I chord’s third and seventh drop to become the next ii. That is voice leading, not transposition.'],
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Tune Up', album:'Cookin’', year:1956, label:'Prestige', timestamp:null,
+       listenFor:'The whole tune is two-five-ones in three keys descending by whole steps. This is the exercise you are practising, as a piece of music.'},
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'0:33–1:31',
+       listenFor:'At 0:33 the piano answers. Eight bars of D dorian, eight of E flat — even modal jazz leans on the sound of the ii chord.'}]},
+  3: {
+    expectedDifficulty: 'moderate',
+    typicalTimeToMaster: 'Three to five weeks. This is where most people hit their first real wall: letting go of the root is a genuine mental shift, and feeling lost for the first week is normal rather than a sign of anything.',
+    historicalContext: 'Type A and B voicings — rootless voicings, to some teachers — became standard jazz piano vocabulary in the 1950s through Red Garland, Wynton Kelly and Bill Evans. They exist because the bass player is already playing the root, and doubling it wastes the pianist’s hands. Siskind: they "place the chord’s essential tones, the thirds and sevenths, in the left hand."',
+    commonMistakes: ['Forgetting the typewriter rule. Below the C under middle C, go back up — do not keep descending.',
+      'Alternating A→B mechanically. Siskind’s FAQ: alternate when the bass moves in fifths; stay on the same type when it moves by step or holds.'],
+    listeningAssignments: [
+      {artist:'Red Garland', track:'Billy Boy', album:'Milestones', year:1958, label:'Columbia', timestamp:null,
+       listenFor:'Garland’s left hand is exactly these voicings. Listen to how little the hand moves between chords.'},
+      {artist:'Bill Evans', track:'Waltz for Debby', album:'Waltz for Debby', year:1961, label:'Riverside', timestamp:null,
+       listenFor:'Evans made rootless voicings an art. The left hand is so smooth you barely notice the changes — that is what good voice leading buys you.'}]},
+  4: {
+    expectedDifficulty: 'moderate',
+    typicalTimeToMaster: 'Two to three weeks for the three-note shells, then two to four more before the bass in two runs underneath without collapsing the voicing. Hand independence is a slower thing than it looks on paper.',
+    historicalContext: 'Playing a bass line and a voicing at once is the solo and duo tradition — Art Tatum, Erroll Garner, Dave McKenna — and the survival skill of any pianist who accompanies a singer without a rhythm section. Stripping the left hand to three notes to free the right is the compromise that makes it possible at tempo.',
+    commonMistakes: ['Letting the bass line stiffen the voicing. If the chord hand starts arriving late, the bass is being played with the wrong part of your attention.',
+      'Leaving out the fifth AND the ninth. Three notes means third, seventh and one of them, not third and seventh alone.'],
+    listeningAssignments: [
+      {artist:'Erroll Garner', track:'Misty', album:'Contrasts', year:1954, label:'Mercury', timestamp:null,
+       listenFor:'Left hand keeping time entirely on its own while the right does something else. This is the texture the exercise is building toward.'}]},
+  5: {
+    expectedDifficulty: 'moderate',
+    typicalTimeToMaster: 'Two to three weeks for the form in four keys. Four to six before you can improvise over it confidently with voicings and a bass line going at the same time.',
+    historicalContext: 'The twelve-bar blues predates jazz, in the work songs and spirituals of the nineteenth century, and became jazz’s foundation when the New Orleans players formalised the I-IV-V. The jazz version adds chromatic sophistication — two-five turnarounds, tritone subs — while keeping the twelve bars. Siskind: about a quarter of jazz standards are blues or a variation of one.',
+    commonMistakes: ['Siskind’s FAQ: "The biggest problems I hear from students at this stage all have to do with rhythm and articulation." Right notes, wrong swing.',
+      'Playing the blues scale over every chord. It is a safety net, not a description of the harmony.',
+      'Forgetting the quick four in bar two. Jazz blues goes to IV7 in the second bar; rock blues does not.'],
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Freddie Freeloader', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:null,
+       listenFor:'The definitive jazz blues. Follow the twelve bars all the way round and hear Wynton Kelly build over each chorus.'},
+      {artist:'Thelonious Monk', track:'Blue Monk', album:'Monk’s Dream', year:1962, label:'Columbia', timestamp:null,
+       listenFor:'Angular melody, and comping that uses silence as a compositional tool.'},
+      {artist:'Charlie Parker', track:'Billie’s Bounce', album:'The Bird on Savoy', year:1945, label:'Savoy', timestamp:null,
+       listenFor:'Bebop blues. Parker implies the changes rather than spelling them out.'}]},
+  6: {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'About a week per lick to have it in all twelve keys, so two to three months for the full ten. Using one spontaneously inside a tune is a separate skill that never really finishes.',
+    historicalContext: 'Licks are the vocabulary words of the jazz language. Parker, Gillespie and the bebop pioneers built a shared melodic dictionary in the 1940s that is still in use. Siskind: "Learning to rattle off set phrases without thinking is very useful. These set phrases are a chance to internalize grammar." Knowing how to say hello does not make you a writer — but nobody speaks a language without it.',
+    commonMistakes: ['Skipping steps two and four of Siskind’s four. Almost everybody learns the notes and transposes, and almost nobody practises it against comping or inside a tune.',
+      'Playing a lick with flat, even dynamics. Without the doo-VAH articulation it is a scale exercise, not a phrase.'],
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'1:31–3:24',
+       listenFor:'Short phrases, enormous space. Great improvising is not the most notes — it is the right ones with good time.'}]},
+  7: {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'Four to six weeks for the flat-nine and sharp-five voicings, two to three for tritone substitution, three to four for the altered scale. This is the stage where the playing starts to sound like a record.',
+    historicalContext: 'Altered dominants are the signature sound of bebop and everything after it; Parker’s solos are full of flat nines and sharp nines over dominant chords. The altered scale — the seventh mode of melodic minor — was later codified as the go-to sound for them. Siskind: "Musicians are permitted and expected to alter dominant chords themselves without any indication" on the page.',
+    commonMistakes: ['Altering everything. Tension is only tension against something plain; a chorus of nothing but altered dominants is a wash.',
+      'Learning the alterations as new chords instead of as one finger moved on a chord you already have.'],
+    listeningAssignments: [
+      {artist:'John Coltrane', track:'Blue Train', album:'Blue Train', year:1957, label:'Blue Note', timestamp:null,
+       listenFor:'Kenny Drew’s voicings use tritone subs and alterations throughout. Follow the chromatic bass motion under them.'}]},
+  8: {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'Four to eight weeks for the voicings and basic comping. The improvising is a lifetime: one chord for eight bars is deceptively hard, because there are no changes to hide behind.',
+    historicalContext: 'Modal jazz arrived around 1959 with Kind of Blue, as musicians looked for a way out of the chord-a-beat density of bebop and into the colour of a single scale held for a long time. Davis, Coltrane, Evans, Tyner, Hancock. Siskind: "Modal jazz features slow harmonic rhythm, ambiguous tonal centers, and root movements outside the circle of fifths." The chord-scale theory that grew alongside it was systematised by George Russell in 1953 and codified at Berklee; Levine’s claim is that almost every chord symbol can be played with four scales — major, melodic minor, diminished and whole tone.',
+    commonMistakes: ['Siskind’s FAQ: "Most students incorrectly define modal jazz as jazz that uses modes." It is a style — slow harmonic rhythm, root motion outside the circle of fifths, one colour explored at length.',
+      'Levine’s warning: thinking of a mode as its parent scale started somewhere else. D dorian is not C major from D. It is D as home, with a minor third, a natural sixth and a minor seventh.'],
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'0:33',
+       listenFor:'The piano entrance at 0:33 is the So What voicing itself — the single most iconic sound in modal jazz.'},
+      {artist:'Herbie Hancock', track:'Maiden Voyage', album:'Maiden Voyage', year:1965, label:'Blue Note', timestamp:null,
+       listenFor:'Hancock creates movement over static harmony by shifting voicings up and down the mode. Quartal and cluster colours everywhere.'},
+      {artist:'McCoy Tyner', track:'Passion Dance', album:'The Real McCoy', year:1967, label:'Blue Note', timestamp:null,
+       listenFor:'The quintessential quartal left hand, with tremendous power. This is what stacked fourths sound like when somebody means them.'}]},
+  9: {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Secondary dominants and the backdoor: three to four weeks. Diminished walk-ups: two to three. Coltrane changes: one to three months, and plateauing there is completely normal — professionals keep refining reharmonisation for their whole careers.',
+    historicalContext: 'Reharmonisation has been a core jazz skill since Art Tatum’s solo reworkings of standards in the 1930s. Coltrane took it to its limit: Giant Steps (1960) moved through key centres a major third apart, a symmetrical division of the octave nobody had used systematically before, and the jazz world has been catching up since.',
+    commonMistakes: ['Reharmonising before the plain version is solid. If you cannot hear what you are replacing, you cannot hear what the replacement does.',
+      'Treating a substitution as a rule rather than a colour. Every V chord does not want a tritone sub.'],
+    listeningAssignments: [
+      {artist:'John Coltrane', track:'Countdown', album:'Giant Steps', year:1959, label:'Atlantic', timestamp:null,
+       listenFor:'The changes of Tune Up with the major-third cycle substituted into every two-five-one. Play the original beside it to hear the transformation.'}]},
+  10: {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Three to five weeks to get outside and back in without the time falling apart. Doing it so that a listener hears it as intention rather than error is longer, and is mostly about rhythm rather than notes.',
+    historicalContext: 'Playing outside as a deliberate device belongs to the 1960s — Coltrane’s quartet, Wayne Shorter, Herbie Hancock’s Blue Note records — and became a mainstream vocabulary through Chick Corea and the fusion players after them. Siskind: "Modal interchange is choosing modes other than those that match the chords."',
+    commonMistakes: ['Going outside without an inside. Outside only means anything against a centre somebody can still hear.',
+      'Losing the time. Everything is forgiven if the time holds, and nothing is if it does not.'],
+    listeningAssignments: [
+      {artist:'Herbie Hancock', track:'Dolphin Dance', album:'Maiden Voyage', year:1965, label:'Blue Note', timestamp:null,
+       listenFor:'Harmony that keeps stepping sideways and landing somewhere it had no obligation to land. Follow the bass to hear where the centre actually is.'}]},
+  11: {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Two to four weeks each, and much faster than that if the plain blues is genuinely cold. A modal blues is a variation, and a variation on something you do not have is just notes.',
+    historicalContext: 'The modal blues is what happened when the modal players turned back to the oldest form in the music. Footprints (Wayne Shorter), Equinox (Coltrane), Eighty-One (Ron Carter and Miles Davis), Matrix (Chick Corea) — the twelve bars kept, the harmony rebuilt out of sus chords, minor sevenths and fourths. Siskind: "By using modal harmonies, musicians can create alternate versions of the blues."',
+    commonMistakes: ['Learning the modal versions before the plain one is automatic. The whole effect depends on the listener — and the player — knowing what is being departed from.',
+      'Playing the same scale over the whole form because the chords are all one quality. Sameness of chord quality is not sameness of function.'],
+    listeningAssignments: [
+      {artist:'Wayne Shorter', track:'Footprints', album:'Adam’s Apple', year:1966, label:'Blue Note', timestamp:null,
+       listenFor:'A minor blues in 6/8 that refuses to sit still. Hear how much of the blues survives when almost everything about the harmony has changed.'},
+      {artist:'John Coltrane', track:'Equinox', album:'Coltrane’s Sound', year:1960, label:'Atlantic', timestamp:null,
+       listenFor:'A minor blues at a slow tempo, with McCoy Tyner’s quartal voicings doing the harmonic work.'}]},
+  12: {
+    expectedDifficulty: 'professional',
+    typicalTimeToMaster: 'Three to six weeks before five and seven stop feeling like counting. The composition exercises are not mastered at all — they are finished, which is a different and more useful thing.',
+    historicalContext: 'Odd meters entered jazz through Dave Brubeck’s Time Out in 1959 — Take Five in 5/4, Blue Rondo à la Turk in 9/8 — and became ordinary through Don Ellis, the Mahavishnu Orchestra and the fusion generation. Siskind: "When tunes originally in 4/4 are adapted to 5/4, every other measure loses one beat. In 7/4, every other measure gains one."',
+    commonMistakes: ['Counting rather than feeling. Five is not one-two-three-four-five; it is a three and a two, or a two and a three, and which one changes everything.',
+      'Never finishing the composition. An unfinished piece teaches you less than a bad finished one.'],
+    listeningAssignments: [
+      {artist:'Dave Brubeck', track:'Take Five', album:'Time Out', year:1959, label:'Columbia', timestamp:null,
+       listenFor:'The vamp is a three plus a two, every bar, for five minutes. Count it once and then stop counting and feel it.'},
+      {artist:'Don Ellis', track:'Bulgarian Bulge', album:'Electric Bath', year:1967, label:'Columbia', timestamp:null,
+       listenFor:'Asymmetric meter played as though it were the most natural pulse in the world.'}]},
+};
+
+/* ---------- the exercises ----------
+   Keyed by the id the book gives. Anything left out of an entry falls back
+   to its stage; a masteryChecklist left out is derived rather than absent,
+   and says so. */
+const JAZZ_EX_RICH = {
+
+  /* ===== P0 — intervals ===== */
+  'P0.1': {
+    whenToUse: 'The first thirty seconds of any interval practice. Look at it, hear it, then close the page and do P0.11 from memory.',
+    connections: ['Every chord in stage 1 is two or three of these stacked', 'The tritone here is the engine of every dominant chord in stage 7'],
+    practiceStrategy: 'Play it, sing it, then play it again and check the singing was right. An interval you cannot sing is one your hands are guessing at. Two minutes, one distance, then stop.',
+    creativeChallenge: 'Find this interval in a song you already know by heart. Nearly every one has an anchor somewhere in the first bar — the perfect fourth opens Here Comes the Bride, the minor seventh opens Somewhere. Once it has a song attached it stops being arithmetic.',
+    masteryChecklist: ['Can play this interval from this root without hesitating',
+      'Can sing it before playing it, and be right',
+      'Can play it from all 12 roots',
+      'Can name it by ear when somebody else plays it']},
+  'P0.2': {
+    whenToUse: 'Whenever a distance is solid going up and mysterious coming down — which is most of them, for most people, for longer than expected.',
+    connections: ['Descending intervals are what melodic lines are made of, which is stage 6', 'A descending tritone is the V–I resolution heard backwards'],
+    practiceStrategy: 'Up, then down, then up again without the pause. When the descending version stops feeling like a translation of the ascending one, move on.',
+    creativeChallenge: 'Improvise a four-bar melody that only ever moves by this interval, alternating up and down. Does it sound like an idea or like an exercise? That answer is worth having.'},
+  'P0.3': {
+    whenToUse: 'Once a week as a calibration, rather than daily. It is the ruler, not the work.',
+    connections: ['The full spectrum from unison to octave is what a chord voicing is choosing between', 'Stacked intervals are how stage 1 builds every chord type'],
+    practiceStrategy: 'Slowly, and listen to the change of colour between each one and the next rather than to the notes. The step from major third to perfect fourth is where the consonance turns.',
+    creativeChallenge: 'Play the staircase and stop on the one that is most uncomfortable to you. Hold it. Play something over it. Most of what makes a player sound like themselves is which dissonance they are at home in.'},
+  'P0.4': {
+    whenToUse: 'Melodic drilling before any improvising session — the ear that improvises is the melodic one, not the harmonic one.',
+    connections: ['Stage 6’s licks are melodic intervals in a rhythm', 'The arpeggios in 6.11 are a selection from this staircase'],
+    practiceStrategy: 'Root, then the note, then silence. The silence is where the ear does its work. Do not run them together until each one lands on its own.',
+    creativeChallenge: 'Sing the whole staircase without the piano, then check yourself. Where you drift is exactly where your ear is weakest, and that is worth more than a week of even practice.'},
+  'P0.5': {
+    listeningAssignments: [
+      {artist:'John Coltrane', track:'Giant Steps', album:'Giant Steps', year:1959, label:'Atlantic', timestamp:'0:00–0:15',
+       listenFor:'Listen to the first fifteen seconds. Coltrane navigates major-third key centres — B, G, E flat — at breakneck tempo. Being able to calculate an interval from any root instantly, at that speed, is what the matrix enables.'}],
+    commonMistakes: ['Starting too fast. Set the metronome to ♩=60 and play one interval per beat. Speed comes from accuracy, not from rushing.',
+      'Only practising from the comfortable keys — C, F, G. The whole point is to make G flat and B feel as natural as C.',
+      'Counting half-steps on your fingers. If you are still counting, slow down and use the song anchors until the sound is internalised.'],
+    masteryChecklist: ['Can play this interval from all 12 roots in cycle-of-4ths order without pausing',
+      'Can play it at ♩=100, one interval per beat',
+      'Can SING the interval before playing it, from any random root',
+      'Can identify the interval by ear when somebody else plays it'],
+    whenToUse: 'A daily warm-up — the jazz equivalent of stretching. Two or three minutes at the start of every session, rotating which distance you drill.',
+    connections: ['These same intervals become the building blocks of the chords in stage 1: a Maj7 is root + M3 + P5 + M7',
+      'The circle-of-fourths order used here is the same order you will use for two-five-one practice from stage 2 onward',
+      'The tritone drilled here is the engine of the dominant chords in stage 7 and of tritone substitution in 7.2'],
+    practiceStrategy: 'Start with the distance you find hardest — usually the tritone, the minor sixth or the major seventh. Play it from C, then F, B flat, E flat, round the circle. When it is thoughtless at ♩=80, switch to random keys in the flashcards. Once random keys feel solid, take a new interval. Rotate daily.',
+    creativeChallenge: 'Pick your favourite interval. Improvise a short melody using only that interval and its inversion over a drone. Record it. Does it sound like a musical idea or like a drill? The best jazz melodies are built from a handful of intervals used expressively.'},
+  'P0.6': {
+    whenToUse: 'When the circle of fourths has become a pattern in the fingers rather than a calculation. Chromatic order breaks the pattern and exposes what was being remembered instead of heard.',
+    connections: ['Chromatic root motion is what the diminished walk-up in 9.3 is built on', 'Planing in 10.4 moves a whole voicing this way'],
+    practiceStrategy: 'Slower than the circle version, because the physical shapes change every semitone. Where you stumble is a real weak spot rather than a slip — write those roots down and drill them alone.',
+    creativeChallenge: 'Play the sprint chromatically while a metronome clicks on two and four only. Keeping the placement honest while the hand is busy is the actual skill.'},
+  'P0.7': {
+    whenToUse: 'Before any quartal work. The stacked fourths of stage 8 are these intervals used as a harmony rather than as a measurement.',
+    connections: ['Stacked perfect fourths are the So What voicing in 8.3a and the quartal voicings in 8.3b and 8.3c',
+      'The perfect fifth is the root motion of the entire circle, and so of every two-five-one'],
+    practiceStrategy: 'Harmonically — both notes together — and listen for the hollowness. Perfect intervals have no third in them and therefore no mood, which is precisely why modal jazz reaches for them.',
+    creativeChallenge: 'Play a melody you know over a drone of open fifths instead of chords. The tune will sound older and stranger. That is what a harmony with no third does.'},
+  'P0.8': {
+    whenToUse: 'Alongside stage 1’s major seventh chord, which is these four intervals with the second and sixth taken out.',
+    connections: ['The major third is the soul of every major chord in stage 1', 'The major seventh is the shimmer on every I chord in a two-five-one'],
+    practiceStrategy: 'All four in a row from one root, then from the next. The point is the family resemblance — what makes a major interval major — not the four facts.',
+    creativeChallenge: 'Write a four-note melody using only major intervals from one root. It will sound relentlessly bright. Now add one minor interval and hear how much work a single dark note does.'},
+  'P0.9': {
+    whenToUse: 'Alongside stage 1’s minor and dominant sevenths — the minor third and minor seventh between them account for most of the jazz vocabulary.',
+    connections: ['The minor seventh is the gravity in every dominant chord, and so in every V of stage 2',
+      'The minor second is the rub that altered dominants in stage 7 are made of'],
+    practiceStrategy: 'Harmonically, and hold each one longer than is comfortable. The minor second is unbearable at first and becomes a colour you reach for; that change is the practice working.',
+    creativeChallenge: 'Play the same four-note melody twice — once with major intervals, once with minor. Same rhythm, same contour. The difference is the entire emotional range of the tonal system in one comparison.'},
+  'P0.10': {
+    listeningAssignments: [
+      {artist:'Duke Ellington', track:'Ko-Ko', album:'Never No Lament: The Blanton-Webster Band', year:1940, label:'RCA Victor', timestamp:null,
+       listenFor:'Written twenty years before anybody called it modal or altered. Listen to how much tension the band builds out of the tritone inside each dominant chord.'}],
+    whenToUse: 'Daily, forever. There is no interval in jazz worth more time than this one.',
+    connections: ['Every dominant seventh contains one, between its third and its seventh, which is why V wants to move',
+      'Tritone substitution in 7.2 works only because two dominants a tritone apart share the same pair',
+      'Coltrane changes in 9.6 divide the octave by major thirds, the same symmetry taken one step further'],
+    practiceStrategy: 'Root, tritone, then both together, round the circle. Then find the two dominant chords that share it — G7 and D♭7 — and play them back to back. The moment that pair stops being a fact and becomes a sound is the moment stage 7 becomes easy.',
+    creativeChallenge: 'Play a V–I in C. Then play the same resolution with D♭7 instead of G7. Same two notes doing the work, completely different bass. If you can hear why, you have already understood tritone substitution before reaching it.'},
+  'P0.11': {
+    whenToUse: 'After a week of P0.5. Recognition is not recall, and this is the only exercise here that tests recall.',
+    connections: ['This is the flashcard principle the whole room is built on, at its smallest scale',
+      'Pulling an interval out of the air instantly is what stage 6’s licks require at tempo'],
+    practiceStrategy: 'Randomise both the root and the distance. Answer out loud before touching the keys, then play to check. Getting it wrong and hearing the correction is worth more than three right answers.',
+    creativeChallenge: 'Have somebody else call out a root and an interval while you are away from the instrument, and sing the answer. If it survives without the keyboard, it is genuinely yours.',
+    masteryChecklist: ['Can answer a random root and interval within two seconds',
+      'Can sing the answer before playing it',
+      'Can do it away from the keyboard entirely',
+      'Can do it for all 12 intervals, not only the comfortable ones']},
+  'P0.12': {
+    whenToUse: 'As the test at the end of stage P0 rather than as daily practice. Twelve rows is the whole matrix.',
+    connections: ['All 144 cells of the matrix are twelve of these', 'Running eighths across the full spectrum is the physical basis of the scalar licks in 6.2'],
+    practiceStrategy: 'One row a day at ♩=60, and stop the moment it becomes counting instead of hearing. Twelve days is a full pass.',
+    creativeChallenge: 'Record yourself playing one row. Listen back and mark where the tempo wobbles. Those are the distances that are not yet yours, regardless of what the fingers managed.'},
+
+  /* ===== 1 — chord construction ===== */
+  '1.1': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Freddie Freeloader', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:null,
+       listenFor:'Siskind’s first guided listening. Listen to Wynton Kelly’s piano — notice how his chords define the harmony. The Maj7 has a bright but nostalgic quality you will hear on the I chord.'},
+      {artist:'Bill Evans', track:'Peace Piece', album:'Everybody Digs Bill Evans', year:1958, label:'Riverside', timestamp:null,
+       listenFor:'Evans plays a hypnotic major vamp. Listen to the shimmering quality of the major seventh interval itself.'}],
+    commonMistakes: ['Playing chords too low on the keyboard. Siskind: keep the lowest note above the F below the staff and the highest below the G above it. Low voicings sound muddy.',
+      'Forgetting that the quality of a chord is decided entirely by its third and seventh. The root and fifth are the same in all three basic types.',
+      'Memorising each chord as four separate notes instead of learning the formula — root, M3, P5, M7. The formula transposes; individual notes do not.'],
+    masteryChecklist: ['Can build a Maj7 from any of the 12 roots within two seconds',
+      'Can name the 3rd and 7th of any Maj7 instantly',
+      'Can tell Maj7 from Dom7 by ear — bright and resolved against tense and wanting to move',
+      'Can play all 12 Maj7 chords ascending chromatically without stopping'],
+    whenToUse: 'The home base of jazz harmony — the I chord of most standards. When a lead sheet says CMaj7, F Maj7, B♭Maj7, this is what you play, until stage 3 gives you something better to play instead.',
+    connections: ['These root-position chords are the raw material for the Type A and B voicings of stage 3 — the same notes, rearranged',
+      'The intervals inside each type are the ones drilled in stage P0',
+      'In stage 8 you learn that each chord type has a scale attached to it; the Maj7 belongs to the Ionian mode'],
+    practiceStrategy: 'Siskind gives three ways to find each chord: play the scale and pick out 1-3-5-7; play the triad and add the seventh; or stack M3 + m3 + M3. Practise all three. The aim is for any of them to arrive at the same chord instantly.',
+    creativeChallenge: 'Go through the Real Book and find ten tunes that start on a Maj7. Play only the first chord of each. Notice how different keys give the same formula a different colour.'},
+  '1.2': {
+    whenToUse: 'Every V chord in every two-five-one, and every chord in a blues. This is the most-played chord in the music.',
+    connections: ['The tritone between its third and seventh is the interval drilled in P0.10 and the reason the chord resolves',
+      'Every alteration in stage 7 is this chord with one note moved',
+      'The Mixolydian mode in 8.1 is the scale that belongs to it'],
+    practiceStrategy: 'Build it from the major seventh you already have by dropping the seventh a semitone. One finger, one chord type. Do that in all twelve before ever building one from scratch.',
+    creativeChallenge: 'Play a Maj7 and a Dom7 on the same root, back to back, in all twelve keys. One note apart, and completely different intentions. Say out loud what each one wants to do next.'},
+  '1.3': {
+    whenToUse: 'Every ii chord in every two-five-one, and the home chord of half the modal tunes in the book.',
+    connections: ['The ii of stage 2 is this chord', 'Dorian in 8.1 is the scale that belongs to it', 'Drop the fifth and you have the shell voicing of 2.2'],
+    practiceStrategy: 'Build it from the dominant seventh by dropping the third a semitone. Three chord types, two moved fingers, twelve keys — that is the whole of stage 1 in one sentence.',
+    creativeChallenge: 'Play Cmaj7, C7, Cmin7 in a row and hold each for four beats. Three moods on one root. Then do it in the four keys you find hardest.'},
+  '1.4': {
+    whenToUse: 'The ii chord of every minor two-five-one, which is most of the minor standards you will ever be asked for.',
+    connections: ['2.3’s minor two-five-one opens with this chord', 'Locrian in 8.1 is its mode', 'It is also a min7 with a flattened fifth, so it is one finger from 1.3'],
+    practiceStrategy: 'Build it from the minor seventh by lowering the fifth. Then hear it beside the minor seventh in the same key: the flattened fifth is what makes it unstable enough to need resolving.',
+    creativeChallenge: 'Play a minor two-five-one in A minor and stop on the half-diminished chord. Sit there for a while. Everything the rest of the progression does is a response to this chord’s unease.'},
+  '1.5': {
+    whenToUse: 'Passing chords and chromatic walk-ups, rather than as a place to rest. It is a chord that is always going somewhere.',
+    connections: ['The walk-up in 9.3 is built entirely from these', '3.3 gives it Type A and B voicings', 'It divides the octave into equal minor thirds, the same symmetry as the tritone in P0.10'],
+    practiceStrategy: 'Play it from four roots and notice you have played the same four notes each time. There are only three diminished sevenths in all of music — that is the shortcut, and it is a large one.',
+    creativeChallenge: 'Find a tune with a diminished chord in it and play the passage without it, then with. It almost always exists to get the bass from one diatonic note to the next. Say which two.'},
+
+  /* ===== 2 — the two-five-one ===== */
+  '2.1': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Tune Up', album:'Cookin’', year:1956, label:'Prestige', timestamp:null,
+       listenFor:'The whole tune is built from two-five-ones in three keys descending by whole steps. This is the exact exercise you are practising, as a real song.'},
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'0:33–1:31',
+       listenFor:'At 0:33 the piano enters with the famous answer. Eight bars of D dorian, then eight of E flat — even modal jazz uses the sound of the ii chord.'}],
+    commonMistakes: ['Not practising both whole-step descents. Siskind specifies Set A — C, B♭, A♭, G♭, E, D — and Set B — D♭, B, A, G, F, E♭. Most students only ever do Set A.',
+      'Forgetting the transformation between keys: the I chord’s third and seventh drop to turn it into the next ii. That is voice leading, not transposition.',
+      'Playing it fast before the voice leading is internalised. The beauty of the progression is the smooth movement between chords, not the speed.'],
+    masteryChecklist: ['Can play ii-V-I in all 12 keys without pausing, in root position',
+      'Can alternate root position and second inversion in all 12 keys',
+      'Can play it eyes-closed in at least 6 keys',
+      'Can play it at ♩=120, one chord per beat',
+      'Can SING the roots of ii-V-I in any key before playing',
+      'Can identify a ii-V-I by ear on a recording'],
+    whenToUse: 'Everywhere. Dm7–G7–Cmaj7 is two-five-one in C; Fm7–B♭7–E♭Maj7 is two-five-one in E flat. Circle them in any tune in the Real Book and you will have circled forty to sixty per cent of the chords.',
+    connections: ['The root-position version is the skeleton that stage 3 dresses in professional voice leading',
+      'The modes for it — Dorian, Mixolydian, Ionian — are in stage 8, and all three share one parent scale',
+      'Stage 7 adds alterations to the V and makes the whole thing sound like a record',
+      'The minor version, 2.3, becomes a major focus of Siskind’s second book'],
+    practiceStrategy: 'Siskind’s four steps apply here too: work out the voice leading and watch which notes hold and which move; practise it under a Charleston comping rhythm; transpose through all twelve using both whole-step descent sets; then apply it to tunes by circling every two-five-one in a standard and playing only those bars.',
+    creativeChallenge: 'Take Autumn Leaves. Circle every two-five-one. Comp the whole form using nothing but root-position two-five-ones and record it. Then do it again with second inversions. The improvement is audible, and hearing it is the point.'},
+  '2.2': {
+    whenToUse: 'Under a singer or a horn, where four notes would be too much and two are exactly enough. Also the fastest way to learn a new tune: shells first, colour later.',
+    connections: ['These two notes are the essential tones that stage 3’s voicings add colour above', 'The one-handed shells of 4.1a and 4.1b are this plus one more note'],
+    practiceStrategy: 'Left hand only, third and seventh, through a whole tune. When you can hear the changes from just those two notes, you have understood what a chord actually is.',
+    creativeChallenge: 'Comp a whole standard using only shells while you sing the melody. It will sound sparse and completely convincing. That is the proof that the other notes are decoration.'},
+  '2.3': {
+    whenToUse: 'Every minor standard — Autumn Leaves, Blue Bossa, Softly as in a Morning Sunrise, Alone Together. It is as common in the minor repertoire as the major version is in the major.',
+    connections: ['Its ii is the half-diminished chord from 1.4 and its V is the flat-nine dominant of 7.1a',
+      'The minor blues of 11.4 puts this progression into the twelve-bar form'],
+    practiceStrategy: 'Learn it beside the major version in the same key rather than on its own. Three notes differ, and knowing exactly which three is what lets you play a minor tune the first time you see it.',
+    creativeChallenge: 'Play Autumn Leaves, which alternates between a major key and its relative minor. Mark where each two-five-one is major and where it is minor. The tune is a lesson in the difference.'},
+
+  /* ===== 3 — Type A and B ===== */
+  '3.1': {
+    listeningAssignments: [
+      {artist:'Red Garland', track:'Billy Boy', album:'Milestones', year:1958, label:'Columbia', timestamp:null,
+       listenFor:'Listen to Red’s left hand — those are exactly the Type A and B voicings you are learning. Notice how smooth the transitions between chords are.'},
+      {artist:'Wynton Kelly', track:'Freddie Freeloader', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'1:31–3:24',
+       listenFor:'Kelly’s solo and comping use these voicings throughout. The left hand stays in a compact range around middle C while the right hand improvises freely above it.'},
+      {artist:'Bill Evans', track:'Waltz for Debby', album:'Waltz for Debby', year:1961, label:'Riverside', timestamp:null,
+       listenFor:'Evans refined rootless voicings into an art form. His left hand is so smooth you barely notice the chord changes — that is the power of good voice leading.'}],
+    commonMistakes: ['Forgetting the typewriter rule: when the voicings get too low, below the C under middle C, jump back up. Siskind’s FAQ: like a typewriter, go back to the middle or the top of the range.',
+      'Not alternating A→B→A through the progression. Alternating is what creates the smooth voice leading — one pair of notes holds while the other steps down.',
+      'Starting both types from the third. Type A is 3-7-9-5, third on the bottom; Type B is 7-3-5-9, seventh on the bottom.',
+      'Always alternating A→B mechanically. Siskind’s FAQ is clear: alternate when the bass moves in fifths; stay on the same type when the bass moves by step or holds.'],
+    masteryChecklist: ['Can play ii-V-I Type A start in all 12 keys without pausing',
+      'Can play ii-V-I Type B start in all 12 keys',
+      'Can switch between A-start and B-start on command',
+      'Can play it at ♩=100 with smooth voice leading and no jumping',
+      'Can comp Type A/B through a 32-bar standard such as Autumn Leaves',
+      'Lowest note never drops below the C under middle C'],
+    whenToUse: 'Your bread-and-butter comping voicings in a band with a bass player. Siskind: designed for playing in an ensemble, specifically when a bassist is playing a bass line and somebody else has the melody. Use them behind soloists.',
+    connections: ['They use the same thirds and sevenths as the shell voicings of 2.2 — Type A and B just add the ninth and fifth above them',
+      'Stage 4 strips them back to three notes so the other hand can play a bass line',
+      'The quartal voicings of 8.3b serve the same purpose by the opposite means: both refuse to stack thirds'],
+    practiceStrategy: 'Siskind’s order: learn the formulas for Maj7, Dom7 and min7 in both types; practise two-five-one in one key, alternating A→B→A, until it is smooth; then the two whole-step descent sets; then tunes. Start a little higher in the register than feels natural, so there is room to come down.',
+    creativeChallenge: 'Comp all of Lady Bird using nothing but Type A and B under a Charleston rhythm. Then Misty. Then something with harder changes, like Stella by Starlight. The aim is choosing the voicing without thinking about choosing it.'},
+  '3.2': {
+    whenToUse: 'Whenever the A-start puts your hand too high or the previous chord ended in the wrong place. The two types exist so that there is always one that fits where your hand already is.',
+    connections: ['It is 3.1 turned over — the same four notes in a different order', 'Its one-handed reduction is 4.1b'],
+    practiceStrategy: 'Practise the same twelve keys again from the B start, and then practise switching: play two-five-one starting A, then immediately starting B, and hear which one moved less.',
+    creativeChallenge: 'Take a tune and comp it twice, once starting every phrase on A and once on B. Where the B version sounds better, work out why — it will almost always be because the hand had less distance to travel.'},
+  '3.3': {
+    whenToUse: 'Passing chords between diatonic chords, and the walk-up of 9.3. A diminished voicing is almost never a destination.',
+    connections: ['The chord itself is 1.5', 'The walk-up in 9.3 uses these voicings in sequence', 'Its symmetry means one shape serves four roots'],
+    practiceStrategy: 'Because the chord is symmetrical, the voicing repeats every minor third. Learn three and you have twelve — but play all twelve anyway, so that the hand knows where it is rather than deducing it.',
+    creativeChallenge: 'Insert a diminished passing chord between the I and the ii of a tune you know. Play it both ways for somebody else and ask which sounds more like a record.'},
+
+  /* ===== 4 — one hand, and a bass ===== */
+  '4.1a': {
+    whenToUse: 'Solo playing, duo playing, and any moment when the right hand is busy with a melody and the left still has to say what the harmony is.',
+    connections: ['It is 3.1 with one note taken out', 'It pairs with the bass line of 4.2 to make the whole solo-piano texture', 'The note kept — ninth or fifth — is the same choice stage 8’s voicings keep making'],
+    practiceStrategy: 'Left hand alone, through all twelve, until the shape is automatic. Only then add anything in the right hand. A three-note voicing that needs attention is not yet three notes.',
+    creativeChallenge: 'Play a standard with these in the left hand and the written melody in the right. That is a complete performance with no band. Record it and listen for where the left hand gets late.'},
+  '4.1b': {
+    whenToUse: 'The same as 4.1a, chosen by where your hand is rather than by preference.',
+    connections: ['It is 3.2 reduced', 'Alternating it with 4.1a is what keeps a solo left hand from climbing off the keyboard'],
+    practiceStrategy: 'Drill the switch rather than the shapes: two-five-one starting A, then starting B, then alternating mid-progression. The decision has to be faster than the chord.',
+    creativeChallenge: 'Comp a blues with the left hand only, choosing A or B purely by which one your hand can reach without moving. If you never move more than a third, you have understood the system.'},
+  '4.2': {
+    whenToUse: 'Ballads and medium tempos where a walking line in four would be too busy. Two notes a bar is enough to imply a bass player.',
+    connections: ['It sits under the one-handed voicings of 4.1a and 4.1b', 'A walking line in four is this exercise with the passing notes filled in', 'The root and fifth are the perfect intervals of P0.7'],
+    practiceStrategy: 'Bass alone first, with the metronome on two and four, until it is boring. Then add the voicing in the same hand. The hardest part is not the notes, it is keeping the bass steady when the chord hand arrives.',
+    creativeChallenge: 'Play a whole chorus with the bass in two, then a chorus with it in four. The tune changes character completely, and choosing between them is an arranging decision you now get to make.'},
+
+  /* ===== 5 — the blues ===== */
+  '5.1': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Freddie Freeloader', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:null,
+       listenFor:'The definitive jazz blues. Follow the twelve-bar form: I7-IV7-I7-I7, IV7-IV7-I7-I7, ii-V-I-turnaround. Hear Wynton Kelly build intensity over each chorus.'},
+      {artist:'Thelonious Monk', track:'Blue Monk', album:'Monk’s Dream', year:1962, label:'Columbia', timestamp:null,
+       listenFor:'An angular melody over the same twelve bars. Listen to the comping — sparse, rhythmically unpredictable, using space as a compositional tool.'},
+      {artist:'Charlie Parker', track:'Billie’s Bounce', album:'The Bird on Savoy', year:1945, label:'Savoy', timestamp:null,
+       listenFor:'Bebop blues at its finest. Parker’s melody implies the changes without spelling them out literally.'}],
+    commonMistakes: ['Siskind’s FAQ: "The biggest problems I hear from students at this stage all have to do with rhythm and articulation." Right notes, wrong swing — check the doo-VAH accents.',
+      'Playing the blues scale over every chord. It works as a safety net but it does not outline the changes. Mix arpeggios with it.',
+      'Forgetting the quick IV in bar two. The jazz blues hits IV7 in the second bar and returns to I7 — this is not the rock blues.'],
+    masteryChecklist: ['Can play the 12-bar jazz blues from memory in C, F, G and B♭',
+      'Can play it in all 12 keys',
+      'Can comp it with Type A/B voicings',
+      'Can play the blues scale in at least 4 keys',
+      'Can improvise a two-chorus solo using arpeggios, blues scale and one lick'],
+    whenToUse: 'The most-called form at any jam session. If you cannot play a blues you cannot sit in. It is also where jazz phrasing and swing feel are actually learnt.',
+    connections: ['The turnaround in bars nine to twelve is the two-five-one of stage 2 in context',
+      'The blues scale reappears in stage 11 reharmonised into modal versions',
+      'The sweet scale of 5.3 is a Mixolydian fragment, which connects it to stage 8'],
+    practiceStrategy: 'Memorise the form before the voicings — I-IV-I-I, IV-IV-I-I, ii-V-I-turnaround. Then two-handed A/B voicings in four keys. Then the blues scale in C, F, G and B♭. Then the AAB phrasing model: play a phrase, repeat it, answer it. Then play-one-rest-one, so the solo has sentences rather than one long run.',
+    creativeChallenge: 'Learn the head of Blue Monk. Play it, then improvise two choruses on the blues scale alone, then two more mixing arpeggios and blues scale. Record both and compare. The second will sound like the changes; the first will sound like a scale.'},
+  '5.2': {
+    whenToUse: 'Anywhere in a blues, and sparingly everywhere else. It is the most recognisable sound in American music, which is both its power and its trap.',
+    connections: ['Its flattened fifth is the tritone of P0.10', 'Stage 11 reharmonises the form underneath it', 'The sweet scale of 5.3 is its bright counterpart'],
+    practiceStrategy: 'Four keys properly before twelve keys badly: C, F, G, B♭. Then phrases rather than runs — three notes and a rest, over and over, until the scale stops sounding like a scale.',
+    creativeChallenge: 'Improvise a chorus using only three notes of the blues scale. Restriction is what turns a scale into a voice.'},
+  '5.3': {
+    whenToUse: 'Against the major-key brightness of a blues, and especially over the I and IV chords where the plain blues scale can sound relentlessly dark.',
+    connections: ['It is a Mixolydian fragment, so it belongs with 8.1', 'Mixing it with 5.2 is the whole of a blues melodic vocabulary', 'Lick 6 in 6.6 is built out of it'],
+    practiceStrategy: 'Alternate: one chorus sweet, one chorus blue, one chorus mixing them. The mixing is the actual skill and it is the one nobody practises.',
+    creativeChallenge: 'Play a twelve-bar chorus where the first six bars are sweet and the last six are blue. That one switch is most of what makes a blues solo sound like it is going somewhere.'},
+
+  /* ===== 6 — licks ===== */
+  '6.1': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'1:31–3:24',
+       listenFor:'Listen to the trumpet solo. Short, simple phrases with a great deal of space. Great improvisation is not the most notes — it is the right ones with good time.'}],
+    commonMistakes: ['Not following Siskind’s four steps: articulation, coordination with comping, transposition to twelve keys, application to tunes. Most students skip the second and the fourth.',
+      'Playing it with flat, even dynamics. A jazz lick needs swing articulation — practise it on the scat syllables first.',
+      'Only ever using it at the start of a chorus. Practise putting it in bars one, five and nine so it has somewhere else to live.'],
+    masteryChecklist: ['Can play Lick 1 in all 12 keys from memory',
+      'Can play it with correct swing articulation, the doo-VAH pattern',
+      'Can coordinate it with Charleston comping in the left hand',
+      'Can drop it naturally into a two-chorus improvisation over a standard'],
+    whenToUse: 'Short-form two-five-one licks fit wherever the ii and V each last two beats and the I gets a bar. Long-form ones fit where ii and V each get a full measure.',
+    connections: ['The 3-5-7-9 arpeggio shape inside it becomes the core improvising tool of 6.11',
+      'The altered variants in licks 8 to 10 apply the material of stage 7',
+      'The chromatic enclosures in licks 9 and 10 are a bebop technique Siskind takes much further in his second book'],
+    practiceStrategy: 'Siskind’s four steps: learn the articulation on the scat syllables; practise it against Charleston and reverse-Charleston comping in the left hand; transpose using the whole-step descent sets and then random keys; then find two-five-ones in real tunes and put it in. Practise improvising INTO the lick and OUT of it — the joins are the hard part.',
+    creativeChallenge: 'Modify it: change the rhythm to triplets, replace one chord tone with a neighbour, add a pickup. Make three variations that still feel like the original. That is how personal vocabulary starts.'},
+  '6.2': {
+    whenToUse: 'Where the ii and the V each get a whole bar — the long-form two-five-one, which is what most ballads and medium tempos give you.',
+    connections: ['It is scalar where 6.1 is arpeggiated, and having both is what stops a solo sounding like one idea',
+      'The parent scale it runs is the Ionian of 8.1'],
+    practiceStrategy: 'Slowly enough that every note is even, because a scalar lick is where uneven fingers show. Then at tempo with the left hand comping.',
+    creativeChallenge: 'Play 6.1 and 6.2 back to back over two choruses, alternating. The contrast between a leap and a run is the beginning of shape.'},
+  '6.3': {
+    whenToUse: 'When a line has gone stepwise for too long and needs to break. The leap on the and-of-three is what makes it memorable.',
+    connections: ['The leap is an interval from P0 used expressively rather than as a measurement', 'It pairs well after 6.2, which sets it up by running'],
+    practiceStrategy: 'Practise the leap alone — just those two notes, in twelve keys — before the whole phrase. The lick fails at the leap or not at all.',
+    creativeChallenge: 'Take the leap out and play the lick stepwise. Notice how ordinary it becomes. Then put it back somewhere else in the phrase.'},
+  '6.4': {
+    whenToUse: 'Medium tempos where there is room for an arpeggio to speak. The turn at the end is what keeps it from sounding like an exercise.',
+    connections: ['The 3-5-7-9 shape is exactly what 6.11 drills on its own', 'The turn is a bebop ornament that reappears in licks 9 and 10'],
+    practiceStrategy: 'Arpeggio first, turn second, joined third. Most people can play both halves and stumble on the join.',
+    creativeChallenge: 'Play the arpeggio with three different endings — the written turn, a straight descent, and a held note. Decide which you would actually use.'},
+  '6.5': {
+    whenToUse: 'Blues and minor-key playing. The double notes are pianistic rather than horn-like, and they sound like a piano player rather than a transcription.',
+    connections: ['It belongs with the blues scale of 5.2', 'The minor colour connects it to the minor two-five-one of 2.3'],
+    practiceStrategy: 'The double notes want a rotation of the wrist, not two fingers pressed harder. If it sounds thumpy, the hand is stiff.',
+    creativeChallenge: 'Play it over a slow blues, then over a medium swing. It belongs to one of those and not to the other; find out which and say why.'},
+  '6.6': {
+    whenToUse: 'On the V chord in a long-form two-five-one, in a blues context, where the sweet scale is doing the work.',
+    connections: ['The sweet scale of 5.3 is its raw material', 'It sets up a resolution the way the V chord of stage 2 does'],
+    practiceStrategy: 'Play it against a held V chord in the left hand before ever putting it in a progression. Hear which note is the tension and land on it deliberately.',
+    creativeChallenge: 'Use it as the last four bars of a blues chorus, twice in a row. Hearing a phrase come back is how a listener knows a solo has a shape.'},
+  '6.7': {
+    whenToUse: 'Anywhere the plain 3-5-7-9 arpeggio has started to sound like a pattern. Substituting the thirteenth for the fifth is the smallest possible sophistication.',
+    connections: ['It is 6.11 with one note changed', 'The thirteenth is the natural tension of the Mixolydian mode in 8.1'],
+    practiceStrategy: 'Play the plain arpeggio and the substituted one back to back in the same key until you can hear which is which without looking.',
+    creativeChallenge: 'Do the same substitution on a lick of your own. One note is usually the entire difference between sounding like a student and sounding like a player.'},
+  '6.8': {
+    whenToUse: 'Over any V chord you want to make hungrier. This is the first lick that sounds unmistakably like modern jazz.',
+    connections: ['The alterations are from stage 7', 'It resolves into the same I chord as 6.1, so they can be swapped'],
+    practiceStrategy: 'Learn it over a plain dominant first, then over an altered voicing. The lick and the voicing have to agree about which alterations are in play.',
+    creativeChallenge: 'Play 6.1 and 6.8 in the same chorus, in the same key, one after the other. The distance between them is the distance between stage 6 and stage 7.'},
+  '6.9': {
+    whenToUse: 'Where you want tension that is coloured rather than merely loud. The flat nine and sharp eleven together are a very specific flavour.',
+    connections: ['Both alterations come from the altered scale of 7.3', 'The arpeggio shape is 6.11’s, with altered tones substituted'],
+    practiceStrategy: 'Name the two altered notes out loud as you play them, for a week. A lick whose tensions you cannot name is a lick you cannot vary.',
+    creativeChallenge: 'Replace the sharp eleven with a natural fifth and play both. One sounds like 1945 and the other like 1965. Decide which tune wants which.'},
+  '6.10': {
+    whenToUse: 'The full altered sound, for a V chord that is going to resolve hard. Use it once in a chorus, not four times.',
+    connections: ['It is the altered scale of 7.3 as a melody', 'It goes with the combined voicings of 7.4 underneath'],
+    practiceStrategy: 'Learn the scale first, then the lick. A lick built from a scale you do not have is four bars of memorised fingering.',
+    creativeChallenge: 'Play the lick, then improvise four bars from the same scale. The lick is the sentence; the scale is the language. Practise moving from one to the other.'},
+  '6.11': {
+    whenToUse: 'Daily, as the melodic equivalent of P0.5. Arpeggio fluency is what lets a line follow the changes instead of floating over them.',
+    connections: ['Almost every lick in stage 6 contains this shape', 'The chord tones are the chords of stage 1 laid out in time', 'Stage 7 alters the ninth and the fifth of the V and this shape carries the alteration'],
+    practiceStrategy: 'Through the two-five-one, ascending on the ii, descending on the V, ascending on the I — then reverse it. Then randomise the direction. Direction is what stops an arpeggio exercise from becoming a physical habit.',
+    creativeChallenge: 'Improvise a chorus using only chord tones — no passing notes at all. It will sound stiff and completely correct. Then add one passing note per bar and hear it come alive.'},
+  '6.12': {
+    whenToUse: 'Before any solo-piano playing, and whenever the left hand starts to disappear during a solo. Coordination is a separate skill from either hand.',
+    connections: ['The comping rhythms are the Charleston patterns from 6.1’s practice steps',
+      'The voicings are stage 3’s and the lines are stage 6’s, which is the whole point'],
+    practiceStrategy: 'One hand at a time first, then together at half tempo. When they fall apart, do not slow the tempo — simplify the left hand to one chord a bar and rebuild.',
+    creativeChallenge: 'Play a chorus where the left hand comps on the and-of-two only. Sparse is harder than busy, because there is nowhere for the time to hide.'},
+
+  /* ===== 7 — altered dominants ===== */
+  '7.1a': {
+    whenToUse: 'On any V chord that is about to resolve, and especially on the V of a minor two-five-one, where the flat nine is practically obligatory.',
+    connections: ['It is the Type A voicing of 3.1 with the ninth lowered', 'The minor two-five-one of 2.3 wants this chord', 'The full altered scale of 7.3 contains it'],
+    practiceStrategy: 'Play the plain Type A and the flat-nine version back to back in the same key. One finger, and a completely different level of tension. Then all twelve.',
+    creativeChallenge: 'Take a tune and play every V chord plain for one chorus and with a flat nine for the next. Ask somebody else which chorus sounded more like jazz.'},
+  '7.1b': {
+    whenToUse: 'The same as 7.1a, chosen by where the hand is. Having both is what lets the alteration happen without a jump.',
+    connections: ['It is 3.2 with the ninth lowered', 'Alternating with 7.1a keeps the voice leading smooth through an altered two-five-one'],
+    practiceStrategy: 'Drill the switch, not the shape: altered two-five-one starting A, then starting B, then choosing by which hand position you are already in.',
+    creativeChallenge: 'Comp a minor blues using only altered dominants, alternating A and B. Notice how little your hand moves if you choose correctly.'},
+  '7.2': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Tune Up', album:'Cookin’', year:1956, label:'Prestige', timestamp:null,
+       listenFor:'Listen for moments where the bass plays a chromatic descent — D, D♭, C. That is a tritone substitution: D♭7 replacing G7 before it resolves to C.'},
+      {artist:'John Coltrane', track:'Blue Train', album:'Blue Train', year:1957, label:'Blue Note', timestamp:null,
+       listenFor:'Kenny Drew’s voicings use tritone subs throughout. Follow the chromatic bass motion under them.'}],
+    commonMistakes: ['Substituting mechanically. A tritone sub works because the guide tones are shared — G7 has B and F; D♭7 has F and C♭, which is B. If you cannot hear why it works, voice-lead just the thirds and sevenths until you can.',
+      'Siskind: use the SAME voicing type throughout rather than alternating A and B. The chromatic bass descent is the point, and switching type obscures it.',
+      'Overusing it. Not every V wants substituting. It is a colour, not a default.'],
+    masteryChecklist: ['Can play the tritone-sub ii-V-I — ii, ♭II7, I — in all 12 keys',
+      'Can identify a tritone sub by ear, by the chromatic descending bass',
+      'Can explain why it works, in terms of shared guide tones',
+      'Can alternate between plain and substituted ii-V-I on the same tune'],
+    whenToUse: 'When you want a chromatic descending bass line — D, D♭, C in the key of C — or a more sophisticated colour on the V. Especially effective in ballads and medium tempos where the listener can hear the bass move.',
+    connections: ['This is why the altered scale works over dominants: the altered scale is the melodic minor built on the tritone sub’s root. G altered is A♭ melodic minor.',
+      'The shared tritone is exactly the interval drilled in P0.10',
+      'Coltrane changes in 9.6 take symmetrical key movement to its logical extreme'],
+    practiceStrategy: 'Side by side: play the two-five-one plain, then immediately with the substitution, in the same key. Hear the difference before doing anything else. Then alternate chorus by chorus over a blues — plain V in one, substituted V in the next.',
+    creativeChallenge: 'Take Autumn Leaves and comp it normally. Then again with a tritone sub on every V chord. Better? Worse? Different? Now a third time, using them only where your ear actually wants one.'},
+  '7.3': {
+    whenToUse: 'Over a dominant that is going to resolve, when you want every available tension at once. It contains all four alterations, which is its point and its danger.',
+    connections: ['It is the seventh mode of melodic minor, which is the family stage 8 formalises',
+      'It is the melodic minor a semitone above the chord root, which is the same scale as the tritone sub of 7.2',
+      'Licks 9 and 10 in stage 6 are built out of it'],
+    practiceStrategy: 'Learn it as melodic minor from a semitone up rather than as seven new notes. G altered is A♭ melodic minor. That is one fact instead of twelve scales.',
+    creativeChallenge: 'Play a two-five-one and improvise four bars over the V using only this scale, resolving on the I. The resolution is what makes the tension worth it — practise landing, not just leaving.'},
+  '7.4': {
+    whenToUse: 'The last V chord before a final resolution, or anywhere a soloist has already built the tension and the comping needs to match it.',
+    connections: ['It combines the alterations of 7.1a and 7.1b', 'Lick 10 in 6.10 is its melodic equivalent', 'The altered scale of 7.3 is where all the notes come from'],
+    practiceStrategy: 'One alteration at a time, then two, then all four. A chord with four alterations learnt as a shape is a chord you cannot adjust; learnt as four decisions, it is.',
+    creativeChallenge: 'Play the same V chord five ways — plain, flat nine, sharp nine, flat thirteen, fully altered — and resolve each to the same I. Rank them by how much they make you want the resolution.'},
+
+  /* ===== 8 — modal ===== */
+  '8.1': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'1:31–2:30',
+       listenFor:'The whole A section is D dorian. Miles is not thinking "C major starting on D." He is thinking "D is home, and these are the sounds available." That is what a mode is.'},
+      {artist:'Herbie Hancock', track:'Maiden Voyage', album:'Maiden Voyage', year:1965, label:'Blue Note', timestamp:null,
+       listenFor:'The opening vamp is a masterclass in Dorian colour. Hancock uses the mode as a place rather than as a scale to run.'}],
+    commonMistakes: ['Levine’s first warning: thinking of a mode as its parent scale started on a different note. D dorian is not C major from D. It is D as home, with a minor third, a natural sixth and a minor seventh. Play it over a Dm7 drone and listen to its character.',
+      'Confusing which mode belongs to which chord. The rule is short: Dorian for minor seventh, Mixolydian for dominant, Ionian for major seventh. Those three cover most of the music.',
+      'Not learning the avoid notes. Levine: the fourth over a Maj7 and over a Dom7 is an avoid note in voicings, though not in melodies. Phrygian avoids its flat second and flat sixth.'],
+    masteryChecklist: ['Can play each of the 7 modes from memory, ascending and descending',
+      'Can play any named mode starting on all 12 roots',
+      'Can improvise 8 bars using only Dorian over a Dm7 drone',
+      'Can name the chord type that belongs to each of the 7 modes',
+      'Can tell Dorian from Aeolian by ear, by the brighter natural sixth'],
+    whenToUse: 'Dorian on any minor seventh acting as a ii, and on the home chord of a modal tune. Mixolydian on any dominant. Ionian on any major seventh. Levine: on a D-7 chord, play the D Dorian mode.',
+    connections: ['Dorian, Mixolydian and Ionian are the three modes of a two-five-one, and they share one parent scale',
+      'The natural sixth is the single note that separates Dorian from Aeolian, and it changes the whole mood',
+      'The altered scale of 7.3 belongs to the melodic minor family, which is the next set of modes after these'],
+    practiceStrategy: 'Levine’s method: hold the chord in the left hand and play the mode over it, ascending and descending, starting on notes other than the root. Then connect them: D dorian into G mixolydian into C ionian through a two-five-one. Eventually you think "the key of C" and the three modes appear by themselves.',
+    creativeChallenge: 'Compose a four-bar melody using only D dorian over a Dm7 drone. Then play the same RHYTHM in G mixolydian over G7, then C ionian over Cmaj7. Identical rhythms, three different emotional colours. That comparison is the whole lesson.'},
+  '8.2': {
+    whenToUse: 'Ear training, daily, five minutes. A mode over a drone is the only way to hear a mode as a colour rather than as a fingering.',
+    connections: ['It is 8.1 with the harmony held still so the ear can work', 'It is the listening half of the modal improvising in stage 11'],
+    practiceStrategy: 'Hold the drone with the left hand or a sustain pedal and play very slowly, one note at a time, listening to each degree against the root. The characteristic note — the sixth in Dorian, the second in Phrygian — is the one to sit on.',
+    creativeChallenge: 'Improvise for two full minutes over one drone, without stopping and without leaving the mode. Boredom is the test: everything you play after the first thirty seconds is invention rather than recall.'},
+  '8.3a': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'0:33',
+       listenFor:'At 0:33 the piano entrance IS this voicing. Bill Evans plays the famous answering phrase in stacked So What voicings — the single most iconic voicing in modal jazz.'},
+      {artist:'Herbie Hancock', track:'Maiden Voyage', album:'Maiden Voyage', year:1965, label:'Blue Note', timestamp:null,
+       listenFor:'Hancock starts from this voicing and expands it with clusters and quartals. Notice how he creates movement over a static chord by shifting the shape up and down the mode.'},
+      {artist:'Freddie Hubbard', track:'Little Sunflower', album:'Backlash', year:1966, label:'Atlantic', timestamp:null,
+       listenFor:'Siskind’s guided listening for this unit. The A section sits on Dm7 throughout. Albert Dailey departs into E♭ dorian in his solo — modal interchange, heard in the wild.'}],
+    commonMistakes: ['Siskind’s FAQ: "Most students incorrectly define modal jazz as jazz that uses modes." It is a style — slow harmonic rhythm, root motion outside the circle of fifths, one colour explored at length.',
+      'Treating every degree of the mode as equally stable. Siskind warns that the voicings on the third and sixth of Dorian contain minor ninths: pass through them rather than resting on them.',
+      'Using only this voicing for a whole tune. Siskind: nobody will mind, and perhaps nobody will notice, if a pianist switches between voicing types while comping. Mix it with quartal, cluster and pentatonic.'],
+    masteryChecklist: ['Can play So What voicings beneath every note of D dorian, smoothly',
+      'Can transpose them to all 12 dorian modes',
+      'Can comp through So What using them, with a rhythmic melody in the top voice',
+      'Can tell a stable one from an unstable one — three perfect fourths and a major third is stable; anything with a tritone or a minor ninth is a passing sound'],
+    whenToUse: 'Modal tunes with slow-moving harmony — So What, Impressions, Maiden Voyage, Little Sunflower. They make an open, moody, shifting sound. They are not for fast two-five-ones, where Type A and B give clearer voice leading.',
+    connections: ['It is built from the same perfect fourths drilled in P0.7',
+      'The quartal voicings of 8.3b are the pure-fourths version; this adds a third on top to give it identity',
+      'The pentatonic voicings of 8.6 are related — every other note of a pentatonic produces both fourths and thirds'],
+    practiceStrategy: 'Siskind’s order: learn it in D dorian on the white keys; move it up and down the mode as smoothly as possible, using 3-4-5 in the right hand; add a rhythmic melody in the top voice; transpose to other dorian modes; then comp through So What from beginning to end.',
+    creativeChallenge: 'Comp So What using these voicings for the A sections and something else — quartal or cluster — for the B section in E flat. Record it. Can a listener hear the contrast between the sections?'},
+  '8.3b': {
+    whenToUse: 'Anywhere you want harmony with no opinion about major or minor. Stacked fourths do not declare a key, which is exactly why modal playing reaches for them.',
+    connections: ['It is P0.7’s perfect fourths used as harmony', 'The So What voicing of 8.3a is this with a third added on top',
+      'Mantooth’s generic voicings are the same construction under another name, and they exist for the same reason: to stop stacking thirds'],
+    practiceStrategy: 'Three notes, up and down the mode, both hands separately. Then in parallel with the left hand a fourth below. The shape never changes; only where it sits does.',
+    creativeChallenge: 'Comp a whole modal tune using nothing but three-note quartals. It will sound modern and slightly austere. Then add one third somewhere and hear how much warmth a single interval brings back.'},
+  '8.3c': {
+    whenToUse: 'When three notes are not enough — the full McCoy Tyner sound, for a band that needs the piano to fill the room.',
+    connections: ['It is 8.3b extended', 'Its power comes from the same perfect fourths as P0.7', 'It belongs with the drone work of 8.2, because five notes over static harmony is what modal comping is'],
+    practiceStrategy: 'Two hands from the start, because five notes will not fit in one. Balance matters more than accuracy here: if the top note does not sing, the voicing is mud.',
+    creativeChallenge: 'Play the same modal vamp with three-note and five-note quartals alternating every two bars. That contrast alone is enough to make a static chord sound like an arrangement.'},
+  '8.3d': {
+    whenToUse: 'For density and dissonance, in small amounts. A cluster is a texture rather than a harmony, and it stops working if it is the only thing you do.',
+    connections: ['Its stacked seconds are the minor and major seconds of P0.8 and P0.9 used deliberately',
+      'It sits beside the quartals of 8.3b as the other way to avoid stacking thirds'],
+    practiceStrategy: 'Softly. A cluster played hard is noise; played quietly it is a colour. Practise the dynamic before the shape.',
+    creativeChallenge: 'Put one cluster in an otherwise conventional chorus, at the highest point. One dissonance in the right place does more than twenty in the wrong one.'},
+  '8.4': {
+    whenToUse: 'When a modal comp needs to move without the harmony changing. A triad moving through the mode is motion over stillness.',
+    connections: ['The triads are the chords of stage 1 with the sevenths removed', 'It is the simplest version of the planing in 10.4',
+      'Upper structures over an altered dominant are the stage 7 sound written a different way'],
+    practiceStrategy: 'Play each diatonic triad of the mode in order, slowly, over a held root. Some will sound like the chord and some like a departure — learn which is which before using them.',
+    creativeChallenge: 'Improvise a comping part that only ever plays triads, over one chord, for a whole chorus. The harmony never moves and the music does.'},
+  '8.5': {
+    whenToUse: 'The fastest way into modal improvising. A pentatonic has no avoid notes, so it cannot be wrong, which frees the ear to think about rhythm.',
+    connections: ['The primary and secondary pentatonics are subsets of the mode in 8.1',
+      'The voicings of 8.6 are made from these notes',
+      'It is the modal equivalent of the blues scale in 5.2 — a safety net that becomes a language'],
+    practiceStrategy: 'Learn the primary one first and play nothing else for a week. Then the secondary, and then alternate. Hearing the difference between them is worth more than knowing both.',
+    creativeChallenge: 'Improvise a chorus on the primary pentatonic and a second chorus on the secondary. Record it. The change of colour is entirely harmonic, because nothing else changed.'},
+  '8.6': {
+    whenToUse: 'Open, spread comping under a horn, where a close voicing would crowd them.',
+    connections: ['It is 8.5 selected rather than run', 'The fourths it produces link it to 8.3b', 'Spread voicings are how 8.3c gets its width'],
+    practiceStrategy: 'Every other note of the pentatonic, both hands, moving up the scale. Listen for where a fourth turns into a third — that inconsistency is what gives the sound its character.',
+    creativeChallenge: 'Comp a modal tune using only pentatonic voicings, then only quartals, then mixing. The third version will be the one that sounds like a record.'},
+
+  /* ===== 9 — reharmonisation ===== */
+  '9.1': {
+    whenToUse: 'Anywhere a chord could use more approach than it has. A secondary dominant is the cheapest way to make a static bar move.',
+    connections: ['It is the V of stage 2 aimed somewhere other than the tonic', 'The tonicisation chain of 10.2 is this repeated',
+      'Every secondary dominant can be altered using stage 7'],
+    practiceStrategy: 'Take a tune and put a V in front of one chord. Play it both ways. Then in front of a different chord. One insertion at a time is how the ear learns which ones it likes.',
+    creativeChallenge: 'Reharmonise the first eight bars of a standard using only secondary dominants. Write the new changes down. If you cannot play from them, they were not really changes.'},
+  '9.2': {
+    whenToUse: 'As an alternative arrival at the tonic, particularly at the end of a bridge or in the last four bars, where the front-door two-five is predictable.',
+    connections: ['It is the two-five-one of stage 2 coming from the flat seventh instead of the fifth',
+      'Its sound is Mixolydian from the flat seventh, which connects it to 8.1',
+      'It appears in the reharmonised blues of 11.5'],
+    practiceStrategy: 'Play the plain two-five-one and the backdoor version in the same key, back to back, all twelve. The comparison is the exercise; either one alone is just a progression.',
+    creativeChallenge: 'Find a standard whose last four bars use it — there are many — and play those bars with the ordinary two-five instead. Then decide which the tune actually wants.'},
+  '9.3': {
+    whenToUse: 'Filling a bar where the harmony would otherwise sit still, particularly between I and ii. The bass climbs chromatically and the listener feels motion that is not really there.',
+    connections: ['Its chords are the diminished sevenths of 1.5 voiced as in 3.3', 'The chromatic bass links it to the tritone sub of 7.2', 'It appears inside the reharmonised blues of 11.5'],
+    practiceStrategy: 'Play the bass line alone first — I, sharp I, ii, sharp ii, I over the third. If the line is not smooth by itself, the chords above it will not save it.',
+    creativeChallenge: 'Insert it into the first two bars of a tune that sits on the tonic. Play the tune with and without. This is the single most useful piece of reharmonisation for making a slow tune move.'},
+  '9.4': {
+    whenToUse: 'The last two bars of almost any standard, and the last four of a blues. If you can play one turnaround in twelve keys, you can end any tune.',
+    connections: ['Its ii and V are stage 2’s', 'Its voicings are stage 3’s', 'The longer version, 9.5, starts a step earlier'],
+    practiceStrategy: 'Loop it. Eight times round without stopping, in one key, then move a whole step down. A turnaround is a thing you practise in circles because that is how it is used.',
+    creativeChallenge: 'Play the last two bars of a tune with four different turnarounds — plain V, I-vi-ii-V, iii-vi-ii-V, and one with a tritone sub. Choose one and be able to say why.'},
+  '9.5': {
+    whenToUse: 'Where a two-bar turnaround needs more motion, or where the melody sits still long enough to let four chords through.',
+    connections: ['It is 9.4 extended backwards', 'The chain of falling fifths is the circle drilled in P0.5', 'Each chord can take a secondary dominant from 9.1'],
+    practiceStrategy: 'Both turnarounds in the same key, back to back, so the extra chord is a choice rather than a different exercise.',
+    creativeChallenge: 'Alternate turnarounds chorus by chorus through a blues. By the fourth chorus you will be choosing them by ear, which is the point.'},
+  '9.6': {
+    listeningAssignments: [
+      {artist:'John Coltrane', track:'Giant Steps', album:'Giant Steps', year:1959, label:'Atlantic', timestamp:null,
+       listenFor:'The most famous example of the major-third cycle. The tempo is extreme and the key centre changes every two beats. Listen to Tommy Flanagan’s piano solo struggle with the changes, then to Coltrane glide through them. That contrast is what preparation sounds like.'},
+      {artist:'John Coltrane', track:'Countdown', album:'Giant Steps', year:1959, label:'Atlantic', timestamp:null,
+       listenFor:'The same substitution applied to the changes of Tune Up. Play Tune Up beside it to hear exactly what was done.'}],
+    commonMistakes: ['Attempting it before two-five-one is fluent in all twelve keys. The pattern moves through three key centres in quick succession; if any key is slow, it collapses.',
+      'Thinking about it harmonically rather than geometrically. It divides the octave into three equal parts. Three two-five-ones whose tonics are a major third apart.',
+      'Only voicing the chords. You have to be able to improvise through the key centres, not merely accompany them.'],
+    masteryChecklist: ['Can play the major-3rd cycle descending in all 12 keys',
+      'Can voice-lead through the pattern without jumping',
+      'Can hear the resolution to each temporary tonic',
+      'Can comp the A section of Giant Steps at ♩=100',
+      'Can improvise through it with arpeggios for two choruses'],
+    whenToUse: 'The tunes built on it — Giant Steps, Countdown, 26-2 — and as a substitution on any standard where you want to replace a two-five-one with something far more demanding.',
+    connections: ['The major-third root motion divides the octave symmetrically, the same way the diminished chord of 1.5 divides it by minor thirds and the tritone of P0.10 divides it in half',
+      'The planing of 10.4 formalises moving one chord quality by a fixed interval',
+      'Each temporary key centre implies its own melodic minor family, which is stage 7 and stage 8 material'],
+    practiceStrategy: 'Start at ♩=60. Roots first, and sing them. Then voicings. Then 3-5-7-9 arpeggios ascending through the first key centre, descending through the second, ascending through the third. Speed is the last thing, not the first.',
+    creativeChallenge: 'Take the first eight bars of Tune Up — three two-five-ones descending by whole steps. Apply the substitution to each one, turning three key centres into nine. Write out the changes. Can you comp them? Can you improvise over them? That is precisely what Coltrane did to make Countdown.'},
+
+  /* ===== 10 — interchange and outside ===== */
+  '10.1': {
+    whenToUse: 'When a major tune needs a shadow. A single borrowed chord from the parallel minor does more than a bar of alterations.',
+    connections: ['The borrowed chords come from the modes of 8.1', 'The backdoor two-five of 9.2 is itself a borrowing', 'The minor two-five-one of 2.3 is where most borrowings end up going'],
+    practiceStrategy: 'Play the diatonic chord and the borrowed one in the same bar, alternating, until the borrowing is a colour you can reach for rather than a theory you can explain.',
+    creativeChallenge: 'Take a cheerful standard and borrow one chord from the parallel minor in each A section. Play it for somebody without telling them what you changed.'},
+  '10.2': {
+    whenToUse: 'Where a progression needs more forward motion than its own chords provide, and where the melody leaves room for an extra chord.',
+    connections: ['It is 9.1 chained', 'Every dominant in the chain can be altered with stage 7', 'The falling fifths are the circle from P0.5'],
+    practiceStrategy: 'Build it one link at a time. Add the V of the V, play it. Then the V of that. Stop when the melody stops fitting — which it will, and knowing where is the skill.',
+    creativeChallenge: 'Tonicize every chord in a four-bar phrase, then take away the ones that fought the melody. What is left is a reharmonisation you made rather than copied.'},
+  '10.3': {
+    whenToUse: 'When you want to go outside and come back within two bars. Approaching from a semitone above is the most controlled way out there is.',
+    connections: ['It is the two-five-one of stage 2 aimed a semitone wrong on purpose', 'The chromatic relationship is the same one that makes the tritone sub of 7.2 work',
+      'It is the smallest version of the planing in 10.4'],
+    practiceStrategy: 'Play the target two-five-one, then the sidestep version, then both joined. The join has to be in time; a sidestep that arrives late sounds like a mistake rather than a device.',
+    creativeChallenge: 'Sidestep one phrase in a chorus and play everything else inside. One departure that resolves is worth more than a chorus of vagueness.'},
+  '10.4': {
+    whenToUse: 'Impressionistic passages, modal vamps, and anywhere you want the harmony to move without functioning. Parallel motion is the sound of harmony as colour rather than as grammar.',
+    connections: ['It moves a fixed shape by a fixed interval, which is what Coltrane changes in 9.6 do to key centres',
+      'The shapes it moves are usually the quartals of 8.3b',
+      'Chromatic planing is the chromatic order drilled in P0.6'],
+    practiceStrategy: 'One shape, four motions: chromatic, whole tone, minor third, major third. The same voicing each time. The interval of motion is the only variable and the whole effect.',
+    creativeChallenge: 'Plane one voicing through a whole chorus over a static bass. Somewhere in the middle it will pass through the right chord by accident. Notice where, and start aiming for it.'},
+  '10.5': {
+    whenToUse: 'On a vamp, or any tune that holds one root long enough for the quality above it to become the event.',
+    connections: ['It is 8.1’s modes, applied over one bass note instead of over changes', 'It is the drone work of 8.2 with the harmony moving instead of the melody'],
+    practiceStrategy: 'Hold the root with the pedal and change only the quality above it — major, minor, dominant, suspended, altered. Slowly. This is ear training disguised as comping.',
+    creativeChallenge: 'Improvise over one held root for three minutes, changing the implied mode every eight bars, without ever changing the bass. That is what a modal vamp actually asks of a pianist.'},
+
+  /* ===== 11 — modal blues ===== */
+  '11.1': {
+    whenToUse: 'Where a blues should sound open rather than bluesy. Suspended chords remove the third, and with it the argument about major and minor.',
+    connections: ['The sus chords are built from the perfect fourths of P0.7', 'Mixolydian from 8.1 is its scale', 'It is 5.1 with the thirds taken out'],
+    practiceStrategy: 'Play the plain blues and the Mixolydian version back to back in the same key. What changed is one note per chord and the whole character.',
+    creativeChallenge: 'Improvise over it without ever playing the third of any chord. The restriction is what produces the sound; the chords alone will not do it.'},
+  '11.2': {
+    whenToUse: 'Minor blues at medium tempo, where the darkness should be steady rather than mournful. The natural sixth is what keeps it from sagging.',
+    connections: ['Dorian from 8.1 is its scale', 'Its chords are the minor sevenths of 1.3', 'Footprints and Equinox live here'],
+    practiceStrategy: 'All minor sevenths means no functional pull, so the time has to do the work the harmony used to. Practise it with the metronome on two and four only.',
+    creativeChallenge: 'Play Footprints over this form. Notice that the head almost writes the harmony by itself — that is what a strong modal melody does.'},
+  '11.3': {
+    whenToUse: 'Where a minor blues should sound older and heavier. The flat sixth and flat seventh are the natural minor rather than the Dorian brightness.',
+    connections: ['Aeolian from 8.1 is its scale', 'Its flat-sixth chord is a borrowing of the kind 10.1 formalises', 'It is 11.2 with one note darkened'],
+    practiceStrategy: 'Beside 11.2 in the same key, so the one changed note is audible. A flat sixth against a natural sixth is the entire difference between two kinds of sadness.',
+    creativeChallenge: 'Play the same solo over the Dorian blues and the Aeolian blues. The notes that stop working are exactly the ones that make each form what it is.'},
+  '11.4': {
+    whenToUse: 'Bars nine to eleven of a minor blues, where the plain two-five would sound too bright for what came before it.',
+    connections: ['It is 2.3 put into the twelve-bar form', 'Its V wants the flat nine of 7.1a', 'It is the minor answer to the turnaround of 9.4'],
+    practiceStrategy: 'Loop bars nine to twelve alone until the join back into bar one is smooth. The turnaround is where a blues chorus either continues or stops.',
+    creativeChallenge: 'Play a minor blues chorus that ends on the plain minor and one that ends with the minor two-five-one. Which one made you want another chorus?'},
+  '11.5': {
+    whenToUse: 'When a blues has been played four times already and needs somewhere else to go. This is everything from stages 9 and 10 applied to the form everybody knows.',
+    connections: ['It uses the tonicisation of 10.2, the sidestep of 10.3 and the backdoor of 9.2 at once',
+      'It is 5.1 after the whole of stages 7 to 10',
+      'The chromatic motion is the walk-up of 9.3'],
+    practiceStrategy: 'One substitution at a time, added to the plain form, played through. Adding all of them at once produces changes nobody can hear, including you.',
+    creativeChallenge: 'Write out your own reharmonised blues, twelve bars, and play it for somebody who knows the tune. If they can still hear the blues underneath, you got the balance right.'},
+
+  /* ===== 12 — odd time, and making something ===== */
+  '12.1': {
+    whenToUse: 'Take Five and everything descended from it, and as an exercise in feeling a bar as unequal groups rather than counting to five.',
+    connections: ['The progression is stage 2’s, with the meter changed underneath it',
+      'The hemiola of 12.3 is the same asymmetry inside a regular bar'],
+    practiceStrategy: 'Count it as three plus two, out loud, then as two plus three. They are different pieces of music. Choose one and stay with it until it stops being counting.',
+    creativeChallenge: 'Take a standard you know in four and play its first eight bars in five. What you have to leave out is the lesson.'},
+  '12.2': {
+    whenToUse: 'Fusion and contemporary writing, and as the harder sibling of 12.1. Seven is four plus three, or three plus four, and the difference is everything.',
+    connections: ['It is 12.1 with a beat added', 'Metric modulation in 12.5 moves between meters like these',
+      'The uneven groupings are the same principle as the hemiola of 12.3'],
+    practiceStrategy: 'Play the bass line alone in seven until it is comfortable, then add the chords. Adding harmony to an unsteady meter is how both fall apart.',
+    creativeChallenge: 'Play the same eight bars in four, then five, then seven. Record all three. The tune survives one of them better than the others; work out why.'},
+  '12.3': {
+    whenToUse: 'Across a regular bar line, to make the time feel elastic without changing the meter. One of the oldest devices in music and still one of the strongest.',
+    connections: ['It is asymmetry inside four rather than instead of it, which is what 12.1 and 12.2 do',
+      'The displaced accents are the articulation problem of stage 6 in rhythmic form'],
+    practiceStrategy: 'Left hand in four, right hand in three, hands separately until each is automatic, then together at half tempo. When they collide, slow down rather than simplify.',
+    creativeChallenge: 'Play a chorus where the right hand goes into three-against-four for exactly four bars and then resolves. Resolution is what makes it a device rather than a mistake.'},
+  '12.4': {
+    whenToUse: 'Once, properly, at the end of the ladder. This is not an exercise to repeat — it is a thing to finish.',
+    connections: ['It needs the meters of 12.1 and 12.2 to be internal rather than counted',
+      'The harmony is whatever from stages 2 to 11 you actually own',
+      'It is the first exercise in the room with no right answer'],
+    practiceStrategy: 'Write four bars and play them before writing any more. A sixteen-bar melody written away from the instrument in an odd meter is almost always unplayable.',
+    creativeChallenge: 'Finish it. Sixteen bars, a head you can play, in five or seven. An unfinished piece teaches you less than a bad finished one.'},
+  '12.5': {
+    whenToUse: 'Between sections of an arrangement, where the pulse itself should change rather than the tempo. Modern jazz and fusion live on this.',
+    connections: ['It requires the meters of 12.1 and 12.2 and the hemiola of 12.3', 'It is what the whole stage has been building toward'],
+    practiceStrategy: 'Find the common unit — the note value that stays the same across the change — and count it through the join. Without a common unit there is no modulation, only a stumble.',
+    creativeChallenge: 'Modulate from four into three in the middle of a chorus and back again by the top of the next. If a listener can tap through it, you did it properly.'},
+};
+
+/* ---------- a checklist nobody wrote ----------
+   The brief asks for three to five binary checkpoints per exercise, climbing
+   from "slowly" to "at tempo" to "in all twelve" to "from memory" to "inside
+   a tune". Where the source has its own, that one is used. Where it has not,
+   this ladder is built from the exercise's own name — and the exercise is
+   marked as having a derived checklist, so that a checkpoint nobody wrote is
+   never mistaken for one somebody did. */
+function jazzDerivedChecklist(ex){
+  const it = (ex && ex.name) || 'it';
+  return [`Can play ${it} in this key slowly and cleanly, without stopping`,
+    `Can play it in all 12 keys`,
+    `Can play it at ♩=100 without the time slipping`,
+    `Can play it from memory, without looking at anything`,
+    `Can use it inside a tune without stopping to think`];
+}
+
+/* ---------- the merge ----------
+   Called on the flat book rather than on the shipped catalogues, so the
+   files those came in stay exactly as they were written. Anything an
+   exercise does not carry falls back to its stage, and the fact that it fell
+   back is recorded — a record's listening is worth reading differently when
+   it belongs to the stage rather than to the exercise. */
+function jazzMergeEnrichment(book){
+  if(!book) return book;
+  Object.keys(book).forEach(id => {
+    const ex = book[id];
+    if(!ex || typeof ex !== 'object') return;
+    const own = JAZZ_EX_RICH[id] || {};
+    const st = JAZZ_STAGE_RICH[ex.stage] || {};
+    ex.listeningAssignments = (own.listeningAssignments || st.listeningAssignments || []).slice();
+    ex.listeningFromStage = !own.listeningAssignments;
+    ex.commonMistakes = (own.commonMistakes || st.commonMistakes || []).slice();
+    ex.mistakesFromStage = !own.commonMistakes;
+    ex.whenToUse = own.whenToUse || '';
+    ex.connections = (own.connections || []).slice();
+    ex.practiceStrategy = own.practiceStrategy || '';
+    ex.creativeChallenge = own.creativeChallenge || null;
+    if(own.masteryChecklist && own.masteryChecklist.length){
+      ex.masteryChecklist = own.masteryChecklist.slice();
+      ex.checklistDerived = false;
+    } else {
+      ex.masteryChecklist = jazzDerivedChecklist(ex);
+      ex.checklistDerived = true;
+    }
+  });
+  return book;
+}
+/* what a stage carries, for the roadmap */
+const jazzStageRich = sid => JAZZ_STAGE_RICH[sid] || {};
+const jazzDifficultyRank = d => { const at = JAZZ_DIFFICULTY.indexOf(String(d || ''));
+  return at < 0 ? 0 : at + 1; };
+
+/* ---------- a checkpoint as a thing you can tick ----------
+   Keyed by a hash of its own words rather than by its position, because a
+   position is a promise the catalogue cannot keep: insert one checkpoint and
+   every tick below it would silently move to a different claim. A reworded
+   checkpoint becoming a new one is the correct behaviour — it IS a different
+   claim — and is cheaper than being wrong about the old one. */
+function jazzCheckId(text){
+  let h = 5381;
+  const s = String(text || '');
+  for(let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+const jazzCheckGot = (exId, item) => !!jazzRecord(exId).checks[jazzCheckId(item)];
+function jazzSetCheck(exId, item, on){
+  const r = jazzRecord(exId, true);
+  const k = jazzCheckId(item);
+  on ? r.checks[k] = true : delete r.checks[k];
+  saveNow();
+  return !!r.checks[k];
+}
+function jazzChecksGot(exId){
+  const ex = jazzExercise(exId);
+  const list = (ex && ex.masteryChecklist) || [];
+  return {done: list.filter(t => jazzCheckGot(exId, t)).length, of: list.length};
+}
+
+/* ---------- a checkpoint as a flashcard ----------
+   A checkpoint is written about the whole twelve keys — "can play it in all
+   12 keys" — and a card is one of them. So the sentence is turned round: the
+   "Can" comes off the front, and any claim about all twelve becomes a claim
+   about the key on the card, which the card is about to name underneath.
+
+   This is a rewriter rather than a second set of hand-written prompts,
+   because two hand-written versions of the same claim drift apart the first
+   time one of them is corrected. */
+function jazzCheckAsk(item){
+  let s = String(item || '').trim();
+  s = s.replace(/^Can\s+/, '');
+  /* the long form first, or the short rule eats half of it and leaves a
+     sprint through the circle of fourths starting and ending on one root */
+  s = s.replace(/\bfrom all (?:12|twelve) roots in cycle-of-4ths order\b/gi, 'from this root');
+  s = s.replace(/\bin at least \d+ keys\b/gi, 'in this key');
+  s = s.replace(/\bfrom all (?:12|twelve) roots\b/gi, 'from this root');
+  s = s.replace(/\b(?:starting )?on all (?:12|twelve) roots\b/gi, 'on this root');
+  s = s.replace(/\bfrom any of the (?:12|twelve) roots\b/gi, 'from this root');
+  s = s.replace(/\bfrom any (?:random )?root\b/gi, 'from this root');
+  s = s.replace(/\bin any key\b/gi, 'in this key');
+  s = s.replace(/\bof any\b/gi, 'of the');
+  /* and the general one last, which is what actually catches "in all 12
+     keys" — a narrower rule for that phrase used to sit above and was pure
+     dead weight: neutering it changed no output, because this line had
+     already done the work. */
+  s = s.replace(/\ball (?:12|twelve) (?:dorian modes|keys)\b/gi, 'this key');
+  if(!s) return '';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+/* A checkpoint about moving between keys needs two of them, which is the one
+   shape of card the brief asks for that a single key cannot express. */
+const jazzCheckTwoKeys = item => /voice[- ]lead|voice leading/i.test(String(item || ''));
+
+/* ---------- and the ones that cannot be a card at all ----------
+   Some checkpoints are irreducibly about the whole twelve: "play all twelve
+   major sevenths ascending chromatically", "play it from memory in C, F, G
+   and B flat". Dealing one of those against a single key produces a question
+   that cannot be answered as asked, which is the exact fault this work was
+   started to fix at the other end of the room — an interval card with no
+   interval on it. So they stay on the checklist, where they belong, and stay
+   out of the deck. */
+function jazzCheckCardable(item){
+  const said = jazzCheckAsk(item);
+  if(!said) return false;
+  /* still about all the keys after the rewrite. Narrow on purpose: two of
+     these exercises are CALLED "All 12 Intervals from One Root", and a bare
+     test for "all twelve" would throw out the exercise whose whole point is
+     that it happens from one root at a time. */
+  if(/\ball (?:12|twelve) (?:keys|roots|chords|modes)\b/i.test(said)) return false;
+  /* an order that only exists across roots */
+  if(/cycle-of-4ths|chromatically|round the circle/i.test(said)) return false;
+  /* or a named list of keys, which is its own answer to "which key" */
+  if(/\b[A-G](?:\u266d|\u266f|b|#)?\b\s*(?:,|and)\s*\b[A-G](?:\u266d|\u266f|b|#)?\b/.test(said)) return false;
+  return true;
 }
 /* ============================================================
    THE JAZZ STUDIO — a roadmap, not a shelf.
@@ -56508,6 +57503,10 @@ function jazzBook(){
     }); };
   try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
   try { take(typeof STAGES_0_12_CATALOG !== 'undefined' ? STAGES_0_12_CATALOG : null); } catch(e){}
+  /* and the layer a textbook leaves out — the listening, the mistakes, the
+     checkpoints. Merged here rather than written into the shipped files, so
+     those stay exactly as they arrived. */
+  try { jazzMergeEnrichment(out); } catch(e){ console.warn('the enrichment layer did not merge', e); }
   _jazzBook = out;
   return out;
 }
@@ -56530,7 +57529,7 @@ function jazzStages(){
   _jazzLadder = JAZZ_STAGE_IDS.map(sid => {
     const note = JAZZ_STAGE_NOTES[sid] || {};
     const subs = (byStage[sid] || []).sort((a, b) => ord(a) - ord(b));
-    return Object.assign({id: String(sid), key: sid, subs}, note);
+    return Object.assign({id: String(sid), key: sid, subs}, note, jazzStageRich(sid));
   }).filter(s => s.subs.length);
   return _jazzLadder;
 }
@@ -56575,6 +57574,9 @@ function jazzState(){
   st.customKeys = Array.isArray(st.customKeys) ? st.customKeys : ['C','F','Bb','Eb'];
   st.syllabus = Array.isArray(st.syllabus) ? st.syllabus : [];
   st.gate = !!st.gate;              /* one stage at a time, if you want it */
+  /* whether the deck also asks the mastery checkpoints — "at ♩=100", "eyes
+     closed", "name the third and seventh" — rather than only "play it" */
+  st.checks = st.checks === undefined ? true : !!st.checks;
   st.openId = st.openId || null;
   return j;
 }
@@ -56584,12 +57586,18 @@ function jazzState(){
 function jazzRecord(id, make){
   const j = jazzState();
   if(!j.progress[id]){
-    if(!make) return {keys:{}, logs:[], nailed:{}, lastAt:null};
-    j.progress[id] = {keys:{}, logs:[], nailed:{}, lastAt:null};
+    /* the empty one has to carry every field the stored one does, or a
+       reader that never writes — a page drawing a checklist for an exercise
+       you have not touched — finds an undefined where it expected a table */
+    if(!make) return {keys:{}, logs:[], nailed:{}, checks:{}, lastAt:null};
+    j.progress[id] = {keys:{}, logs:[], nailed:{}, checks:{}, lastAt:null};
   }
   const r = j.progress[id];
   r.keys = r.keys && typeof r.keys === 'object' ? r.keys : {};
   r.nailed = r.nailed && typeof r.nailed === 'object' ? r.nailed : {};
+  /* which of the exercise's checkpoints you have ticked, by a hash of the
+     checkpoint's own words rather than by its position in the list */
+  r.checks = r.checks && typeof r.checks === 'object' ? r.checks : {};
   r.logs = Array.isArray(r.logs) ? r.logs : [];
   return r;
 }
@@ -56695,30 +57703,77 @@ function jazzKeyPool(exerciseId, mode, custom){
    those carries a distance as well, drawn at random the same way the key is,
    and the challenge says both. */
 const jazzDealInterval = () => JAZZ_INTERVALS[Math.floor(Math.random() * JAZZ_INTERVALS.length)];
+/* Two decks in one, and why.
+
+   "Play a two-five-one in E flat" is one question, and it is not the only
+   one worth asking about a two-five-one in E flat. The checkpoints on an
+   exercise ask the others: at a hundred and twenty, with your eyes shut,
+   naming the third and seventh, moving smoothly from this key to that one.
+   Those are the things that separate being able to find it from having it.
+
+   So the checkpoint cards are dealt from a pool of their own and mixed in at
+   roughly one in three, rather than thrown into the same bag. In one bag
+   they would swamp the plain cards — five checkpoints times twelve keys
+   against twelve — and the deck would stop being about playing the thing.
+
+   A checkpoint you have already ticked is not dealt. That is the only place
+   in this room where ticking a box quietly changes what you are asked, and
+   it is deliberate: the tick is a claim, and the deck takes you at your
+   word until a card proves otherwise. */
+const jazzChecksAsked = () => !!(jazzState().settings || {}).checks;
 function jazzDeal(ids, n, mode, custom){
-  const pool = [];
-  (ids || []).forEach(id => jazzKeyPool(id, mode, custom).forEach(key => {
-    const r = jazzRecord(id);
-    /* three tickets for one you have missed, two for a struggle, one for a
-       key that is already yours */
-    const last = (jazzState().flashes.find(f => f.exerciseId === id && f.key === key) || {}).result;
-    const weight = last === 'couldnt' ? 3 : last === 'struggled' ? 2 : r.keys[key] ? 1 : 2;
-    const wants = jazzWantsInterval(jazzExercise(id));
-    for(let i = 0; i < weight; i++)
-      pool.push(wants ? {exerciseId: id, key, interval: jazzDealInterval()}
-                      : {exerciseId: id, key});
-  }));
-  if(!pool.length) return [];
+  const pool = [], checkPool = [];
+  const asking = jazzChecksAsked();
+  (ids || []).forEach(id => {
+    const ex = jazzExercise(id);
+    const wants = jazzWantsInterval(ex);
+    const keys = jazzKeyPool(id, mode, custom);
+    const open = asking ? (ex && ex.masteryChecklist || [])
+      .filter(t => !jazzCheckGot(id, t) && jazzCheckCardable(t)) : [];
+    keys.forEach(key => {
+      const r = jazzRecord(id);
+      /* three tickets for one you have missed, two for a struggle, one for a
+         key that is already yours */
+      const last = (jazzState().flashes.find(f => f.exerciseId === id && f.key === key) || {}).result;
+      const weight = last === 'couldnt' ? 3 : last === 'struggled' ? 2 : r.keys[key] ? 1 : 2;
+      const make = () => wants ? {exerciseId: id, key, interval: jazzDealInterval()}
+                               : {exerciseId: id, key};
+      for(let i = 0; i < weight; i++) pool.push(make());
+      open.forEach(item => {
+        const card = make();
+        card.check = item;
+        /* a checkpoint about moving between keys needs a second one */
+        if(jazzCheckTwoKeys(item)){
+          const rest = keys.filter(k => k !== key);
+          if(rest.length) card.toKey = rest[Math.floor(Math.random() * rest.length)];
+        }
+        checkPool.push(card);
+      });
+    });
+  });
+  if(!pool.length && !checkPool.length) return [];
   const out = [];
   const want = clamp(+n || 15, 1, 60);
-  /* drawn without putting the same pair back, until the pool runs out and it
+  /* drawn without putting the same card back, until a pool runs out and it
      is allowed to come round again */
-  let bag = pool.slice();
-  while(out.length < want){
-    if(!bag.length) bag = pool.slice();
-    const at = Math.floor(Math.random() * bag.length);
-    const card = bag.splice(at, 1)[0];
-    if(out.some(c => c.exerciseId === card.exerciseId && c.key === card.key) && bag.length) continue;
+  let bag = pool.slice(), cbag = checkPool.slice();
+  const same = (a, b) => a.exerciseId === b.exerciseId && a.key === b.key
+    && (a.check || null) === (b.check || null);
+  let guard = want * 40;
+  while(out.length < want && guard-- > 0){
+    /* one in three from the checkpoints, when there are any */
+    const wantCheck = checkPool.length && (out.length % 3 === 2 || !pool.length);
+    let from = wantCheck ? cbag : bag;
+    if(!from.length){ from = wantCheck ? (cbag = checkPool.slice()) : (bag = pool.slice()); }
+    if(!from.length){ from = wantCheck ? bag : cbag; if(!from.length) break; }
+    const at = Math.floor(Math.random() * from.length);
+    const card = from.splice(at, 1)[0];
+    /* Put it back only while the bag it came from still has something else
+       to offer. Testing BOTH bags here looked tidier and deadlocked the
+       deal: two exercises over twelve keys is twenty-four plain cards, a
+       deck of forty wants about twenty-seven of them, and the three extra
+       could never be drawn because the checkpoint bag was never empty. */
+    if(out.some(c => same(c, card)) && from.length) continue;
     out.push(card);
   }
   return out;
@@ -56810,6 +57865,29 @@ routes.jazz = function(root, params){
   bindJazzRoad(root);
 };
 
+/* ---------- the layer a textbook leaves out ----------
+   One renderer for both the stage and the exercise, because a record is a
+   record wherever it is cited, and two versions of this markup would drift
+   apart the first time one of them was corrected. */
+function jazzListeningHTML(list, fromStage){
+  if(!list || !list.length) return '';
+  return `<div class="jz-note jz-listen"><span class="sc">What to listen to${
+    fromStage ? ' <em class="jz-inherit" title="this belongs to the stage rather than to this exercise">for the stage</em>' : ''}</span>
+    ${list.map(a => `<div class="jz-rec">
+      <div class="jz-recwho"><b>${esc(a.artist)}</b> \u2014 <i>${esc(a.track)}</i></div>
+      <div class="jz-recwhat mono">${esc(a.album || '')}${a.year ? ` \u00b7 ${a.year}` : ''}${
+        a.label ? ` \u00b7 ${esc(a.label)}` : ''}${a.timestamp ? ` \u00b7 ${esc(a.timestamp)}` : ''}</div>
+      <p class="jz-recfor">${esc(a.listenFor || '')}</p></div>`).join('')}</div>`;
+}
+function jazzMistakesHTML(list, fromStage){
+  if(!list || !list.length) return '';
+  return `<div class="jz-note jz-mistakes"><span class="sc">What goes wrong${
+    fromStage ? ' <em class="jz-inherit" title="this belongs to the stage rather than to this exercise">at this stage</em>' : ''}</span>
+    <ul>${list.map(m => `<li>${esc(m)}</li>`).join('')}</ul></div>`;
+}
+const jazzDifficultyHTML = d => !d ? '' :
+  `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
+
 /* ---------- the roadmap ---------- */
 function jazzRoadHTML(){
   const now = jazzNowStage();
@@ -56841,6 +57919,7 @@ function jazzStageHTML(s, here){
       <span class="jz-sn mono">${s.n === 0 ? 'P' : s.n}</span>
       <span class="jz-st"><b class="serif">${esc(s.name)}</b>
         <span class="faint">${esc(s.blurb)}</span></span>
+      ${jazzDifficultyHTML(s.expectedDifficulty)}
       <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
         ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}</span>
     </header>
@@ -56860,6 +57939,17 @@ function jazzStageHTML(s, here){
         <div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
           <p>${esc(s.werner)}</p>
           <p class="jz-wm">${esc(s.mindset)}</p></div>
+        ${s.historicalContext ? `<div class="jz-note"><span class="sc">Where this came from</span>
+          <p class="serif">${esc(s.historicalContext)}</p></div>` : ''}
+        <!-- The most useful sentence on the page, and the one a textbook
+             never prints. Four weeks into Type A/B voicings, a student who
+             thinks it should have taken one is about to decide they have no
+             talent. "Three to five weeks, and most people hit a wall in the
+             first" is the whole answer. -->
+        ${s.typicalTimeToMaster ? `<div class="jz-note jz-howlong"><span class="sc">How long this honestly takes</span>
+          <p>${esc(s.typicalTimeToMaster)}</p></div>` : ''}
+        ${jazzMistakesHTML(s.commonMistakes)}
+        ${jazzListeningHTML(s.listeningAssignments)}
       </details>`
     : `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>`}
   </section>`;
@@ -56914,12 +58004,23 @@ function jazzExerciseHTML(id){
           <button class="btn sm ghost" id="jzCard">\u{1f3af} Put this in the cards</button>
         </div>
         <div class="jz-count mono">${got} of 12 keys${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
+        ${jazzChecklistHTML(id)}
       </div>
       <aside class="jz-side">
         ${ex.why ? `<div class="jz-note"><span class="sc">Why it matters</span><p class="serif">${esc(ex.why)}</p></div>` : ''}
         ${ex.tip ? `<div class="jz-note"><span class="sc">How to get it in</span><p>${esc(ex.tip)}</p></div>` : ''}
         ${ex.theory ? `<div class="jz-note"><span class="sc">The book says</span><p class="serif">${esc(ex.theory)}</p></div>` : ''}
         ${ex.doubt ? `<div class="jz-note"><span class="sc">About these notes</span><p class="faint">${esc(ex.doubt)}</p></div>` : ''}
+        ${ex.whenToUse ? `<div class="jz-note"><span class="sc">When you would use it</span>
+          <p class="serif">${esc(ex.whenToUse)}</p></div>` : ''}
+        ${ex.practiceStrategy ? `<div class="jz-note"><span class="sc">How to practise it</span>
+          <p>${esc(ex.practiceStrategy)}</p></div>` : ''}
+        ${jazzMistakesHTML(ex.commonMistakes, ex.mistakesFromStage)}
+        ${jazzListeningHTML(ex.listeningAssignments, ex.listeningFromStage)}
+        ${(ex.connections || []).length ? `<div class="jz-note jz-conns"><span class="sc">What it joins onto</span>
+          <ul>${ex.connections.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
+        ${ex.creativeChallenge ? `<div class="jz-note jz-challenge"><span class="sc">Something to make with it</span>
+          <p class="serif">${esc(ex.creativeChallenge)}</p></div>` : ''}
         ${ex.source ? `<p class="jz-src mono">${esc(ex.source)}</p>` : ''}
         ${at ? `<div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
           <p>${esc(at.stage.werner)}</p><p class="jz-wm">${esc(at.stage.mindset)}</p></div>` : ''}
@@ -56932,6 +58033,31 @@ function jazzExerciseHTML(id){
       </aside>
     </div>`;
 }
+/* ---------- the checkpoints ----------
+   Binary, and yours to tick. Unlike the twelve-key grid, which is filled by
+   the flashcards rather than by hand, a checkpoint is a claim about yourself
+   that nothing else can measure — "can play it with my eyes shut" has no
+   test in this room except your own honesty.
+
+   Ticking one takes it out of the deck, which is the only place a tick here
+   changes what the room asks you. That is deliberate: the deck takes you at
+   your word until a card proves otherwise. */
+function jazzChecklistHTML(id){
+  const ex = jazzExercise(id);
+  const list = (ex && ex.masteryChecklist) || [];
+  if(!list.length) return '';
+  const got = jazzChecksGot(id);
+  return `<div class="jz-checks">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc">How you know you have it</span>
+      <span class="mono faint">${got.done}/${got.of}${ex.checklistDerived
+        ? ' · <em class="jz-inherit" title="the source has no checklist for this one, so these are the standard rungs — slowly, in all twelve, at tempo, from memory, in a tune">the standard rungs</em>' : ''}</span>
+    </div>
+    ${list.map(t => `<label class="jz-check${jazzCheckGot(id, t) ? ' on' : ''}">
+      <input type="checkbox" data-jzchk="${esc(t)}" ${jazzCheckGot(id, t) ? 'checked' : ''}>
+      <span>${esc(t)}</span></label>`).join('')}</div>`;
+}
+
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
@@ -56954,6 +58080,14 @@ function bindJazzExercise(root, id){
     if(!have) toast(`${jazzPretty(ui.key)} — ${jazzKeysGot(id)} of 12.`);
     rerender();
   };
+  $$('[data-jzchk]', root).forEach(c => c.onchange = () => {
+    jazzSetCheck(id, c.dataset.jzchk, c.checked);
+    c.closest('.jz-check').classList.toggle('on', c.checked);
+    sound(c.checked ? 'success' : 'click');
+    const said = root.querySelector('.jz-checks .mono');
+    if(said){ const g = jazzChecksGot(id);
+      said.innerHTML = said.innerHTML.replace(/^\d+\/\d+/, `${g.done}/${g.of}`); }
+  });
   const log = root.querySelector('#jzLog');
   if(log) log.onclick = () => openJazzLog(id);
   const card = root.querySelector('#jzCard');

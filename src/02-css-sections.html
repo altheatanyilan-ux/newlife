@@ -1661,7 +1661,13 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-stage.here{border-color:var(--page-accent);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 12%,transparent)}
 .jz-stage.shut{opacity:.5}
-.jz-shead{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:baseline}
+/* four columns now, not three: the number, the name, the difficulty badge
+   and the count. Left at three, the badge wrapped onto a second row and
+   pushed the count under the title on every stage. */
+.jz-shead{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:11px;
+  align-items:baseline}
+@media (max-width:560px){.jz-shead{grid-template-columns:auto minmax(0,1fr) auto}
+  .jz-shead .jz-diff{grid-column:2;justify-self:start}}
 .jz-sn{font-size:1.4rem;opacity:.35;line-height:1}
 .jz-st{display:flex;flex-direction:column;gap:2px;min-width:0}
 .jz-st b{font-size:1.02rem}
@@ -1763,6 +1769,48 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-chow{font-size:.9rem;margin:18px 0 10px}
 .btn.lg{padding:11px 26px;font-size:1rem}
 @media (max-width:640px){.jz-ckey{font-size:2.6rem}.jz-cprompt{font-size:1.2rem}}
+
+/* the enrichment layer: what to listen to, what goes wrong, how you know */
+.jz-diff{font-family:var(--mono);font-size:.56rem;letter-spacing:.09em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:20px;padding:2px 8px;color:var(--muted);
+  white-space:nowrap;align-self:center}
+/* five rungs, and the badge should read as one glance rather than as a word */
+.jz-diff[data-jzd="beginner"]{color:#7f916a;border-color:color-mix(in srgb,#7f916a 45%,var(--line))}
+.jz-diff[data-jzd="moderate"]{color:#6b7f8e;border-color:color-mix(in srgb,#6b7f8e 45%,var(--line))}
+.jz-diff[data-jzd="challenging"]{color:#b08968;border-color:color-mix(in srgb,#b08968 45%,var(--line))}
+.jz-diff[data-jzd="advanced"]{color:#c47832;border-color:color-mix(in srgb,#c47832 50%,var(--line))}
+.jz-diff[data-jzd="professional"]{color:#c4484e;border-color:color-mix(in srgb,#c4484e 50%,var(--line))}
+/* something inherited from the stage, or a checklist nobody wrote: said
+   rather than hidden, so a fallback is never mistaken for a citation */
+.jz-inherit{font-style:normal;font-family:var(--mono);font-size:.54rem;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--faint);border-bottom:1px dotted var(--line);cursor:help}
+.jz-howlong p{font-size:.84rem;color:var(--muted)}
+.jz-mistakes ul,.jz-conns ul{margin:7px 0 0;padding-left:17px;display:flex;
+  flex-direction:column;gap:5px}
+.jz-mistakes li,.jz-conns li{font-size:.83rem;line-height:1.5;max-width:62ch}
+.jz-mistakes li::marker{color:#c4484e}
+.jz-conns li::marker{color:var(--page-accent)}
+.jz-rec{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line)}
+.jz-rec:first-of-type{border-top:0;padding-top:0}
+.jz-recwho{font-size:.86rem}
+.jz-recwhat{font-size:.6rem;color:var(--faint);letter-spacing:.04em;margin-top:2px}
+.jz-recfor{font-size:.82rem !important;color:var(--muted);margin-top:5px !important}
+.jz-challenge{background:color-mix(in srgb,var(--page-accent) 5%,transparent)}
+/* the checkpoints, which are the one thing in this room you tick yourself */
+.jz-checks{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-top:14px}
+.jz-check{display:flex;gap:9px;align-items:flex-start;font-size:.85rem;line-height:1.5;
+  padding:5px 0;cursor:pointer;border-top:1px dashed color-mix(in srgb,var(--line) 60%,transparent)}
+.jz-check:first-of-type{border-top:0}
+.jz-check input{margin-top:3px;flex:0 0 auto}
+.jz-check.on > span{color:var(--muted);text-decoration:line-through;
+  text-decoration-color:color-mix(in srgb,var(--page-accent) 60%,transparent)}
+/* a checkpoint card: the exercise's name above, the claim in the middle */
+.jz-cwhat{font-size:.62rem;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;
+  margin:0 0 10px}
+.jz-ctag{font-size:.58rem;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;
+  margin:12px 0 0}
+.jz-cto{color:var(--muted);font-size:2.2rem}
+@media (max-width:640px){.jz-cto{font-size:1.7rem}}
 
 /* planning the week: the parts of a life, and the few things being carried */
 .wp-aspect{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(0,1.6fr);gap:10px;

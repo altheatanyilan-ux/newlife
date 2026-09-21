@@ -84,6 +84,29 @@ routes.jazz = function(root, params){
   bindJazzRoad(root);
 };
 
+/* ---------- the layer a textbook leaves out ----------
+   One renderer for both the stage and the exercise, because a record is a
+   record wherever it is cited, and two versions of this markup would drift
+   apart the first time one of them was corrected. */
+function jazzListeningHTML(list, fromStage){
+  if(!list || !list.length) return '';
+  return `<div class="jz-note jz-listen"><span class="sc">What to listen to${
+    fromStage ? ' <em class="jz-inherit" title="this belongs to the stage rather than to this exercise">for the stage</em>' : ''}</span>
+    ${list.map(a => `<div class="jz-rec">
+      <div class="jz-recwho"><b>${esc(a.artist)}</b> \u2014 <i>${esc(a.track)}</i></div>
+      <div class="jz-recwhat mono">${esc(a.album || '')}${a.year ? ` \u00b7 ${a.year}` : ''}${
+        a.label ? ` \u00b7 ${esc(a.label)}` : ''}${a.timestamp ? ` \u00b7 ${esc(a.timestamp)}` : ''}</div>
+      <p class="jz-recfor">${esc(a.listenFor || '')}</p></div>`).join('')}</div>`;
+}
+function jazzMistakesHTML(list, fromStage){
+  if(!list || !list.length) return '';
+  return `<div class="jz-note jz-mistakes"><span class="sc">What goes wrong${
+    fromStage ? ' <em class="jz-inherit" title="this belongs to the stage rather than to this exercise">at this stage</em>' : ''}</span>
+    <ul>${list.map(m => `<li>${esc(m)}</li>`).join('')}</ul></div>`;
+}
+const jazzDifficultyHTML = d => !d ? '' :
+  `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
+
 /* ---------- the roadmap ---------- */
 function jazzRoadHTML(){
   const now = jazzNowStage();
@@ -115,6 +138,7 @@ function jazzStageHTML(s, here){
       <span class="jz-sn mono">${s.n === 0 ? 'P' : s.n}</span>
       <span class="jz-st"><b class="serif">${esc(s.name)}</b>
         <span class="faint">${esc(s.blurb)}</span></span>
+      ${jazzDifficultyHTML(s.expectedDifficulty)}
       <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
         ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}</span>
     </header>
@@ -134,6 +158,17 @@ function jazzStageHTML(s, here){
         <div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
           <p>${esc(s.werner)}</p>
           <p class="jz-wm">${esc(s.mindset)}</p></div>
+        ${s.historicalContext ? `<div class="jz-note"><span class="sc">Where this came from</span>
+          <p class="serif">${esc(s.historicalContext)}</p></div>` : ''}
+        <!-- The most useful sentence on the page, and the one a textbook
+             never prints. Four weeks into Type A/B voicings, a student who
+             thinks it should have taken one is about to decide they have no
+             talent. "Three to five weeks, and most people hit a wall in the
+             first" is the whole answer. -->
+        ${s.typicalTimeToMaster ? `<div class="jz-note jz-howlong"><span class="sc">How long this honestly takes</span>
+          <p>${esc(s.typicalTimeToMaster)}</p></div>` : ''}
+        ${jazzMistakesHTML(s.commonMistakes)}
+        ${jazzListeningHTML(s.listeningAssignments)}
       </details>`
     : `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>`}
   </section>`;
@@ -188,12 +223,23 @@ function jazzExerciseHTML(id){
           <button class="btn sm ghost" id="jzCard">\u{1f3af} Put this in the cards</button>
         </div>
         <div class="jz-count mono">${got} of 12 keys${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
+        ${jazzChecklistHTML(id)}
       </div>
       <aside class="jz-side">
         ${ex.why ? `<div class="jz-note"><span class="sc">Why it matters</span><p class="serif">${esc(ex.why)}</p></div>` : ''}
         ${ex.tip ? `<div class="jz-note"><span class="sc">How to get it in</span><p>${esc(ex.tip)}</p></div>` : ''}
         ${ex.theory ? `<div class="jz-note"><span class="sc">The book says</span><p class="serif">${esc(ex.theory)}</p></div>` : ''}
         ${ex.doubt ? `<div class="jz-note"><span class="sc">About these notes</span><p class="faint">${esc(ex.doubt)}</p></div>` : ''}
+        ${ex.whenToUse ? `<div class="jz-note"><span class="sc">When you would use it</span>
+          <p class="serif">${esc(ex.whenToUse)}</p></div>` : ''}
+        ${ex.practiceStrategy ? `<div class="jz-note"><span class="sc">How to practise it</span>
+          <p>${esc(ex.practiceStrategy)}</p></div>` : ''}
+        ${jazzMistakesHTML(ex.commonMistakes, ex.mistakesFromStage)}
+        ${jazzListeningHTML(ex.listeningAssignments, ex.listeningFromStage)}
+        ${(ex.connections || []).length ? `<div class="jz-note jz-conns"><span class="sc">What it joins onto</span>
+          <ul>${ex.connections.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
+        ${ex.creativeChallenge ? `<div class="jz-note jz-challenge"><span class="sc">Something to make with it</span>
+          <p class="serif">${esc(ex.creativeChallenge)}</p></div>` : ''}
         ${ex.source ? `<p class="jz-src mono">${esc(ex.source)}</p>` : ''}
         ${at ? `<div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
           <p>${esc(at.stage.werner)}</p><p class="jz-wm">${esc(at.stage.mindset)}</p></div>` : ''}
@@ -206,6 +252,31 @@ function jazzExerciseHTML(id){
       </aside>
     </div>`;
 }
+/* ---------- the checkpoints ----------
+   Binary, and yours to tick. Unlike the twelve-key grid, which is filled by
+   the flashcards rather than by hand, a checkpoint is a claim about yourself
+   that nothing else can measure — "can play it with my eyes shut" has no
+   test in this room except your own honesty.
+
+   Ticking one takes it out of the deck, which is the only place a tick here
+   changes what the room asks you. That is deliberate: the deck takes you at
+   your word until a card proves otherwise. */
+function jazzChecklistHTML(id){
+  const ex = jazzExercise(id);
+  const list = (ex && ex.masteryChecklist) || [];
+  if(!list.length) return '';
+  const got = jazzChecksGot(id);
+  return `<div class="jz-checks">
+    <div class="row between" style="align-items:baseline">
+      <span class="sc">How you know you have it</span>
+      <span class="mono faint">${got.done}/${got.of}${ex.checklistDerived
+        ? ' · <em class="jz-inherit" title="the source has no checklist for this one, so these are the standard rungs — slowly, in all twelve, at tempo, from memory, in a tune">the standard rungs</em>' : ''}</span>
+    </div>
+    ${list.map(t => `<label class="jz-check${jazzCheckGot(id, t) ? ' on' : ''}">
+      <input type="checkbox" data-jzchk="${esc(t)}" ${jazzCheckGot(id, t) ? 'checked' : ''}>
+      <span>${esc(t)}</span></label>`).join('')}</div>`;
+}
+
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
@@ -228,6 +299,14 @@ function bindJazzExercise(root, id){
     if(!have) toast(`${jazzPretty(ui.key)} — ${jazzKeysGot(id)} of 12.`);
     rerender();
   };
+  $$('[data-jzchk]', root).forEach(c => c.onchange = () => {
+    jazzSetCheck(id, c.dataset.jzchk, c.checked);
+    c.closest('.jz-check').classList.toggle('on', c.checked);
+    sound(c.checked ? 'success' : 'click');
+    const said = root.querySelector('.jz-checks .mono');
+    if(said){ const g = jazzChecksGot(id);
+      said.innerHTML = said.innerHTML.replace(/^\d+\/\d+/, `${g.done}/${g.of}`); }
+  });
   const log = root.querySelector('#jzLog');
   if(log) log.onclick = () => openJazzLog(id);
   const card = root.querySelector('#jzCard');

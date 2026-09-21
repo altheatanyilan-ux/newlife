@@ -130,6 +130,10 @@ function jazzBook(){
     }); };
   try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
   try { take(typeof STAGES_0_12_CATALOG !== 'undefined' ? STAGES_0_12_CATALOG : null); } catch(e){}
+  /* and the layer a textbook leaves out — the listening, the mistakes, the
+     checkpoints. Merged here rather than written into the shipped files, so
+     those stay exactly as they arrived. */
+  try { jazzMergeEnrichment(out); } catch(e){ console.warn('the enrichment layer did not merge', e); }
   _jazzBook = out;
   return out;
 }
@@ -152,7 +156,7 @@ function jazzStages(){
   _jazzLadder = JAZZ_STAGE_IDS.map(sid => {
     const note = JAZZ_STAGE_NOTES[sid] || {};
     const subs = (byStage[sid] || []).sort((a, b) => ord(a) - ord(b));
-    return Object.assign({id: String(sid), key: sid, subs}, note);
+    return Object.assign({id: String(sid), key: sid, subs}, note, jazzStageRich(sid));
   }).filter(s => s.subs.length);
   return _jazzLadder;
 }
@@ -197,6 +201,9 @@ function jazzState(){
   st.customKeys = Array.isArray(st.customKeys) ? st.customKeys : ['C','F','Bb','Eb'];
   st.syllabus = Array.isArray(st.syllabus) ? st.syllabus : [];
   st.gate = !!st.gate;              /* one stage at a time, if you want it */
+  /* whether the deck also asks the mastery checkpoints — "at ♩=100", "eyes
+     closed", "name the third and seventh" — rather than only "play it" */
+  st.checks = st.checks === undefined ? true : !!st.checks;
   st.openId = st.openId || null;
   return j;
 }
@@ -206,12 +213,18 @@ function jazzState(){
 function jazzRecord(id, make){
   const j = jazzState();
   if(!j.progress[id]){
-    if(!make) return {keys:{}, logs:[], nailed:{}, lastAt:null};
-    j.progress[id] = {keys:{}, logs:[], nailed:{}, lastAt:null};
+    /* the empty one has to carry every field the stored one does, or a
+       reader that never writes — a page drawing a checklist for an exercise
+       you have not touched — finds an undefined where it expected a table */
+    if(!make) return {keys:{}, logs:[], nailed:{}, checks:{}, lastAt:null};
+    j.progress[id] = {keys:{}, logs:[], nailed:{}, checks:{}, lastAt:null};
   }
   const r = j.progress[id];
   r.keys = r.keys && typeof r.keys === 'object' ? r.keys : {};
   r.nailed = r.nailed && typeof r.nailed === 'object' ? r.nailed : {};
+  /* which of the exercise's checkpoints you have ticked, by a hash of the
+     checkpoint's own words rather than by its position in the list */
+  r.checks = r.checks && typeof r.checks === 'object' ? r.checks : {};
   r.logs = Array.isArray(r.logs) ? r.logs : [];
   return r;
 }
@@ -317,30 +330,77 @@ function jazzKeyPool(exerciseId, mode, custom){
    those carries a distance as well, drawn at random the same way the key is,
    and the challenge says both. */
 const jazzDealInterval = () => JAZZ_INTERVALS[Math.floor(Math.random() * JAZZ_INTERVALS.length)];
+/* Two decks in one, and why.
+
+   "Play a two-five-one in E flat" is one question, and it is not the only
+   one worth asking about a two-five-one in E flat. The checkpoints on an
+   exercise ask the others: at a hundred and twenty, with your eyes shut,
+   naming the third and seventh, moving smoothly from this key to that one.
+   Those are the things that separate being able to find it from having it.
+
+   So the checkpoint cards are dealt from a pool of their own and mixed in at
+   roughly one in three, rather than thrown into the same bag. In one bag
+   they would swamp the plain cards — five checkpoints times twelve keys
+   against twelve — and the deck would stop being about playing the thing.
+
+   A checkpoint you have already ticked is not dealt. That is the only place
+   in this room where ticking a box quietly changes what you are asked, and
+   it is deliberate: the tick is a claim, and the deck takes you at your
+   word until a card proves otherwise. */
+const jazzChecksAsked = () => !!(jazzState().settings || {}).checks;
 function jazzDeal(ids, n, mode, custom){
-  const pool = [];
-  (ids || []).forEach(id => jazzKeyPool(id, mode, custom).forEach(key => {
-    const r = jazzRecord(id);
-    /* three tickets for one you have missed, two for a struggle, one for a
-       key that is already yours */
-    const last = (jazzState().flashes.find(f => f.exerciseId === id && f.key === key) || {}).result;
-    const weight = last === 'couldnt' ? 3 : last === 'struggled' ? 2 : r.keys[key] ? 1 : 2;
-    const wants = jazzWantsInterval(jazzExercise(id));
-    for(let i = 0; i < weight; i++)
-      pool.push(wants ? {exerciseId: id, key, interval: jazzDealInterval()}
-                      : {exerciseId: id, key});
-  }));
-  if(!pool.length) return [];
+  const pool = [], checkPool = [];
+  const asking = jazzChecksAsked();
+  (ids || []).forEach(id => {
+    const ex = jazzExercise(id);
+    const wants = jazzWantsInterval(ex);
+    const keys = jazzKeyPool(id, mode, custom);
+    const open = asking ? (ex && ex.masteryChecklist || [])
+      .filter(t => !jazzCheckGot(id, t) && jazzCheckCardable(t)) : [];
+    keys.forEach(key => {
+      const r = jazzRecord(id);
+      /* three tickets for one you have missed, two for a struggle, one for a
+         key that is already yours */
+      const last = (jazzState().flashes.find(f => f.exerciseId === id && f.key === key) || {}).result;
+      const weight = last === 'couldnt' ? 3 : last === 'struggled' ? 2 : r.keys[key] ? 1 : 2;
+      const make = () => wants ? {exerciseId: id, key, interval: jazzDealInterval()}
+                               : {exerciseId: id, key};
+      for(let i = 0; i < weight; i++) pool.push(make());
+      open.forEach(item => {
+        const card = make();
+        card.check = item;
+        /* a checkpoint about moving between keys needs a second one */
+        if(jazzCheckTwoKeys(item)){
+          const rest = keys.filter(k => k !== key);
+          if(rest.length) card.toKey = rest[Math.floor(Math.random() * rest.length)];
+        }
+        checkPool.push(card);
+      });
+    });
+  });
+  if(!pool.length && !checkPool.length) return [];
   const out = [];
   const want = clamp(+n || 15, 1, 60);
-  /* drawn without putting the same pair back, until the pool runs out and it
+  /* drawn without putting the same card back, until a pool runs out and it
      is allowed to come round again */
-  let bag = pool.slice();
-  while(out.length < want){
-    if(!bag.length) bag = pool.slice();
-    const at = Math.floor(Math.random() * bag.length);
-    const card = bag.splice(at, 1)[0];
-    if(out.some(c => c.exerciseId === card.exerciseId && c.key === card.key) && bag.length) continue;
+  let bag = pool.slice(), cbag = checkPool.slice();
+  const same = (a, b) => a.exerciseId === b.exerciseId && a.key === b.key
+    && (a.check || null) === (b.check || null);
+  let guard = want * 40;
+  while(out.length < want && guard-- > 0){
+    /* one in three from the checkpoints, when there are any */
+    const wantCheck = checkPool.length && (out.length % 3 === 2 || !pool.length);
+    let from = wantCheck ? cbag : bag;
+    if(!from.length){ from = wantCheck ? (cbag = checkPool.slice()) : (bag = pool.slice()); }
+    if(!from.length){ from = wantCheck ? bag : cbag; if(!from.length) break; }
+    const at = Math.floor(Math.random() * from.length);
+    const card = from.splice(at, 1)[0];
+    /* Put it back only while the bag it came from still has something else
+       to offer. Testing BOTH bags here looked tidier and deadlocked the
+       deal: two exercises over twelve keys is twenty-four plain cards, a
+       deck of forty wants about twenty-seven of them, and the three extra
+       could never be drawn because the checkpoint bag was never empty. */
+    if(out.some(c => same(c, card)) && from.length) continue;
     out.push(card);
   }
   return out;

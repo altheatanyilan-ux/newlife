@@ -48,6 +48,9 @@ function jazzFlashHTML(){
       </div>
       ${st.keyMode === 'custom' ? `<div class="jz-keypick" style="margin-top:8px">${JAZZ_KEY_NAMES.map(k =>
         `<button class="jz-k${st.customKeys.includes(k) ? ' on' : ''}" data-jzck="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div>` : ''}
+      <div class="sc" style="margin-top:14px">What the cards ask</div>
+      <label class="jz-gate mono"><input type="checkbox" id="jzChecks" ${st.checks ? 'checked' : ''}>
+        the checkpoints too — at tempo, from memory, eyes shut</label>
       <div class="sc" style="margin-top:14px">How many cards</div>
       <div class="row" style="gap:8px;flex-wrap:wrap">${[5, 10, 15, 25, 40].map(n =>
         `<button class="btn sm ${st.cards === n ? 'primary' : 'ghost'}" data-jzn="${n}">${n}</button>`).join('')}</div>
@@ -77,6 +80,8 @@ function bindJazzFlash(root){
     b.classList.toggle('on', at < 0); saveNow(); });
   $$('[data-jzn]', root).forEach(b => b.onclick = () => {
     st.cards = +b.dataset.jzn; saveNow(); rerender(); });
+  const chk = root.querySelector('#jzChecks');
+  if(chk) chk.onchange = () => { st.checks = chk.checked; saveNow(); sound('click'); };
   const go = root.querySelector('#jzBegin');
   if(go) go.onclick = () => {
     const cards = jazzDeal(st.syllabus, st.cards, st.keyMode, st.customKeys);
@@ -94,8 +99,10 @@ function bindJazzFlash(root){
 /* what the card asked for, said back over the answer */
 function jazzCardSaid(ex, card){
   const key = jazzPretty(card.key);
+  const where = card.toKey ? `${key} → ${jazzPretty(card.toKey)}` : key;
+  if(card.check) return `${ex.name} — ${jazzCheckAsk(card.check)} — ${where}`;
   return card.interval ? `${ex.name} — ${jazzSayInterval(card.interval)} from ${key}`
-    : `${ex.ask} ${key}`;
+    : `${ex.ask} ${where}`;
 }
 function jazzCardHTML(){
   const f = jazzUi().flash;
@@ -110,6 +117,7 @@ function jazzCardHTML(){
     ${f.shown ? `
       <p class="jz-cask mono">${esc(jazzCardSaid(ex, card))}</p>
       <div class="jz-stage-box"><div class="jz-score" id="jzCardScore"></div></div>
+      ${card.toKey ? `<div class="jz-stage-box"><div class="jz-score" id="jzCardScore2"></div></div>` : ''}
       <p class="jz-chow">Did you have it?</p>
       <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap">
         <button class="btn ghost danger" data-jzg="couldnt">✗ Couldn’t</button>
@@ -117,10 +125,19 @@ function jazzCardHTML(){
         <button class="btn primary" data-jzg="nailed">✓ Had it</button>
       </div>`
     : `
-      <p class="jz-cprompt serif">${esc(ex.ask)}</p>
+      <!-- A checkpoint card asks the other question about the same pattern:
+           not "can you find it" but "can you do it at a hundred and twenty,
+           with your eyes shut, naming the third and seventh". The exercise's
+           own name stays above it, because the checkpoint on its own does
+           not say what it is a checkpoint OF. -->
+      ${card.check ? `<p class="jz-cwhat mono">${esc(ex.name)}</p>
+        <p class="jz-cprompt serif">${esc(jazzCheckAsk(card.check))}</p>
+        <p class="jz-ctag mono">a checkpoint</p>`
+      : `<p class="jz-cprompt serif">${esc(ex.ask)}</p>`}
       ${card.interval ? `<p class="jz-cint serif">${esc(jazzSayInterval(card.interval))}</p>
         <p class="jz-cfrom mono">from</p>` : ''}
-      <p class="jz-ckey serif">${esc(jazzPretty(card.key))}</p>
+      <p class="jz-ckey serif">${esc(jazzPretty(card.key))}${
+        card.toKey ? ` <span class="jz-cto">→ ${esc(jazzPretty(card.toKey))}</span>` : ''}</p>
       <div class="row" style="justify-content:center;margin-top:26px">
         <button class="btn primary lg" id="jzShow">Show me</button></div>
       <p class="jz-chint mono">play it first — the card is worth nothing if you look</p>`}
@@ -138,7 +155,11 @@ function bindJazzCard(root){
   /* the answer is written out for the distance the card asked for, not for
      whatever the exercise page happened to be left on */
   if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: card.interval});
-    if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml); }
+    if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml);
+    /* a card about moving between two keys has to show both of them, or the
+       answer is only half of what was asked */
+    if(card.toKey){ const two = jazzScoreXml(ex, card.toKey, {interval: card.interval});
+      if(two) jazzEngrave(root.querySelector('#jzCardScore2'), two); } }
   $$('[data-jzg]', root).forEach(b => b.onclick = () => {
     const how = b.dataset.jzg;
     jazzGrade(card.exerciseId, card.key, how, f.seconds);
