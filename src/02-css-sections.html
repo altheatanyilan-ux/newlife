@@ -1770,6 +1770,30 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .btn.lg{padding:11px 26px;font-size:1rem}
 @media (max-width:640px){.jz-ckey{font-size:2.6rem}.jz-cprompt{font-size:1.2rem}}
 
+/* how far to trust what is on the stave, said by the stave itself */
+.jz-stage-box[data-jzacc="approximate"]{
+  border-left:3px solid #c47832;
+  background:color-mix(in srgb,#c47832 4%,var(--card))}
+.jz-stage-box[data-jzacc="needs_manual_verification"]{
+  border-left:3px solid #c4484e;
+  background:color-mix(in srgb,#c4484e 5%,var(--card))}
+.jz-stage-box[data-jzacc="user_modified"]{
+  border-left:3px solid #6b7f8e;
+  background:color-mix(in srgb,#6b7f8e 6%,var(--card))}
+/* take it away, fix it, bring it back */
+.jz-fixbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+.jz-fixed{font-size:.66rem;color:#6b7f8e;letter-spacing:.03em}
+.tbtn.danger{color:#c4484e}
+
+/* where to go and look it up */
+.jz-ref{border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin-bottom:12px;
+  background:color-mix(in srgb,var(--line) 10%,transparent)}
+.jz-refhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:baseline}
+.jz-refi{font-size:.9rem;opacity:.75;line-height:1.4}
+.jz-refhead b{font-size:.86rem}
+.jz-refwhere{display:block;font-size:.66rem;color:var(--muted);letter-spacing:.04em;margin-top:1px}
+.jz-refwhat{font-size:.82rem;line-height:1.55;color:var(--muted);margin:6px 0 0;max-width:64ch}
+
 /* notes you should not entirely trust, said where they will be read */
 .jz-doubt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;
   border:1px solid color-mix(in srgb,#c47832 45%,var(--line));border-radius:11px;

@@ -2439,6 +2439,30 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .btn.lg{padding:11px 26px;font-size:1rem}
 @media (max-width:640px){.jz-ckey{font-size:2.6rem}.jz-cprompt{font-size:1.2rem}}
 
+/* how far to trust what is on the stave, said by the stave itself */
+.jz-stage-box[data-jzacc="approximate"]{
+  border-left:3px solid #c47832;
+  background:color-mix(in srgb,#c47832 4%,var(--card))}
+.jz-stage-box[data-jzacc="needs_manual_verification"]{
+  border-left:3px solid #c4484e;
+  background:color-mix(in srgb,#c4484e 5%,var(--card))}
+.jz-stage-box[data-jzacc="user_modified"]{
+  border-left:3px solid #6b7f8e;
+  background:color-mix(in srgb,#6b7f8e 6%,var(--card))}
+/* take it away, fix it, bring it back */
+.jz-fixbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+.jz-fixed{font-size:.66rem;color:#6b7f8e;letter-spacing:.03em}
+.tbtn.danger{color:#c4484e}
+
+/* where to go and look it up */
+.jz-ref{border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin-bottom:12px;
+  background:color-mix(in srgb,var(--line) 10%,transparent)}
+.jz-refhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:baseline}
+.jz-refi{font-size:.9rem;opacity:.75;line-height:1.4}
+.jz-refhead b{font-size:.86rem}
+.jz-refwhere{display:block;font-size:.66rem;color:var(--muted);letter-spacing:.04em;margin-top:1px}
+.jz-refwhat{font-size:.82rem;line-height:1.55;color:var(--muted);margin:6px 0 0;max-width:64ch}
+
 /* notes you should not entirely trust, said where they will be read */
 .jz-doubt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;
   border:1px solid color-mix(in srgb,#c47832 45%,var(--line));border-radius:11px;
@@ -57367,11 +57391,15 @@ function bindJazzCard(root){
     f.seconds = (Date.now() - (f.from || Date.now())) / 1000; sound('click'); rerender(); };
   /* the answer is written out for the distance the card asked for, not for
      whatever the exercise page happened to be left on */
-  if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: card.interval});
+  /* the answer shows YOUR notes: a correction you made and then graded
+     yourself against the uncorrected version would be worse than useless */
+  const drawn = (k) => { const x = jazzScoreXml(ex, k, {interval: card.interval});
+    return x ? jazzApplyFixes(x, card.exerciseId, k) : x; };
+  if(f.shown && ex){ const xml = drawn(card.key);
     if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml);
     /* a card about moving between two keys has to show both of them, or the
        answer is only half of what was asked */
-    if(card.toKey){ const two = jazzScoreXml(ex, card.toKey, {interval: card.interval});
+    if(card.toKey){ const two = drawn(card.toKey);
       if(two) jazzEngrave(root.querySelector('#jzCardScore2'), two); } }
   $$('[data-jzg]', root).forEach(b => b.onclick = () => {
     const how = b.dataset.jzg;
@@ -57395,6 +57423,259 @@ function jazzEndSession(finished){
   }
   navigate('#/jazz');
   rerender();
+}
+/* ============================================================
+   WHERE TO GO AND LOOK IT UP.
+
+   This room's whole claim on your time is that the exercises are somebody's
+   teaching rather than somebody's invention. That claim is worth nothing
+   unless you can check it, and you cannot check it against "Siskind, Book 1,
+   p.36" when the notation you are looking at is on page 37 and the exercise
+   it belongs to runs from 37 to 40.
+
+   So every exercise carries a citation you could hand to a librarian: the
+   book, its full title, the unit, the page range where the notation actually
+   appears, and a sentence saying what to look for when you get there — which
+   is the part that turns a page number into something usable, because a page
+   of a jazz method has four things on it and only one of them is the
+   exercise.
+
+   THE IDS IN THE SOURCE TABLE AND THE IDS IN THIS CATALOGUE HAVE DRIFTED
+   APART, so nothing here is mapped by number. The table's 2.2 is the
+   whole-step descents, which are 2.4a and 2.4b here; its 2.3 is the shell
+   voicings, which are 2.2; its 2.4 is the minor two-five-one, which is four
+   entries. Mapping those by id would have put a page number about shell
+   voicings on the descents and nobody would have noticed until they opened
+   the book. Each one below is matched by what the exercise IS.
+
+   AND THE ACCURACY COLUMN IS NOT COPIED. The table was written before the
+   corrections and marks things approximate that have since been checked note
+   by note against the printed notation. The accuracy each exercise carries
+   is its own, in the catalogue, where the corrections put it. A citation
+   says where to look; it does not get to say how far the notes are trusted.
+   ============================================================ */
+
+const JAZZ_BOOKS = {
+  'Siskind Book 1': 'Jazz Piano Fundamentals, Book 1',
+  'Siskind Book 2': 'Jazz Piano Fundamentals, Book 2',
+  'Siskind Book 3': 'Jazz Piano Fundamentals, Book 3',
+  'Levine': 'The Jazz Theory Book',
+  'Mantooth': 'Voicings for Jazz Keyboard',
+  'Berklee Harmony': 'The Berklee Book of Jazz Harmony',
+  'Stoloff': 'Scat! Vocal Improvisation Techniques',
+  'Weir': 'The Jazz Singer’s Handbook',
+  'Design Doc': 'Jazz Practice Studio — design notes'
+};
+
+/* [book, chapter, pages, what to look for when you get there] */
+const JAZZ_REFERENCES = {
+  /* ---- P0: this stage is the studio's own, not a book's ---- */
+  'P0.*': ['Design Doc', 'Stage P0', '—',
+    'Stage P0 is this studio’s own addition rather than a chapter of anybody’s book: the twelve distances, drilled from every root, before the chord work in Siskind Book 1 Unit 1 begins.'],
+
+  /* ---- Stage 1: chord construction ---- */
+  '1.1': ['Siskind Book 1', 'Unit 1', 'pp.14–17',
+    '"Three Ways to Find It", then the chart of every major seventh chord in root position.'],
+  '1.2': ['Siskind Book 1', 'Unit 1', 'pp.15–16',
+    'The dominant chart — "not quite as resolved… wants to go somewhere".'],
+  '1.3': ['Siskind Book 1', 'Unit 1', 'pp.16–17',
+    'The minor chart — "a little ambivalent or undecided".'],
+  '1.4': ['Siskind Book 1', 'Unit 1', 'p.17',
+    'The half-diminished formula, at the foot of the page under the three basic types \u2014 a minor seventh with its fifth lowered.'],
+  '1.5': ['Siskind Book 1', 'Unit 1', 'p.17',
+    'The diminished seventh formula, printed beside the half-diminished so the one flattened note between them is visible.'],
+
+  /* ---- Stage 2: the two-five-one ---- */
+  '2.1': ['Siskind Book 1', 'Unit 3', 'p.37',
+    'Bass clef, whole-note chords: ii-V-I in C, F and B♭, root position and second inversion printed side by side.'],
+  '2.1b': ['Siskind Book 1', 'Unit 3', 'p.37',
+    'The right-hand column of the same page: every chord with its fifth on the bottom.'],
+  '2.1c': ['Siskind Book 1', 'Unit 3', 'p.37',
+    'The instruction under the two columns: "either the bottom two notes move and the top two notes hold or the top two notes move and the bottom two hold". Play across the two columns, not down them.'],
+  '2.2': ['Siskind Book 1', 'Unit 3', 'p.42',
+    'The shell chords — third and seventh only — under Coordination Exercise 3.'],
+  '2.3': ['Siskind Book 2', 'Unit 3', 'pp.44–51',
+    'The minor two-five-one, introduced before the three formulas that follow it.'],
+  '2.3b': ['Siskind Book 2', 'Unit 3', 'pp.49–51',
+    'Formula HN, the higher ninth, written out in full for four-note and five-note versions. This is the one with printed notation for every chord.'],
+  '2.3c': ['Siskind Book 2', 'Unit 3', 'pp.49–51',
+    'Formula LN, the lower ninth, with the natural fifth on the V and a minor-major seventh tonic. Read the voicing charts rather than the prose — this is the one worth checking against what this room draws.'],
+  '2.3d': ['Siskind Book 2', 'Unit 3', 'pp.49–51',
+    'Formula R, where the root takes the ninth’s place on the half-diminished chord. Again, the charts rather than the prose.'],
+  '2.4a': ['Siskind Book 1', 'Unit 3', 'pp.39–40',
+    'Two full pages of descents. Set A is C→B♭→A♭→G♭→E→D, written as one continuous exercise, with the transformation at each join marked.'],
+  '2.4b': ['Siskind Book 1', 'Unit 3', 'pp.39–40',
+    'Set B on the same two pages: D♭→B→A→G→F→E♭. It is printed below Set A and almost everybody stops before it.'],
+
+  /* ---- Stage 3: Type A/B ---- */
+  '3.1': ['Siskind Book 1', 'Unit 6', 'pp.86–91',
+    'The formulas are on p.86 (Type A = 3, 7, 9, 5; Type B = 7, 3, 5, 9), the written-out voicings on pp.87–88, and the twelve-key exercises on pp.89–91. The register rule — lowest note between the C below middle C and middle C — is on p.89.'],
+  '3.2': ['Siskind Book 1', 'Unit 6', 'pp.91–93',
+    'The same exercises beginning on Type B: Sets C and D.'],
+  '3.3': ['Siskind Book 1', 'Unit 6', 'p.94',
+    'The diminished seventh with Type A and Type B shown together.'],
+
+  /* ---- Stage 4: one hand, and a bass ---- */
+  '4.1a': ['Siskind Book 1', 'Unit 8', 'pp.118–122',
+    'The three-note formulas on p.118 (Type A = 3rd, 7th, 9th), then the twelve-key exercises, Sets A to D, on pp.119–122.'],
+  '4.1b': ['Siskind Book 1', 'Unit 8', 'pp.118–122',
+    'The same pages, reading the Type B column: 7th, 3rd, 5th. Sets C and D of the twelve-key exercises begin on this shape.'],
+  '4.1c': ['Siskind Book 1', 'Unit 8', 'pp.123–130',
+    '"Blues for Sammie", written out in full: one-handed voicings in the right hand and a bass in two in the left, on a grand staff. This is the exercise both halves exist for.'],
+  '4.2': ['Siskind Book 1', 'Unit 8', 'pp.115–116',
+    'The three bass formulas — root and fifth, root and third, root and a chromatic neighbour of the next root — with the note about playing them an octave lower than written and about the lowest string of the bass being the lowest E on the piano.'],
+
+  /* ---- Stage 5: the blues ---- */
+  '5.1': ['Siskind Book 1', 'Unit 7', 'pp.101–103',
+    'The twelve-bar jazz blues in C, and the AAB phrase structure that goes with it.'],
+  '5.1b': ['Siskind Book 1', 'Unit 7', 'pp.103–105',
+    'The blues with Type A/B voicings, and the ii-V exercises that lead into it.'],
+  '5.2': ['Siskind Book 1', 'Unit 7', 'pp.101–102',
+    'The "minor" blues scale — root, ♭3, 4, ♯4, 5, ♭7 — printed beside the sweet scale.'],
+  '5.3': ['Siskind Book 1', 'Unit 7', 'pp.101–102',
+    'The "major" or sweet scale — root, 2, ♭3, 3, 5, 6 — on the same page as the blues scale.'],
+
+  /* ---- Stage 6: licks ---- */
+  '6.1': ['Siskind Book 1', 'Unit 3', 'pp.43–44',
+    'Short-form lick. Treble clef, a single melodic line over Dm7–G7–Cmaj7, with the articulation version and the scat syllables on p.44. The scale degrees are labelled "3rd, 5th, 7th, 2nd/9th".'],
+  '6.2': ['Siskind Book 1', 'Unit 4', 'p.57',
+    'Long-form lick, "designed to remind you of the parent scale for a ii-V-I progression".'],
+  '6.3': ['Siskind Book 1', 'Unit 5', 'p.61',
+    'Short-form. "Notice the interesting shape created by the leap on the ‘and of three’."'],
+  '6.4': ['Siskind Book 1', 'Unit 6', 'pp.84–85',
+    'Long-form, first two measures. "Designed to practice a 3-5-7-9 arpeggio, a turn, and a fingering maneuver." Printed in C, B♭ and D♭, with the cross-over fingering marked.'],
+  '6.5': ['Siskind Book 1', 'Unit 7', 'p.102',
+    'Blues style. "Double notes and turns are typical in the blues style." Uses the sweet scale; fingering given for C.'],
+  '6.6': ['Siskind Book 1', 'Unit 8', 'p.114',
+    '"Written to fit with the V chord of a long-form ii-V-I." Sweet scale, borrowing the fourth from the blues scale.'],
+  '6.7': ['Siskind Book 1', 'Unit 9', 'p.136',
+    'Short-form. "Designed to solidify the work you did with arpeggios." The thirteenth substitutes for the fifth on the dominant; cross-over fingering in three keys.'],
+  '6.8': ['Siskind Book 1', 'Unit 10', 'p.153',
+    'Short-form. A variation on Lick 7 with altered tones on the V chord.'],
+  '6.9': ['Siskind Book 1', 'Unit 11', 'p.168',
+    'In the "More Altered Dominants" material.'],
+  '6.10': ['Siskind Book 1', 'Unit 12', 'p.185',
+    'In the "Improvising with Alternate Dominants" material.'],
+  '6.11': ['Siskind Book 1', 'Unit 6', 'pp.82–84',
+    '"The most common arpeggio in jazz starts on the third." Written out for a ii-V-I in F: Gm7–C7–Fmaj7.'],
+  '6.12': ['Siskind Book 1', 'Unit 3', 'p.42',
+    'Coordination Exercise 3: swung eighths in the right hand over shell chords in the left, under a Charleston rhythm.'],
+
+  /* ---- Stage 7: altered dominants ---- */
+  '7.1a': ['Siskind Book 1', 'Unit 10', 'pp.154–158',
+    'The flat nine replacing the natural ninth in Type A and Type B, with the written practice on p.157 and the twelve-key ii-V-I on p.158.'],
+  '7.1b': ['Siskind Book 1', 'Unit 10', 'pp.154–158',
+    'The same pages, reading the Type B column \u2014 where the flat nine is the TOP note rather than the third from the bottom, which is the thing to check.'],
+  '7.1c': ['Siskind Book 1', 'Unit 10', 'pp.155–159',
+    'The flat thirteen replacing the natural fifth, and the ii-V-I exercise on pp.158–159.'],
+  '7.2': ['Siskind Book 1', 'Unit 11', 'pp.170–173',
+    'Dm7–D♭7–Cmaj7, in both the two-handed and the one-hand-and-bass versions, with the instruction that "the smoothest voice leading is created by using three consecutive voicings of the SAME type".'],
+  '7.3': ['Siskind Book 1', 'Unit 11', 'pp.168–173',
+    'The altered scale under the altered dominants. Levine’s fuller treatment is in The Jazz Theory Book, Ch.5, pp.55–80, as the seventh mode of melodic minor.'],
+  '7.4': ['Siskind Book 1', 'Unit 11', 'p.173',
+    'Alterations combined, immediately before the resolution example.'],
+  '7.5': ['Siskind Book 1', 'Unit 11', 'p.173',
+    'G7alt→Cmaj7, where every altered note resolves stepwise into a five-note tonic chord with the thirteenth in it.'],
+
+  /* ---- Stage 8: modal ---- */
+  '8.1': ['Siskind Book 3', 'Unit 1', 'pp.9–10',
+    'All seven modes with the suggested fingerings.'],
+  '8.2': ['Siskind Book 3', 'Unit 1', 'pp.9–10',
+    'The drone exercises beside the mode fingerings. The practice instruction — "select two different three-note modal voicings each day, practice playing each up and down all twelve major scales" — is on pp.24–25.'],
+  '8.3a': ['Siskind Book 3', 'Unit 3', 'pp.66–72',
+    'The P4-P4-P4-M3 voicing, with the written examples for many chord types collected on p.72. The warning about the voicings on the third and sixth degrees containing minor ninths is in the same unit.'],
+  '8.3b': ['Siskind Book 3', 'Unit 3', 'pp.66–72',
+    'Three-note quartal voicings among the stacked-fourth examples; the specific ones are on p.72.'],
+  '8.3c': ['Siskind Book 3', 'Unit 3', 'pp.66–72',
+    'Five-note quartal voicings, on the same pages.'],
+  '8.3d': ['Siskind Book 3', 'Unit 3', 'pp.70–72',
+    'Cluster voicings — mixed seconds and thirds — printed after the quartals.'],
+  '8.4': ['Siskind Book 3', 'Unit 4', 'pp.80–88',
+    'Triads placed above a bass note to make extended harmony.'],
+  '8.5': ['Siskind Book 3', 'Unit 5', 'pp.92–104',
+    'The pentatonics for each chord type, including the melodic minor, dominant and flat-sixth pentatonics.'],
+  '8.6': ['Siskind Book 3', 'Unit 5', 'pp.92–104',
+    'The voicings built from those pentatonics, later in the same unit.'],
+  '8.7a': ['Siskind Book 3', 'Unit 9', 'pp.192–193',
+    'Seven quartal formulas for a tonal ii-V-I. Formula 1 is the first of them, written for Cm7–F7–B♭maj7.'],
+  '8.7b': ['Siskind Book 3', 'Unit 9', 'pp.192–193',
+    'Formula 2, directly beneath Formula 1 on the same page.'],
+  '8.8a': ['Siskind Book 3', 'Unit 10', 'pp.217–221',
+    'Four quartal formulas for the minor ii-V-i. This is Formula 1 with the V coloured from the minor scales.'],
+  '8.8b': ['Siskind Book 3', 'Unit 10', 'pp.217–221',
+    'The same formula with the V taken from the major modes, which the book calls the more consonant of the two.'],
+
+  /* ---- Stage 9: reharmonisation ---- */
+  '9.1': ['Siskind Book 1', 'Unit 12', 'pp.186–188',
+    'V/vi, V/ii and V/iii with Type A/B voicings.'],
+  '9.2': ['Siskind Book 1', 'Unit 12', 'p.190',
+    'The backdoor: ♭VIIm7–♭VII7–I as an alternative arrival at the tonic.'],
+  '9.3': ['Siskind Book 1', 'Unit 12', 'p.189',
+    'The diminished walk-up, with ♯iv°7 as a passing chord between IV and V.'],
+  '9.4': ['Siskind Book 1', 'Unit 12', 'pp.186–188',
+    'The I-vi-ii-V turnaround, written out with Type A/B voicings alongside the secondary dominants of the same unit.'],
+  '9.5': ['Siskind Book 1', 'Unit 12', 'pp.186–188',
+    'The iii-vi-ii-V variation, printed with the shorter turnaround.'],
+  '9.6': ['Siskind Book 3', 'Unit 11', 'pp.248–258',
+    'The major-third cycle, with the instruction to "practice improvising over Coltrane Changes using arpeggios, guidetone lines, continuous scales".'],
+
+  /* ---- Stage 10: interchange and outside ---- */
+  '10.1': ['Siskind Book 3', 'Unit 8', 'pp.140–142',
+    'Changing modes over the same root, which is where borrowing begins.'],
+  '10.2': ['Siskind Book 3', 'Unit 6', 'pp.106–115',
+    'Tonicising non-diatonic chords and resolving them, with written improvisation examples over Cm7.'],
+  '10.3': ['Siskind Book 3', 'Unit 6', 'pp.106–115',
+    'The sidestep, in the same unit as the tonicisations.'],
+  '10.4': ['Siskind Book 3', 'Unit 8', 'pp.169–180',
+    'Planing: moving a melodic cell by a consistent interval — half steps, whole steps, minor thirds, major thirds.'],
+  '10.5': ['Siskind Book 3', 'Unit 8', 'pp.140–142',
+    'Modal interchange over a static chord, at the front of the unit.'],
+
+  /* ---- Stage 11: modal blues ---- */
+  '11.1': ['Siskind Book 3', 'Unit 10', 'pp.206–210',
+    'The Mixolydian blues, with the non-chord-tone patterns that go with it.'],
+  '11.2': ['Siskind Book 2', 'Unit 7', 'pp.133–134',
+    'The minor blues form in C, F and B♭, printed beside the Bird blues.'],
+  '11.3': ['Siskind Book 2', 'Unit 7', 'pp.133–134',
+    'The same pages — the Aeolian colouring is the darker of the minor forms shown.'],
+  '11.4': ['Siskind Book 2', 'Unit 7', 'pp.133–134',
+    'The minor two-five-i inside the blues form, in bars nine to eleven.'],
+  '11.5': ['Siskind Book 3', 'Unit 10', 'pp.217–221',
+    'The reharmonised blues, with the four quartal formulas and the So What alternatives.'],
+
+  /* ---- Stage 12: odd time ---- */
+  '12.1': ['Siskind Book 3', 'Unit 11', 'pp.240–253',
+    'The clave patterns for 5/4, and scales played with and against them.'],
+  '12.2': ['Siskind Book 3', 'Unit 11', 'pp.240–253',
+    'The 7/4 patterns, and standards rewritten in seven.'],
+  '12.3': ['Siskind Book 3', 'Unit 11', 'p.248',
+    'Groupings that do not evenly match the beat.'],
+  '12.4': ['Siskind Book 3', 'Unit 11', 'pp.240–253',
+    'The writing exercises at the end of the unit, after the clave material.'],
+  '12.5': ['Siskind Book 3', 'Unit 11', 'pp.240–253',
+    'Metric modulation, in the same unit as the odd-meter work.']
+};
+
+/**
+ * The citation for one exercise. P0 shares a single entry, because the whole
+ * stage has one source and twelve separate identical citations would be
+ * twelve places for it to go stale.
+ */
+function jazzReference(id){
+  const row = JAZZ_REFERENCES[id]
+    || (String(id).indexOf('P0.') === 0 ? JAZZ_REFERENCES['P0.*'] : null);
+  if(!row) return null;
+  return {book: row[0], bookFull: JAZZ_BOOKS[row[0]] || row[0],
+    chapter: row[1], pageNumbers: row[2], description: row[3]};
+}
+/** What you would write in a notebook, or paste into a message. */
+function jazzCitation(ref){
+  if(!ref) return '';
+  const bits = [ref.book === 'Design Doc' ? ref.bookFull
+    : `${ref.book.replace(/ Book \d$/, '')}, “${ref.bookFull}”`];
+  if(ref.chapter && ref.chapter !== '—') bits.push(ref.chapter);
+  if(ref.pageNumbers && ref.pageNumbers !== '—') bits.push(ref.pageNumbers);
+  return bits.join(', ');
 }
 /* ============================================================
    THE ENRICHMENT LAYER — what a teacher says and a textbook leaves out.
@@ -58562,6 +58843,10 @@ function jazzBook(){
            cannot resolve a single melodic line, and is almost certainly
            wrong. Those three are different things and the room says which. */
         acc: JAZZ_ACCURACY[e.noteAccuracy] ? e.noteAccuracy : 'verified',
+        /* and where to go and look it up: the book, the unit, the pages the
+           notation is actually on, and what to look for when you get there */
+        ref: (typeof jazzReference === 'function' ? jazzReference(id) : null)
+          || (e.sourceReference || null),
         doubt: e.noteAccuracy || ''};
     }); };
   try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
@@ -58859,6 +59144,183 @@ function jazzDeal(ids, n, mode, custom){
 }
 const jazzFlashesOn = day => jazzState().flashes.filter(f => f.day === day);
 /* ============================================================
+   TAKE IT AWAY, FIX IT, BRING IT BACK.
+
+   Ten of these exercises are marked as not reliable, and saying so is only
+   half an answer. The other half is being able to do something about it:
+   open the book, see that the fourth note of bar two is a D and not an E,
+   and correct it — permanently, in your copy, without waiting for anybody.
+
+   THREE WAYS OUT AND ONE WAY BACK. Every engraving can be downloaded as a
+   MusicXML file and opened in MuseScore or anything else that reads the
+   format. A corrected file can be brought back in. And what comes back is
+   not stored as a replacement score.
+
+   WHY NOT A REPLACEMENT. Because these exercises exist in twelve keys, and
+   a corrected score is a correction in ONE key. Store the file and the other
+   eleven keys stay wrong; store what CHANGED — the fourth note of bar two is
+   a semitone lower than the generator thinks — and the correction follows
+   the exercise into every key, because a semitone is a semitone wherever you
+   start from.
+
+   So a fix is {bar, note, delta}: which bar, which note in it, and how far
+   the note moved. It is applied to the generated notation on its way to the
+   engraver, and it survives transposition, reload and the generator being
+   corrected underneath it.
+
+   WHICH IS ALSO THE RISK, and it is worth writing down. If the generator is
+   later fixed to produce the right note, your fix will still be applied on
+   top and will now be wrong. That is why a fix is visible rather than
+   silent: the score says it has been changed by you, and says how many notes
+   were changed, and there is one button that puts it all back.
+   ============================================================ */
+
+/* ---------- what you have changed ---------- */
+function jazzFixState(){
+  const j = jazzState();
+  j.fixes = j.fixes && typeof j.fixes === 'object' ? j.fixes : {};
+  return j.fixes;
+}
+/** The fixes for one exercise, as a plain array. */
+function jazzFixes(exId){
+  const all = jazzFixState();
+  const row = all[exId];
+  return row && Array.isArray(row.notes) ? row.notes : [];
+}
+const jazzFixCount = exId => jazzFixes(exId).length;
+const jazzFixedAt = exId => (jazzFixState()[exId] || {}).at || null;
+/** Where it came from, for the sentence on the page. */
+const jazzFixSource = exId => (jazzFixState()[exId] || {}).from || '';
+
+function jazzSetFixes(exId, notes, from){
+  const all = jazzFixState();
+  if(!notes || !notes.length) delete all[exId];
+  else all[exId] = {notes: notes.slice(), at: new Date().toISOString(), from: from || 'edited'};
+  saveNow();
+  return jazzFixes(exId);
+}
+const jazzClearFixes = exId => jazzSetFixes(exId, []);
+
+/* ---------- reading and writing pitches in a MusicXML document ---------- */
+const JAZZ_STEP_PC = {C:0, D:2, E:4, F:5, G:7, A:9, B:11};
+function jazzPitchMidi(pitchEl){
+  if(!pitchEl) return null;
+  const step = (pitchEl.querySelector('step') || {}).textContent;
+  const oct = +((pitchEl.querySelector('octave') || {}).textContent);
+  const alter = +((pitchEl.querySelector('alter') || {}).textContent || 0);
+  if(!step || !isFinite(oct)) return null;
+  return (oct + 1) * 12 + JAZZ_STEP_PC[step] + alter;
+}
+/* Spelled the way the key spells it, so a fix in G♭ does not come back as
+   F♯ and make the accidentals disagree with the rest of the bar. */
+function jazzWritePitch(pitchEl, midi, key){
+  const G = typeof JazzExerciseGenerator !== 'undefined' ? JazzExerciseGenerator : null;
+  const map = G && G.pitchMapForKey ? G.pitchMapForKey(key) : null;
+  const pc = ((midi % 12) + 12) % 12;
+  const spelling = map && map[pc] ? map[pc]
+    : [{step:'C',alter:0},{step:'D',alter:-1},{step:'D',alter:0},{step:'E',alter:-1},
+       {step:'E',alter:0},{step:'F',alter:0},{step:'G',alter:-1},{step:'G',alter:0},
+       {step:'A',alter:-1},{step:'A',alter:0},{step:'B',alter:-1},{step:'B',alter:0}][pc];
+  const doc = pitchEl.ownerDocument;
+  const set = (tag, value) => {
+    let el = pitchEl.querySelector(tag);
+    if(value === null){ if(el) el.remove(); return; }
+    if(!el){ el = doc.createElement(tag); pitchEl.appendChild(el); }
+    el.textContent = String(value);
+  };
+  /* rebuilt in order, because <alter> has to sit between step and octave */
+  while(pitchEl.firstChild) pitchEl.removeChild(pitchEl.firstChild);
+  set('step', spelling.step);
+  if(spelling.alter) set('alter', spelling.alter);
+  set('octave', Math.floor(midi / 12) - 1);
+}
+/** Every sounding note of a document, bar by bar. Rests are skipped, so a
+    note's index is its index among the notes you can actually hear. */
+function jazzReadNotes(doc){
+  return [...doc.querySelectorAll('measure')].map(bar =>
+    [...bar.querySelectorAll('note')].filter(n => !n.querySelector('rest')));
+}
+
+/* ---------- applying what you changed ---------- */
+function jazzApplyFixes(xml, exId, key){
+  const fixes = jazzFixes(exId);
+  if(!xml || !fixes.length) return xml;
+  try {
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    if(doc.querySelector('parsererror')) return xml;
+    const bars = jazzReadNotes(doc);
+    fixes.forEach(f => {
+      const note = (bars[f.bar] || [])[f.i];
+      if(!note) return;
+      if(f.d){
+        const pitch = note.querySelector('pitch');
+        const was = jazzPitchMidi(pitch);
+        if(was != null) jazzWritePitch(pitch, was + f.d, key);
+      }
+      if(f.dur){
+        const d = note.querySelector('duration'), t = note.querySelector('type');
+        if(d) d.textContent = String(f.dur);
+        if(t && f.type) t.textContent = f.type;
+      }
+    });
+    return new XMLSerializer().serializeToString(doc);
+  } catch(e){ console.warn('a correction could not be applied', e); return xml; }
+}
+
+/* ---------- taking it away ---------- */
+function jazzDownloadXML(xml, exerciseName, key){
+  const name = `${exerciseName || 'exercise'}_${key || 'C'}.musicxml`
+    .replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_');
+  const blob = new Blob([xml], {type: 'application/vnd.recordare.musicxml+xml'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  /* revoked late: Safari has been known to cancel the download if the URL
+     goes away in the same tick as the click */
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  return name;
+}
+
+/* ---------- and bringing it back ----------
+   What comes back is compared against what this copy would have generated
+   for the same exercise in the same key, and only the DIFFERENCES are kept.
+   A file that matches is not a correction and is not stored as one. */
+function jazzDiffXML(mineXml, theirsXml){
+  const parse = x => { const d = new DOMParser().parseFromString(x, 'application/xml');
+    return d.querySelector('parsererror') ? null : d; };
+  const a = parse(mineXml), b = parse(theirsXml);
+  if(!a || !b) return {error: 'That file could not be read as MusicXML.'};
+  const mine = jazzReadNotes(a), theirs = jazzReadNotes(b);
+  if(theirs.length !== mine.length)
+    return {error: `That file has ${theirs.length} bars and this exercise has ${mine.length}. It is a different piece of music.`};
+  const out = [];
+  let looked = 0;
+  for(let bar = 0; bar < mine.length; bar++){
+    if((theirs[bar] || []).length !== mine[bar].length)
+      return {error: `Bar ${bar + 1} has ${(theirs[bar] || []).length} notes in that file and ${mine[bar].length} here. Notes can be corrected but not added or taken away.`};
+    for(let i = 0; i < mine[bar].length; i++){
+      looked++;
+      const was = jazzPitchMidi(mine[bar][i].querySelector('pitch'));
+      const now = jazzPitchMidi(theirs[bar][i].querySelector('pitch'));
+      const fix = {bar, i};
+      let any = false;
+      if(was != null && now != null && now !== was){ fix.d = now - was; any = true; }
+      const wasDur = +((mine[bar][i].querySelector('duration') || {}).textContent || 0);
+      const nowDur = +((theirs[bar][i].querySelector('duration') || {}).textContent || 0);
+      if(nowDur && nowDur !== wasDur){
+        fix.dur = nowDur;
+        fix.type = ((theirs[bar][i].querySelector('type') || {}).textContent || '').trim();
+        any = true;
+      }
+      if(any) out.push(fix);
+    }
+  }
+  return {fixes: out, looked};
+}
+/* ============================================================
    THE JAZZ STUDIO — the room.
 
    Three views and one idea. The roadmap says where you are; an exercise is
@@ -58974,6 +59436,21 @@ function jazzAccuracyHTML(ex){
     <div><b>${a.tone === 'bad' ? 'These notes have not been verified' : 'These notes are approximate'}</b>
       <p>${esc(a.said)}${ex.source ? ` \u2014 ${esc(ex.source)}` : ''}</p></div></div>`;
 }
+/* The citation, with the page range and what to look for on it, and a button
+   that puts the whole thing on the clipboard — because the moment anybody
+   actually uses this they are writing it into a notebook or a message. */
+function jazzReferenceHTML(ex){
+  const r = ex && ex.ref;
+  if(!r) return '';
+  const where = [r.chapter, r.pageNumbers].filter(x => x && x !== '\u2014').join(', ');
+  return `<div class="jz-ref">
+    <div class="jz-refhead">
+      <span class="jz-refi" aria-hidden="true">\u{1f4d6}</span>
+      <span><b>${esc(r.bookFull)}</b>${where ? `<span class="mono jz-refwhere">${esc(where)}</span>` : ''}</span>
+      <button class="tbtn" data-jzcite="${esc(jazzCitation(r))}" title="copy the citation">copy</button>
+    </div>
+    ${r.description ? `<p class="jz-refwhat">${esc(r.description)}</p>` : ''}</div>`;
+}
 const jazzDifficultyHTML = d => !d ? '' :
   `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
 
@@ -59085,7 +59562,11 @@ function jazzExerciseHTML(id){
               esc(jazzSayInterval(v))}</button>`).join('')}</div>
         </div>` : ''}
         ${jazzAccuracyHTML(ex)}
-        ${jazzHasScore(ex) ? '<div class="jz-stage-box"><div class="jz-score" id="jzScore"></div></div>'
+        ${jazzReferenceHTML(ex)}
+        ${jazzHasScore(ex) ? `<div class="jz-stage-box" data-jzacc="${
+            jazzFixCount(id) ? 'user_modified' : esc(ex.acc || 'verified')}">
+            <div class="jz-score" id="jzScore"></div></div>
+          ${jazzFixToolsHTML(id, ex)}`
           : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
              It is a thing to do — at the instrument or on paper — and the words
              beside it are the whole of it.</div></div>`}
@@ -59125,6 +59606,58 @@ function jazzExerciseHTML(id){
       </aside>
     </div>`;
 }
+/* ---------- take it away, fix it, bring it back ----------
+   Put under the engraving rather than in the sidebar, because the thing you
+   are about to correct is the thing you are looking at. */
+function jazzFixToolsHTML(id, ex){
+  const n = jazzFixCount(id);
+  return `<div class="jz-fixbar">
+    <button class="tbtn" id="jzDown" title="save it as a MusicXML file you can open in MuseScore">\u2b07 MusicXML</button>
+    <button class="tbtn" id="jzUp" title="bring back a file you have corrected">\u{1f4e4} Import a corrected one</button>
+    <span class="grow"></span>
+    ${n ? `<span class="jz-fixed mono" title="${esc(jazzFixSource(id))}">\u2713 ${n} note${
+      n === 1 ? '' : 's'} corrected by you</span>
+      <button class="tbtn danger" id="jzReset">\u21a9 put it back</button>` : ''}
+    <input type="file" id="jzUpFile" accept=".musicxml,.xml,application/xml,text/xml" hidden>
+  </div>`;
+}
+function bindJazzFixTools(root, id, ex, xmlOf){
+  const down = root.querySelector('#jzDown');
+  if(down) down.onclick = () => {
+    const xml = xmlOf();
+    if(!xml){ toast('There is nothing to save for this one.'); return; }
+    const name = jazzDownloadXML(xml, ex.name, jazzPretty(jazzUi().key));
+    sound('success'); toast(`Saved as ${name}. Correct it in MuseScore and bring it back.`, 6000);
+  };
+  const up = root.querySelector('#jzUp'), file = root.querySelector('#jzUpFile');
+  if(up && file){
+    up.onclick = () => file.click();
+    file.onchange = async () => {
+      const f = file.files && file.files[0];
+      if(!f) return;
+      const theirs = await f.text();
+      /* compared against what this copy would draw, unfixed, in the key the
+         file was exported from \u2014 which is the key on the screen */
+      const mine = jazzScoreXml(ex, jazzUi().key, {interval: jazzUi().interval});
+      const out = jazzDiffXML(mine, theirs);
+      file.value = '';
+      if(out.error){ toast(out.error, 8000); sound('error'); return; }
+      if(!out.fixes.length){
+        toast(`Nothing differs \u2014 all ${out.looked} notes match what this copy draws.`, 6000);
+        return;
+      }
+      jazzSetFixes(id, out.fixes, `imported from ${f.name}`);
+      sound('success');
+      toast(`${out.fixes.length} note${out.fixes.length === 1 ? '' : 's'} corrected. It will follow the exercise into every key.`, 7000);
+      rerender();
+    };
+  }
+  const reset = root.querySelector('#jzReset');
+  if(reset) reset.onclick = () => {
+    jazzClearFixes(id); sound('click'); toast('Back to what the generator draws.'); rerender();
+  };
+}
+
 /* ---------- the checkpoints ----------
    Binary, and yours to tick. Unlike the twelve-key grid, which is filled by
    the flashcards rather than by hand, a checkpoint is a claim about yourself
@@ -59153,12 +59686,16 @@ function jazzChecklistHTML(id){
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
+  /* what this copy generates, and then what you have corrected in it */
+  const plain = () => jazzScoreXml(ex, ui.key, {interval: ui.interval});
+  const fixed = () => { const x = plain(); return x ? jazzApplyFixes(x, id, ui.key) : x; };
   const draw = () => { if(!jazzHasScore(ex)) return;
-    const xml = jazzScoreXml(ex, ui.key, {interval: ui.interval});
+    const xml = fixed();
     const box = root.querySelector('#jzScore');
     if(xml) jazzEngrave(box, xml);
     else if(box) box.innerHTML = '<div class="jz-noscore">The book names a way of writing this one out that this copy does not have.</div>'; };
   draw();
+  bindJazzFixTools(root, id, ex, fixed);
   $$('[data-jzint]', root).forEach(b => b.onclick = () => {
     ui.interval = b.dataset.jzint; sound('click'); rerender(); });
   root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
@@ -59172,6 +59709,12 @@ function bindJazzExercise(root, id){
     if(!have) toast(`${jazzPretty(ui.key)} — ${jazzKeysGot(id)} of 12.`);
     rerender();
   };
+  $$('[data-jzcite]', root).forEach(b => b.onclick = async () => {
+    const said = b.dataset.jzcite;
+    try { await navigator.clipboard.writeText(said); toast('Citation copied.'); }
+    catch(e){ toast(said, 8000); }      /* no clipboard: show it to be copied by hand */
+    sound('click');
+  });
   $$('[data-jzchk]', root).forEach(c => c.onchange = () => {
     jazzSetCheck(id, c.dataset.jzchk, c.checked);
     c.closest('.jz-check').classList.toggle('on', c.checked);

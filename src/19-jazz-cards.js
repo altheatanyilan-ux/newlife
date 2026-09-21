@@ -158,11 +158,15 @@ function bindJazzCard(root){
     f.seconds = (Date.now() - (f.from || Date.now())) / 1000; sound('click'); rerender(); };
   /* the answer is written out for the distance the card asked for, not for
      whatever the exercise page happened to be left on */
-  if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: card.interval});
+  /* the answer shows YOUR notes: a correction you made and then graded
+     yourself against the uncorrected version would be worse than useless */
+  const drawn = (k) => { const x = jazzScoreXml(ex, k, {interval: card.interval});
+    return x ? jazzApplyFixes(x, card.exerciseId, k) : x; };
+  if(f.shown && ex){ const xml = drawn(card.key);
     if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml);
     /* a card about moving between two keys has to show both of them, or the
        answer is only half of what was asked */
-    if(card.toKey){ const two = jazzScoreXml(ex, card.toKey, {interval: card.interval});
+    if(card.toKey){ const two = drawn(card.toKey);
       if(two) jazzEngrave(root.querySelector('#jzCardScore2'), two); } }
   $$('[data-jzg]', root).forEach(b => b.onclick = () => {
     const how = b.dataset.jzg;

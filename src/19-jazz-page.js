@@ -114,6 +114,21 @@ function jazzAccuracyHTML(ex){
     <div><b>${a.tone === 'bad' ? 'These notes have not been verified' : 'These notes are approximate'}</b>
       <p>${esc(a.said)}${ex.source ? ` \u2014 ${esc(ex.source)}` : ''}</p></div></div>`;
 }
+/* The citation, with the page range and what to look for on it, and a button
+   that puts the whole thing on the clipboard — because the moment anybody
+   actually uses this they are writing it into a notebook or a message. */
+function jazzReferenceHTML(ex){
+  const r = ex && ex.ref;
+  if(!r) return '';
+  const where = [r.chapter, r.pageNumbers].filter(x => x && x !== '\u2014').join(', ');
+  return `<div class="jz-ref">
+    <div class="jz-refhead">
+      <span class="jz-refi" aria-hidden="true">\u{1f4d6}</span>
+      <span><b>${esc(r.bookFull)}</b>${where ? `<span class="mono jz-refwhere">${esc(where)}</span>` : ''}</span>
+      <button class="tbtn" data-jzcite="${esc(jazzCitation(r))}" title="copy the citation">copy</button>
+    </div>
+    ${r.description ? `<p class="jz-refwhat">${esc(r.description)}</p>` : ''}</div>`;
+}
 const jazzDifficultyHTML = d => !d ? '' :
   `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
 
@@ -225,7 +240,11 @@ function jazzExerciseHTML(id){
               esc(jazzSayInterval(v))}</button>`).join('')}</div>
         </div>` : ''}
         ${jazzAccuracyHTML(ex)}
-        ${jazzHasScore(ex) ? '<div class="jz-stage-box"><div class="jz-score" id="jzScore"></div></div>'
+        ${jazzReferenceHTML(ex)}
+        ${jazzHasScore(ex) ? `<div class="jz-stage-box" data-jzacc="${
+            jazzFixCount(id) ? 'user_modified' : esc(ex.acc || 'verified')}">
+            <div class="jz-score" id="jzScore"></div></div>
+          ${jazzFixToolsHTML(id, ex)}`
           : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
              It is a thing to do — at the instrument or on paper — and the words
              beside it are the whole of it.</div></div>`}
@@ -265,6 +284,58 @@ function jazzExerciseHTML(id){
       </aside>
     </div>`;
 }
+/* ---------- take it away, fix it, bring it back ----------
+   Put under the engraving rather than in the sidebar, because the thing you
+   are about to correct is the thing you are looking at. */
+function jazzFixToolsHTML(id, ex){
+  const n = jazzFixCount(id);
+  return `<div class="jz-fixbar">
+    <button class="tbtn" id="jzDown" title="save it as a MusicXML file you can open in MuseScore">\u2b07 MusicXML</button>
+    <button class="tbtn" id="jzUp" title="bring back a file you have corrected">\u{1f4e4} Import a corrected one</button>
+    <span class="grow"></span>
+    ${n ? `<span class="jz-fixed mono" title="${esc(jazzFixSource(id))}">\u2713 ${n} note${
+      n === 1 ? '' : 's'} corrected by you</span>
+      <button class="tbtn danger" id="jzReset">\u21a9 put it back</button>` : ''}
+    <input type="file" id="jzUpFile" accept=".musicxml,.xml,application/xml,text/xml" hidden>
+  </div>`;
+}
+function bindJazzFixTools(root, id, ex, xmlOf){
+  const down = root.querySelector('#jzDown');
+  if(down) down.onclick = () => {
+    const xml = xmlOf();
+    if(!xml){ toast('There is nothing to save for this one.'); return; }
+    const name = jazzDownloadXML(xml, ex.name, jazzPretty(jazzUi().key));
+    sound('success'); toast(`Saved as ${name}. Correct it in MuseScore and bring it back.`, 6000);
+  };
+  const up = root.querySelector('#jzUp'), file = root.querySelector('#jzUpFile');
+  if(up && file){
+    up.onclick = () => file.click();
+    file.onchange = async () => {
+      const f = file.files && file.files[0];
+      if(!f) return;
+      const theirs = await f.text();
+      /* compared against what this copy would draw, unfixed, in the key the
+         file was exported from \u2014 which is the key on the screen */
+      const mine = jazzScoreXml(ex, jazzUi().key, {interval: jazzUi().interval});
+      const out = jazzDiffXML(mine, theirs);
+      file.value = '';
+      if(out.error){ toast(out.error, 8000); sound('error'); return; }
+      if(!out.fixes.length){
+        toast(`Nothing differs \u2014 all ${out.looked} notes match what this copy draws.`, 6000);
+        return;
+      }
+      jazzSetFixes(id, out.fixes, `imported from ${f.name}`);
+      sound('success');
+      toast(`${out.fixes.length} note${out.fixes.length === 1 ? '' : 's'} corrected. It will follow the exercise into every key.`, 7000);
+      rerender();
+    };
+  }
+  const reset = root.querySelector('#jzReset');
+  if(reset) reset.onclick = () => {
+    jazzClearFixes(id); sound('click'); toast('Back to what the generator draws.'); rerender();
+  };
+}
+
 /* ---------- the checkpoints ----------
    Binary, and yours to tick. Unlike the twelve-key grid, which is filled by
    the flashcards rather than by hand, a checkpoint is a claim about yourself
@@ -293,12 +364,16 @@ function jazzChecklistHTML(id){
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
+  /* what this copy generates, and then what you have corrected in it */
+  const plain = () => jazzScoreXml(ex, ui.key, {interval: ui.interval});
+  const fixed = () => { const x = plain(); return x ? jazzApplyFixes(x, id, ui.key) : x; };
   const draw = () => { if(!jazzHasScore(ex)) return;
-    const xml = jazzScoreXml(ex, ui.key, {interval: ui.interval});
+    const xml = fixed();
     const box = root.querySelector('#jzScore');
     if(xml) jazzEngrave(box, xml);
     else if(box) box.innerHTML = '<div class="jz-noscore">The book names a way of writing this one out that this copy does not have.</div>'; };
   draw();
+  bindJazzFixTools(root, id, ex, fixed);
   $$('[data-jzint]', root).forEach(b => b.onclick = () => {
     ui.interval = b.dataset.jzint; sound('click'); rerender(); });
   root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
@@ -312,6 +387,12 @@ function bindJazzExercise(root, id){
     if(!have) toast(`${jazzPretty(ui.key)} — ${jazzKeysGot(id)} of 12.`);
     rerender();
   };
+  $$('[data-jzcite]', root).forEach(b => b.onclick = async () => {
+    const said = b.dataset.jzcite;
+    try { await navigator.clipboard.writeText(said); toast('Citation copied.'); }
+    catch(e){ toast(said, 8000); }      /* no clipboard: show it to be copied by hand */
+    sound('click');
+  });
   $$('[data-jzchk]', root).forEach(c => c.onchange = () => {
     jazzSetCheck(id, c.dataset.jzchk, c.checked);
     c.closest('.jz-check').classList.toggle('on', c.checked);

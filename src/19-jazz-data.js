@@ -132,6 +132,10 @@ function jazzBook(){
            cannot resolve a single melodic line, and is almost certainly
            wrong. Those three are different things and the room says which. */
         acc: JAZZ_ACCURACY[e.noteAccuracy] ? e.noteAccuracy : 'verified',
+        /* and where to go and look it up: the book, the unit, the pages the
+           notation is actually on, and what to look for when you get there */
+        ref: (typeof jazzReference === 'function' ? jazzReference(id) : null)
+          || (e.sourceReference || null),
         doubt: e.noteAccuracy || ''};
     }); };
   try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
