@@ -68,6 +68,15 @@ routes.jazz = function(root, params){
   const want = params && params[0] ? params[0] : null;
   if(want === 'cards'){ root.innerHTML = `<div class="page jz-page">${jazzFlashHTML()}</div>`;
     bindJazzFlash(root); return; }
+  /* the practice room: what to do today, what you are doing, and where it
+     has got you. Three addresses rather than three tabs, so the browser's
+     own Back works between them. */
+  if(want === 'plan'){ root.innerHTML = `<div class="page jz-page">${jazzPlanHTML()}</div>`;
+    bindJazzPlan(root); return; }
+  if(want === 'session'){ root.innerHTML = `<div class="page jz-page">${jazzSessionHTML()}</div>`;
+    bindJazzSession(root); return; }
+  if(want === 'progress'){ root.innerHTML = `<div class="page jz-page">${jazzProgressHTML()}</div>`;
+    bindJazzPlan(root); return; }
   /* The address decides which of the two views this is, and nothing else.
      It used to only ever SET the open exercise from the address and never
      clear it, so #/jazz with no exercise in it fell through to whichever one
@@ -141,8 +150,10 @@ function jazzRoadHTML(){
   return `<h1 class="serif">Jazz Studio</h1>
     <p class="page-blurb">Not pieces — patterns, in all twelve keys, until the hands go there
       without being asked. ${done} of ${of} keys are yours.</p>
+    ${jazzStageHeadHTML(jazzActiveStage())}
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      <button class="btn primary" id="jzCards">\u{1f3af} Flashcards</button>
+      <button class="btn primary" id="jzPlanGo">\u{1f4cb} Today\u2019s practice</button>
+      <button class="btn sm ghost" id="jzCards">\u{1f3af} Flashcards</button>
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
       <span class="grow"></span>
       <!-- the ladder is advice, not a lock. Anybody who wants it to be a
@@ -201,6 +212,7 @@ function jazzStageHTML(s, here){
   </section>`;
 }
 function bindJazzRoad(root){
+  bindJazzPlan(root);
   $$('[data-jzopen]', root).forEach(b => b.onclick = () => {
     jazzUi().exId = b.dataset.jzopen; navigate('#/jazz/' + b.dataset.jzopen); });
   const cards = root.querySelector('#jzCards');

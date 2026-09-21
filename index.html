@@ -2454,6 +2454,66 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-fixed{font-size:.66rem;color:#6b7f8e;letter-spacing:.03em}
 .tbtn.danger{color:#c4484e}
 
+/* the practice room: the benchmark, the plan, the session */
+.jz-head{border:1px solid var(--line);border-radius:14px;padding:12px 15px;margin-bottom:16px}
+.jz-head[data-jzpace="behind"]{border-left:3px solid #c47832}
+.jz-head[data-jzpace="on_track"]{border-left:3px solid #7f916a}
+.jz-head[data-jzpace="ahead"]{border-left:3px solid #6b7f8e}
+.jz-head.done{opacity:.72}
+.jz-head > .row > b{font-size:1.02rem}
+.jz-headtag{font-size:.66rem;color:var(--muted);letter-spacing:.06em}
+.jz-headwhy{font-size:.83rem;color:var(--muted);line-height:1.55;margin:6px 0 10px;max-width:64ch}
+.jz-headline{font-size:.72rem;color:var(--muted);margin:6px 0 5px}
+.jz-pacesaid{font-size:.88rem;margin:8px 0 0;font-family:var(--serif)}
+.jz-headstats{display:flex;gap:14px;flex-wrap:wrap;font-size:.66rem;color:var(--faint);margin-top:8px}
+.jz-pacepick{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.jz-pace{text-align:left;border:1px solid var(--line);border-radius:11px;padding:9px 11px;
+  background:none;cursor:pointer;display:flex;flex-direction:column;gap:3px;
+  transition:border-color .18s var(--ease),background .18s var(--ease)}
+.jz-pace:hover{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 6%,transparent)}
+.jz-pace b{font-size:.9rem}
+.jz-pace .mono{font-size:.64rem;color:var(--muted)}
+.jz-pace .d{font-size:.76rem;color:var(--faint);line-height:1.45}
+.jz-block{border:1px solid var(--line);border-radius:12px;padding:10px 13px;margin-top:9px}
+.jz-block.bonus{background:color-mix(in srgb,var(--page-accent) 5%,transparent)}
+.jz-block.listen{border-color:color-mix(in srgb,#8060a0 40%,var(--line))}
+.jz-block.listen.done{border-color:color-mix(in srgb,#7f916a 55%,var(--line))}
+.jz-bhead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:baseline}
+.jz-bi{font-size:.92rem;opacity:.8}
+.jz-bhead b{font-size:.92rem}
+.jz-bmin{font-size:.66rem;color:var(--muted);white-space:nowrap}
+.jz-bwhat{font-size:.85rem;line-height:1.55;margin:5px 0 0 26px;max-width:64ch;color:var(--muted)}
+.jz-bkeys{font-size:.68rem;color:var(--page-accent);margin:6px 0 0 26px;letter-spacing:.06em}
+.jz-bex{font-size:.66rem;color:var(--faint);margin:4px 0 0 26px}
+.jz-bex a{color:var(--muted)}
+.jz-bex em{font-style:normal;opacity:.75;margin-left:6px}
+.jz-bwhy{font-size:.66rem;color:var(--faint);margin:5px 0 0 26px;line-height:1.5;max-width:60ch}
+.jz-tick{margin:7px 0 0 26px}
+.jz-lbar{height:3px;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);
+  margin:8px 0 0 26px;overflow:hidden}
+.jz-lbar > i{display:block;height:100%;background:#8060a0;transition:width .5s var(--ease)}
+.jz-srow,.jz-sdone{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;
+  gap:9px;align-items:center;padding:7px 0;
+  border-top:1px dashed color-mix(in srgb,var(--line) 60%,transparent);font-size:.86rem}
+.jz-srow{grid-template-columns:auto minmax(0,1fr) auto auto}
+.jz-srow.on{opacity:.5}
+.jz-sname em{font-style:normal;font-size:.64rem;color:var(--page-accent);margin-left:8px;letter-spacing:.06em}
+.jz-sdone .jz-lognote{grid-column:1/-1;margin:0 0 0 26px}
+.jz-ready{border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:16px}
+.jz-rrow{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;font-size:.84rem;padding:3px 0}
+.jz-rrow.on{color:var(--muted)}
+.jz-rsaid{font-size:.8rem;color:var(--faint);margin:8px 0 10px;max-width:60ch;line-height:1.5}
+.jz-stats{display:flex;gap:18px;flex-wrap:wrap;font-size:.72rem;color:var(--muted);margin-top:14px}
+.jz-stats b{font-size:.95rem;color:var(--ink);font-family:var(--serif)}
+.jz-weeks{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.jz-week{display:grid;grid-template-columns:70px minmax(0,1fr) 78px;gap:9px;align-items:center}
+.jz-wk,.jz-wh{font-size:.64rem;color:var(--faint)}
+.jz-wbar{height:8px;border-radius:4px;background:color-mix(in srgb,var(--line) 55%,transparent);overflow:hidden}
+.jz-wbar > i{display:block;height:100%;background:var(--page-accent)}
+.jz-donerow{display:flex;justify-content:space-between;gap:10px;font-size:.85rem;padding:4px 0}
+.jz-hsess{border-top:1px dashed var(--line);padding:9px 0;margin-top:4px}
+@media (max-width:560px){.jz-week{grid-template-columns:58px minmax(0,1fr) 62px}}
+
 /* where to go and look it up */
 .jz-ref{border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin-bottom:12px;
   background:color-mix(in srgb,var(--line) 10%,transparent)}
@@ -59321,6 +59381,1169 @@ function jazzDiffXML(mineXml, theirsXml){
   return {fixes: out, looked};
 }
 /* ============================================================
+   WHAT SHOULD I PRACTISE TODAY?
+
+   It is the only question a self-learner has, and a catalogue of ninety-one
+   exercises is the worst possible answer to it. A university course answers
+   it by having already decided: Siskind's units are about thirty hours each,
+   two hours a day for a fortnight, and every unit's assignment page says how
+   those minutes are split — so much on fundamentals, so much on the drills,
+   so much on tunes, so much listening. Nobody has to choose. That is most of
+   what a course is for.
+
+   So this room answers it the same way. A stage has a benchmark in hours and
+   days; a day has a plan in minutes; a session is logged against it; and the
+   thing you actually want to know — am I where I should be — is a sentence
+   at the top rather than a sum you do in your head.
+
+   THREE THINGS THIS DELIBERATELY IS NOT.
+
+   It is not a lock. Every criterion here is a suggestion: the readiness
+   indicator says four of five, and the button to finish the stage is live
+   anyway. The ladder was unlocked on purpose earlier and this does not
+   quietly put the doors back.
+
+   It is not a second clock. The house already has one, and the minutes a
+   session logs are real minutes from it wherever the clock was running. What
+   this adds is what the minutes were SPENT ON, which no stopwatch knows.
+
+   And it is not a second practice log. The exercise pages already keep
+   sittings. A session writes one record and hands each activity to the
+   sitting log it belongs to, marked with the session it came from, so the
+   totals below can add both without counting anything twice.
+   ============================================================ */
+
+/* ---------- the four parts of a practice session ----------
+   Siskind's structure, in his order, because the order is the argument:
+   fundamentals before drills, drills before tunes, and listening every day
+   whether or not you sat at the piano. */
+const JAZZ_PARTS = [
+  ['fundamentals',   'Fundamentals',      '\u{1f3b9}'],
+  ['rote',           'Rote exercises',    '\u{1f504}'],
+  ['tunes',          'Working on tunes',  '\u{1f3b5}'],
+  ['listening',      'Listening',         '\u{1f3a7}']
+];
+const jazzPartName = k => (JAZZ_PARTS.find(p => p[0] === k) || [k, k, ''])[1];
+const jazzPartIcon = k => (JAZZ_PARTS.find(p => p[0] === k) || [k, k, '○'])[2];
+
+/* ---------- the pace ----------
+   The hours do not change. What changes is how many days you give them, and
+   therefore how long a day is. Somebody with a job is not a worse student
+   than somebody without one, and a benchmark that says otherwise is a
+   benchmark people quietly stop opening. */
+const JAZZ_PACES = {
+  relaxed:   {name:'Relaxed',   of: 0.5, stretch: 2,
+    who:'A busy schedule, and still moving forward.'},
+  standard:  {name:'Standard',  of: 1,   stretch: 1,
+    who:'The Siskind benchmark — a serious student’s pace.'},
+  intensive: {name:'Intensive', of: 1.5, stretch: 0.67,
+    who:'The time to move fast, and the wish to.'}
+};
+const JAZZ_PACE_IDS = ['relaxed', 'standard', 'intensive'];
+const jazzPace = id => JAZZ_PACES[id] || JAZZ_PACES.standard;
+/* A pace is a fraction of the STAGE'S OWN day rather than a fixed number of
+   minutes, because the stages are not the same size. Two hours is the
+   Siskind day for a unit of the book; the intervals stage is a warm-up and
+   its day is half an hour. Setting every stage to 120 minutes would have
+   turned a five-minute singing drill into a twenty-minute one. */
+const jazzPaceMinutes = (id, sid) => Math.round(
+  ((jazzPlanTemplate(sid) || {}).daily || 120) * jazzPace(id).of);
+
+/* ---------- the templates ----------
+   Kept as data rather than written into the generator, so a stage can be
+   re-weighted without touching a line of code. The minute allocations are
+   Siskind's own, out of the assignment section at the end of each unit;
+   where a stage covers more than one unit the hours are multiplied and the
+   day count with them.
+
+   TWO NUMBERS THAT ARE NOT THE SAME NUMBER. The minutes on each activity
+   are what the book's assignment section asks for, and they sum to ninety or
+   a hundred — those are stated minimums, not a full session. `daily` is what
+   the benchmark actually requires: thirty hours over a fortnight is a
+   hundred and twenty-eight minutes a day, so a hundred and twenty is the
+   day. The generator keeps the book's PROPORTIONS and scales them to fill
+   the day the pace asks for, which is why a relaxed hour and an intensive
+   three both divide the same way.
+
+   `keys` says how many keys an activity should cover in a sitting, and
+   `pick` how many exercises to draw from the stage for it. A `tune` activity
+   is about repertoire rather than about a catalogue exercise, so it names no
+   keys: you play it in the key the tune is in. */
+const JAZZ_PLAN_TEMPLATES = {
+  /* The source gives P0 ten hours over seven days AND a thirty-minute daily
+     plan, and those cannot both be true: half an hour for a week is three
+     and a half hours. The activity list is the more specific of the two, and
+     a benchmark you cannot reach by following the plan printed under it is a
+     benchmark that teaches people to ignore benchmarks. So the hours here
+     are the ones the plan actually adds up to. */
+  'P0': {hours: 4, days: 7, daily: 30, source: 'Stage P0 — a warm-up stage, not a unit of the book',
+    parts: [
+      ['fundamentals', 10, [['Interval micro-drill',
+        'One interval, from all twelve roots, round the circle of fourths. One interval a day, not twelve.', 10, 12, 1]]],
+      ['rote', 5, [['Flashcards',
+        'Random root, random interval, answered out loud before you touch the keys.', 5, 4, 1]]],
+      ['fundamentals', 5, [['Sing it first',
+        'Sing the interval, then play it to check. An interval you cannot sing is one your hands are guessing at.', 5, 4, 1]]],
+      ['listening', 10, [['Interval recognition',
+        'Ear training away from the instrument. Name what you hear before you look.', 10, 0, 0]]]]},
+
+  1: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Units 1–2',
+    parts: [
+      ['fundamentals', 10, [['Drone improvisation',
+        'Five to ten minutes over a drone, with a timer running so it is a practice rather than a noodle.', 10, 2, 0]]],
+      ['rote', 30, [['Coordination exercise, all twelve keys',
+        'The coordination exercise round the twelve, slowly enough that both hands stay honest.', 15, 3, 1],
+        ['Chord flashcards and the vamp piece',
+        'Chord recall against the clock, then the vamp piece to put the chords somewhere musical.', 15, 3, 2]]],
+      ['tunes', 30, [['Swing articulation',
+        'The swing exercises, watching the articulation rather than the notes.', 10, 2, 0],
+        ['Find the chords in a Real Book tune',
+        'Take a standard and name every chord in it by type before playing any of them.', 20, 0, 0]]],
+      ['listening', 30, [['Guided listening',
+        'The unit’s track, following the form all the way through. Twenty times over the fortnight, not twenty times today.', 30, 0, 0]]]]},
+
+  2: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Units 3–4',
+    parts: [
+      ['fundamentals', 10, [['Drone improvisation in F and B♭',
+        'Grace notes and sequences over a drone, in the two keys the unit asks for.', 10, 2, 0]]],
+      ['rote', 30, [['Two-five-one descending by whole steps',
+        'One of the two descent sets, joined, without stopping between keys.', 15, 6, 2],
+        ['A lick, transposed round the twelve',
+        'One lick, all twelve keys, articulation before speed.', 15, 4, 1]]],
+      ['tunes', 30, [['Two Real Book tunes',
+        'Circle every two-five-one, learn the chords, comp with the melody, and put the lick where it fits.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        '"I Want More" by Dexter Gordon twenty times, then "So What" by Miles Davis twenty times.', 20, 0, 0]]]]},
+
+  3: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Unit 6',
+    parts: [
+      ['fundamentals', 10, [['Building rhythmic vocabulary',
+        'Rhythm 2: quarters and eighths mixed, in a swing feel, over a drone.', 10, 3, 0]]],
+      ['rote', 40, [['The voicing formulas',
+        'Type A and Type B for major, dominant and minor sevenths, until the shape arrives before the thought.', 20, 3, 2],
+        ['Two-five-one with A/B, descending whole steps',
+        'A descent set with the voicings, alternating the type through each progression.', 20, 6, 2]]],
+      ['tunes', 30, [['3-5-7-9 arpeggios',
+        'The arpeggios through a tune’s changes rather than through an exercise.', 10, 3, 1],
+        ['Comp through a Real Book tune',
+        'Type A/B under a Charleston rhythm, all the way round the form.', 20, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening to the left hand.', 20, 0, 0]]]]},
+
+  4: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Unit 8',
+    parts: [
+      ['fundamentals', 10, [['Hand independence',
+        'Bass alone until it is boring, then the voicing on top of it. The coordination is the exercise.', 10, 3, 0]]],
+      ['rote', 35, [['One-handed shells',
+        'Three notes in one hand, both types, round the twelve.', 20, 3, 2],
+        ['A bass in two',
+        'Root on one and the fifth, the third, or a semitone into the next root on three. All three formulas.', 15, 3, 1]]],
+      ['tunes', 30, [['A standard, solo',
+        'Voicing in one hand, bass in the other, melody sung. If somebody can follow the tune, it works.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening to what the left hand is doing while the right is busy.', 20, 0, 0]]]]},
+
+  5: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 7–9',
+    parts: [
+      ['fundamentals', 10, [['Play one, rest one',
+        'The phrasing model, and the blues scale in every key. Silence is half the exercise.', 10, 4, 0]]],
+      ['rote', 30, [['One-handed A/B through a two-five-one',
+        'The voicings from the stage before, now under a blues.', 15, 4, 2],
+        ['Blues scale and arpeggios, mixed',
+        'Neither one alone: the scale is a safety net and the arpeggios are the changes.', 15, 4, 2]]],
+      ['tunes', 40, [['A blues, every way round',
+        'Melody, comping, bass in two, and improvising — the same twelve bars four different ways.', 40, 4, 0]]],
+      ['listening', 20, [['Guided listening',
+        '"Now’s the Time" by Charlie Parker twenty times, then "D. and E." by Oscar Peterson twenty times.', 20, 0, 0]]]]},
+
+  6: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 3–12 (the licks)',
+    parts: [
+      ['fundamentals', 10, [['Articulation on the syllables',
+        'The scat syllables before the notes. A lick with flat dynamics is a scale exercise.', 10, 2, 0]]],
+      ['rote', 35, [['One lick, twelve keys',
+        'A single lick round the circle. A week a lick, not a lick a day.', 20, 4, 1],
+        ['The lick against comping',
+        'The same lick with a Charleston in the left hand. This is the step everybody skips.', 15, 3, 1]]],
+      ['tunes', 30, [['Put it in a tune',
+        'Find the two-five-ones in a standard and play into the lick and out of it. The joins are the hard part.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening for how little is played rather than how much.', 20, 0, 0]]]]},
+
+  7: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 10–12',
+    parts: [
+      ['fundamentals', 10, [['Play what you sing',
+        'Sing a phrase over a two-five-one, then play it. The inner ear exercise, every day.', 10, 3, 0]]],
+      ['rote', 40, [['Flat nine and flat thirteen, all keys',
+        'One alteration at a time, and know which note it replaced.', 15, 4, 2],
+        ['Tritone substitution, all keys',
+        'Plain and substituted back to back, in the same key, so the difference is audible.', 15, 4, 1],
+        ['The altered, octatonic and whole-tone scales',
+        'Learn the altered scale as melodic minor a semitone up. One fact instead of twelve scales.', 10, 3, 1]]],
+      ['tunes', 30, [['Altered voicings on a standard',
+        'Every V chord altered for one chorus, then only where your ear wants one. And the turnarounds.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        '"Cheek to Cheek" by Ahmad Jamal, twenty times.', 20, 0, 0]]]]},
+
+  8: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Units 1–5',
+    parts: [
+      ['fundamentals', 15, [['Modal patterns',
+        'Voicing drills draped beneath the mode, up and down, as smoothly as the hand allows.', 15, 3, 1]]],
+      ['rote', 20, [['Comping practice',
+        'So What voicings, quartal, pentatonic — and switching between them mid-chorus.', 20, 3, 2]]],
+      ['fundamentals', 15, [['Drone improvisation',
+        'Two full minutes over one drone without stopping. Everything after the first thirty seconds is invention.', 15, 2, 0]]],
+      ['tunes', 30, [['A modal tune',
+        '"So What", "Little Sunflower", "Maiden Voyage" — comping and improvising over harmony that will not move.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times. Transcription every other day.', 20, 0, 0]]]]},
+
+  9: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1 Unit 12 and Book 3',
+    parts: [
+      ['fundamentals', 15, [['Guide-tone lines',
+        'The thirds and sevenths through a set of changes, on their own, before anything is added to them.', 15, 3, 1]]],
+      ['rote', 30, [['One substitution at a time',
+        'Secondary dominants, the backdoor, the walk-up, the turnarounds — added to a plain progression one at a time.', 30, 4, 3]]],
+      ['tunes', 30, [['Reharmonise eight bars',
+        'Take a standard, write out new changes for the first eight bars, and play from what you wrote.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, following the bass to hear what was replaced.', 20, 0, 0]]]]},
+
+  10: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Units 6–8',
+    parts: [
+      ['fundamentals', 15, [['One shape, four motions',
+        'Plane a single voicing chromatically, by whole steps, by minor thirds and by major thirds.', 15, 3, 1]]],
+      ['rote', 30, [['Out and back in two bars',
+        'Sidestep into a target and resolve it, in time. A sidestep that arrives late is a mistake.', 30, 4, 2]]],
+      ['tunes', 30, [['One departure per chorus',
+        'Play everything inside except one phrase. One departure that resolves beats a chorus of vagueness.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, working out where the centre actually is.', 20, 0, 0]]]]},
+
+  11: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Unit 10',
+    parts: [
+      ['fundamentals', 10, [['The plain blues, cold',
+        'The twelve bars from memory before any of the variations. A variation on something you do not have is just notes.', 10, 4, 0]]],
+      ['rote', 30, [['One modal blues at a time',
+        'Mixolydian, Dorian, Aeolian — each beside the plain form in the same key, so the one changed note is audible.', 30, 4, 2]]],
+      ['tunes', 30, [['A modal blues, played',
+        '"Footprints", "Equinox" — the head, then comping, then two choruses.', 30, 4, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, hearing how much of the blues survives.', 20, 0, 0]]]]},
+
+  12: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Unit 11',
+    parts: [
+      ['fundamentals', 15, [['Count it, then stop counting',
+        'Five as three plus two, out loud, then as two plus three. They are different pieces of music.', 15, 3, 1]]],
+      ['rote', 25, [['A progression in five and in seven',
+        'The bass line alone until it is comfortable, then the chords. Adding harmony to an unsteady meter is how both fall apart.', 25, 3, 2]]],
+      ['tunes', 30, [['Write something',
+        'Four bars, played, before writing any more. The composition exercises are finished rather than mastered.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'Take Five, Don Ellis, the Mahavishnu records — twenty times, and stop counting.', 20, 0, 0]]]]}
+};
+const jazzPlanTemplate = sid => JAZZ_PLAN_TEMPLATES[sid] || JAZZ_PLAN_TEMPLATES[String(sid)] || null;
+
+/* ---------- what you have done, per stage ---------- */
+function jazzPlanState(){
+  const j = jazzState();
+  j.stages = j.stages && typeof j.stages === 'object' ? j.stages : {};
+  j.sessions = Array.isArray(j.sessions) ? j.sessions : [];
+  j.listens = j.listens && typeof j.listens === 'object' ? j.listens : {};
+  return j;
+}
+/** The record for one stage, made only when something happens to it. */
+function jazzStageRecord(sid, make){
+  const j = jazzPlanState();
+  const id = String(sid);
+  if(!j.stages[id]){
+    if(!make) return {status:'not_started', startDate:null, completedDate:null,
+      pace:'standard', targetHours:0, targetDays:0};
+    const t = jazzPlanTemplate(id) || {hours: 30, days: 14};
+    j.stages[id] = {status:'not_started', startDate:null, completedDate:null,
+      pace:'standard', targetHours: t.hours, targetDays: t.days};
+  }
+  const r = j.stages[id];
+  r.pace = JAZZ_PACES[r.pace] ? r.pace : 'standard';
+  return r;
+}
+const jazzStageStatus = sid => jazzStageRecord(sid).status;
+
+function jazzStartStage(sid, pace){
+  const r = jazzStageRecord(sid, true);
+  const t = jazzPlanTemplate(sid) || {hours: 30, days: 14};
+  r.pace = JAZZ_PACES[pace] ? pace : 'standard';
+  r.status = 'active';
+  r.startDate = r.startDate || today();
+  r.completedDate = null;
+  r.targetHours = t.hours;
+  /* the hours do not change with the pace; the days do */
+  r.targetDays = Math.max(1, Math.round(t.days * jazzPace(r.pace).stretch));
+  saveNow();
+  return r;
+}
+function jazzCompleteStage(sid){
+  const r = jazzStageRecord(sid, true);
+  r.status = 'completed';
+  r.completedDate = today();
+  saveNow();
+  return r;
+}
+function jazzReopenStage(sid){
+  const r = jazzStageRecord(sid, true);
+  r.status = 'active';
+  r.completedDate = null;
+  saveNow();
+  return r;
+}
+/** The stage you are on, which is the one you started rather than the one
+    the key count guesses at. */
+function jazzActiveStage(){
+  const started = jazzStages().filter(s => jazzStageStatus(s.id) === 'active');
+  if(started.length) return started[0];
+  return jazzNowStage();
+}
+
+/* ---------- how many minutes, and where they came from ----------
+   Two places keep them and neither is wrong: a session logged against the
+   plan, and a sitting logged from an exercise page. A sitting that a session
+   wrote carries the session's id, so adding both counts nothing twice. */
+const jazzSessions = () => jazzPlanState().sessions;
+const jazzStageSessions = sid => jazzSessions().filter(s => String(s.stageId) === String(sid));
+function jazzStageMinutes(sid){
+  const stage = jazzStage(sid);
+  const ids = (stage && stage.subs) || [];
+  const fromSessions = sum(jazzStageSessions(sid).map(s => +s.minutes || 0));
+  const loose = jazzAllLogs().filter(l => !l.fromSession && ids.includes(l.exerciseId));
+  return Math.round(fromSessions + sum(loose.map(l => +l.minutes || 0)));
+}
+/** Every day this stage was touched, newest first. */
+function jazzStageDays(sid){
+  const stage = jazzStage(sid);
+  const ids = (stage && stage.subs) || [];
+  const days = {};
+  jazzStageSessions(sid).forEach(s => { days[s.day] = (days[s.day] || 0) + (+s.minutes || 0); });
+  jazzAllLogs().forEach(l => { if(l.fromSession || !ids.includes(l.exerciseId)) return;
+    days[l.day] = (days[l.day] || 0) + (+l.minutes || 0); });
+  return Object.keys(days).sort().reverse().map(d => ({day: d, minutes: Math.round(days[d])}));
+}
+/** Consecutive days up to today, across the whole studio. */
+function jazzStreak(){
+  const days = {};
+  jazzSessions().forEach(s => days[s.day] = true);
+  jazzAllLogs().forEach(l => days[l.day] = true);
+  const has = d => !!days[d];
+  let n = 0;
+  const d = parseDay(today());
+  /* today not being practised yet does not break a streak until tomorrow */
+  if(!has(today())) d.setDate(d.getDate() - 1);
+  for(;;){
+    const key = timeDayOf(d.toISOString());
+    if(!has(key)) break;
+    n++;
+    d.setDate(d.getDate() - 1);
+    if(n > 3650) break;
+  }
+  let best = 0, run = 0, last = null;
+  Object.keys(days).sort().forEach(k => {
+    if(last){ const gap = daysBetweenDays(last, k); run = gap === 1 ? run + 1 : 1; }
+    else run = 1;
+    best = Math.max(best, run);
+    last = k;
+  });
+  return {now: n, best: Math.max(best, n)};
+}
+const daysBetweenDays = (a, b) =>
+  Math.round((parseDay(b) - parseDay(a)) / 86400000);
+
+/* ---------- am I where I should be ---------- */
+function jazzPaceOf(sid){
+  const r = jazzStageRecord(sid);
+  const t = jazzPlanTemplate(sid) || {hours: 30, days: 14};
+  const hours = jazzStageMinutes(sid) / 60;
+  const targetHours = r.targetHours || t.hours;
+  const targetDays = r.targetDays || t.days;
+  const started = r.startDate || null;
+  const day = started ? Math.max(1, daysBetweenDays(started, today()) + 1) : 0;
+  /* Two different numbers, and conflating them is how a tracker tells
+     somebody they are behind before they have had a chance to practise.
+     `expected` is where the line is by the END of today, which is what the
+     plan aims at. `owed` is what should ALREADY be done — the days that have
+     closed — and that is what behind-or-ahead is judged against. On the
+     first morning of a stage, nothing is owed and nobody is behind. */
+  const expected = started ? Math.min(targetHours, targetHours * (day / targetDays)) : 0;
+  const owed = started ? Math.min(targetHours, targetHours * Math.max(0, day - 1) / targetDays) : 0;
+  const status = !started ? 'not_started'
+    : owed <= 0 ? (hours > 0 ? 'ahead' : 'on_track')
+    : hours >= owed * 1.1 ? 'ahead'
+    : hours >= owed * 0.9 ? 'on_track' : 'behind';
+  /* At the rate you have actually been going — but not until there is a
+     rate. One good evening on day one projects a finish date forty-eight
+     days out, which is arithmetic rather than information, and a number that
+     silly is a number people stop believing. Three days is the floor. */
+  const perDay = day > 0 ? hours / day : 0;
+  const left = Math.max(0, targetHours - hours);
+  const daysLeft = (day >= 3 && perDay > 0.01) ? Math.ceil(left / perDay) : null;
+  const finish = daysLeft == null ? null
+    : (() => { const d = parseDay(today()); d.setDate(d.getDate() + daysLeft);
+        return timeDayOf(d.toISOString()); })();
+  return {hours: Math.round(hours * 10) / 10, targetHours, targetDays, day,
+    expected: Math.round(expected * 10) / 10, owed: Math.round(owed * 10) / 10,
+    status, left: Math.round(left * 10) / 10,
+    daysLeft, finish, pace: r.pace,
+    pct: targetHours ? Math.min(100, Math.round(hours / targetHours * 100)) : 0};
+}
+/** The sentence at the top, which is the whole point of the arithmetic. */
+function jazzPaceSaid(sid){
+  const p = jazzPaceOf(sid);
+  if(p.status === 'not_started') return 'Not started yet.';
+  const off = Math.round(Math.abs(p.hours - p.owed) * 10) / 10;
+  if(p.status === 'ahead')
+    return `${off ? off + ' hour' + (off === 1 ? '' : 's') : 'Some hours'} ahead of the line.`
+      + (p.daysLeft == null
+        ? ' A few more days and this will say when you are likely to finish.'
+        : ` At this rate you finish this stage in ${p.daysLeft} more day${p.daysLeft === 1 ? '' : 's'}.`);
+  if(p.status === 'behind'){
+    /* what it would take to be back on the line, said as minutes a day
+       rather than as a number of hours nobody can act on */
+    const daysLeft = Math.max(1, p.targetDays - p.day + 1);
+    const extra = Math.ceil(off * 60 / daysLeft);
+    return `${off} hour${off === 1 ? '' : 's'} behind. Another ${extra} minutes a day `
+      + `for the rest of the stage puts you back on the line.`;
+  }
+  if(p.day === 1 && !p.hours) return 'Day one. Nothing is owed yet \u2014 the plan below is today\u2019s.';
+  return 'On track.';
+}
+
+/* ---------- which keys today ----------
+   Siskind's two descent sets are the order, alternating day by day, because
+   they are the order the book practises everything in and because between
+   them they cover the twelve. What moves within that is which of them you
+   still need: a key the flashcards have marked off is dealt last, a key you
+   have not touched comes first. */
+const JAZZ_EASY_KEYS = ['C', 'F', 'Bb', 'Eb', 'G', 'D'];
+function jazzDescentForDay(day){
+  const G = typeof JazzExerciseGenerator !== 'undefined' ? JazzExerciseGenerator : null;
+  const a = (G && G.DESCENT_SET_A) || ['C','Bb','Ab','Gb','E','D'];
+  const b = (G && G.DESCENT_SET_B) || ['Db','B','A','G','F','Eb'];
+  return (day % 2 === 1) ? {name: 'A', keys: a} : {name: 'B', keys: b};
+}
+/**
+ * @param {string[]} ids   – the exercises this activity draws on
+ * @param {number} want    – how many keys to name
+ * @param {number} day     – day number of the stage, which picks the set
+ */
+function jazzKeysForToday(ids, want, day){
+  if(!want) return [];
+  const got = {};
+  (ids || []).forEach(id => JAZZ_KEY_NAMES.forEach(k => {
+    if(jazzRecord(id).keys[k]) got[k] = (got[k] || 0) + 1; }));
+  const n = (ids || []).length || 1;
+  const set = jazzDescentForDay(day);
+  /* the day's set first, then whatever else is left, so the rotation moves
+     round the circle rather than sitting on the front of the list */
+  const order = set.keys.concat(JAZZ_KEY_NAMES.filter(k => !set.keys.includes(k)));
+  /* Three things decide the order, and they have to be weighted rather than
+     added flat. How much of it you already have comes first, because the
+     point is the keys you do not have. Then whether it is in today's set,
+     because the set IS the rotation — without this term a hard key from the
+     other set outranked an easy key from this one and the sets stopped
+     meaning anything. The easy-key nudge is last and is only a tiebreak. */
+  const rank = k => (got[k] >= n ? 2 : got[k] ? 1 : 0) * 10
+    + (set.keys.includes(k) ? 0 : 3)
+    + (JAZZ_EASY_KEYS.includes(k) ? 0.25 : 0);
+  const sorted = order.slice().sort((x, y) => rank(x) - rank(y));
+  return sorted.slice(0, Math.min(want, sorted.length));
+}
+/** The exercises of a stage, weakest first: least practised, worst rated. */
+function jazzWeakest(stage, n){
+  const ids = (stage && stage.subs) || [];
+  const worth = id => {
+    const r = jazzRecord(id);
+    const mins = sum((r.logs || []).map(l => +l.minutes || 0));
+    const keys = jazzKeysGot(id);
+    const rating = (r.logs && r.logs[0] && r.logs[0].quality) || '';
+    const bad = rating === 'rough' ? -2 : rating === 'shaky' ? -1
+      : rating === 'automatic' ? 2 : rating === 'solid' ? 1 : 0;
+    return keys * 10 + mins / 10 + bad * 5;
+  };
+  return ids.slice().sort((a, b) => worth(a) - worth(b)).slice(0, Math.max(0, n || 0));
+}
+
+/* ---------- listening, counted to twenty ----------
+   "Listen at least twenty times" is in every unit of the book and is the
+   instruction most likely to be nodded at and skipped, because nothing
+   counts it. This counts it. */
+const JAZZ_LISTEN_TARGET = 20;
+const jazzTrackId = a => `${a.artist}|${a.track}`.toLowerCase().replace(/[^a-z0-9|]+/g, '-');
+function jazzListenRecord(a, make){
+  const j = jazzPlanState();
+  const id = jazzTrackId(a);
+  if(!j.listens[id]){
+    if(!make) return {plays: 0, log: []};
+    j.listens[id] = {artist: a.artist, track: a.track, album: a.album || '',
+      plays: 0, log: []};
+  }
+  const r = j.listens[id];
+  r.log = Array.isArray(r.log) ? r.log : [];
+  r.plays = Math.max(0, +r.plays || 0);
+  return r;
+}
+const jazzListens = a => jazzListenRecord(a).plays;
+function jazzMarkListened(a, focus){
+  const r = jazzListenRecord(a, true);
+  r.plays++;
+  r.log.unshift({at: new Date().toISOString(), day: today(), focus: focus || ''});
+  if(r.log.length > 200) r.log.length = 200;
+  saveNow();
+  return r.plays;
+}
+function jazzUnmarkListened(a){
+  const r = jazzListenRecord(a, true);
+  if(r.plays > 0){ r.plays--; r.log.shift(); saveNow(); }
+  return r.plays;
+}
+/** The tracks a stage asks you to live with, without repeating one that two
+    of its exercises happen to share. */
+function jazzStageListening(stage){
+  const out = [], seen = {};
+  ((stage && stage.subs) || []).forEach(id => {
+    const ex = jazzExercise(id);
+    (ex && ex.listeningAssignments || []).forEach(a => {
+      const k = jazzTrackId(a);
+      if(seen[k]) return;
+      seen[k] = true;
+      out.push(a);
+    });
+  });
+  return out;
+}
+/** The one to put in front of you today: the least listened to. */
+function jazzTodaysTrack(stage){
+  const all = jazzStageListening(stage);
+  if(!all.length) return null;
+  return all.slice().sort((a, b) => jazzListens(a) - jazzListens(b))[0];
+}
+
+/* ---------- what to practise today ----------
+   Built fresh every time it is asked for rather than stored, because a plan
+   stored yesterday is a plan that does not know what you did last night.
+   Nothing here is written down until you log a session against it. */
+function jazzTodaysPlan(sid){
+  const stage = jazzStage(sid);
+  if(!stage) return null;
+  const t = jazzPlanTemplate(stage.id);
+  if(!t) return null;
+  const p = jazzPaceOf(stage.id);
+  const rec = jazzStageRecord(stage.id);
+  const pace = jazzPace(rec.pace);
+  const paceMinutes = jazzPaceMinutes(rec.pace, stage.id);
+  const day = Math.max(1, p.day || 1);
+
+  /* Behind: a longer day. Ahead: the option of a shorter one. The scale is
+     applied to the whole session rather than to one part, so the balance the
+     book struck between fundamentals, drills, tunes and listening survives. */
+  const scale = p.status === 'behind' ? 1.25 : p.status === 'ahead' ? 0.75 : 1;
+  const templateMinutes = sum(t.parts.map(x => x[1]));
+  const want = Math.round(paceMinutes * scale);
+  const factor = templateMinutes ? want / templateMinutes : 1;
+  const mins = m => Math.max(5, Math.round(m * factor / 5) * 5);
+
+  const required = [];
+  t.parts.forEach(part => {
+    const [category, , activities] = part;
+    activities.forEach(a => {
+      const [name, description, minutes, keyCount, pickCount] = a;
+      const picked = pickCount ? jazzWeakest(stage, pickCount) : [];
+      required.push({category, name, description,
+        minutes: mins(minutes),
+        keys: jazzKeysForToday(picked.length ? picked : stage.subs, keyCount, day),
+        exercises: picked,
+        why: picked.length ? 'the least practised of this stage' : ''});
+    });
+  });
+
+  /* Listening is a block of its own even when the template gives it none, so
+     that the twenty is always in front of you. */
+  const track = jazzTodaysTrack(stage);
+
+  /* ---------- and what would put you ahead ----------
+     Drawn from what the room already knows rather than invented: a key
+     nobody has touched, a checkpoint not yet ticked, the creative challenge
+     the enrichment layer wrote for one of this stage's exercises. */
+  const bonus = [];
+  const cold = JAZZ_KEY_NAMES.filter(k =>
+    !stage.subs.some(id => jazzRecord(id).keys[k]));
+  if(cold.length) bonus.push({name: 'The keys nobody has touched',
+    description: `${cold.slice(0, 3).map(jazzPretty).join(', ')} — fifteen minutes on the ones you keep not choosing.`,
+    minutes: 15, why: 'the twelve are the exercise; three of them are still at zero'});
+  const openCheck = stage.subs.map(id => {
+    const ex = jazzExercise(id);
+    const item = (ex && ex.masteryChecklist || []).find(c => !jazzCheckGot(id, c));
+    return item ? {id, ex, item} : null;
+  }).filter(Boolean)[0];
+  if(openCheck) bonus.push({name: 'A checkpoint you have not claimed',
+    description: `${openCheck.ex.name} — “${openCheck.item}”`,
+    minutes: 10, why: 'it is the next thing this exercise asks of you', exerciseId: openCheck.id});
+  const challenge = stage.subs.map(id => {
+    const ex = jazzExercise(id);
+    return ex && ex.creativeChallenge ? {id, ex} : null; }).filter(Boolean);
+  if(challenge.length){
+    const pick = challenge[(day - 1) % challenge.length];
+    bonus.push({name: 'Something to make with it',
+      description: pick.ex.creativeChallenge, minutes: 15,
+      why: 'the part of practising that is not drilling', exerciseId: pick.id});
+  }
+  if(track && jazzListens(track) < JAZZ_LISTEN_TARGET)
+    bonus.push({name: 'Catch up on the listening',
+      description: `${track.artist} — ${track.track}. ${jazzListens(track)} of ${JAZZ_LISTEN_TARGET} so far.`,
+      minutes: 10, why: 'Siskind: "any study of jazz without gobs and gobs of listening is truly futile"'});
+
+  return {stage, day, pace: p, paceName: pace.name,
+    totalMinutes: sum(required.map(r => r.minutes)),
+    set: jazzDescentForDay(day).name,
+    required, bonus, track,
+    plays: track ? jazzListens(track) : 0, target: JAZZ_LISTEN_TARGET};
+}
+
+/* ---------- the session ----------
+   One record per sitting, and each activity in it also handed to the
+   exercise it belongs to so the sittings on an exercise page stay true.
+   Those carry the session's id, and the stage totals skip anything that has
+   one, so the same minutes are never added twice. */
+function jazzSessionOpen(){
+  const j = jazzPlanState();
+  return j.session && j.session.start ? j.session : null;
+}
+function jazzStartSession(sid){
+  const j = jazzPlanState();
+  if(j.session && j.session.start) return j.session;
+  j.session = {id: uid(), stageId: String(sid), day: today(),
+    start: new Date().toISOString(), activities: []};
+  /* the house's own clock, so the minutes are real rather than typed */
+  try { if(typeof timeAutoStart === 'function')
+    timeAutoStart({categoryId:'piano', feature:'jazz', what:'jazz practice session',
+      linkedType:'skill', linkedId:null, linkedLabel:'Jazz piano'}); } catch(e){}
+  saveNow();
+  return j.session;
+}
+function jazzSessionAdd(fields){
+  const s = jazzSessionOpen();
+  if(!s) return null;
+  const a = Object.assign({id: uid(), category:'rote', name:'', minutes:0,
+    keys: [], exerciseId: null, rating: 'improving', note: ''}, fields || {});
+  a.minutes = Math.max(0, Math.round(+a.minutes || 0));
+  a.keys = (a.keys || []).filter(k => JAZZ_KEY_NAMES.includes(k));
+  s.activities.push(a);
+  saveNow();
+  return a;
+}
+function jazzSessionDrop(id){
+  const s = jazzSessionOpen();
+  if(!s) return false;
+  const at = s.activities.findIndex(a => a.id === id);
+  if(at < 0) return false;
+  s.activities.splice(at, 1);
+  saveNow();
+  return true;
+}
+/** Ends it, writes it down, and hands each activity to its exercise.
+    Named `finish` rather than `end` because the flashcards already have a
+    `jazzEndSession`, and this house is one scope: two functions with one
+    name is the last one loaded silently winning. */
+function jazzFinishSession(fields){
+  const j = jazzPlanState();
+  const s = jazzSessionOpen();
+  if(!s) return null;
+  const f = fields || {};
+  s.end = new Date().toISOString();
+  const byHand = +f.minutes || 0;
+  const clocked = Math.round((Date.parse(s.end) - Date.parse(s.start)) / 60000);
+  const ticked = sum(s.activities.map(a => +a.minutes || 0));
+  /* what you said you did, then what you ticked off, then the clock */
+  s.minutes = Math.max(0, byHand || ticked || clocked);
+  s.feeling = ['frustrated','okay','good','great'].includes(f.feeling) ? f.feeling : null;
+  s.notes = String(f.notes || '').trim();
+  const p = jazzPaceOf(s.stageId);
+  s.paceStatus = p.status;
+  j.sessions.unshift(s);
+  if(j.sessions.length > 2000) j.sessions.length = 2000;
+  /* each activity that names an exercise becomes a sitting on it too */
+  s.activities.forEach(a => {
+    if(!a.exerciseId || !jazzExercise(a.exerciseId)) return;
+    try { jazzLogPractice(a.exerciseId, {minutes: a.minutes, keys: a.keys,
+      quality: a.rating, note: a.note, markKeys: false, fromSession: s.id}); } catch(e){}
+  });
+  j.session = null;
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('jazz'); } catch(e){}
+  saveNow();
+  return s;
+}
+function jazzAbandonSession(){
+  const j = jazzPlanState();
+  j.session = null;
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('jazz'); } catch(e){}
+  saveNow();
+  return true;
+}
+
+/* ---------- are you ready to move on ----------
+   Suggestions, and said as suggestions. The ladder was unlocked on purpose;
+   this does not put the doors back on it. */
+function jazzReadiness(sid){
+  const stage = jazzStage(sid);
+  if(!stage) return {rows: [], met: 0, of: 0};
+  const p = jazzPaceOf(stage.id);
+  const got = jazzStageGot(stage);
+  const ids = stage.subs;
+  const rated = ids.filter(id => {
+    const l = (jazzRecord(id).logs || [])[0];
+    return l && (l.quality === 'solid' || l.quality === 'automatic'); }).length;
+  /* every track this stage asks for, not just the one in front of you today */
+  const tracks = jazzStageListening(stage);
+  const heard = tracks.filter(a => jazzListens(a) >= JAZZ_LISTEN_TARGET).length;
+  const checks = ids.reduce((n, id) => n + jazzChecksGot(id).done, 0);
+  const checksOf = ids.reduce((n, id) => n + jazzChecksGot(id).of, 0);
+  const rows = [
+    {said: `Logged ${p.hours} of ${p.targetHours} hours`, ok: p.hours >= p.targetHours * 0.9},
+    {said: `Practised in all twelve keys (${got.done}/${got.of})`, ok: got.of > 0 && got.done >= got.of},
+    {said: `Every exercise rated solid (${rated}/${ids.length})`, ok: ids.length > 0 && rated >= ids.length},
+    {said: tracks.length
+       ? `Listened ${JAZZ_LISTEN_TARGET} times to each of the ${tracks.length} tracks (${heard}/${tracks.length})`
+       : 'Nothing to listen to at this stage',
+     ok: !tracks.length || heard >= tracks.length},
+    {said: `Checkpoints ticked (${checks}/${checksOf})`, ok: checksOf > 0 && checks >= checksOf}
+  ];
+  return {rows, met: rows.filter(r => r.ok).length, of: rows.length};
+}
+
+/* ---------- the weeks, for the chart ---------- */
+function jazzWeeklyHours(n){
+  const weeks = [];
+  const d = parseDay(today());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));       /* back to Monday */
+  for(let i = 0; i < (n || 6); i++){
+    const from = timeDayOf(d.toISOString());
+    const to = (() => { const e = parseDay(from); e.setDate(e.getDate() + 6);
+      return timeDayOf(e.toISOString()); })();
+    let mins = 0;
+    jazzSessions().forEach(s => { if(s.day >= from && s.day <= to) mins += +s.minutes || 0; });
+    jazzAllLogs().forEach(l => { if(l.fromSession) return;
+      if(l.day >= from && l.day <= to) mins += +l.minutes || 0; });
+    weeks.unshift({from, to, hours: Math.round(mins / 6) / 10, now: i === 0});
+    d.setDate(d.getDate() - 7);
+  }
+  return weeks;
+}
+/** Everything, as a file somebody could keep or send on. */
+function jazzExportLog(){
+  return JSON.stringify({exported: new Date().toISOString(),
+    stages: jazzPlanState().stages, sessions: jazzSessions(),
+    listens: jazzPlanState().listens,
+    progress: jazzState().progress}, null, 2);
+}
+/* ============================================================
+   THE PRACTICE ROOM — today's plan, the session, and where you are.
+
+   Three views that are really one: what to do now, what you are doing, and
+   what it adds up to. They are separate pages rather than sections of the
+   roadmap because the roadmap is a map and this is an instruction, and a
+   page that is both is a page you scroll past.
+   ============================================================ */
+
+/* ---------- the stage header ---------- */
+function jazzStageHeadHTML(stage){
+  const p = jazzPaceOf(stage.id);
+  const r = jazzStageRecord(stage.id);
+  const got = jazzStageGot(stage);
+  const streak = jazzStreak();
+  const mastered = JAZZ_KEY_NAMES.filter(k => stage.subs.some(id => jazzRecord(id).keys[k]));
+  if(r.status !== 'active' && r.status !== 'completed'){
+    return `<div class="jz-head">
+      <div class="row between" style="align-items:baseline;gap:10px;flex-wrap:wrap">
+        <b class="serif">${esc(stage.name)}</b>
+        <span class="mono faint">${esc(jazzPlanTemplate(stage.id)
+          ? `${jazzPlanTemplate(stage.id).hours} hours · ${jazzPlanTemplate(stage.id).days} days at the standard pace`
+          : '')}</span>
+      </div>
+      <p class="jz-headwhy">Starting a stage sets a benchmark and gives you a plan for the day.
+        Nothing is locked either way — it is a line to measure against, not a gate.</p>
+      <div class="jz-pacepick">${JAZZ_PACE_IDS.map(id => { const q = jazzPace(id);
+        const t = jazzPlanTemplate(stage.id) || {hours: 30, days: 14};
+        return `<button class="jz-pace" data-jzstart="${esc(stage.id)}" data-jzpace="${id}">
+          <b>${esc(q.name)}</b>
+          <span class="mono">${jazzPaceMinutes(id, stage.id)} min a day · about ${
+            Math.round(t.days * q.stretch)} days</span>
+          <span class="d">${esc(q.who)}</span></button>`; }).join('')}</div>
+    </div>`;
+  }
+  const done = r.status === 'completed';
+  return `<div class="jz-head${done ? ' done' : ''}" data-jzpace="${esc(p.status)}">
+    <div class="row between" style="align-items:baseline;gap:10px;flex-wrap:wrap">
+      <b class="serif">${esc(stage.name)}</b>
+      <span class="mono jz-headtag">${done ? '✓ finished' : `day ${p.day} of ${p.targetDays}`}</span>
+    </div>
+    <div class="jz-headline mono">${p.hours} of ${p.targetHours} hours
+      · the line today is ${p.expected}</div>
+    <div class="jz-sbar"><i style="width:${p.pct}%"></i></div>
+    <p class="jz-pacesaid">${esc(jazzPaceSaid(stage.id))}</p>
+    <div class="jz-headstats mono">
+      <span>\u{1f525} ${streak.now} day streak</span>
+      <span>\u{1f3af} ${mastered.length}/12 keys</span>
+      <span>${jazzStageSessions(stage.id).length} session${jazzStageSessions(stage.id).length === 1 ? '' : 's'}</span>
+      <span>${got.done}/${got.of} marked off</span>
+    </div>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
+      ${done ? `<button class="btn sm ghost" data-jzreopen="${esc(stage.id)}">Open it again</button>`
+        : `<button class="btn sm primary" id="jzPlanGo">\u{1f4cb} Today’s plan</button>
+           <button class="btn sm ghost" id="jzProgGo">\u{1f4ca} Where I am</button>`}
+    </div>
+  </div>`;
+}
+
+/* ---------- today's plan ---------- */
+function jazzPlanHTML(){
+  const stage = jazzActiveStage();
+  if(!stage) return '<div class="empty">There is no stage to plan for yet.</div>';
+  const open = jazzSessionOpen();
+  const plan = jazzTodaysPlan(stage.id);
+  const started = jazzStageStatus(stage.id) === 'active';
+  return `<div class="row between" style="align-items:baseline">
+      <h1 class="serif" style="margin:0">Today’s practice</h1>
+      <button class="btn sm ghost" id="jzPback">← the roadmap</button></div>
+    ${jazzStageHeadHTML(stage)}
+    ${!started ? '' : !plan ? '<div class="empty">This stage has no plan template yet.</div>' : `
+    <div class="jz-plan">
+      <div class="row between" style="align-items:baseline">
+        <span class="sc">Meeting the benchmark</span>
+        <span class="mono faint">about ${plan.totalMinutes} min · set ${esc(plan.set)}</span>
+      </div>
+      ${plan.required.map((b, i) => jazzPlanBlockHTML(b, i)).join('')}
+      ${plan.track ? jazzListenBlockHTML(plan) : ''}
+      ${plan.bonus.length ? `<div class="sc" style="margin-top:16px">Exceeding it</div>
+        ${plan.bonus.map((b, i) => `<div class="jz-block bonus">
+          <div class="jz-bhead"><span class="jz-bi">⭐</span>
+            <b>${esc(b.name)}</b><span class="mono jz-bmin">${b.minutes} min</span></div>
+          <p class="jz-bwhat">${esc(b.description)}</p>
+          <p class="jz-bwhy mono">${esc(b.why)}</p></div>`).join('')}` : ''}
+      <div class="row" style="gap:8px;margin-top:16px;flex-wrap:wrap">
+        ${open ? `<button class="btn primary" id="jzSessOpen">⏱ The session is running — open it</button>`
+          : `<button class="btn primary" id="jzSessStart">▶ Start the session</button>`}
+        <button class="btn sm ghost" id="jzProgGo">\u{1f4ca} Where I am</button>
+      </div>
+    </div>`}`;
+}
+function jazzPlanBlockHTML(b, i){
+  return `<div class="jz-block">
+    <div class="jz-bhead"><span class="jz-bi">${jazzPartIcon(b.category)}</span>
+      <b>${esc(b.name)}</b><span class="mono jz-bmin">${b.minutes} min</span></div>
+    <p class="jz-bwhat">${esc(b.description)}</p>
+    ${b.keys.length ? `<p class="jz-bkeys mono">keys today · ${
+      b.keys.map(k => esc(jazzPretty(k))).join('  ')}</p>` : ''}
+    ${b.exercises.length ? `<p class="jz-bex mono">${b.exercises.map(id => {
+      const ex = jazzExercise(id);
+      return `<a href="#/jazz/${esc(id)}">${esc(id)} ${esc(ex ? ex.name : '')}</a>`; }).join(' · ')}
+      <em>${esc(b.why)}</em></p>` : ''}
+    <button class="tbtn jz-tick" data-jzdo="${i}">+ did this</button>
+  </div>`;
+}
+function jazzListenBlockHTML(plan){
+  const t = plan.track;
+  const done = plan.plays >= plan.target;
+  return `<div class="jz-block listen${done ? ' done' : ''}">
+    <div class="jz-bhead"><span class="jz-bi">\u{1f3a7}</span>
+      <b>${esc(t.artist)} — ${esc(t.track)}</b>
+      <span class="mono jz-bmin">${plan.plays}/${plan.target}</span></div>
+    <p class="jz-bwhat">${esc(t.listenFor || '')}</p>
+    <div class="jz-lbar"><i style="width:${Math.min(100, Math.round(plan.plays / plan.target * 100))}%"></i></div>
+    <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+      <button class="tbtn" data-jzlisten="1">+ listened once</button>
+      ${plan.plays ? '<button class="tbtn" data-jzlisten="-1">− undo</button>' : ''}
+      ${done ? '<span class="mono jz-fixed">✓ twenty, as the book asks</span>' : ''}
+    </div>
+  </div>`;
+}
+
+/* ---------- the session as it happens ---------- */
+function jazzSessionHTML(){
+  const s = jazzSessionOpen();
+  if(!s) return '<div class="empty">No session is running.</div>';
+  const stage = jazzStage(s.stageId) || jazzActiveStage();
+  const plan = stage ? jazzTodaysPlan(stage.id) : null;
+  const ticked = sum(s.activities.map(a => +a.minutes || 0));
+  const done = {};
+  s.activities.forEach(a => { done[a.name] = true; });
+  return `<div class="row between" style="align-items:baseline">
+      <h1 class="serif" style="margin:0">The session</h1>
+      <span class="mono" id="jzSessClock">${esc(jazzSessionClock(s))}</span></div>
+    <p class="page-blurb">Tick things off as you do them. What you tick becomes a sitting on
+      the exercise as well, so the two records never disagree.</p>
+    <div class="jz-sess">
+      ${(plan ? plan.required : []).map((b, i) => `<div class="jz-srow${done[b.name] ? ' on' : ''}">
+        <span class="jz-bi">${jazzPartIcon(b.category)}</span>
+        <span class="jz-sname">${esc(b.name)}${b.keys.length
+          ? `<em class="mono">${b.keys.map(k => esc(jazzPretty(k))).join(' ')}</em>` : ''}</span>
+        <span class="mono faint">${b.minutes}m</span>
+        <button class="tbtn" data-jzdo="${i}">${done[b.name] ? 'again' : 'did it'}</button>
+      </div>`).join('')}
+      <div class="row" style="gap:8px;margin-top:10px">
+        <button class="tbtn" id="jzAddOther">+ something else</button>
+      </div>
+      ${s.activities.length ? `<div class="sc" style="margin-top:16px">So far</div>
+        ${s.activities.map(a => `<div class="jz-sdone">
+          <span class="jz-bi">${jazzPartIcon(a.category)}</span>
+          <span class="jz-sname">${esc(a.name)}${a.keys.length
+            ? `<em class="mono">${a.keys.map(k => esc(jazzPretty(k))).join(' ')}</em>` : ''}</span>
+          <span class="mono">${a.minutes}m</span>
+          <span class="mono faint">${esc((JAZZ_QUALITY.find(q => q[0] === a.rating) || [])[1] || '')}</span>
+          <button class="tbtn danger" data-jzundo="${esc(a.id)}">×</button>
+          ${a.note ? `<p class="jz-lognote">${esc(a.note)}</p>` : ''}
+        </div>`).join('')}
+        <div class="jz-count mono">${ticked} minutes ticked off</div>` : ''}
+      <div class="row" style="gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn primary" id="jzSessEnd">⏹ End the session</button>
+        <button class="btn sm ghost" id="jzSessBack">back to the plan</button>
+        <span class="grow"></span>
+        <button class="btn sm ghost danger" id="jzSessDrop">throw it away</button>
+      </div>
+    </div>`;
+}
+function jazzSessionClock(s){
+  const secs = Math.max(0, Math.floor((Date.now() - Date.parse(s.start)) / 1000));
+  const h = Math.floor(secs / 3600), m = Math.floor(secs / 60) % 60, x = secs % 60;
+  const pad = n => String(n).padStart(2, '0');
+  return h ? `${h}:${pad(m)}:${pad(x)}` : `${m}:${pad(x)}`;
+}
+
+/* ---------- where I am ---------- */
+function jazzProgressHTML(){
+  const ladder = jazzStages();
+  const active = ladder.filter(s => jazzStageStatus(s.id) === 'active');
+  const done = ladder.filter(s => jazzStageStatus(s.id) === 'completed');
+  const streak = jazzStreak();
+  const weeks = jazzWeeklyHours(6);
+  const most = Math.max(1, ...weeks.map(w => w.hours));
+  const allMins = sum(ladder.map(s => jazzStageMinutes(s.id)));
+  const sessions = jazzSessions();
+  const avg = sessions.length ? Math.round(sum(sessions.map(x => +x.minutes || 0)) / sessions.length) : 0;
+  return `<div class="row between" style="align-items:baseline">
+      <h1 class="serif" style="margin:0">Where I am</h1>
+      <button class="btn sm ghost" id="jzPback">← the roadmap</button></div>
+    ${active.map(s => jazzStageHeadHTML(s)).join('')}
+    ${active.length ? `<div class="jz-ready">
+      <div class="sc">Ready to move on?</div>
+      ${(() => { const r = jazzReadiness(active[0].id);
+        return `${r.rows.map(row => `<div class="jz-rrow${row.ok ? ' on' : ''}">
+          <span>${row.ok ? '☑' : '☐'}</span><span>${esc(row.said)}</span></div>`).join('')}
+        <p class="jz-rsaid">${r.met} of ${r.of} met. These are suggestions — the button below
+          works whatever they say.</p>
+        <button class="btn sm primary" data-jzfinish="${esc(active[0].id)}">Finish this stage</button>`; })()}
+    </div>` : ''}
+    <div class="jz-stats mono">
+      <span><b>${Math.round(allMins / 6) / 10}</b> hours in this room</span>
+      <span><b>${streak.now}</b> day streak, best ${streak.best}</span>
+      <span><b>${sessions.length}</b> sessions, ${avg} min on average</span>
+    </div>
+    <div class="sc" style="margin-top:18px">The last six weeks</div>
+    <div class="jz-weeks">${weeks.map(w => `<div class="jz-week">
+      <span class="mono jz-wk">${esc(fmtDate(w.from, 'short'))}</span>
+      <span class="jz-wbar"><i style="width:${Math.round(w.hours / most * 100)}%"></i></span>
+      <span class="mono jz-wh">${w.hours}h${w.now ? ' · so far' : ''}</span></div>`).join('')}</div>
+    ${done.length ? `<div class="sc" style="margin-top:18px">Finished</div>
+      ${done.map(s => { const r = jazzStageRecord(s.id);
+        const days = r.startDate && r.completedDate ? daysBetweenDays(r.startDate, r.completedDate) + 1 : null;
+        return `<div class="jz-donerow"><span>✓ ${esc(s.name)}</span>
+          <span class="mono faint">${days ? days + ' days · ' : ''}${
+            Math.round(jazzStageMinutes(s.id) / 6) / 10} hours</span></div>`; }).join('')}` : ''}
+    <div class="sc" style="margin-top:18px">Sessions</div>
+    ${sessions.length ? sessions.slice(0, 12).map(s => `<div class="jz-hsess">
+      <div class="row between"><span class="sc">${esc(fmtDate(s.day, 'med'))}</span>
+        <span class="mono">${s.minutes} min${s.paceStatus ? ' · ' + esc(s.paceStatus.replace('_', ' ')) : ''}</span></div>
+      ${s.activities.map(a => `<div class="jz-log"><span>${jazzPartIcon(a.category)} ${esc(a.name)}</span>
+        <span class="mono faint">${a.minutes}m${a.keys.length ? ' · ' + a.keys.map(jazzPretty).join(' ') : ''}</span></div>`).join('')}
+      ${s.notes ? `<p class="jz-lognote">${esc(s.notes)}</p>` : ''}
+    </div>`).join('') : '<div class="empty">No sessions logged yet.</div>'}
+    <div class="row" style="margin-top:16px"><button class="btn sm ghost" id="jzExport">⬇ Export the log</button></div>`;
+}
+
+/* ---------- the doors between them ---------- */
+let _jzSessTick = null;
+function bindJazzPlan(root){
+  const ui = jazzUi();
+  const back = root.querySelector('#jzPback');
+  if(back) back.onclick = () => navigate('#/jazz');
+  const prog = root.querySelector('#jzProgGo');
+  if(prog) prog.onclick = () => navigate('#/jazz/progress');
+  const goPlan = root.querySelector('#jzPlanGo');
+  if(goPlan) goPlan.onclick = () => navigate('#/jazz/plan');
+
+  $$('[data-jzstart]', root).forEach(b => b.onclick = () => {
+    jazzStartStage(b.dataset.jzstart, b.dataset.jzpace);
+    sound('success');
+    toast(`Started. ${jazzPaceMinutes(b.dataset.jzpace, b.dataset.jzstart)} minutes a day is the line.`, 5000);
+    rerender();
+  });
+  $$('[data-jzreopen]', root).forEach(b => b.onclick = () => {
+    jazzReopenStage(b.dataset.jzreopen); sound('click'); rerender(); });
+  $$('[data-jzfinish]', root).forEach(b => b.onclick = () => {
+    const r = jazzReadiness(b.dataset.jzfinish);
+    jazzCompleteStage(b.dataset.jzfinish);
+    sound('success');
+    toast(r.met === r.of ? 'Finished, and every criterion met.'
+      : `Finished. ${r.met} of ${r.of} criteria were met — which is your call to make.`, 6000);
+    rerender();
+  });
+  $$('[data-jzlisten]', root).forEach(b => b.onclick = () => {
+    const stage = jazzActiveStage();
+    const track = stage && jazzTodaysTrack(stage);
+    if(!track) return;
+    const n = +b.dataset.jzlisten > 0 ? jazzMarkListened(track) : jazzUnmarkListened(track);
+    sound(+b.dataset.jzlisten > 0 ? 'success' : 'click');
+    if(n === JAZZ_LISTEN_TARGET) toast('Twenty. That is the one instruction in the book nobody counts.', 6000);
+    rerender();
+  });
+
+  /* ticking a block off, from the plan or from inside a session */
+  $$('[data-jzdo]', root).forEach(b => b.onclick = () => {
+    const stage = jazzActiveStage();
+    const plan = stage && jazzTodaysPlan(stage.id);
+    const block = plan && plan.required[+b.dataset.jzdo];
+    if(!block) return;
+    if(!jazzSessionOpen()) jazzStartSession(stage.id);
+    openJazzActivity(block);
+  });
+  $$('[data-jzundo]', root).forEach(b => b.onclick = () => {
+    jazzSessionDrop(b.dataset.jzundo); sound('click'); rerender(); });
+
+  const start = root.querySelector('#jzSessStart');
+  if(start) start.onclick = () => {
+    jazzStartSession(jazzActiveStage().id); sound('success'); navigate('#/jazz/session'); };
+  const open = root.querySelector('#jzSessOpen');
+  if(open) open.onclick = () => navigate('#/jazz/session');
+
+  const ex = root.querySelector('#jzExport');
+  if(ex) ex.onclick = () => {
+    const blob = new Blob([jazzExportLog()], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `jazz-practice-log-${today()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    sound('success'); toast('Saved.');
+  };
+}
+function bindJazzSession(root){
+  bindJazzPlan(root);
+  const back = root.querySelector('#jzSessBack');
+  if(back) back.onclick = () => navigate('#/jazz/plan');
+  const other = root.querySelector('#jzAddOther');
+  if(other) other.onclick = () => openJazzActivity(null);
+  const end = root.querySelector('#jzSessEnd');
+  if(end) end.onclick = () => openJazzSessionEnd();
+  const drop = root.querySelector('#jzSessDrop');
+  if(drop) drop.onclick = () => {
+    if(!confirm('Throw this session away without writing it down?')) return;
+    jazzAbandonSession(); sound('click'); navigate('#/jazz/plan');
+  };
+  /* the clock, ticking on its own rather than on a redraw */
+  if(_jzSessTick) clearInterval(_jzSessTick);
+  _jzSessTick = setInterval(() => {
+    const s = jazzSessionOpen();
+    const face = document.getElementById('jzSessClock');
+    if(!s || !face){ clearInterval(_jzSessTick); _jzSessTick = null; return; }
+    face.textContent = jazzSessionClock(s);
+  }, 1000);
+}
+
+/* ---------- ticking one thing off ---------- */
+function openJazzActivity(block){
+  const stage = jazzActiveStage();
+  const b = block || {category:'rote', name:'', description:'', minutes: 15, keys: [], exercises: []};
+  const ids = (stage && stage.subs) || [];
+  const m = openModal(`<h2>${b.name ? esc(b.name) : 'Something else'}</h2>
+    ${b.description ? `<p class="faint" style="font-size:.85rem">${esc(b.description)}</p>` : ''}
+    ${b.name ? '' : `<label class="pd-q"><span class="k">what</span>
+      <input class="inp" id="jaName" autofocus placeholder="scales, or a tune, or whatever it was"></label>`}
+    <div class="row" style="gap:10px;margin-top:10px">
+      <label class="pd-q" style="flex:1"><span class="k">minutes</span>
+        <input class="inp mono" type="number" min="0" max="600" id="jaMins" value="${b.minutes || 15}"></label>
+      <label class="pd-q" style="flex:1"><span class="k">how it went</span>
+        <select class="sel" id="jaQ">${JAZZ_QUALITY.map(q =>
+          `<option value="${q[0]}" ${q[0] === 'improving' ? 'selected' : ''}>${q[1]}</option>`).join('')}</select></label>
+    </div>
+    ${b.name ? '' : `<label class="pd-q" style="margin-top:10px"><span class="k">which part</span>
+      <select class="sel" id="jaCat">${JAZZ_PARTS.map(pt =>
+        `<option value="${pt[0]}">${pt[2]} ${pt[1]}</option>`).join('')}</select></label>`}
+    <div class="pd-q" style="margin-top:10px"><span class="k">keys worked</span>
+      <div class="jz-keypick" id="jaKeys">${JAZZ_KEY_NAMES.map(k =>
+        `<button class="jz-k${(b.keys || []).includes(k) ? ' on' : ''}" data-jak="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div></div>
+    ${ids.length ? `<label class="pd-q" style="margin-top:10px"><span class="k">against which exercise</span>
+      <select class="sel" id="jaEx"><option value="">— none in particular —</option>${ids.map(id => {
+        const x = jazzExercise(id);
+        return `<option value="${esc(id)}" ${(b.exercises || [])[0] === id ? 'selected' : ''}>${
+          esc(id)} ${esc(x ? x.name : '')}</option>`; }).join('')}</select></label>` : ''}
+    <label class="pd-q" style="margin-top:10px"><span class="k">a note</span>
+      <input class="inp" id="jaNote" placeholder="D flat still shaky, A flat surprisingly good"></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn primary" id="jaSave">Tick it off</button></div>`, 'narrow');
+  const picked = new Set(b.keys || []);
+  m.querySelectorAll('[data-jak]').forEach(btn => btn.onclick = ev => {
+    ev.preventDefault();
+    const k = btn.dataset.jak;
+    picked.has(k) ? picked.delete(k) : picked.add(k);
+    btn.classList.toggle('on', picked.has(k));
+  });
+  m.querySelector('#jaSave').onclick = () => {
+    const nameEl = m.querySelector('#jaName'), catEl = m.querySelector('#jaCat');
+    const exEl = m.querySelector('#jaEx');
+    jazzSessionAdd({category: b.name ? b.category : (catEl ? catEl.value : 'rote'),
+      name: b.name || (nameEl && nameEl.value.trim()) || 'something',
+      minutes: +m.querySelector('#jaMins').value || 0,
+      keys: [...picked], rating: m.querySelector('#jaQ').value,
+      exerciseId: exEl && exEl.value ? exEl.value : ((b.exercises || [])[0] || null),
+      note: m.querySelector('#jaNote').value.trim()});
+    m.remove(); sound('success');
+    if(!location.hash.startsWith('#/jazz/session')) navigate('#/jazz/session');
+    else rerender();
+  };
+  return m;
+}
+function openJazzSessionEnd(){
+  const s = jazzSessionOpen();
+  if(!s) return null;
+  const ticked = sum(s.activities.map(a => +a.minutes || 0));
+  const clocked = Math.max(0, Math.round((Date.now() - Date.parse(s.start)) / 60000));
+  const m = openModal(`<h2>End the session</h2>
+    <p class="faint" style="font-size:.85rem">You ticked off ${ticked} minutes and the clock has run
+      for ${clocked}. Whichever is truer.</p>
+    <label class="pd-q"><span class="k">minutes</span>
+      <input class="inp mono" type="number" min="0" max="900" id="jeMins" value="${ticked || clocked}"></label>
+    <div class="pd-q" style="margin-top:10px"><span class="k">how did it feel</span>
+      <div class="row" style="gap:6px;flex-wrap:wrap">${
+        [['frustrated','\u{1f625} frustrated'], ['okay','\u{1f610} okay'],
+         ['good','\u{1f642} good'], ['great','\u{1f60a} great']].map(([v, l]) =>
+        `<button class="btn sm ghost" data-jef="${v}">${l}</button>`).join('')}</div></div>
+    <label class="pd-q" style="margin-top:10px"><span class="k">anything worth remembering</span>
+      <textarea class="inp" rows="3" id="jeNote" placeholder="The join between G flat and E is the thing to work on tomorrow."></textarea></label>
+    <div class="row" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn primary" id="jeSave">Write it down</button></div>`, 'narrow');
+  let feeling = null;
+  m.querySelectorAll('[data-jef]').forEach(b => b.onclick = ev => {
+    ev.preventDefault();
+    feeling = b.dataset.jef;
+    m.querySelectorAll('[data-jef]').forEach(x => x.classList.toggle('primary', x === b));
+    m.querySelectorAll('[data-jef]').forEach(x => x.classList.toggle('ghost', x !== b));
+  });
+  m.querySelector('#jeSave').onclick = () => {
+    const out = jazzFinishSession({minutes: +m.querySelector('#jeMins').value || 0,
+      feeling, notes: m.querySelector('#jeNote').value});
+    m.remove(); sound('success');
+    const p = jazzPaceOf(out.stageId);
+    toast(`${out.minutes} minutes written down. ${jazzPaceSaid(out.stageId)}`, 7000);
+    navigate('#/jazz/progress');
+  };
+  return m;
+}
+/* ============================================================
    THE JAZZ STUDIO — the room.
 
    Three views and one idea. The roadmap says where you are; an exercise is
@@ -59390,6 +60613,15 @@ routes.jazz = function(root, params){
   const want = params && params[0] ? params[0] : null;
   if(want === 'cards'){ root.innerHTML = `<div class="page jz-page">${jazzFlashHTML()}</div>`;
     bindJazzFlash(root); return; }
+  /* the practice room: what to do today, what you are doing, and where it
+     has got you. Three addresses rather than three tabs, so the browser's
+     own Back works between them. */
+  if(want === 'plan'){ root.innerHTML = `<div class="page jz-page">${jazzPlanHTML()}</div>`;
+    bindJazzPlan(root); return; }
+  if(want === 'session'){ root.innerHTML = `<div class="page jz-page">${jazzSessionHTML()}</div>`;
+    bindJazzSession(root); return; }
+  if(want === 'progress'){ root.innerHTML = `<div class="page jz-page">${jazzProgressHTML()}</div>`;
+    bindJazzPlan(root); return; }
   /* The address decides which of the two views this is, and nothing else.
      It used to only ever SET the open exercise from the address and never
      clear it, so #/jazz with no exercise in it fell through to whichever one
@@ -59463,8 +60695,10 @@ function jazzRoadHTML(){
   return `<h1 class="serif">Jazz Studio</h1>
     <p class="page-blurb">Not pieces — patterns, in all twelve keys, until the hands go there
       without being asked. ${done} of ${of} keys are yours.</p>
+    ${jazzStageHeadHTML(jazzActiveStage())}
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      <button class="btn primary" id="jzCards">\u{1f3af} Flashcards</button>
+      <button class="btn primary" id="jzPlanGo">\u{1f4cb} Today\u2019s practice</button>
+      <button class="btn sm ghost" id="jzCards">\u{1f3af} Flashcards</button>
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
       <span class="grow"></span>
       <!-- the ladder is advice, not a lock. Anybody who wants it to be a
@@ -59523,6 +60757,7 @@ function jazzStageHTML(s, here){
   </section>`;
 }
 function bindJazzRoad(root){
+  bindJazzPlan(root);
   $$('[data-jzopen]', root).forEach(b => b.onclick = () => {
     jazzUi().exId = b.dataset.jzopen; navigate('#/jazz/' + b.dataset.jzopen); });
   const cards = root.querySelector('#jzCards');

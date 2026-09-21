@@ -1,0 +1,761 @@
+/* ============================================================
+   WHAT SHOULD I PRACTISE TODAY?
+
+   It is the only question a self-learner has, and a catalogue of ninety-one
+   exercises is the worst possible answer to it. A university course answers
+   it by having already decided: Siskind's units are about thirty hours each,
+   two hours a day for a fortnight, and every unit's assignment page says how
+   those minutes are split — so much on fundamentals, so much on the drills,
+   so much on tunes, so much listening. Nobody has to choose. That is most of
+   what a course is for.
+
+   So this room answers it the same way. A stage has a benchmark in hours and
+   days; a day has a plan in minutes; a session is logged against it; and the
+   thing you actually want to know — am I where I should be — is a sentence
+   at the top rather than a sum you do in your head.
+
+   THREE THINGS THIS DELIBERATELY IS NOT.
+
+   It is not a lock. Every criterion here is a suggestion: the readiness
+   indicator says four of five, and the button to finish the stage is live
+   anyway. The ladder was unlocked on purpose earlier and this does not
+   quietly put the doors back.
+
+   It is not a second clock. The house already has one, and the minutes a
+   session logs are real minutes from it wherever the clock was running. What
+   this adds is what the minutes were SPENT ON, which no stopwatch knows.
+
+   And it is not a second practice log. The exercise pages already keep
+   sittings. A session writes one record and hands each activity to the
+   sitting log it belongs to, marked with the session it came from, so the
+   totals below can add both without counting anything twice.
+   ============================================================ */
+
+/* ---------- the four parts of a practice session ----------
+   Siskind's structure, in his order, because the order is the argument:
+   fundamentals before drills, drills before tunes, and listening every day
+   whether or not you sat at the piano. */
+const JAZZ_PARTS = [
+  ['fundamentals',   'Fundamentals',      '\u{1f3b9}'],
+  ['rote',           'Rote exercises',    '\u{1f504}'],
+  ['tunes',          'Working on tunes',  '\u{1f3b5}'],
+  ['listening',      'Listening',         '\u{1f3a7}']
+];
+const jazzPartName = k => (JAZZ_PARTS.find(p => p[0] === k) || [k, k, ''])[1];
+const jazzPartIcon = k => (JAZZ_PARTS.find(p => p[0] === k) || [k, k, '○'])[2];
+
+/* ---------- the pace ----------
+   The hours do not change. What changes is how many days you give them, and
+   therefore how long a day is. Somebody with a job is not a worse student
+   than somebody without one, and a benchmark that says otherwise is a
+   benchmark people quietly stop opening. */
+const JAZZ_PACES = {
+  relaxed:   {name:'Relaxed',   of: 0.5, stretch: 2,
+    who:'A busy schedule, and still moving forward.'},
+  standard:  {name:'Standard',  of: 1,   stretch: 1,
+    who:'The Siskind benchmark — a serious student’s pace.'},
+  intensive: {name:'Intensive', of: 1.5, stretch: 0.67,
+    who:'The time to move fast, and the wish to.'}
+};
+const JAZZ_PACE_IDS = ['relaxed', 'standard', 'intensive'];
+const jazzPace = id => JAZZ_PACES[id] || JAZZ_PACES.standard;
+/* A pace is a fraction of the STAGE'S OWN day rather than a fixed number of
+   minutes, because the stages are not the same size. Two hours is the
+   Siskind day for a unit of the book; the intervals stage is a warm-up and
+   its day is half an hour. Setting every stage to 120 minutes would have
+   turned a five-minute singing drill into a twenty-minute one. */
+const jazzPaceMinutes = (id, sid) => Math.round(
+  ((jazzPlanTemplate(sid) || {}).daily || 120) * jazzPace(id).of);
+
+/* ---------- the templates ----------
+   Kept as data rather than written into the generator, so a stage can be
+   re-weighted without touching a line of code. The minute allocations are
+   Siskind's own, out of the assignment section at the end of each unit;
+   where a stage covers more than one unit the hours are multiplied and the
+   day count with them.
+
+   TWO NUMBERS THAT ARE NOT THE SAME NUMBER. The minutes on each activity
+   are what the book's assignment section asks for, and they sum to ninety or
+   a hundred — those are stated minimums, not a full session. `daily` is what
+   the benchmark actually requires: thirty hours over a fortnight is a
+   hundred and twenty-eight minutes a day, so a hundred and twenty is the
+   day. The generator keeps the book's PROPORTIONS and scales them to fill
+   the day the pace asks for, which is why a relaxed hour and an intensive
+   three both divide the same way.
+
+   `keys` says how many keys an activity should cover in a sitting, and
+   `pick` how many exercises to draw from the stage for it. A `tune` activity
+   is about repertoire rather than about a catalogue exercise, so it names no
+   keys: you play it in the key the tune is in. */
+const JAZZ_PLAN_TEMPLATES = {
+  /* The source gives P0 ten hours over seven days AND a thirty-minute daily
+     plan, and those cannot both be true: half an hour for a week is three
+     and a half hours. The activity list is the more specific of the two, and
+     a benchmark you cannot reach by following the plan printed under it is a
+     benchmark that teaches people to ignore benchmarks. So the hours here
+     are the ones the plan actually adds up to. */
+  'P0': {hours: 4, days: 7, daily: 30, source: 'Stage P0 — a warm-up stage, not a unit of the book',
+    parts: [
+      ['fundamentals', 10, [['Interval micro-drill',
+        'One interval, from all twelve roots, round the circle of fourths. One interval a day, not twelve.', 10, 12, 1]]],
+      ['rote', 5, [['Flashcards',
+        'Random root, random interval, answered out loud before you touch the keys.', 5, 4, 1]]],
+      ['fundamentals', 5, [['Sing it first',
+        'Sing the interval, then play it to check. An interval you cannot sing is one your hands are guessing at.', 5, 4, 1]]],
+      ['listening', 10, [['Interval recognition',
+        'Ear training away from the instrument. Name what you hear before you look.', 10, 0, 0]]]]},
+
+  1: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Units 1–2',
+    parts: [
+      ['fundamentals', 10, [['Drone improvisation',
+        'Five to ten minutes over a drone, with a timer running so it is a practice rather than a noodle.', 10, 2, 0]]],
+      ['rote', 30, [['Coordination exercise, all twelve keys',
+        'The coordination exercise round the twelve, slowly enough that both hands stay honest.', 15, 3, 1],
+        ['Chord flashcards and the vamp piece',
+        'Chord recall against the clock, then the vamp piece to put the chords somewhere musical.', 15, 3, 2]]],
+      ['tunes', 30, [['Swing articulation',
+        'The swing exercises, watching the articulation rather than the notes.', 10, 2, 0],
+        ['Find the chords in a Real Book tune',
+        'Take a standard and name every chord in it by type before playing any of them.', 20, 0, 0]]],
+      ['listening', 30, [['Guided listening',
+        'The unit’s track, following the form all the way through. Twenty times over the fortnight, not twenty times today.', 30, 0, 0]]]]},
+
+  2: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Units 3–4',
+    parts: [
+      ['fundamentals', 10, [['Drone improvisation in F and B♭',
+        'Grace notes and sequences over a drone, in the two keys the unit asks for.', 10, 2, 0]]],
+      ['rote', 30, [['Two-five-one descending by whole steps',
+        'One of the two descent sets, joined, without stopping between keys.', 15, 6, 2],
+        ['A lick, transposed round the twelve',
+        'One lick, all twelve keys, articulation before speed.', 15, 4, 1]]],
+      ['tunes', 30, [['Two Real Book tunes',
+        'Circle every two-five-one, learn the chords, comp with the melody, and put the lick where it fits.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        '"I Want More" by Dexter Gordon twenty times, then "So What" by Miles Davis twenty times.', 20, 0, 0]]]]},
+
+  3: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Unit 6',
+    parts: [
+      ['fundamentals', 10, [['Building rhythmic vocabulary',
+        'Rhythm 2: quarters and eighths mixed, in a swing feel, over a drone.', 10, 3, 0]]],
+      ['rote', 40, [['The voicing formulas',
+        'Type A and Type B for major, dominant and minor sevenths, until the shape arrives before the thought.', 20, 3, 2],
+        ['Two-five-one with A/B, descending whole steps',
+        'A descent set with the voicings, alternating the type through each progression.', 20, 6, 2]]],
+      ['tunes', 30, [['3-5-7-9 arpeggios',
+        'The arpeggios through a tune’s changes rather than through an exercise.', 10, 3, 1],
+        ['Comp through a Real Book tune',
+        'Type A/B under a Charleston rhythm, all the way round the form.', 20, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening to the left hand.', 20, 0, 0]]]]},
+
+  4: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Unit 8',
+    parts: [
+      ['fundamentals', 10, [['Hand independence',
+        'Bass alone until it is boring, then the voicing on top of it. The coordination is the exercise.', 10, 3, 0]]],
+      ['rote', 35, [['One-handed shells',
+        'Three notes in one hand, both types, round the twelve.', 20, 3, 2],
+        ['A bass in two',
+        'Root on one and the fifth, the third, or a semitone into the next root on three. All three formulas.', 15, 3, 1]]],
+      ['tunes', 30, [['A standard, solo',
+        'Voicing in one hand, bass in the other, melody sung. If somebody can follow the tune, it works.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening to what the left hand is doing while the right is busy.', 20, 0, 0]]]]},
+
+  5: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 7–9',
+    parts: [
+      ['fundamentals', 10, [['Play one, rest one',
+        'The phrasing model, and the blues scale in every key. Silence is half the exercise.', 10, 4, 0]]],
+      ['rote', 30, [['One-handed A/B through a two-five-one',
+        'The voicings from the stage before, now under a blues.', 15, 4, 2],
+        ['Blues scale and arpeggios, mixed',
+        'Neither one alone: the scale is a safety net and the arpeggios are the changes.', 15, 4, 2]]],
+      ['tunes', 40, [['A blues, every way round',
+        'Melody, comping, bass in two, and improvising — the same twelve bars four different ways.', 40, 4, 0]]],
+      ['listening', 20, [['Guided listening',
+        '"Now’s the Time" by Charlie Parker twenty times, then "D. and E." by Oscar Peterson twenty times.', 20, 0, 0]]]]},
+
+  6: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 3–12 (the licks)',
+    parts: [
+      ['fundamentals', 10, [['Articulation on the syllables',
+        'The scat syllables before the notes. A lick with flat dynamics is a scale exercise.', 10, 2, 0]]],
+      ['rote', 35, [['One lick, twelve keys',
+        'A single lick round the circle. A week a lick, not a lick a day.', 20, 4, 1],
+        ['The lick against comping',
+        'The same lick with a Charleston in the left hand. This is the step everybody skips.', 15, 3, 1]]],
+      ['tunes', 30, [['Put it in a tune',
+        'Find the two-five-ones in a standard and play into the lick and out of it. The joins are the hard part.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening for how little is played rather than how much.', 20, 0, 0]]]]},
+
+  7: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 10–12',
+    parts: [
+      ['fundamentals', 10, [['Play what you sing',
+        'Sing a phrase over a two-five-one, then play it. The inner ear exercise, every day.', 10, 3, 0]]],
+      ['rote', 40, [['Flat nine and flat thirteen, all keys',
+        'One alteration at a time, and know which note it replaced.', 15, 4, 2],
+        ['Tritone substitution, all keys',
+        'Plain and substituted back to back, in the same key, so the difference is audible.', 15, 4, 1],
+        ['The altered, octatonic and whole-tone scales',
+        'Learn the altered scale as melodic minor a semitone up. One fact instead of twelve scales.', 10, 3, 1]]],
+      ['tunes', 30, [['Altered voicings on a standard',
+        'Every V chord altered for one chorus, then only where your ear wants one. And the turnarounds.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        '"Cheek to Cheek" by Ahmad Jamal, twenty times.', 20, 0, 0]]]]},
+
+  8: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Units 1–5',
+    parts: [
+      ['fundamentals', 15, [['Modal patterns',
+        'Voicing drills draped beneath the mode, up and down, as smoothly as the hand allows.', 15, 3, 1]]],
+      ['rote', 20, [['Comping practice',
+        'So What voicings, quartal, pentatonic — and switching between them mid-chorus.', 20, 3, 2]]],
+      ['fundamentals', 15, [['Drone improvisation',
+        'Two full minutes over one drone without stopping. Everything after the first thirty seconds is invention.', 15, 2, 0]]],
+      ['tunes', 30, [['A modal tune',
+        '"So What", "Little Sunflower", "Maiden Voyage" — comping and improvising over harmony that will not move.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times. Transcription every other day.', 20, 0, 0]]]]},
+
+  9: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1 Unit 12 and Book 3',
+    parts: [
+      ['fundamentals', 15, [['Guide-tone lines',
+        'The thirds and sevenths through a set of changes, on their own, before anything is added to them.', 15, 3, 1]]],
+      ['rote', 30, [['One substitution at a time',
+        'Secondary dominants, the backdoor, the walk-up, the turnarounds — added to a plain progression one at a time.', 30, 4, 3]]],
+      ['tunes', 30, [['Reharmonise eight bars',
+        'Take a standard, write out new changes for the first eight bars, and play from what you wrote.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, following the bass to hear what was replaced.', 20, 0, 0]]]]},
+
+  10: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Units 6–8',
+    parts: [
+      ['fundamentals', 15, [['One shape, four motions',
+        'Plane a single voicing chromatically, by whole steps, by minor thirds and by major thirds.', 15, 3, 1]]],
+      ['rote', 30, [['Out and back in two bars',
+        'Sidestep into a target and resolve it, in time. A sidestep that arrives late is a mistake.', 30, 4, 2]]],
+      ['tunes', 30, [['One departure per chorus',
+        'Play everything inside except one phrase. One departure that resolves beats a chorus of vagueness.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, working out where the centre actually is.', 20, 0, 0]]]]},
+
+  11: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Unit 10',
+    parts: [
+      ['fundamentals', 10, [['The plain blues, cold',
+        'The twelve bars from memory before any of the variations. A variation on something you do not have is just notes.', 10, 4, 0]]],
+      ['rote', 30, [['One modal blues at a time',
+        'Mixolydian, Dorian, Aeolian — each beside the plain form in the same key, so the one changed note is audible.', 30, 4, 2]]],
+      ['tunes', 30, [['A modal blues, played',
+        '"Footprints", "Equinox" — the head, then comping, then two choruses.', 30, 4, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, hearing how much of the blues survives.', 20, 0, 0]]]]},
+
+  12: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Unit 11',
+    parts: [
+      ['fundamentals', 15, [['Count it, then stop counting',
+        'Five as three plus two, out loud, then as two plus three. They are different pieces of music.', 15, 3, 1]]],
+      ['rote', 25, [['A progression in five and in seven',
+        'The bass line alone until it is comfortable, then the chords. Adding harmony to an unsteady meter is how both fall apart.', 25, 3, 2]]],
+      ['tunes', 30, [['Write something',
+        'Four bars, played, before writing any more. The composition exercises are finished rather than mastered.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'Take Five, Don Ellis, the Mahavishnu records — twenty times, and stop counting.', 20, 0, 0]]]]}
+};
+const jazzPlanTemplate = sid => JAZZ_PLAN_TEMPLATES[sid] || JAZZ_PLAN_TEMPLATES[String(sid)] || null;
+
+/* ---------- what you have done, per stage ---------- */
+function jazzPlanState(){
+  const j = jazzState();
+  j.stages = j.stages && typeof j.stages === 'object' ? j.stages : {};
+  j.sessions = Array.isArray(j.sessions) ? j.sessions : [];
+  j.listens = j.listens && typeof j.listens === 'object' ? j.listens : {};
+  return j;
+}
+/** The record for one stage, made only when something happens to it. */
+function jazzStageRecord(sid, make){
+  const j = jazzPlanState();
+  const id = String(sid);
+  if(!j.stages[id]){
+    if(!make) return {status:'not_started', startDate:null, completedDate:null,
+      pace:'standard', targetHours:0, targetDays:0};
+    const t = jazzPlanTemplate(id) || {hours: 30, days: 14};
+    j.stages[id] = {status:'not_started', startDate:null, completedDate:null,
+      pace:'standard', targetHours: t.hours, targetDays: t.days};
+  }
+  const r = j.stages[id];
+  r.pace = JAZZ_PACES[r.pace] ? r.pace : 'standard';
+  return r;
+}
+const jazzStageStatus = sid => jazzStageRecord(sid).status;
+
+function jazzStartStage(sid, pace){
+  const r = jazzStageRecord(sid, true);
+  const t = jazzPlanTemplate(sid) || {hours: 30, days: 14};
+  r.pace = JAZZ_PACES[pace] ? pace : 'standard';
+  r.status = 'active';
+  r.startDate = r.startDate || today();
+  r.completedDate = null;
+  r.targetHours = t.hours;
+  /* the hours do not change with the pace; the days do */
+  r.targetDays = Math.max(1, Math.round(t.days * jazzPace(r.pace).stretch));
+  saveNow();
+  return r;
+}
+function jazzCompleteStage(sid){
+  const r = jazzStageRecord(sid, true);
+  r.status = 'completed';
+  r.completedDate = today();
+  saveNow();
+  return r;
+}
+function jazzReopenStage(sid){
+  const r = jazzStageRecord(sid, true);
+  r.status = 'active';
+  r.completedDate = null;
+  saveNow();
+  return r;
+}
+/** The stage you are on, which is the one you started rather than the one
+    the key count guesses at. */
+function jazzActiveStage(){
+  const started = jazzStages().filter(s => jazzStageStatus(s.id) === 'active');
+  if(started.length) return started[0];
+  return jazzNowStage();
+}
+
+/* ---------- how many minutes, and where they came from ----------
+   Two places keep them and neither is wrong: a session logged against the
+   plan, and a sitting logged from an exercise page. A sitting that a session
+   wrote carries the session's id, so adding both counts nothing twice. */
+const jazzSessions = () => jazzPlanState().sessions;
+const jazzStageSessions = sid => jazzSessions().filter(s => String(s.stageId) === String(sid));
+function jazzStageMinutes(sid){
+  const stage = jazzStage(sid);
+  const ids = (stage && stage.subs) || [];
+  const fromSessions = sum(jazzStageSessions(sid).map(s => +s.minutes || 0));
+  const loose = jazzAllLogs().filter(l => !l.fromSession && ids.includes(l.exerciseId));
+  return Math.round(fromSessions + sum(loose.map(l => +l.minutes || 0)));
+}
+/** Every day this stage was touched, newest first. */
+function jazzStageDays(sid){
+  const stage = jazzStage(sid);
+  const ids = (stage && stage.subs) || [];
+  const days = {};
+  jazzStageSessions(sid).forEach(s => { days[s.day] = (days[s.day] || 0) + (+s.minutes || 0); });
+  jazzAllLogs().forEach(l => { if(l.fromSession || !ids.includes(l.exerciseId)) return;
+    days[l.day] = (days[l.day] || 0) + (+l.minutes || 0); });
+  return Object.keys(days).sort().reverse().map(d => ({day: d, minutes: Math.round(days[d])}));
+}
+/** Consecutive days up to today, across the whole studio. */
+function jazzStreak(){
+  const days = {};
+  jazzSessions().forEach(s => days[s.day] = true);
+  jazzAllLogs().forEach(l => days[l.day] = true);
+  const has = d => !!days[d];
+  let n = 0;
+  const d = parseDay(today());
+  /* today not being practised yet does not break a streak until tomorrow */
+  if(!has(today())) d.setDate(d.getDate() - 1);
+  for(;;){
+    const key = timeDayOf(d.toISOString());
+    if(!has(key)) break;
+    n++;
+    d.setDate(d.getDate() - 1);
+    if(n > 3650) break;
+  }
+  let best = 0, run = 0, last = null;
+  Object.keys(days).sort().forEach(k => {
+    if(last){ const gap = daysBetweenDays(last, k); run = gap === 1 ? run + 1 : 1; }
+    else run = 1;
+    best = Math.max(best, run);
+    last = k;
+  });
+  return {now: n, best: Math.max(best, n)};
+}
+const daysBetweenDays = (a, b) =>
+  Math.round((parseDay(b) - parseDay(a)) / 86400000);
+
+/* ---------- am I where I should be ---------- */
+function jazzPaceOf(sid){
+  const r = jazzStageRecord(sid);
+  const t = jazzPlanTemplate(sid) || {hours: 30, days: 14};
+  const hours = jazzStageMinutes(sid) / 60;
+  const targetHours = r.targetHours || t.hours;
+  const targetDays = r.targetDays || t.days;
+  const started = r.startDate || null;
+  const day = started ? Math.max(1, daysBetweenDays(started, today()) + 1) : 0;
+  /* Two different numbers, and conflating them is how a tracker tells
+     somebody they are behind before they have had a chance to practise.
+     `expected` is where the line is by the END of today, which is what the
+     plan aims at. `owed` is what should ALREADY be done — the days that have
+     closed — and that is what behind-or-ahead is judged against. On the
+     first morning of a stage, nothing is owed and nobody is behind. */
+  const expected = started ? Math.min(targetHours, targetHours * (day / targetDays)) : 0;
+  const owed = started ? Math.min(targetHours, targetHours * Math.max(0, day - 1) / targetDays) : 0;
+  const status = !started ? 'not_started'
+    : owed <= 0 ? (hours > 0 ? 'ahead' : 'on_track')
+    : hours >= owed * 1.1 ? 'ahead'
+    : hours >= owed * 0.9 ? 'on_track' : 'behind';
+  /* At the rate you have actually been going — but not until there is a
+     rate. One good evening on day one projects a finish date forty-eight
+     days out, which is arithmetic rather than information, and a number that
+     silly is a number people stop believing. Three days is the floor. */
+  const perDay = day > 0 ? hours / day : 0;
+  const left = Math.max(0, targetHours - hours);
+  const daysLeft = (day >= 3 && perDay > 0.01) ? Math.ceil(left / perDay) : null;
+  const finish = daysLeft == null ? null
+    : (() => { const d = parseDay(today()); d.setDate(d.getDate() + daysLeft);
+        return timeDayOf(d.toISOString()); })();
+  return {hours: Math.round(hours * 10) / 10, targetHours, targetDays, day,
+    expected: Math.round(expected * 10) / 10, owed: Math.round(owed * 10) / 10,
+    status, left: Math.round(left * 10) / 10,
+    daysLeft, finish, pace: r.pace,
+    pct: targetHours ? Math.min(100, Math.round(hours / targetHours * 100)) : 0};
+}
+/** The sentence at the top, which is the whole point of the arithmetic. */
+function jazzPaceSaid(sid){
+  const p = jazzPaceOf(sid);
+  if(p.status === 'not_started') return 'Not started yet.';
+  const off = Math.round(Math.abs(p.hours - p.owed) * 10) / 10;
+  if(p.status === 'ahead')
+    return `${off ? off + ' hour' + (off === 1 ? '' : 's') : 'Some hours'} ahead of the line.`
+      + (p.daysLeft == null
+        ? ' A few more days and this will say when you are likely to finish.'
+        : ` At this rate you finish this stage in ${p.daysLeft} more day${p.daysLeft === 1 ? '' : 's'}.`);
+  if(p.status === 'behind'){
+    /* what it would take to be back on the line, said as minutes a day
+       rather than as a number of hours nobody can act on */
+    const daysLeft = Math.max(1, p.targetDays - p.day + 1);
+    const extra = Math.ceil(off * 60 / daysLeft);
+    return `${off} hour${off === 1 ? '' : 's'} behind. Another ${extra} minutes a day `
+      + `for the rest of the stage puts you back on the line.`;
+  }
+  if(p.day === 1 && !p.hours) return 'Day one. Nothing is owed yet \u2014 the plan below is today\u2019s.';
+  return 'On track.';
+}
+
+/* ---------- which keys today ----------
+   Siskind's two descent sets are the order, alternating day by day, because
+   they are the order the book practises everything in and because between
+   them they cover the twelve. What moves within that is which of them you
+   still need: a key the flashcards have marked off is dealt last, a key you
+   have not touched comes first. */
+const JAZZ_EASY_KEYS = ['C', 'F', 'Bb', 'Eb', 'G', 'D'];
+function jazzDescentForDay(day){
+  const G = typeof JazzExerciseGenerator !== 'undefined' ? JazzExerciseGenerator : null;
+  const a = (G && G.DESCENT_SET_A) || ['C','Bb','Ab','Gb','E','D'];
+  const b = (G && G.DESCENT_SET_B) || ['Db','B','A','G','F','Eb'];
+  return (day % 2 === 1) ? {name: 'A', keys: a} : {name: 'B', keys: b};
+}
+/**
+ * @param {string[]} ids   – the exercises this activity draws on
+ * @param {number} want    – how many keys to name
+ * @param {number} day     – day number of the stage, which picks the set
+ */
+function jazzKeysForToday(ids, want, day){
+  if(!want) return [];
+  const got = {};
+  (ids || []).forEach(id => JAZZ_KEY_NAMES.forEach(k => {
+    if(jazzRecord(id).keys[k]) got[k] = (got[k] || 0) + 1; }));
+  const n = (ids || []).length || 1;
+  const set = jazzDescentForDay(day);
+  /* the day's set first, then whatever else is left, so the rotation moves
+     round the circle rather than sitting on the front of the list */
+  const order = set.keys.concat(JAZZ_KEY_NAMES.filter(k => !set.keys.includes(k)));
+  /* Three things decide the order, and they have to be weighted rather than
+     added flat. How much of it you already have comes first, because the
+     point is the keys you do not have. Then whether it is in today's set,
+     because the set IS the rotation — without this term a hard key from the
+     other set outranked an easy key from this one and the sets stopped
+     meaning anything. The easy-key nudge is last and is only a tiebreak. */
+  const rank = k => (got[k] >= n ? 2 : got[k] ? 1 : 0) * 10
+    + (set.keys.includes(k) ? 0 : 3)
+    + (JAZZ_EASY_KEYS.includes(k) ? 0.25 : 0);
+  const sorted = order.slice().sort((x, y) => rank(x) - rank(y));
+  return sorted.slice(0, Math.min(want, sorted.length));
+}
+/** The exercises of a stage, weakest first: least practised, worst rated. */
+function jazzWeakest(stage, n){
+  const ids = (stage && stage.subs) || [];
+  const worth = id => {
+    const r = jazzRecord(id);
+    const mins = sum((r.logs || []).map(l => +l.minutes || 0));
+    const keys = jazzKeysGot(id);
+    const rating = (r.logs && r.logs[0] && r.logs[0].quality) || '';
+    const bad = rating === 'rough' ? -2 : rating === 'shaky' ? -1
+      : rating === 'automatic' ? 2 : rating === 'solid' ? 1 : 0;
+    return keys * 10 + mins / 10 + bad * 5;
+  };
+  return ids.slice().sort((a, b) => worth(a) - worth(b)).slice(0, Math.max(0, n || 0));
+}
+
+/* ---------- listening, counted to twenty ----------
+   "Listen at least twenty times" is in every unit of the book and is the
+   instruction most likely to be nodded at and skipped, because nothing
+   counts it. This counts it. */
+const JAZZ_LISTEN_TARGET = 20;
+const jazzTrackId = a => `${a.artist}|${a.track}`.toLowerCase().replace(/[^a-z0-9|]+/g, '-');
+function jazzListenRecord(a, make){
+  const j = jazzPlanState();
+  const id = jazzTrackId(a);
+  if(!j.listens[id]){
+    if(!make) return {plays: 0, log: []};
+    j.listens[id] = {artist: a.artist, track: a.track, album: a.album || '',
+      plays: 0, log: []};
+  }
+  const r = j.listens[id];
+  r.log = Array.isArray(r.log) ? r.log : [];
+  r.plays = Math.max(0, +r.plays || 0);
+  return r;
+}
+const jazzListens = a => jazzListenRecord(a).plays;
+function jazzMarkListened(a, focus){
+  const r = jazzListenRecord(a, true);
+  r.plays++;
+  r.log.unshift({at: new Date().toISOString(), day: today(), focus: focus || ''});
+  if(r.log.length > 200) r.log.length = 200;
+  saveNow();
+  return r.plays;
+}
+function jazzUnmarkListened(a){
+  const r = jazzListenRecord(a, true);
+  if(r.plays > 0){ r.plays--; r.log.shift(); saveNow(); }
+  return r.plays;
+}
+/** The tracks a stage asks you to live with, without repeating one that two
+    of its exercises happen to share. */
+function jazzStageListening(stage){
+  const out = [], seen = {};
+  ((stage && stage.subs) || []).forEach(id => {
+    const ex = jazzExercise(id);
+    (ex && ex.listeningAssignments || []).forEach(a => {
+      const k = jazzTrackId(a);
+      if(seen[k]) return;
+      seen[k] = true;
+      out.push(a);
+    });
+  });
+  return out;
+}
+/** The one to put in front of you today: the least listened to. */
+function jazzTodaysTrack(stage){
+  const all = jazzStageListening(stage);
+  if(!all.length) return null;
+  return all.slice().sort((a, b) => jazzListens(a) - jazzListens(b))[0];
+}
+
+/* ---------- what to practise today ----------
+   Built fresh every time it is asked for rather than stored, because a plan
+   stored yesterday is a plan that does not know what you did last night.
+   Nothing here is written down until you log a session against it. */
+function jazzTodaysPlan(sid){
+  const stage = jazzStage(sid);
+  if(!stage) return null;
+  const t = jazzPlanTemplate(stage.id);
+  if(!t) return null;
+  const p = jazzPaceOf(stage.id);
+  const rec = jazzStageRecord(stage.id);
+  const pace = jazzPace(rec.pace);
+  const paceMinutes = jazzPaceMinutes(rec.pace, stage.id);
+  const day = Math.max(1, p.day || 1);
+
+  /* Behind: a longer day. Ahead: the option of a shorter one. The scale is
+     applied to the whole session rather than to one part, so the balance the
+     book struck between fundamentals, drills, tunes and listening survives. */
+  const scale = p.status === 'behind' ? 1.25 : p.status === 'ahead' ? 0.75 : 1;
+  const templateMinutes = sum(t.parts.map(x => x[1]));
+  const want = Math.round(paceMinutes * scale);
+  const factor = templateMinutes ? want / templateMinutes : 1;
+  const mins = m => Math.max(5, Math.round(m * factor / 5) * 5);
+
+  const required = [];
+  t.parts.forEach(part => {
+    const [category, , activities] = part;
+    activities.forEach(a => {
+      const [name, description, minutes, keyCount, pickCount] = a;
+      const picked = pickCount ? jazzWeakest(stage, pickCount) : [];
+      required.push({category, name, description,
+        minutes: mins(minutes),
+        keys: jazzKeysForToday(picked.length ? picked : stage.subs, keyCount, day),
+        exercises: picked,
+        why: picked.length ? 'the least practised of this stage' : ''});
+    });
+  });
+
+  /* Listening is a block of its own even when the template gives it none, so
+     that the twenty is always in front of you. */
+  const track = jazzTodaysTrack(stage);
+
+  /* ---------- and what would put you ahead ----------
+     Drawn from what the room already knows rather than invented: a key
+     nobody has touched, a checkpoint not yet ticked, the creative challenge
+     the enrichment layer wrote for one of this stage's exercises. */
+  const bonus = [];
+  const cold = JAZZ_KEY_NAMES.filter(k =>
+    !stage.subs.some(id => jazzRecord(id).keys[k]));
+  if(cold.length) bonus.push({name: 'The keys nobody has touched',
+    description: `${cold.slice(0, 3).map(jazzPretty).join(', ')} — fifteen minutes on the ones you keep not choosing.`,
+    minutes: 15, why: 'the twelve are the exercise; three of them are still at zero'});
+  const openCheck = stage.subs.map(id => {
+    const ex = jazzExercise(id);
+    const item = (ex && ex.masteryChecklist || []).find(c => !jazzCheckGot(id, c));
+    return item ? {id, ex, item} : null;
+  }).filter(Boolean)[0];
+  if(openCheck) bonus.push({name: 'A checkpoint you have not claimed',
+    description: `${openCheck.ex.name} — “${openCheck.item}”`,
+    minutes: 10, why: 'it is the next thing this exercise asks of you', exerciseId: openCheck.id});
+  const challenge = stage.subs.map(id => {
+    const ex = jazzExercise(id);
+    return ex && ex.creativeChallenge ? {id, ex} : null; }).filter(Boolean);
+  if(challenge.length){
+    const pick = challenge[(day - 1) % challenge.length];
+    bonus.push({name: 'Something to make with it',
+      description: pick.ex.creativeChallenge, minutes: 15,
+      why: 'the part of practising that is not drilling', exerciseId: pick.id});
+  }
+  if(track && jazzListens(track) < JAZZ_LISTEN_TARGET)
+    bonus.push({name: 'Catch up on the listening',
+      description: `${track.artist} — ${track.track}. ${jazzListens(track)} of ${JAZZ_LISTEN_TARGET} so far.`,
+      minutes: 10, why: 'Siskind: "any study of jazz without gobs and gobs of listening is truly futile"'});
+
+  return {stage, day, pace: p, paceName: pace.name,
+    totalMinutes: sum(required.map(r => r.minutes)),
+    set: jazzDescentForDay(day).name,
+    required, bonus, track,
+    plays: track ? jazzListens(track) : 0, target: JAZZ_LISTEN_TARGET};
+}
+
+/* ---------- the session ----------
+   One record per sitting, and each activity in it also handed to the
+   exercise it belongs to so the sittings on an exercise page stay true.
+   Those carry the session's id, and the stage totals skip anything that has
+   one, so the same minutes are never added twice. */
+function jazzSessionOpen(){
+  const j = jazzPlanState();
+  return j.session && j.session.start ? j.session : null;
+}
+function jazzStartSession(sid){
+  const j = jazzPlanState();
+  if(j.session && j.session.start) return j.session;
+  j.session = {id: uid(), stageId: String(sid), day: today(),
+    start: new Date().toISOString(), activities: []};
+  /* the house's own clock, so the minutes are real rather than typed */
+  try { if(typeof timeAutoStart === 'function')
+    timeAutoStart({categoryId:'piano', feature:'jazz', what:'jazz practice session',
+      linkedType:'skill', linkedId:null, linkedLabel:'Jazz piano'}); } catch(e){}
+  saveNow();
+  return j.session;
+}
+function jazzSessionAdd(fields){
+  const s = jazzSessionOpen();
+  if(!s) return null;
+  const a = Object.assign({id: uid(), category:'rote', name:'', minutes:0,
+    keys: [], exerciseId: null, rating: 'improving', note: ''}, fields || {});
+  a.minutes = Math.max(0, Math.round(+a.minutes || 0));
+  a.keys = (a.keys || []).filter(k => JAZZ_KEY_NAMES.includes(k));
+  s.activities.push(a);
+  saveNow();
+  return a;
+}
+function jazzSessionDrop(id){
+  const s = jazzSessionOpen();
+  if(!s) return false;
+  const at = s.activities.findIndex(a => a.id === id);
+  if(at < 0) return false;
+  s.activities.splice(at, 1);
+  saveNow();
+  return true;
+}
+/** Ends it, writes it down, and hands each activity to its exercise.
+    Named `finish` rather than `end` because the flashcards already have a
+    `jazzEndSession`, and this house is one scope: two functions with one
+    name is the last one loaded silently winning. */
+function jazzFinishSession(fields){
+  const j = jazzPlanState();
+  const s = jazzSessionOpen();
+  if(!s) return null;
+  const f = fields || {};
+  s.end = new Date().toISOString();
+  const byHand = +f.minutes || 0;
+  const clocked = Math.round((Date.parse(s.end) - Date.parse(s.start)) / 60000);
+  const ticked = sum(s.activities.map(a => +a.minutes || 0));
+  /* what you said you did, then what you ticked off, then the clock */
+  s.minutes = Math.max(0, byHand || ticked || clocked);
+  s.feeling = ['frustrated','okay','good','great'].includes(f.feeling) ? f.feeling : null;
+  s.notes = String(f.notes || '').trim();
+  const p = jazzPaceOf(s.stageId);
+  s.paceStatus = p.status;
+  j.sessions.unshift(s);
+  if(j.sessions.length > 2000) j.sessions.length = 2000;
+  /* each activity that names an exercise becomes a sitting on it too */
+  s.activities.forEach(a => {
+    if(!a.exerciseId || !jazzExercise(a.exerciseId)) return;
+    try { jazzLogPractice(a.exerciseId, {minutes: a.minutes, keys: a.keys,
+      quality: a.rating, note: a.note, markKeys: false, fromSession: s.id}); } catch(e){}
+  });
+  j.session = null;
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('jazz'); } catch(e){}
+  saveNow();
+  return s;
+}
+function jazzAbandonSession(){
+  const j = jazzPlanState();
+  j.session = null;
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('jazz'); } catch(e){}
+  saveNow();
+  return true;
+}
+
+/* ---------- are you ready to move on ----------
+   Suggestions, and said as suggestions. The ladder was unlocked on purpose;
+   this does not put the doors back on it. */
+function jazzReadiness(sid){
+  const stage = jazzStage(sid);
+  if(!stage) return {rows: [], met: 0, of: 0};
+  const p = jazzPaceOf(stage.id);
+  const got = jazzStageGot(stage);
+  const ids = stage.subs;
+  const rated = ids.filter(id => {
+    const l = (jazzRecord(id).logs || [])[0];
+    return l && (l.quality === 'solid' || l.quality === 'automatic'); }).length;
+  /* every track this stage asks for, not just the one in front of you today */
+  const tracks = jazzStageListening(stage);
+  const heard = tracks.filter(a => jazzListens(a) >= JAZZ_LISTEN_TARGET).length;
+  const checks = ids.reduce((n, id) => n + jazzChecksGot(id).done, 0);
+  const checksOf = ids.reduce((n, id) => n + jazzChecksGot(id).of, 0);
+  const rows = [
+    {said: `Logged ${p.hours} of ${p.targetHours} hours`, ok: p.hours >= p.targetHours * 0.9},
+    {said: `Practised in all twelve keys (${got.done}/${got.of})`, ok: got.of > 0 && got.done >= got.of},
+    {said: `Every exercise rated solid (${rated}/${ids.length})`, ok: ids.length > 0 && rated >= ids.length},
+    {said: tracks.length
+       ? `Listened ${JAZZ_LISTEN_TARGET} times to each of the ${tracks.length} tracks (${heard}/${tracks.length})`
+       : 'Nothing to listen to at this stage',
+     ok: !tracks.length || heard >= tracks.length},
+    {said: `Checkpoints ticked (${checks}/${checksOf})`, ok: checksOf > 0 && checks >= checksOf}
+  ];
+  return {rows, met: rows.filter(r => r.ok).length, of: rows.length};
+}
+
+/* ---------- the weeks, for the chart ---------- */
+function jazzWeeklyHours(n){
+  const weeks = [];
+  const d = parseDay(today());
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));       /* back to Monday */
+  for(let i = 0; i < (n || 6); i++){
+    const from = timeDayOf(d.toISOString());
+    const to = (() => { const e = parseDay(from); e.setDate(e.getDate() + 6);
+      return timeDayOf(e.toISOString()); })();
+    let mins = 0;
+    jazzSessions().forEach(s => { if(s.day >= from && s.day <= to) mins += +s.minutes || 0; });
+    jazzAllLogs().forEach(l => { if(l.fromSession) return;
+      if(l.day >= from && l.day <= to) mins += +l.minutes || 0; });
+    weeks.unshift({from, to, hours: Math.round(mins / 6) / 10, now: i === 0});
+    d.setDate(d.getDate() - 7);
+  }
+  return weeks;
+}
+/** Everything, as a file somebody could keep or send on. */
+function jazzExportLog(){
+  return JSON.stringify({exported: new Date().toISOString(),
+    stages: jazzPlanState().stages, sessions: jazzSessions(),
+    listens: jazzPlanState().listens,
+    progress: jazzState().progress}, null, 2);
+}
