@@ -39,7 +39,21 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
    Addressing one by position picks whichever arrived first; address it by what
    it says. And poll rather than sleep: a cold first load has to create the
    database before any of this runs. */
-const toastsOn = pg => pg.evaluate(() => [...document.querySelectorAll('.toast')].map(n => n.textContent));
+/* And tolerate the page reloading underneath the poll. This section is about
+   a fresh hosted copy booting, which means a service worker taking control
+   and the app reloading itself; if that lands between two polls the evaluate
+   throws "execution context was destroyed" and the suite dies at the line
+   that was only trying to read the toasts. A destroyed context is not a
+   missing toast, it is a page that has just gone — so it reads as nothing
+   this time round and the loop asks again. */
+const toastsOn = async pg => {
+  try {
+    return await pg.evaluate(() => [...document.querySelectorAll('.toast')].map(n => n.textContent));
+  } catch(e){
+    if(/context was destroyed|Target closed|Execution context/i.test(String(e && e.message))) return [];
+    throw e;
+  }
+};
 async function waitForToast(pg, re, ms = 12000){
   const until = Date.now() + ms;
   while(Date.now() < until){

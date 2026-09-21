@@ -227,26 +227,47 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const walk = await p.evaluate(() => {
     const cv = document.querySelector('#solarCv'), g = cv.getContext('2d');
     const s = _solar, dpr = s.dpr;
-    const cy = Math.round(cv.height / 2), out = [];
-    /* The planets orbit, so sooner or later one of them is sitting on the
-       line this walk reads along — and where a planet or its label is drawn,
-       the alpha under the cursor is the planet's and not the ground's. Those
-       samples are marked rather than measured: a reading taken through
-       something drawn on top of the sky was never a reading of the sky. */
-    const spots = s.planets.map(q => { const {x, y} = s.pos(q, q.ang == null ? q.seed : q.ang);
-      return {x, y, r: q.radius + 24}; });
-    for(let i = 0; i <= 24; i++){
-      const x = Math.min(cv.width - 1, Math.round(cv.width / 2 + (cv.width / 2 - 1) * (i / 24)));
-      const cx = x / dpr, ccy = cy / dpr;
-      out.push({a: g.getImageData(x, cy, 1, 1).data[3] / 255,
-        clear: !spots.some(q => Math.abs(cx - q.x) < q.r && Math.abs(ccy - q.y) < q.r + 20)});
+    /* THE PLANETS WILL NOT HOLD STILL, so stop trying to make them.
+       They orbit on the wall clock, and anything drawn on top of the sky is
+       not the sky — so a single line out from the centre reads partly the
+       ground and partly Saturn, and which is which changes between the frame
+       that painted and the line that reads. Discarding the dirty samples
+       made the COVERAGE move instead: eleven usable readings one afternoon,
+       twenty-four the next, and a claim whose coverage is decided by where a
+       planet happens to be is a claim that fails on a Tuesday.
+       Pinning the angles does not work either, because the next frame
+       recomputes them from the clock.
+       So: read along twenty-four radii at once and take the median of each
+       ring. A planet sits on two or three of them; it cannot move a median
+       of twenty-four. Every reading below is of the ground, on every run,
+       without anything having to be held still — and it measures the fade
+       all the way round rather than along one lucky line. */
+    const rings = 24, rays = 24;
+    const cx = s.w / 2, cy = s.h / 2;
+    const mid = xs => { const v = xs.slice().sort((a, b) => a - b);
+      return v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2; };
+    const out = [];
+    for(let i = 0; i <= rings; i++){
+      const reads = [];
+      for(let k = 0; k < rays; k++){
+        const dir = (k / rays) * 2 * Math.PI;
+        const dx = Math.cos(dir), dy = Math.sin(dir) * s.ysq;
+        const far = Math.min(Math.abs(dx) < 1e-6 ? 1e9 : (cx - 1) / Math.abs(dx),
+          Math.abs(dy) < 1e-6 ? 1e9 : (cy - 1) / Math.abs(dy));
+        const r = far * (i / rings);
+        const px = Math.max(0, Math.min(cv.width - 1, Math.round((cx + r * dx) * dpr)));
+        const py = Math.max(0, Math.min(cv.height - 1, Math.round((cy + r * dy) * dpr)));
+        reads.push(g.getImageData(px, py, 1, 1).data[3] / 255);
+      }
+      out.push({a: mid(reads), rays: reads.length, clear: true});
     }
     return out;
   });
   /* a step is only a step between two readings that are both of the ground */
   const steps = walk.slice(1).map((x, i) => walk[i].clear && x.clear ? walk[i].a - x.a : null)
     .filter(d => d != null);
-  yes('  most of the line is ground rather than planet', steps.length >= 14, `${steps.length} of 24 steps`);
+  is('  every ring is the median of twenty-four radii, so none of it is planet',
+    [steps.length, walk[0].rays], [24, 24]);
   yes('  the night never drops away in a step', Math.max(...steps) < .2,
     'biggest step ' + Math.max(...steps).toFixed(3));
   yes('    and it never brightens on the way out', Math.min(...steps) > -.06,

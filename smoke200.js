@@ -67,15 +67,43 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n3. one clock, not two');
   const second = await p.evaluate(async () => {
-    const first = timeRunning().id;
+    const first = timeRunning();
+    /* Backdated so it is a real sitting. A timer that has run for a second
+       is not kept at all now \u2014 anything under a minute is thrown away
+       rather than written, because four rooms start this clock by themselves
+       and the day used to fill with sittings nobody sat. That rule has its
+       own suite; what THIS section is about is that starting a second clock
+       stops the first, and to see the first survive it has to be worth
+       keeping. */
+    first.startTime = new Date(Date.now() - 12 * 60000).toISOString();
+    const id = first.id;
     startTimer({what:'something else'});
     await new Promise(r => setTimeout(r, 100));
     const now = timeRunning();
-    const was = byId(S.timeEntries, first);
-    return {rows: timeEntries().length, running: now.what, firstEnded: !!was.endTime};
+    const was = byId(S.timeEntries, id);
+    return {rows: timeEntries().length, running: now.what,
+      firstEnded: !!(was && was.endTime), firstMinutes: was ? Math.round(timeMinutes(was)) : null};
   });
   is('starting a second stops the first', [second.rows, second.running], [2, 'something else']);
   yes('  which is now a finished row rather than a lost one', second.firstEnded, JSON.stringify(second));
+  is('    with the twelve minutes it ran for', second.firstMinutes, 12);
+  /* and the other way round: one that is NOT worth keeping is not kept */
+  const tooShort = await p.evaluate(async () => {
+    /* from a standing start, so the count is about these two and nothing
+       a previous section happened to leave running */
+    if(timeRunning()) stopTimer();
+    const before = timeEntries().length;
+    startTimer({what:'a wrong turn'});
+    startTimer({what:'the right one'});
+    return {before, after: timeEntries().length,
+      running: (timeRunning() || {}).what,
+      names: timeEntries().map(e => e.what)};
+  });
+  is('  a first clock that ran for a second is thrown away instead',
+    tooShort.after, tooShort.before + 1);
+  is('    leaving only the one that is running', tooShort.running, 'the right one');
+  yes('    and no trace of the wrong turn',
+    !tooShort.names.includes('a wrong turn'), tooShort.names.join(' | '));
 
   console.log('\n4. the length is the two times');
   const len = await p.evaluate(() => {
@@ -244,9 +272,21 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const stillRunning = !!timeRunning();
     stopTimer();
     const theirs = timeAutoStart({categoryId:'meditation', feature:'stillness', what:'sitting'});
+    /* Backdated, because a sitting of under a minute is thrown away rather
+       than written and the room's own stop is silent about it \u2014 you did not
+       press anything, so nothing is said. That rule has its own suite; here
+       the question is only whether the room may stop the clock it started,
+       and to see a record survive it has to be worth keeping. */
+    theirs.startTime = new Date(Date.now() - 20 * 60000).toISOString();
     const stoppedIt = timeAutoStop('stillness');
+    /* and the other way: in and straight out again leaves nothing behind */
+    const flit = timeAutoStart({categoryId:'meditation', feature:'stillness', what:'a glance'});
+    const rows = timeEntries().length;
+    const said = timeAutoStop('stillness');
     return {refused: refused === null, stillMine, notStopped: notStopped === null, stillRunning,
       theirs: !!theirs, source: theirs && theirs.source, stoppedIt: !!stoppedIt,
+      kept: stoppedIt && Math.round(timeMinutes(stoppedIt)),
+      flit: !!flit, flitGone: timeEntries().length === rows - 1, flitQuiet: said === null,
       quiet: !timeRunning()};
   });
   yes('a room asking while you are already timing is refused', rooms.refused, JSON.stringify(rooms));
@@ -255,6 +295,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('with nothing running it starts one, marked as the room’s',
     rooms.theirs && rooms.source === 'auto', JSON.stringify(rooms));
   yes('  and that one it may stop', rooms.stoppedIt && rooms.quiet, JSON.stringify(rooms));
+  is('    keeping the twenty minutes it ran for', rooms.kept, 20);
+  yes('  a room opened and left again leaves nothing behind',
+    rooms.flit && rooms.flitGone, JSON.stringify(rooms));
+  yes('    and says nothing about it, because nobody pressed anything',
+    rooms.flitQuiet === true, JSON.stringify(rooms));
 
   console.log('\n13. the day\u2019s shape, and a habit made of minutes');
   const chart = await p.evaluate(() => {
