@@ -81,7 +81,10 @@ function bindTimeDock(dock){
   on('#tdQuick', () => { startTimer({what:''}); sound('click'); paintTimeDock(); });
   on('#tdForm', () => openTimeStartModal());
   on('#tdStop', () => { const e = stopTimer(); sound('success');
-    if(e) toast(`${timeSaid(timeMinutes(e))} on ${e.what || 'that'}.`);
+    /* a sitting too short to be one was thrown away rather than written, and
+       a stop button that appears to do nothing is worse than a wrong record */
+    if(e && e.dropped) toast('Under a minute \u2014 not written down.');
+    else if(e) toast(`${timeSaid(timeMinutes(e))} on ${e.what || 'that'}.`);
     paintTimeDock(); if(location.hash.startsWith('#/time')) rerender(); });
   on('#tdNote', () => openTimeNoteModal());
   on('#tdEdit', () => { const e = timeRunning(); if(e) openTimeEntryModal(e.id); });
@@ -184,10 +187,12 @@ function openTimeEntryModal(id, day){
       timeAfterSave(e);
       saveNow();
     } else {
-      logTime(Object.assign({}, common, {
+      const made = logTime(Object.assign({}, common, {
         startTime: from ? timeAtOn(dayV, from) : timeAtOn(dayV, '09:00'),
         endTime: toEl && toEl.value ? timeAtOn(dayV, toEl.value) : null,
         minutes: minsEl ? +minsEl.value || 0 : 0}));
+      /* written by hand or not, under a minute is not a sitting */
+      if(!made){ toast('That is under a minute, so it was not written down.', 4500); return; }
     }
     m.remove(); sound('success'); paintTimeDock(); rerender();
   };

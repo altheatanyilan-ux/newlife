@@ -63899,7 +63899,10 @@ function timeAutoStop(feature){
   if(!e || e.source !== 'auto' || (feature && e.feature !== feature)) return null;
   const done = stopTimer();
   paintTimeDock();
-  return done;
+  /* a room opened and left again inside a minute leaves nothing behind. It
+     is the commonest way the day's totals used to fill with sittings nobody
+     sat, and it is silent because nobody pressed anything to cause it. */
+  return done && done.dropped ? null : done;
 }
 /* A habit made of minutes. Answered rather than recorded: the day's tracked
    time in that category either reaches the number or it does not, so the
@@ -64196,12 +64199,31 @@ function startTimer(fields){
   saveNow();
   return e;
 }
+/* Under a minute is not a sitting.
+
+   A clock that can be started by pressing a pill, and that four rooms start
+   by themselves when you open them, collects a great many entries of a few
+   seconds: opened the wrong room, pressed the wrong thing, changed your
+   mind. None of them is practice, and the day's totals never round down —
+   anything that happened is shown as at least one step — so a five-second
+   mistake arrives on the page looking exactly like a minute of work.
+
+   So they are not kept. The entry is thrown away rather than written, and
+   the one that was thrown away says so once on its way out, because a stop
+   button that appears to do nothing is worse than a wrong record. */
+const TIME_TOO_SHORT = 1;                              /* minutes */
 function stopTimer(at){
   const e = timeRunning();
   if(!e) return null;
   e.endTime = at || new Date().toISOString();
   /* a timer stopped before it started is a clock somebody wound backwards */
   if(Date.parse(e.endTime) < Date.parse(e.startTime)) e.endTime = e.startTime;
+  if(timeMinutes(e) < TIME_TOO_SHORT){
+    removeTimeEntry(e.id);
+    /* handed back so the room can say what happened, but no longer a record
+       of anything: it is not in the store and nothing has been credited */
+    return Object.assign({}, e, {dropped: true});
+  }
   timeAfterSave(e);
   saveNow();
   return e;
@@ -64229,6 +64251,9 @@ function logTime(fields){
   const e = timeEntryDefaults(Object.assign({}, f, {id:uid(), startTime:start, endTime:end,
     source: f.source || 'manual'}));
   delete e.minutes;
+  /* the same rule as the stop button: a sitting shorter than a minute is a
+     mistake being written down, whether a clock or a hand wrote it */
+  if(timeMinutes(e) < TIME_TOO_SHORT) return null;
   S.timeEntries.push(e);
   timeAfterSave(e);
   saveNow();
@@ -64905,7 +64930,10 @@ function bindTimeDock(dock){
   on('#tdQuick', () => { startTimer({what:''}); sound('click'); paintTimeDock(); });
   on('#tdForm', () => openTimeStartModal());
   on('#tdStop', () => { const e = stopTimer(); sound('success');
-    if(e) toast(`${timeSaid(timeMinutes(e))} on ${e.what || 'that'}.`);
+    /* a sitting too short to be one was thrown away rather than written, and
+       a stop button that appears to do nothing is worse than a wrong record */
+    if(e && e.dropped) toast('Under a minute \u2014 not written down.');
+    else if(e) toast(`${timeSaid(timeMinutes(e))} on ${e.what || 'that'}.`);
     paintTimeDock(); if(location.hash.startsWith('#/time')) rerender(); });
   on('#tdNote', () => openTimeNoteModal());
   on('#tdEdit', () => { const e = timeRunning(); if(e) openTimeEntryModal(e.id); });
@@ -65008,10 +65036,12 @@ function openTimeEntryModal(id, day){
       timeAfterSave(e);
       saveNow();
     } else {
-      logTime(Object.assign({}, common, {
+      const made = logTime(Object.assign({}, common, {
         startTime: from ? timeAtOn(dayV, from) : timeAtOn(dayV, '09:00'),
         endTime: toEl && toEl.value ? timeAtOn(dayV, toEl.value) : null,
         minutes: minsEl ? +minsEl.value || 0 : 0}));
+      /* written by hand or not, under a minute is not a sitting */
+      if(!made){ toast('That is under a minute, so it was not written down.', 4500); return; }
     }
     m.remove(); sound('success'); paintTimeDock(); rerender();
   };

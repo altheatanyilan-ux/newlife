@@ -142,7 +142,10 @@ function timeAutoStop(feature){
   if(!e || e.source !== 'auto' || (feature && e.feature !== feature)) return null;
   const done = stopTimer();
   paintTimeDock();
-  return done;
+  /* a room opened and left again inside a minute leaves nothing behind. It
+     is the commonest way the day's totals used to fill with sittings nobody
+     sat, and it is silent because nobody pressed anything to cause it. */
+  return done && done.dropped ? null : done;
 }
 /* A habit made of minutes. Answered rather than recorded: the day's tracked
    time in that category either reaches the number or it does not, so the

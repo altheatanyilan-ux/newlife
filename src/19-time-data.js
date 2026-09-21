@@ -239,12 +239,31 @@ function startTimer(fields){
   saveNow();
   return e;
 }
+/* Under a minute is not a sitting.
+
+   A clock that can be started by pressing a pill, and that four rooms start
+   by themselves when you open them, collects a great many entries of a few
+   seconds: opened the wrong room, pressed the wrong thing, changed your
+   mind. None of them is practice, and the day's totals never round down —
+   anything that happened is shown as at least one step — so a five-second
+   mistake arrives on the page looking exactly like a minute of work.
+
+   So they are not kept. The entry is thrown away rather than written, and
+   the one that was thrown away says so once on its way out, because a stop
+   button that appears to do nothing is worse than a wrong record. */
+const TIME_TOO_SHORT = 1;                              /* minutes */
 function stopTimer(at){
   const e = timeRunning();
   if(!e) return null;
   e.endTime = at || new Date().toISOString();
   /* a timer stopped before it started is a clock somebody wound backwards */
   if(Date.parse(e.endTime) < Date.parse(e.startTime)) e.endTime = e.startTime;
+  if(timeMinutes(e) < TIME_TOO_SHORT){
+    removeTimeEntry(e.id);
+    /* handed back so the room can say what happened, but no longer a record
+       of anything: it is not in the store and nothing has been credited */
+    return Object.assign({}, e, {dropped: true});
+  }
   timeAfterSave(e);
   saveNow();
   return e;
@@ -272,6 +291,9 @@ function logTime(fields){
   const e = timeEntryDefaults(Object.assign({}, f, {id:uid(), startTime:start, endTime:end,
     source: f.source || 'manual'}));
   delete e.minutes;
+  /* the same rule as the stop button: a sitting shorter than a minute is a
+     mistake being written down, whether a clock or a hand wrote it */
+  if(timeMinutes(e) < TIME_TOO_SHORT) return null;
   S.timeEntries.push(e);
   timeAfterSave(e);
   saveNow();
