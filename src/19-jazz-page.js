@@ -104,6 +104,16 @@ function jazzMistakesHTML(list, fromStage){
     fromStage ? ' <em class="jz-inherit" title="this belongs to the stage rather than to this exercise">at this stage</em>' : ''}</span>
     <ul>${list.map(m => `<li>${esc(m)}</li>`).join('')}</ul></div>`;
 }
+/* Said where it will be read — above the notation rather than in a footnote
+   at the bottom of a column somebody has already scrolled past. */
+function jazzAccuracyHTML(ex){
+  if(!ex || jazzTrusted(ex)) return '';
+  const a = jazzAccuracy(ex);
+  return `<div class="jz-doubt" data-jzacc="${esc(ex.acc)}">
+    <span class="jz-doubti" aria-hidden="true">${a.tone === 'bad' ? '\u26a0' : '\u203c'}</span>
+    <div><b>${a.tone === 'bad' ? 'These notes have not been verified' : 'These notes are approximate'}</b>
+      <p>${esc(a.said)}${ex.source ? ` \u2014 ${esc(ex.source)}` : ''}</p></div></div>`;
+}
 const jazzDifficultyHTML = d => !d ? '' :
   `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
 
@@ -149,7 +159,9 @@ function jazzStageHTML(s, here){
       return `<button class="jz-sub" data-jzopen="${esc(id)}">
         <span class="jz-subn mono">${esc(id)}</span>
         <span class="jz-subt">${esc(ex.name)}${
-          jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}</span>
+          jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
+          jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
+            esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}</span>
         <span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
           `<i class="${jazzRecord(id).keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
         <span class="mono jz-subc">${n}/12</span></button>`; }).join('')}</div>
@@ -212,6 +224,7 @@ function jazzExerciseHTML(id){
             `<button class="jz-k wide${v === ui.interval ? ' on' : ''}" data-jzint="${esc(v)}">${
               esc(jazzSayInterval(v))}</button>`).join('')}</div>
         </div>` : ''}
+        ${jazzAccuracyHTML(ex)}
         ${jazzHasScore(ex) ? '<div class="jz-stage-box"><div class="jz-score" id="jzScore"></div></div>'
           : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
              It is a thing to do — at the instrument or on paper — and the words

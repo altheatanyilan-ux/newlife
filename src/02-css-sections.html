@@ -1770,6 +1770,20 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .btn.lg{padding:11px 26px;font-size:1rem}
 @media (max-width:640px){.jz-ckey{font-size:2.6rem}.jz-cprompt{font-size:1.2rem}}
 
+/* notes you should not entirely trust, said where they will be read */
+.jz-doubt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 10px;
+  border:1px solid color-mix(in srgb,#c47832 45%,var(--line));border-radius:11px;
+  padding:10px 12px;margin-bottom:12px;
+  background:color-mix(in srgb,#c47832 6%,transparent)}
+.jz-doubt[data-jzacc="needs_manual_verification"]{
+  border-color:color-mix(in srgb,#c4484e 55%,var(--line));
+  background:color-mix(in srgb,#c4484e 7%,transparent)}
+.jz-doubti{font-size:1rem;line-height:1.4;opacity:.8}
+.jz-doubt b{font-size:.84rem}
+.jz-doubt p{font-size:.82rem;line-height:1.55;margin:3px 0 0;max-width:62ch;color:var(--muted)}
+.jz-unver{color:#c47832;cursor:help}
+.jz-sub .jz-unver{letter-spacing:.05em}
+
 /* the enrichment layer: what to listen to, what goes wrong, how you know */
 .jz-diff{font-family:var(--mono);font-size:.56rem;letter-spacing:.09em;text-transform:uppercase;
   border:1px solid var(--line);border-radius:20px;padding:2px 8px;color:var(--muted);

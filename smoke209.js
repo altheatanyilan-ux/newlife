@@ -285,7 +285,15 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const dealt = await p.evaluate(() => {
     const st = jazzState().settings;
     st.syllabus = ['P0.3']; st.keyMode = 'unmastered'; st.cards = 6;
+    /* This claim is about the PLAIN deck spreading across the twelve keys,
+       and it was written before the deck also asked the mastery checkpoints.
+       A checkpoint card is the same exercise in the same key asked a
+       different way, so with them switched on six cards legitimately cover
+       four keys rather than five and the claim measures the wrong thing.
+       They have a suite of their own; here they are off on purpose. */
+    st.checks = false;
     const hand = jazzDeal(st.syllabus, 6, 'unmastered', []);
+    st.checks = true;
     return {ids: [...new Set(hand.map(c => c.exerciseId))], n: hand.length,
       spread: new Set(hand.map(c => c.key)).size};
   });

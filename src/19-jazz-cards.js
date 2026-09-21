@@ -116,6 +116,10 @@ function jazzCardHTML(){
     <div class="jz-cbar"><i style="width:${Math.round(f.at / f.cards.length * 100)}%"></i></div>
     ${f.shown ? `
       <p class="jz-cask mono">${esc(jazzCardSaid(ex, card))}</p>
+      <!-- grading yourself against notes that might be wrong is worse than
+           not grading yourself at all, so the card says so before you say
+           whether you had it -->
+      ${jazzAccuracyHTML(ex)}
       <div class="jz-stage-box"><div class="jz-score" id="jzCardScore"></div></div>
       ${card.toKey ? `<div class="jz-stage-box"><div class="jz-score" id="jzCardScore2"></div></div>` : ''}
       <p class="jz-chow">Did you have it?</p>

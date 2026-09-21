@@ -69,7 +69,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       if(!(e.masteryChecklist || []).length) gap.checks.push(id); });
     return {n: ids.length, gap};
   });
-  yes('the catalogue is all there', cover.n === 76, `${cover.n} exercises`);
+  /* the count is read rather than written down: the catalogue grew by
+     fifteen when the accuracy corrections split the p.37 exercise into three
+     and added the formulas the book prints, and a hard-coded number here
+     would have turned that growth into a failure instead of the coverage
+     claim it is */
+  yes('the catalogue is all there', cover.n >= 76, `${cover.n} exercises`);
   is('nothing is missing its listening', cover.gap.listening, []);
   is('nothing is missing its mistakes', cover.gap.mistakes, []);
   is('nothing is missing when you would use it', cover.gap.when, []);
@@ -125,7 +130,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   });
   yes('the ones the source has a checklist for are marked as written',
     derived.written.length >= 10, `${derived.written.length}: ${derived.written.join(' ')}`);
-  yes('  and the rest are marked as derived', derived.derived === 76 - derived.written.length);
+  yes('  and the rest are marked as derived',
+    derived.derived === cover.n - derived.written.length,
+    `${derived.derived} + ${derived.written.length} vs ${cover.n}`);
   is('  every derived ladder is three to six rungs', derived.wrong, []);
   is('  and names the exercise it was derived for', derived.names, [true, true, true]);
 
@@ -142,7 +149,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       id: one.id};
   });
   yes('some exercises cite a record of their own', fall.own >= 8, `${fall.own}`);
-  yes('  and the rest borrow their stage’s', fall.borrowed === 76 - fall.own);
+  yes('  and the rest borrow their stage’s', fall.borrowed === cover.n - fall.own,
+    `${fall.borrowed} + ${fall.own} vs ${cover.n}`);
   yes('  and what they borrow is exactly the stage’s', fall.matches === true, fall.id);
 
   console.log('\n5. it reaches the roadmap');

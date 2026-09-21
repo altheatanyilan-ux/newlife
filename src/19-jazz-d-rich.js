@@ -324,6 +324,60 @@ const JAZZ_EX_RICH = {
     practiceStrategy: 'Play it from four roots and notice you have played the same four notes each time. There are only three diminished sevenths in all of music — that is the shortcut, and it is a large one.',
     creativeChallenge: 'Find a tune with a diminished chord in it and play the passage without it, then with. It almost always exists to get the bass from one diatonic note to the next. Say which two.'},
 
+  /* ===== 2 — the inversions, the descents, the minor formulas =====
+     Added with the accuracy corrections: the p.37 exercise is three
+     exercises, not one, and the minor two-five-one is three formulas. */
+  '2.1b': {
+    whenToUse: 'Whenever the root-position version makes your hand leap. Second inversion puts the fifth on the bottom and keeps the chord where you already are.',
+    connections: ['It is 2.1 with the same four notes in a different order', 'Alternating the two is 2.1c, which is the exercise both of them exist for', 'The same inversion thinking is what stage 3 does with colour tones instead of chord tones'],
+    practiceStrategy: 'Learn it in C, F and B flat first, which are the three the book prints, then take it round the circle. Say the bottom note out loud as you play: it is the fifth, every time.',
+    creativeChallenge: 'Play a tune using only second-inversion chords. It will sound oddly rootless and slightly suspended — which is the beginning of understanding why rootless voicings work at all.'},
+  '2.1c': {
+    listeningAssignments: [
+      {artist:'Red Garland', track:'Billy Boy', album:'Milestones', year:1958, label:'Columbia', timestamp:null,
+       listenFor:'Before the voicings, the principle: listen to how little Garland\u2019s left hand travels between chords. That economy starts here, with inversions.'}],
+    commonMistakes: ['Playing it as six separate chords instead of as two journeys of three. The holds only exist if you are looking for them.',
+      'Watching your hands instead of the page. The whole exercise is about the notes that DO NOT move, and you find those by ear and by feel rather than by looking.'],
+    masteryChecklist: ['Can play all six bars in this key without stopping',
+      'Can name, in each join, which two notes held',
+      'Can play it in all 12 keys',
+      'Can play it at \u2669=120, one chord per beat',
+      'Can do it eyes-closed and still feel the holds'],
+    whenToUse: 'Every day for a fortnight, and then whenever a new key feels clumsy. It is the exercise that teaches the hand to stop jumping.',
+    connections: ['This is where voice leading starts, and everything from stage 3 onward is the same idea with better chords',
+      'The descents in 2.4 take this journey through six keys without stopping',
+      'The typewriter rule of stage 3 exists because of what this exercise teaches about staying put'],
+    practiceStrategy: 'Slowly, and watch one voice at a time: play it through following only the bottom note, then again following only the top. When you can predict which pair will hold before you play the chord, it is yours.',
+    creativeChallenge: 'Take any standard and comp it using only root position and second inversion, choosing whichever one keeps your hand still. You will find you have invented half of stage 3 by yourself.'},
+  '2.4a': {
+    whenToUse: 'As the twelve-key drill, rather than practising twelve separate keys. Six in one breath is a different skill from six one at a time.',
+    connections: ['It is 2.1c repeated, with the join between keys added', 'The same two sets carry every later stage round the twelve keys', 'The transformation at each join is the voice leading of stage 3 in miniature'],
+    practiceStrategy: 'Say the next key out loud a bar before you get there. The join is where it falls apart, and it falls apart because you were still thinking about the key you were in.',
+    creativeChallenge: 'Play the whole set as one continuous piece, in time, with a metronome on two and four. Eighteen bars. Record it and listen for the bar where you hesitated — that is the key to drill on its own tomorrow.'},
+  '2.4b': {
+    whenToUse: 'After Set A is comfortable, and then alternating with it daily. Almost everybody practises Set A and never touches Set B.',
+    connections: ['It is 2.4a in the other six keys', 'Between them the two sets are the whole circle', 'D flat, B and E flat are where most players are weakest, and all three are here'],
+    practiceStrategy: 'Start with Set B rather than Set A for a week. The keys you avoid are the keys you avoid because you always start somewhere else.',
+    creativeChallenge: 'Play Set A and Set B back to back without stopping. Thirty-six bars, all twelve keys, one continuous line of voice leading. That is the whole of stage 2 in about a minute.'},
+  '2.3b': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Autumn Leaves', album:'Somethin\u2019 Else', year:1958, label:'Blue Note', timestamp:null,
+       listenFor:'Hank Jones behind Cannonball. The tune keeps stepping between a major key and its relative minor, so you get both kinds of two-five-one in the same chorus.'}],
+    whenToUse: 'The default minor two-five-one, and the one to learn first. The flat thirteen on the V and the minor sixth tonic are the sound of the minor repertoire.',
+    connections: ['Its ii is the half-diminished chord of 1.4', 'Its V is the altered dominant of 7.1a', 'The quartal version of the same progression is 8.8a'],
+    practiceStrategy: 'Learn the tonic chord first — a minor sixth, not a minor seventh — because that is the note most people get wrong and it is the one that makes the progression sound finished.',
+    creativeChallenge: 'Play Autumn Leaves and use this formula on every minor two-five-one in it. Then play it again with the plain version from 2.3. The difference is a decade of jazz history.'},
+  '2.3c': {
+    whenToUse: 'When the higher-ninth version sounds too lush for the tune. The minor-major seventh tonic is colder and more classical, and some ballads want exactly that.',
+    connections: ['It is 2.3b with the ninth low, the fifth natural and a different tonic', 'The minor-major seventh is the first chord of the melodic minor family that stage 7 draws on'],
+    practiceStrategy: 'Play LN and HN back to back in the same key until you can hear which is which without looking. That comparison is the whole reason there are three formulas.',
+    creativeChallenge: 'Find a minor ballad and play the last cadence three ways — LN, HN, and the plain 2.3. Choose one and be able to say what it is doing that the others are not.'},
+  '2.3d': {
+    whenToUse: 'Solo playing, where nobody else is supplying the root. Putting the root back into the voicing is what makes a rootless system work without a bass player.',
+    connections: ['It is 2.3b with the root in the ninth\u2019s place', 'The same trade-off appears in the Kenny Barron voicing and in every solo-piano arrangement'],
+    practiceStrategy: 'Play it with and without a bass note in the other hand. With a bass player the root here is a doubling; alone it is the foundation. Knowing which situation you are in is the skill.',
+    creativeChallenge: 'Play a minor tune entirely solo using Formula R, then with a backing track using Formula HN. The same progression wants a different voicing depending on who else is in the room.'},
+
   /* ===== 2 — the two-five-one ===== */
   '2.1': {
     listeningAssignments: [
@@ -412,6 +466,17 @@ const JAZZ_EX_RICH = {
     practiceStrategy: 'Bass alone first, with the metronome on two and four, until it is boring. Then add the voicing in the same hand. The hardest part is not the notes, it is keeping the bass steady when the chord hand arrives.',
     creativeChallenge: 'Play a whole chorus with the bass in two, then a chorus with it in four. The tune changes character completely, and choosing between them is an arranging decision you now get to make.'},
 
+  '4.1c': {
+    listeningAssignments: [
+      {artist:'Erroll Garner', track:'Misty', album:'Contrasts', year:1954, label:'Mercury', timestamp:null,
+       listenFor:'Two hands doing two different jobs at once, with no band. That is the texture this exercise builds toward, and it is why the shell is only three notes.'}],
+    commonMistakes: ['Practising the voicing and the bass separately and then expecting them to fit together. They do not; the coordination is a third thing and it has to be practised as one.',
+      'Letting the bass go late whenever the chord changes. If beat three starts drifting, simplify the right hand to one chord a bar and rebuild.'],
+    whenToUse: 'Solo playing, duo playing, and accompanying a singer. The moment there is no bass player in the room, this is the texture.',
+    connections: ['The voicing is 4.1a or 4.1b', 'The bass is 4.2', 'Put them over the blues form and you have 5.1b'],
+    practiceStrategy: 'Left hand alone until it is boring. Then add the voicing on beat one only. Then the full bar. Do not speed up until the bass stops flinching when the chord moves.',
+    creativeChallenge: 'Play a standard this way from beginning to end with the melody sung rather than played. If somebody can follow the tune from your two hands alone, it works.'},
+
   /* ===== 5 — the blues ===== */
   '5.1': {
     listeningAssignments: [
@@ -445,6 +510,12 @@ const JAZZ_EX_RICH = {
     connections: ['It is a Mixolydian fragment, so it belongs with 8.1', 'Mixing it with 5.2 is the whole of a blues melodic vocabulary', 'Lick 6 in 6.6 is built out of it'],
     practiceStrategy: 'Alternate: one chorus sweet, one chorus blue, one chorus mixing them. The mixing is the actual skill and it is the one nobody practises.',
     creativeChallenge: 'Play a twelve-bar chorus where the first six bars are sweet and the last six are blue. That one switch is most of what makes a blues solo sound like it is going somewhere.'},
+
+  '5.1b': {
+    whenToUse: 'Every practice session once the form is memorised. The blues is where solo-piano coordination gets built, because the form repeats often enough to stop thinking about it.',
+    connections: ['The form is 5.1', 'The hands are 4.1c', 'The bass formulas are 4.2', 'Everything stage 11 does to the blues is done to this'],
+    practiceStrategy: 'Twelve bars, slowly, with the metronome on two and four. Keep the bass legato and low. When you can get round the form three times without the bass stumbling, add a right-hand melody on top.',
+    creativeChallenge: 'Play three choruses: the first with the bass on the fifth, the second on the third, the third with chromatic neighbours. The third will sound like a bass player. Work out why.'},
 
   /* ===== 6 — licks ===== */
   '6.1': {
@@ -565,6 +636,17 @@ const JAZZ_EX_RICH = {
     practiceStrategy: 'One alteration at a time, then two, then all four. A chord with four alterations learnt as a shape is a chord you cannot adjust; learnt as four decisions, it is.',
     creativeChallenge: 'Play the same V chord five ways — plain, flat nine, sharp nine, flat thirteen, fully altered — and resolve each to the same I. Rank them by how much they make you want the resolution.'},
 
+  '7.1c': {
+    whenToUse: 'A V chord that wants tension without the bite of a flat nine. The flat thirteen is the darker, broader alteration and sits well under a melody.',
+    connections: ['It is the Type A or B voicing with the fifth moved up a semitone', 'Combined with the flat nine it becomes 7.4', 'The altered scale of 7.3 contains it'],
+    practiceStrategy: 'Find the fifth in each voicing before you alter anything. In Type A it is the top note; in Type B it is second from the bottom. Knowing where it lives is the exercise.',
+    creativeChallenge: 'Play a two-five-one three times: plain V, flat nine, flat thirteen. Name the mood of each one in a single word. Those three words are how you will choose between them at speed.'},
+  '7.5': {
+    whenToUse: 'The last cadence of a tune, where the tension has to land rather than merely happen.',
+    connections: ['The altered chord is 7.4', 'The stepwise resolution is the voice leading of stage 3 applied to alterations', 'The thirteenth on the tonic is the same colour the quartal voicings of 8.7 lean on'],
+    practiceStrategy: 'Play the altered chord and then move every finger by a step, with no leaps at all. If a finger has to jump, the altered voicing was in the wrong octave.',
+    creativeChallenge: 'End three different tunes with this. Then end one of them with a plain V–I instead and see whether anybody notices the difference. They will.'},
+
   /* ===== 8 — modal ===== */
   '8.1': {
     listeningAssignments: [
@@ -647,6 +729,30 @@ const JAZZ_EX_RICH = {
     connections: ['It is 8.5 selected rather than run', 'The fourths it produces link it to 8.3b', 'Spread voicings are how 8.3c gets its width'],
     practiceStrategy: 'Every other note of the pentatonic, both hands, moving up the scale. Listen for where a fourth turns into a third — that inconsistency is what gives the sound its character.',
     creativeChallenge: 'Comp a modal tune using only pentatonic voicings, then only quartals, then mixing. The third version will be the one that sounds like a record.'},
+
+  '8.7a': {
+    listeningAssignments: [
+      {artist:'McCoy Tyner', track:'Passion Dance', album:'The Real McCoy', year:1967, label:'Blue Note', timestamp:null,
+       listenFor:'Quartal voicings used with force and with function, not only as modal colour. Follow the left hand through the changes.'}],
+    whenToUse: 'A ii-V-I that should sound modern rather than pretty. Fourths refuse to spell the chord out, which leaves the harmony open in a way stacked thirds cannot.',
+    connections: ['It is the fourths of P0.7 used on a functioning progression', 'The So What voicing of 8.3a is the modal version of the same idea', 'It replaces the Type A/B voicings of stage 3 rather than extending them'],
+    practiceStrategy: 'Learn it in B flat first, because that is the key the book prints, and notice that the V and the I are the same three notes. Then move it round the circle one key at a time.',
+    creativeChallenge: 'Comp a whole standard in quartal voicings only. It will sound like 1965. Then put one Type A voicing in at the final cadence and hear how much a third can do.'},
+  '8.7b': {
+    whenToUse: 'The same progression when your hand is lower on the keyboard. Two formulas exist so that there is always one you can reach.',
+    connections: ['It is 8.7a in a different position', 'Choosing between them is the same decision as choosing between Type A and Type B in stage 3'],
+    practiceStrategy: 'Practise switching: Formula 1, then Formula 2, in the same key, then choose by where your hand already is. The choice has to be faster than the chord.',
+    creativeChallenge: 'Comp a tune alternating the two formulas from phrase to phrase. Keep the motion small. If your hand moves more than a third between chords, you chose wrong.'},
+  '8.8a': {
+    whenToUse: 'Minor tunes and minor blues, where quartal voicings do the harmonic work without ever spelling out the chord.',
+    connections: ['It is the minor two-five-one of 2.3b in fourths', 'The modal blues of stage 11 is built on voicings like these', 'The flat ninth on the V comes from the harmonic minor'],
+    practiceStrategy: 'Play it beside 2.3b in the same key. Same progression, entirely different sound, and the difference is the absence of thirds.',
+    creativeChallenge: 'Play a minor blues using nothing but these. Then add one So What voicing. Then take it away again. Deciding which version you prefer is the exercise.'},
+  '8.8b': {
+    whenToUse: 'When the harmonic-minor version sounds too dark. The book calls this the more consonant of the two, and one chord is the whole difference.',
+    connections: ['Only the V differs from 8.8a', 'The major-mode colouring is the modal interchange of stage 10 arriving early'],
+    practiceStrategy: 'Alternate the two V chords over a held bass and listen. This is one of the shortest, clearest ear-training exercises in the whole room.',
+    creativeChallenge: 'Play the same minor tune twice, once with each V. Ask somebody which one sounded sadder. Their answer is usually not the one theory predicts.'},
 
   /* ===== 9 — reharmonisation ===== */
   '9.1': {

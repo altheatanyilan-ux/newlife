@@ -124,8 +124,14 @@ function jazzBook(){
         tip: e.memorizationTips || '', source: e.source || '',
         theory: e.theoryNotes || '',
         ask: e.flashcardPrompt || `Play ${e.name || id}`,
-        /* some licks are transcribed by ear rather than derived, and the
-           book says so about itself; it is worth passing on */
+        /* How much the notes on the page can be trusted. Some of this
+           catalogue was checked note by note against what the book prints;
+           some of it is a formula the book states outright, which is not a
+           transcription and has nothing to verify; and some of it \u2014 the
+           licks especially \u2014 was read off a scan at a resolution that
+           cannot resolve a single melodic line, and is almost certainly
+           wrong. Those three are different things and the room says which. */
+        acc: JAZZ_ACCURACY[e.noteAccuracy] ? e.noteAccuracy : 'verified',
         doubt: e.noteAccuracy || ''};
     }); };
   try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
@@ -137,6 +143,22 @@ function jazzBook(){
   _jazzBook = out;
   return out;
 }
+/* ---------- how far to trust the notes ----------
+   Three states, and the difference between them matters enough to be said on
+   the page rather than kept in the data. A student practising a lick for a
+   week deserves to know whether they are learning Siskind's phrase or
+   somebody's guess at it. */
+const JAZZ_ACCURACY = {
+  verified: {tone:'ok', short:'checked',
+    said:'These notes were checked against what the book prints, or are a formula the book states outright.'},
+  approximate: {tone:'warn', short:'approximate',
+    said:'These notes were built from the book\u2019s description of the exercise rather than from its printed notation. The shape is right; a note here or there may not be.'},
+  needs_manual_verification: {tone:'bad', short:'unverified',
+    said:'These notes are NOT reliable. The source they were taken from could not be read at a resolution that resolves a single melodic line, so they are a reconstruction. Check them against the book before practising this one for any length of time \u2014 a lick learnt wrong in twelve keys takes longer to correct than to learn.'}
+};
+const jazzAccuracy = ex => JAZZ_ACCURACY[(ex && ex.acc) || 'verified'] || JAZZ_ACCURACY.verified;
+const jazzTrusted = ex => !ex || (ex.acc || 'verified') === 'verified';
+
 const jazzExercise = id => jazzBook()[id] || null;
 /* what P0's own file says about the stage it is, which none of the others carry */
 const jazzP0Info = () => { try { return STAGE_P0_CATALOG._stageInfo || {}; } catch(e){ return {}; } };
