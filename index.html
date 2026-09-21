@@ -2360,15 +2360,33 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-why > summary::-webkit-details-marker{display:none}
 .jz-why p{font-size:.88rem;margin:8px 0 0}
 .jz-shut{font-size:.72rem;color:var(--faint);margin:8px 0 0}
-/* Werner, in the voice the rest of the coaching text uses */
-.jz-werner{display:grid;grid-template-columns:auto 1fr;gap:9px;margin-top:10px;
-  border-left:3px solid var(--terra);padding:7px 0 7px 11px}
-.jz-werner p{font-family:var(--serif);font-style:italic;font-size:.9rem;margin:0}
-.jz-werner .jz-wm{font-style:normal;font-family:inherit;font-size:.8rem;color:var(--muted);margin-top:6px}
+/* Werner, in the voice the rest of the coaching text uses.
+
+   Two columns: the small figure, and everything said. Both paragraphs are
+   told to sit in the second one — without that, the grid puts the first
+   beside the icon and drops the second into the icon's own column, which
+   then has to be wide enough for a paragraph. In a sidebar that left the
+   quote itself with seventy pixels and eleven characters to a line, set as
+   a column of single words. It read like a ransom note.
+
+   And a measure, because a quote is for reading: no line longer than is
+   comfortable, however much room the box turns out to have. */
+.jz-werner{display:grid;grid-template-columns:auto minmax(0, 1fr);gap:4px 10px;
+  margin-top:10px;border-left:3px solid var(--terra);padding:8px 0 8px 12px}
+.jz-werner .jz-wi{grid-column:1;grid-row:1;font-size:.9rem;opacity:.75;line-height:1.5}
+.jz-werner p{grid-column:2;font-family:var(--serif);font-style:italic;font-size:.9rem;
+  line-height:1.55;margin:0;max-width:62ch;hyphens:auto}
+.jz-werner .jz-wm{font-style:normal;font-family:inherit;font-size:.8rem;
+  line-height:1.5;color:var(--muted);margin-top:6px}
 .jz-wi{font-size:.9rem;opacity:.75}
 
 /* one exercise */
-.jz-cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+/* The column of words beside the notation. It was three hundred pixels,
+   which is about forty characters of running text — readable for a tip,
+   mean for a paragraph. The whole of why an exercise exists is written in
+   here and it deserves a proper measure. */
+.jz-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px, 360px);
+  gap:22px;align-items:start}
 @media (max-width:1000px){.jz-cols{grid-template-columns:1fr}}
 .jz-keyrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .jz-keypick{display:flex;gap:4px;flex-wrap:wrap}
@@ -2392,7 +2410,7 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-count{font-size:.7rem;color:var(--faint);margin-top:9px}
 .jz-side{display:flex;flex-direction:column;gap:12px;position:sticky;top:14px}
 .jz-note{border:1px solid var(--line);border-radius:11px;padding:10px 12px}
-.jz-note p{font-size:.86rem;margin:6px 0 0}
+.jz-note p{font-size:.86rem;line-height:1.55;margin:6px 0 0;max-width:62ch}
 .jz-logs{display:flex;flex-direction:column;gap:6px;margin-top:7px}
 .jz-log{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:.78rem}
 .jz-lognote{width:100%;font-size:.78rem;color:var(--muted);margin:2px 0 0}
@@ -2406,7 +2424,9 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
   margin:8px 0 34px;overflow:hidden}
 .jz-cbar > i{display:block;height:100%;background:var(--page-accent);transition:width .4s var(--ease)}
 .jz-cprompt{font-size:1.5rem;line-height:1.35;margin:0}
-.jz-ckey{font-size:3.4rem;line-height:1.1;margin:18px 0 0;color:var(--page-accent)}
+.jz-cint{font-size:2rem;line-height:1.2;margin:16px 0 0}
+.jz-cfrom{font-size:.66rem;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;margin:8px 0 0}
+.jz-ckey{font-size:3.4rem;line-height:1.1;margin:6px 0 0;color:var(--page-accent)}
 .jz-chint{font-size:.66rem;color:var(--faint);margin-top:22px}
 .jz-cask{font-size:.76rem;color:var(--muted);margin:0 0 12px}
 .jz-chow{font-size:.9rem;margin:18px 0 10px}
@@ -10036,7 +10056,7 @@ function applySeason(){ if(typeof season === 'function') document.documentElemen
 /* ---------- router ---------- */
 const routes = {};
 let currentRoute = null;
-function navigate(hash){ location.hash = hash; }
+function navigate(hash){ keepScroll(); location.hash = hash; }
 /* A deep link is an instruction, not a place. Once a page has acted on the id
    in its address, the id has to leave the address — otherwise every re-render
    of that page acts on it again. replaceState does not fire hashchange, so the
@@ -10091,17 +10111,37 @@ function renderRoute(){
    used to leave the page blank — and because almost every edit ends in a
    rerender, one bad record could empty the room you were working in and keep
    it empty. It gets the same floor renderRoute has. */
+/* Put the window back where it was, and keep putting it back.
+
+   Almost every edit in this house ends in a redraw \u2014 tick a task, log a
+   sitting, rename a list \u2014 and a redraw empties the page and writes it
+   again. It did restore the scroll, once, the instant the new page was
+   written. That is too early. Anything that changes the page's height after
+   that moment \u2014 a font arriving, a chart tweening open, a reveal, an
+   engraving, an image with no dimensions on it \u2014 lands after the restore,
+   and if the page happened to be shorter at that instant the browser had
+   already clamped the position and nothing corrected it. So you tick
+   something near the bottom of a long day and find yourself at the top.
+
+   Restoring several times over the third of a second it takes layout to
+   settle costs nothing and fixes it. The same helper does the same job for
+   arriving at a page, where it was always done this way. */
+function holdScroll(y){
+  const go = () => window.scrollTo({top: y, behavior: 'instant'});
+  go();
+  requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); setTimeout(go, 340); });
+}
 function rerender(){
   const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
   main.innerHTML=''; PageEntryConfig.clear();
   try { (routes[name]||routes.today)(main, params); }
-  catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
+  catch(err){ console.error('rerender failed', err); routeFailure(err); holdScroll(y); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
     Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); }
   catch(err){ console.error('page trimmings failed', err); }
-  window.scrollTo({top:y});
+  holdScroll(y);
 }
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
@@ -10113,12 +10153,47 @@ function markNavDirection(){
   if(typeof st.liIdx === 'number'){ wentBack = st.liIdx < navIdx; navIdx = st.liIdx; }
   else { navIdx = ++navSeq; wentBack = false; try { history.replaceState({...st, liIdx:navIdx}, ''); } catch(e){} }
 }
+/* Coming back out of something should put you back where you were.
+
+   This used to happen only for the browser's own back button, which meant
+   every "\u2190 back" button in the house \u2014 out of an exercise, out of a
+   piece, out of a card \u2014 dropped you at the top of a long page and left you
+   to scroll down and find your place again. The page had remembered the
+   position. It just would not hand it over unless you had arrived by the one
+   route nobody uses.
+
+   So the memory is given up for two arrivals rather than one: going back,
+   and going OUT \u2014 where out means the address you have landed on is the
+   one you were just inside. #/jazz from #/jazz/P0.1 is coming out of an
+   exercise; #/jazz from #/today is a fresh visit and starts at the top,
+   which is still right.
+
+   The position is also written down at the moment you leave rather than
+   only by the scroll listener, which is debounced and so is a tenth of a
+   second behind somebody who scrolls and immediately clicks. */
+let lastHash = location.hash;
+const cameOutOf = (from, to) => !!(from && to && from !== to
+  && from.indexOf(to.replace(/\/+$/, '') + '/') === 0);
 function restoreScroll(hash){
-  const y = wentBack ? (scrollMem.get(hash) || 0) : 0; wentBack = false;
-  const go = () => window.scrollTo({top:y, behavior:'instant'});
-  go(); requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); });   // let late layout settle
+  const out = cameOutOf(lastHash, hash);
+  lastHash = hash;
+  const y = (wentBack || out) ? (scrollMem.get(hash) || 0) : 0; wentBack = false;
+  holdScroll(y);                                      // let late layout settle
 }
-window.addEventListener('scroll', debounce(() => scrollMem.set(location.hash, window.scrollY || 0), 150), {passive:true});
+/* where you were on the page you are leaving, taken now rather than up to a
+   tenth of a second ago */
+function keepScroll(){ if(lastHash) scrollMem.set(lastHash, window.scrollY || 0); }
+/* Recorded against the page that is on the screen, which is not always the
+   page the address bar says. A navigation changes the hash first and draws
+   second, and the draw can wait on a view transition — so for a tenth of a
+   second the old page is still showing under the new address. This listener
+   is debounced by about that much, so it was writing the old page's scroll
+   (usually zero, since the page you are leaving has just been emptied)
+   against the address you are going TO, wiping the position it was about to
+   be asked for. Which is why the browser's own Back sometimes landed at the
+   top and sometimes did not. lastHash only changes when a page is actually
+   drawn, so it names what is really on the screen. */
+window.addEventListener('scroll', debounce(() => keepScroll(), 150), {passive:true});
 /* The crossfade between pages is a nicety; arriving at the page you asked for
    is not. A view transition can fail to invoke its callback — repeated
    re-renders of a page seem to wedge it for one cycle — and the navigation is
@@ -56230,6 +56305,12 @@ function bindJazzFlash(root){
 }
 
 /* ---------- one card ---------- */
+/* what the card asked for, said back over the answer */
+function jazzCardSaid(ex, card){
+  const key = jazzPretty(card.key);
+  return card.interval ? `${ex.name} — ${jazzSayInterval(card.interval)} from ${key}`
+    : `${ex.ask} ${key}`;
+}
 function jazzCardHTML(){
   const f = jazzUi().flash;
   const card = f.cards[f.at];
@@ -56241,7 +56322,7 @@ function jazzCardHTML(){
       <button class="tbtn" id="jzQuit">stop</button></div>
     <div class="jz-cbar"><i style="width:${Math.round(f.at / f.cards.length * 100)}%"></i></div>
     ${f.shown ? `
-      <p class="jz-cask mono">${esc(ex.ask)} ${esc(jazzPretty(card.key))}</p>
+      <p class="jz-cask mono">${esc(jazzCardSaid(ex, card))}</p>
       <div class="jz-stage-box"><div class="jz-score" id="jzCardScore"></div></div>
       <p class="jz-chow">Did you have it?</p>
       <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap">
@@ -56251,6 +56332,8 @@ function jazzCardHTML(){
       </div>`
     : `
       <p class="jz-cprompt serif">${esc(ex.ask)}</p>
+      ${card.interval ? `<p class="jz-cint serif">${esc(jazzSayInterval(card.interval))}</p>
+        <p class="jz-cfrom mono">from</p>` : ''}
       <p class="jz-ckey serif">${esc(jazzPretty(card.key))}</p>
       <div class="row" style="justify-content:center;margin-top:26px">
         <button class="btn primary lg" id="jzShow">Show me</button></div>
@@ -56266,7 +56349,9 @@ function bindJazzCard(root){
   const show = root.querySelector('#jzShow');
   if(show) show.onclick = () => { f.shown = true; f.at0 = f.at0 || Date.now();
     f.seconds = (Date.now() - (f.from || Date.now())) / 1000; sound('click'); rerender(); };
-  if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: jazzUi().interval});
+  /* the answer is written out for the distance the card asked for, not for
+     whatever the exercise page happened to be left on */
+  if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: card.interval});
     if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml); }
   $$('[data-jzg]', root).forEach(b => b.onclick = () => {
     const how = b.dataset.jzg;
@@ -56603,6 +56688,13 @@ function jazzKeyPool(exerciseId, mode, custom){
   }
   return JAZZ_KEY_NAMES.slice();
 }
+/* Some exercises are about a distance rather than a chord, and for those a
+   key on its own is not a question. "Play the specified interval for the
+   given root" with no interval specified is a card that cannot be answered
+   and cannot be marked — which is what it was doing. So a card for one of
+   those carries a distance as well, drawn at random the same way the key is,
+   and the challenge says both. */
+const jazzDealInterval = () => JAZZ_INTERVALS[Math.floor(Math.random() * JAZZ_INTERVALS.length)];
 function jazzDeal(ids, n, mode, custom){
   const pool = [];
   (ids || []).forEach(id => jazzKeyPool(id, mode, custom).forEach(key => {
@@ -56611,7 +56703,10 @@ function jazzDeal(ids, n, mode, custom){
        key that is already yours */
     const last = (jazzState().flashes.find(f => f.exerciseId === id && f.key === key) || {}).result;
     const weight = last === 'couldnt' ? 3 : last === 'struggled' ? 2 : r.keys[key] ? 1 : 2;
-    for(let i = 0; i < weight; i++) pool.push({exerciseId: id, key});
+    const wants = jazzWantsInterval(jazzExercise(id));
+    for(let i = 0; i < weight; i++)
+      pool.push(wants ? {exerciseId: id, key, interval: jazzDealInterval()}
+                      : {exerciseId: id, key});
   }));
   if(!pool.length) return [];
   const out = [];
@@ -56699,9 +56794,14 @@ routes.jazz = function(root, params){
   const want = params && params[0] ? params[0] : null;
   if(want === 'cards'){ root.innerHTML = `<div class="page jz-page">${jazzFlashHTML()}</div>`;
     bindJazzFlash(root); return; }
-  if(want && jazzExercise(want)) ui.exId = want;
-  else if(want === 'road') ui.exId = null;
-  if(ui.exId && jazzExercise(ui.exId)){
+  /* The address decides which of the two views this is, and nothing else.
+     It used to only ever SET the open exercise from the address and never
+     clear it, so #/jazz with no exercise in it fell through to whichever one
+     had been open last \u2014 and the browser's own Back button, which lands on
+     #/jazz, showed you the exercise you had just left instead of the
+     roadmap. Remembering is for things the address does not say. */
+  ui.exId = (want && jazzExercise(want)) ? want : null;
+  if(ui.exId){
     root.innerHTML = `<div class="page jz-page">${jazzExerciseHTML(ui.exId)}</div>`;
     bindJazzExercise(root, ui.exId);
     return;

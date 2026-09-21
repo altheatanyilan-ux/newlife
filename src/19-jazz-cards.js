@@ -91,6 +91,12 @@ function bindJazzFlash(root){
 }
 
 /* ---------- one card ---------- */
+/* what the card asked for, said back over the answer */
+function jazzCardSaid(ex, card){
+  const key = jazzPretty(card.key);
+  return card.interval ? `${ex.name} — ${jazzSayInterval(card.interval)} from ${key}`
+    : `${ex.ask} ${key}`;
+}
 function jazzCardHTML(){
   const f = jazzUi().flash;
   const card = f.cards[f.at];
@@ -102,7 +108,7 @@ function jazzCardHTML(){
       <button class="tbtn" id="jzQuit">stop</button></div>
     <div class="jz-cbar"><i style="width:${Math.round(f.at / f.cards.length * 100)}%"></i></div>
     ${f.shown ? `
-      <p class="jz-cask mono">${esc(ex.ask)} ${esc(jazzPretty(card.key))}</p>
+      <p class="jz-cask mono">${esc(jazzCardSaid(ex, card))}</p>
       <div class="jz-stage-box"><div class="jz-score" id="jzCardScore"></div></div>
       <p class="jz-chow">Did you have it?</p>
       <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap">
@@ -112,6 +118,8 @@ function jazzCardHTML(){
       </div>`
     : `
       <p class="jz-cprompt serif">${esc(ex.ask)}</p>
+      ${card.interval ? `<p class="jz-cint serif">${esc(jazzSayInterval(card.interval))}</p>
+        <p class="jz-cfrom mono">from</p>` : ''}
       <p class="jz-ckey serif">${esc(jazzPretty(card.key))}</p>
       <div class="row" style="justify-content:center;margin-top:26px">
         <button class="btn primary lg" id="jzShow">Show me</button></div>
@@ -127,7 +135,9 @@ function bindJazzCard(root){
   const show = root.querySelector('#jzShow');
   if(show) show.onclick = () => { f.shown = true; f.at0 = f.at0 || Date.now();
     f.seconds = (Date.now() - (f.from || Date.now())) / 1000; sound('click'); rerender(); };
-  if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: jazzUi().interval});
+  /* the answer is written out for the distance the card asked for, not for
+     whatever the exercise page happened to be left on */
+  if(f.shown && ex){ const xml = jazzScoreXml(ex, card.key, {interval: card.interval});
     if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml); }
   $$('[data-jzg]', root).forEach(b => b.onclick = () => {
     const how = b.dataset.jzg;

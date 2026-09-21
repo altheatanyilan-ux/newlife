@@ -310,6 +310,13 @@ function jazzKeyPool(exerciseId, mode, custom){
   }
   return JAZZ_KEY_NAMES.slice();
 }
+/* Some exercises are about a distance rather than a chord, and for those a
+   key on its own is not a question. "Play the specified interval for the
+   given root" with no interval specified is a card that cannot be answered
+   and cannot be marked — which is what it was doing. So a card for one of
+   those carries a distance as well, drawn at random the same way the key is,
+   and the challenge says both. */
+const jazzDealInterval = () => JAZZ_INTERVALS[Math.floor(Math.random() * JAZZ_INTERVALS.length)];
 function jazzDeal(ids, n, mode, custom){
   const pool = [];
   (ids || []).forEach(id => jazzKeyPool(id, mode, custom).forEach(key => {
@@ -318,7 +325,10 @@ function jazzDeal(ids, n, mode, custom){
        key that is already yours */
     const last = (jazzState().flashes.find(f => f.exerciseId === id && f.key === key) || {}).result;
     const weight = last === 'couldnt' ? 3 : last === 'struggled' ? 2 : r.keys[key] ? 1 : 2;
-    for(let i = 0; i < weight; i++) pool.push({exerciseId: id, key});
+    const wants = jazzWantsInterval(jazzExercise(id));
+    for(let i = 0; i < weight; i++)
+      pool.push(wants ? {exerciseId: id, key, interval: jazzDealInterval()}
+                      : {exerciseId: id, key});
   }));
   if(!pool.length) return [];
   const out = [];

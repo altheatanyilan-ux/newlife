@@ -234,6 +234,43 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('    and a different distance is a different pair of notes', open.moved);
   is('  and the clock is running, as piano', open.running, 'piano');
 
+  /* The mindset passage is the only long piece of prose in the room and it
+     was being set in a column seventy pixels wide — eleven characters to a
+     line, eighteen lines, one word per line. The grid gave the quote one
+     column and dropped the line under it into the ICON's column, which then
+     had to be wide enough for a paragraph and took the room the quote
+     needed. Measured rather than eyeballed, because "looks fine" is how it
+     shipped the first time. */
+  const measure = await p.evaluate(() => {
+    const q = document.querySelector('.jz-side .jz-werner p');
+    const m = document.querySelector('.jz-side .jz-werner .jz-wm');
+    const ico = document.querySelector('.jz-side .jz-werner .jz-wi');
+    if(!q || !m || !ico) return null;
+    const cs = getComputedStyle(q);
+    const probe = document.createElement('span');
+    probe.style.cssText = `font:${cs.font};visibility:hidden;white-space:pre`;
+    probe.textContent = 'x'.repeat(100);
+    q.appendChild(probe);
+    const per = probe.getBoundingClientRect().width / 100;
+    probe.remove();
+    const qb = q.getBoundingClientRect(), mb = m.getBoundingClientRect();
+    return {chars: Math.round(qb.width / per),
+      lines: Math.round(qb.height / parseFloat(cs.lineHeight)),
+      /* the quote and the line under it belong to the same column */
+      aligned: Math.abs(qb.left - mb.left) < 2,
+      /* and both of them start after the figure, not under it */
+      afterIcon: qb.left > ico.getBoundingClientRect().right,
+      len: q.textContent.trim().length};
+  });
+  yes('the mindset passage is set at a width somebody could read',
+    measure && measure.chars >= 35 && measure.chars <= 78,
+    JSON.stringify(measure));
+  yes('  rather than a column of single words',
+    measure && measure.lines <= Math.ceil(measure.len / 30),
+    JSON.stringify(measure));
+  yes('  with the line under it in the same column, not under the figure',
+    measure && measure.aligned && measure.afterIcon, JSON.stringify(measure));
+
   console.log('\n6. a key you have is written down, and stays');
   const marked = await p.evaluate(async () => {
     document.querySelector('#jzGot').click();

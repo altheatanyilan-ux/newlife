@@ -68,9 +68,14 @@ routes.jazz = function(root, params){
   const want = params && params[0] ? params[0] : null;
   if(want === 'cards'){ root.innerHTML = `<div class="page jz-page">${jazzFlashHTML()}</div>`;
     bindJazzFlash(root); return; }
-  if(want && jazzExercise(want)) ui.exId = want;
-  else if(want === 'road') ui.exId = null;
-  if(ui.exId && jazzExercise(ui.exId)){
+  /* The address decides which of the two views this is, and nothing else.
+     It used to only ever SET the open exercise from the address and never
+     clear it, so #/jazz with no exercise in it fell through to whichever one
+     had been open last \u2014 and the browser's own Back button, which lands on
+     #/jazz, showed you the exercise you had just left instead of the
+     roadmap. Remembering is for things the address does not say. */
+  ui.exId = (want && jazzExercise(want)) ? want : null;
+  if(ui.exId){
     root.innerHTML = `<div class="page jz-page">${jazzExerciseHTML(ui.exId)}</div>`;
     bindJazzExercise(root, ui.exId);
     return;

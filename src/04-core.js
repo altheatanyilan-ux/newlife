@@ -409,7 +409,7 @@ function applySeason(){ if(typeof season === 'function') document.documentElemen
 /* ---------- router ---------- */
 const routes = {};
 let currentRoute = null;
-function navigate(hash){ location.hash = hash; }
+function navigate(hash){ keepScroll(); location.hash = hash; }
 /* A deep link is an instruction, not a place. Once a page has acted on the id
    in its address, the id has to leave the address — otherwise every re-render
    of that page acts on it again. replaceState does not fire hashchange, so the
@@ -464,17 +464,37 @@ function renderRoute(){
    used to leave the page blank — and because almost every edit ends in a
    rerender, one bad record could empty the room you were working in and keep
    it empty. It gets the same floor renderRoute has. */
+/* Put the window back where it was, and keep putting it back.
+
+   Almost every edit in this house ends in a redraw \u2014 tick a task, log a
+   sitting, rename a list \u2014 and a redraw empties the page and writes it
+   again. It did restore the scroll, once, the instant the new page was
+   written. That is too early. Anything that changes the page's height after
+   that moment \u2014 a font arriving, a chart tweening open, a reveal, an
+   engraving, an image with no dimensions on it \u2014 lands after the restore,
+   and if the page happened to be shorter at that instant the browser had
+   already clamped the position and nothing corrected it. So you tick
+   something near the bottom of a long day and find yourself at the top.
+
+   Restoring several times over the third of a second it takes layout to
+   settle costs nothing and fixes it. The same helper does the same job for
+   arriving at a page, where it was always done this way. */
+function holdScroll(y){
+  const go = () => window.scrollTo({top: y, behavior: 'instant'});
+  go();
+  requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); setTimeout(go, 340); });
+}
 function rerender(){
   const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
   main.innerHTML=''; PageEntryConfig.clear();
   try { (routes[name]||routes.today)(main, params); }
-  catch(err){ console.error('rerender failed', err); routeFailure(err); window.scrollTo({top:y}); return; }
+  catch(err){ console.error('rerender failed', err); routeFailure(err); holdScroll(y); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
     Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); }
   catch(err){ console.error('page trimmings failed', err); }
-  window.scrollTo({top:y});
+  holdScroll(y);
 }
 /* where you were on each page, so Back returns you to the spot and not the top */
 try { history.scrollRestoration = 'manual'; } catch(e){}
@@ -486,12 +506,47 @@ function markNavDirection(){
   if(typeof st.liIdx === 'number'){ wentBack = st.liIdx < navIdx; navIdx = st.liIdx; }
   else { navIdx = ++navSeq; wentBack = false; try { history.replaceState({...st, liIdx:navIdx}, ''); } catch(e){} }
 }
+/* Coming back out of something should put you back where you were.
+
+   This used to happen only for the browser's own back button, which meant
+   every "\u2190 back" button in the house \u2014 out of an exercise, out of a
+   piece, out of a card \u2014 dropped you at the top of a long page and left you
+   to scroll down and find your place again. The page had remembered the
+   position. It just would not hand it over unless you had arrived by the one
+   route nobody uses.
+
+   So the memory is given up for two arrivals rather than one: going back,
+   and going OUT \u2014 where out means the address you have landed on is the
+   one you were just inside. #/jazz from #/jazz/P0.1 is coming out of an
+   exercise; #/jazz from #/today is a fresh visit and starts at the top,
+   which is still right.
+
+   The position is also written down at the moment you leave rather than
+   only by the scroll listener, which is debounced and so is a tenth of a
+   second behind somebody who scrolls and immediately clicks. */
+let lastHash = location.hash;
+const cameOutOf = (from, to) => !!(from && to && from !== to
+  && from.indexOf(to.replace(/\/+$/, '') + '/') === 0);
 function restoreScroll(hash){
-  const y = wentBack ? (scrollMem.get(hash) || 0) : 0; wentBack = false;
-  const go = () => window.scrollTo({top:y, behavior:'instant'});
-  go(); requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); });   // let late layout settle
+  const out = cameOutOf(lastHash, hash);
+  lastHash = hash;
+  const y = (wentBack || out) ? (scrollMem.get(hash) || 0) : 0; wentBack = false;
+  holdScroll(y);                                      // let late layout settle
 }
-window.addEventListener('scroll', debounce(() => scrollMem.set(location.hash, window.scrollY || 0), 150), {passive:true});
+/* where you were on the page you are leaving, taken now rather than up to a
+   tenth of a second ago */
+function keepScroll(){ if(lastHash) scrollMem.set(lastHash, window.scrollY || 0); }
+/* Recorded against the page that is on the screen, which is not always the
+   page the address bar says. A navigation changes the hash first and draws
+   second, and the draw can wait on a view transition — so for a tenth of a
+   second the old page is still showing under the new address. This listener
+   is debounced by about that much, so it was writing the old page's scroll
+   (usually zero, since the page you are leaving has just been emptied)
+   against the address you are going TO, wiping the position it was about to
+   be asked for. Which is why the browser's own Back sometimes landed at the
+   top and sometimes did not. lastHash only changes when a page is actually
+   drawn, so it names what is really on the screen. */
+window.addEventListener('scroll', debounce(() => keepScroll(), 150), {passive:true});
 /* The crossfade between pages is a nicety; arriving at the page you asked for
    is not. A view transition can fail to invoke its callback — repeated
    re-renders of a page seem to wedge it for one cycle — and the navigation is
