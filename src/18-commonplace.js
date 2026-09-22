@@ -29,6 +29,64 @@ const RESONANCE_LEVELS = [
 const resonanceMeta = k => RESONANCE_LEVELS.find(r=>r[0]===k) || null;
 function mediaEntries(){ return S.entries.filter(e => e.type === 'media'); }
 function mediaX(e){ e.extra = e.extra || {}; return e.extra; }
+
+/* ---------- where a work actually lives ----------
+   Everything on this shelf is a pointer at something outside this file. An
+   article has an address; a lecture is a video; a podcast episode is a page
+   you will never find again by name; a book has a shop, a library record and
+   a maker who has a site. Writing "read the Hofstadter piece" and then
+   spending four minutes hunting for it is the small friction that stops a
+   shelf being used, so a work carries its addresses with it.
+
+   They live at `extra.urls` and NOT at `links`, because `e.links` already
+   means something else here — the stages, values, threads and visions a work
+   is tied to. Two different things under one name in one object is how a bug
+   gets written.
+
+   A row is {id, label, url, kind}: `label` is what you would call it out
+   loud ("the original in the New Yorker"), and it is optional, because most
+   of the time the address says enough on its own. */
+const MEDIA_LINK_KINDS = {
+  work:  ['▶', 'the work itself'],
+  buy:   ['🛒', 'where to get it'],
+  about: ['💬', 'written about it'],
+  maker: ['👤', 'the maker'],
+  notes: ['📝', 'notes elsewhere'],
+};
+const mediaLinkKind = k => MEDIA_LINK_KINDS[k] ? k : 'work';
+function mediaUrls(e){ const x = mediaX(e); if(!Array.isArray(x.urls)) x.urls = []; return x.urls; }
+function newMediaUrl(url = '', label = '', kind = 'work'){ return {id:uid(), label, url:String(url||'').trim(), kind:mediaLinkKind(kind)}; }
+/* the part of an address that tells you where it goes, without the www. */
+function mediaLinkHost(url){
+  const href = linkHrefOf(url); if(!href || href.startsWith('mailto:')) return '';
+  try { return new URL(href).hostname.replace(/^www\./, ''); } catch(err){ return ''; }
+}
+/* the first address that actually points somewhere — what a card links to */
+function mediaFirstUrl(e){ return (mediaX(e).urls || []).find(u => linkHrefOf(u.url)) || null; }
+/* One address as a row. What it is and where it goes are always visible; the
+   two fields, the kind and the delete only appear under the cursor, which is
+   the arrangement a skill's resource shelf already uses. */
+function mediaLinkRowHTML(e, u, i){
+  const href = linkHrefOf(u.url), host = mediaLinkHost(u.url);
+  const kind = mediaLinkKind(u.kind), meta = MEDIA_LINK_KINDS[kind];
+  const label = u.label || (u.url ? linkLabel(u.url) : '');
+  return `<div class="res-row" data-lrow="${i}"><span class="res-type" title="${esc(meta[1])}">${meta[0]}</span>` +
+    (href ? linkTag(esc(href), esc(label), 'res-link') : `<span class="faint">${esc(label || 'no address yet')}</span>`) +
+    (host && u.label ? `<span class="mono faint" style="font-size:.66rem">${esc(host)}</span>` : '') +
+    `<span class="status-pill" style="font-size:.6rem">${esc(meta[1])}</span>
+    <span class="res-edit"><span class="ed-wrap">${ed(`entries.#${e.id}.extra.urls.${i}.label`,{ph:'what it is',cls:'mono'})}</span><span class="ed-wrap">${ed(`entries.#${e.id}.extra.urls.${i}.url`,{ph:'https://…',cls:'mono'})}</span><select class="sel" data-lkind="${i}" style="width:auto;padding:1px 6px;font-size:.66rem;padding-right:22px">${Object.entries(MEDIA_LINK_KINDS).map(([kk,v])=>`<option value="${kk}" ${kind===kk?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select><button class="del-x inline" data-ldel="${i}" title="remove">×</button></span></div>`;
+}
+/* The shelf card's one press out to the work. It takes the click itself so
+   the card underneath does not open the panel at the same time.
+
+   It is deliberately not an `autolink`: that class puts a ↗ of its own in an
+   ::after, and this anchor IS the arrow, so it would have come out with two. */
+function mediaLinkArrowHTML(e){
+  const u = mediaFirstUrl(e); if(!u) return '';
+  const n = (mediaX(e).urls || []).filter(l => linkHrefOf(l.url)).length;
+  const title = (u.label || linkLabel(u.url, 60)) + (n > 1 ? ` (+${n-1} more, in the panel)` : '');
+  return `<a class="work-link" href="${esc(linkHrefOf(u.url))}" target="_blank" rel="noopener noreferrer" title="${esc(title)}" onclick="event.stopPropagation()">↗</a>`;
+}
 function migrateMedia(){
   mediaEntries().forEach(e => {
     const x = mediaX(e);
@@ -42,6 +100,14 @@ function migrateMedia(){
     if(x.installed === undefined) x.installed = '';
     if(x.recommend === undefined) x.recommend = '';
     if(x.recommendWho === undefined) x.recommendWho = '';
+    /* An address written down before this feature existed went into the prose
+       and is still there; nothing is moved out of it. What is normalised here
+       is the shape of the rows, and a row abandoned completely blank across a
+       reload is dropped — an empty row added a minute ago is not, because this
+       runs once at load and not on every render. */
+    if(!Array.isArray(x.urls)) x.urls = [];
+    x.urls = x.urls.filter(u => u && (String(u.url||'').trim() || String(u.label||'').trim()))
+      .map(u => ({id:u.id || uid(), label:String(u.label||''), url:String(u.url||'').trim(), kind:mediaLinkKind(u.kind)}));
     if(!x._convoMigrated){
       const parts = [];
       if(x.resonance) parts.push(x.resonance);
@@ -192,6 +258,7 @@ function openQueueItemModal(existing){
     <input class="inp serif-lg" id="qiTitle" placeholder="Title" value="${esc(it.title)}" autofocus>
     <div class="grid c2" style="gap:8px"><select class="sel" id="qiMedium">${Object.entries(MEDIA_KINDS).map(([k,v])=>`<option value="${k}" ${it.medium===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select></div>
     <input class="inp" id="qiWhy" placeholder="Why it's here — one line" value="${esc(it.why)}">
+    <input class="inp mono" id="qiUrl" placeholder="Link — where you found it (optional)" value="${esc(it.url||'')}">
     <select class="sel" id="qiValue"><option value="">no value</option>${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<option value="${id}" ${it.valueId===id?'selected':''}>${esc(v.name)}</option>`; }).join('')}</select>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="qiSave">${existing?'Save':'Add to queue'}</button></div></div>`,'narrow');
   m.querySelector('#qiSave').onclick = () => {
@@ -203,13 +270,16 @@ function openQueueItemModal(existing){
        nothing, saved nothing and said nothing. A queue item's vision is not
        asked for here, so it is not read here; one already on the item is left
        alone by Object.assign. */
-    Object.assign(it, {title, medium:m.querySelector('#qiMedium').value, why:m.querySelector('#qiWhy').value.trim(), valueId:m.querySelector('#qiValue').value||''});
+    Object.assign(it, {title, medium:m.querySelector('#qiMedium').value, why:m.querySelector('#qiWhy').value.trim(), url:m.querySelector('#qiUrl').value.trim(), valueId:m.querySelector('#qiValue').value||''});
     if(!existing) S.mediaQueue.push(it); saveNow(); m.remove(); sound('success'); rerender();
   };
 }
 function startQueueItem(id){
   const it = byId(S.mediaQueue, id); if(!it) return;
-  openMediaModal({kind:it.medium, title:it.title, status:'progress'});
+  /* the address you queued it by is the address you will want when you open
+     it — it goes onto the shelf with the work, not into the bin with the
+     queue row */
+  openMediaModal({kind:it.medium, title:it.title, status:'progress', url:it.url||''});
   S.mediaQueue = S.mediaQueue.filter(x=>x.id!==id); saveNow();
 }
 
@@ -240,7 +310,10 @@ function exportListAsPage(l){
   const rows = (l.entries||[]).map(id=>byId(S.entries,id)).filter(Boolean);
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(l.title)}</title><style>body{font-family:Georgia,serif;max-width:640px;margin:60px auto;line-height:1.7;color:#2a241d}h1{font-size:1.8rem}p.d{color:#665e52;font-style:italic}ol{padding-left:1.3em}li{margin-bottom:14px}b{display:block}</style></head><body>
     <h1>${esc(l.title)}</h1>${l.description?`<p class="d">${esc(l.description)}</p>`:''}
-    <ol>${rows.map(e=>{ const x=mediaX(e); return `<li><b>${esc(e.title)}</b>${x.creator?` — ${esc(x.creator)}`:''}${x.oneLineCapture?`<br>${esc(x.oneLineCapture)}`:''}</li>`; }).join('')}</ol></body></html>`;
+    <ol>${rows.map(e=>{ const x=mediaX(e); const u = mediaFirstUrl(e);
+      /* a list is made to be given away, and a title somebody cannot find is
+         half a recommendation */
+      return `<li><b>${esc(e.title)}</b>${x.creator?` — ${esc(x.creator)}`:''}${x.oneLineCapture?`<br>${esc(x.oneLineCapture)}`:''}${u?`<br><a href="${esc(linkHrefOf(u.url))}">${esc(u.label||linkLabel(u.url))}</a>`:''}</li>`; }).join('')}</ol></body></html>`;
   const blob = new Blob([html], {type:'text/html'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${l.title.replace(/[^\w-]+/g,'-')||'list'}.html`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 
@@ -314,7 +387,7 @@ function newMediaEntry(title, kind, creator = ''){
     links:{stages:[],substages:[],threads:[],values:[],skills:[],projects:[],people:[]},
     people:[], places:[], emotions:[], tags:[], confidence:'',
     extra:{kind: MEDIA_KINDS[kind] ? kind : 'book', creator, year:'', status:'want', resonanceLevel:null,
-      quotes:[], startedAt:'', finishedAt:'', oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
+      quotes:[], urls:[], startedAt:'', finishedAt:'', oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
   S.entries.push(e);
   return e;
 }
@@ -331,12 +404,13 @@ function openRecModal(existing){
     <input class="inp serif-lg" id="rcTitle" placeholder="Title" value="${esc(r.title)}" autofocus>
     <input class="inp" id="rcFrom" placeholder="Who recommended it?" value="${esc(r.from)}">
     <textarea class="ta" id="rcWhy" placeholder="Why they said to consume it">${esc(r.why)}</textarea>
+    <input class="inp mono" id="rcUrl" placeholder="Link they sent (optional)" value="${esc(r.url||'')}">
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="rcSave">${existing?'Save':'Add to inbox'}</button></div></div>`,'narrow');
   let kind = r.medium;
   m.querySelectorAll('[data-rck]').forEach(b => b.onclick = () => { kind = b.dataset.rck;
     m.querySelectorAll('[data-rck]').forEach(y => y.classList.toggle('on', y === b)); });
   m.querySelector('#rcSave').onclick = () => { const title = m.querySelector('#rcTitle').value.trim(); if(!title){ toast('Give it a title.'); return; }
-    Object.assign(r, {title, medium:kind, from:m.querySelector('#rcFrom').value.trim(), why:m.querySelector('#rcWhy').value.trim()});
+    Object.assign(r, {title, medium:kind, from:m.querySelector('#rcFrom').value.trim(), why:m.querySelector('#rcWhy').value.trim(), url:m.querySelector('#rcUrl').value.trim()});
     if(!existing) S.mediaRecs.push(r); saveNow(); m.remove(); rerender(); };
 }
 
@@ -377,7 +451,7 @@ function renderLibraryTimeline(root){
     const works = all.filter(e => mediaLifeStage(e)?.id === s.id).sort((a,b)=>(mediaDateConsumed(a)).localeCompare(mediaDateConsumed(b)));
     return `<div class="lib-stage-col rv" style="--c:${s.hue}"><div class="row between"><b class="serif" style="font-size:1.1rem;color:${s.hue}">${s.char} ${esc(s.name)}</b><span class="mono">${esc(s.years||'')} · ${works.length}</span></div>
       ${works.length ? `<div class="works">${works.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind]||MEDIA_KINDS.book; const r = resonanceMeta(x.resonanceLevel);
-        return `<div class="lib-stage-work click" data-mopen="${e.id}" style="${r?`border-color:${r[2]}`:''}"><div>${k[0]} ${esc(e.title)}</div>${r?`<div class="faint" style="color:${r[2]}">${r[1]}</div>`:''}</div>`; }).join('')}</div>`
+        return `<div class="lib-stage-work click" data-mopen="${e.id}" style="${r?`border-color:${r[2]}`:''}"><div class="row between" style="gap:6px;align-items:flex-start"><span>${k[0]} ${esc(e.title)}</span>${mediaLinkArrowHTML(e)}</div>${r?`<div class="faint" style="color:${r[2]}">${r[1]}</div>`:''}</div>`; }).join('')}</div>`
       : `<div class="empty">What were you reading during ${esc(s.name)}? What films do you remember? <button class="tbtn" data-retro-add="${s.id}">log one</button></div>`}
     </div>`; }).join('') : '<div class="empty">Add life stages on the Timeline page first, and media can be mapped onto them.</div>';
   root.querySelectorAll('[data-mopen]').forEach(c=>c.onclick=()=>openMediaPanel(c.dataset.mopen));
@@ -390,7 +464,7 @@ function renderLibraryLists(root){
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Personal queue — up next</span><button class="btn sm ghost" id="qAdd">＋ add to queue</button></div>
       <p class="muted" style="font-size:.85rem">What you want to encounter next. Drag to reorder; the top of the list is what you'll actually pick up.</p>
       <div class="queue-list" id="queueList">${S.mediaQueue.map((it,i) => { const k = MEDIA_KINDS[it.medium]||MEDIA_KINDS.book; const val = it.valueId?byId(S.values,it.valueId):null;
-        return `<div class="queue-item" draggable="true" data-qid="${it.id}"><span class="grip">⠿</span><span class="body"><div class="row between"><b class="serif">${k[0]} ${esc(it.title)}</b><span class="row" style="gap:4px"><button class="tbtn" data-qstart="${it.id}">mark started →</button><button class="tbtn" data-qedit="${it.id}">edit</button><button class="del-x inline" data-qdel="${it.id}">×</button></span></div>${it.why?`<div class="quote" style="font-size:.85rem">${esc(it.why)}</div>`:''}${val?`<div class="row" style="gap:4px;margin-top:4px"><span class="chip on" style="--c:${val.color}">${esc(val.name)}</span></div>`:''}</span></div>`; }).join('') || '<div class="empty">Nothing queued. What do you want to encounter next?</div>'}</div></section>
+        return `<div class="queue-item" draggable="true" data-qid="${it.id}"><span class="grip">⠿</span><span class="body"><div class="row between"><b class="serif">${k[0]} ${esc(it.title)}</b><span class="row" style="gap:4px">${linkHrefOf(it.url)?`<a class="work-link" href="${esc(linkHrefOf(it.url))}" target="_blank" rel="noopener noreferrer" title="${esc(linkLabel(it.url,60))}">↗</a>`:''}<button class="tbtn" data-qstart="${it.id}">mark started →</button><button class="tbtn" data-qedit="${it.id}">edit</button><button class="del-x inline" data-qdel="${it.id}">×</button></span></div>${it.why?`<div class="quote" style="font-size:.85rem">${esc(it.why)}</div>`:''}${val?`<div class="row" style="gap:4px;margin-top:4px"><span class="chip on" style="--c:${val.color}">${esc(val.name)}</span></div>`:''}</span></div>`; }).join('') || '<div class="empty">Nothing queued. What do you want to encounter next?</div>'}</div></section>
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Curated lists</span><button class="btn sm ghost" id="mlAdd">＋ new list</button></div>
       ${!S.mediaLists.length ? `<p class="muted" style="font-size:.85rem">Themed collections — what you'd give to someone you care about, or the distilled canon. A few to start with:</p><div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:14px">${SUGGESTED_LISTS.map(([t,d])=>`<button class="btn sm ghost" data-suggest="${esc(t)}" data-suggestd="${esc(d)}">＋ ${esc(t)}</button>`).join('')}</div>` : ''}
@@ -403,7 +477,7 @@ function renderLibraryLists(root){
 
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">Received recommendations</span><button class="btn sm ghost" id="rcAdd">＋ someone told me to</button></div>
       <p class="muted" style="font-size:.85rem">So you stop forgetting who told you to read what.</p>
-      ${S.mediaRecs.length ? S.mediaRecs.map(r=>`<div class="rec-row"><span><b class="serif">${(MEDIA_KINDS[r.medium]||MEDIA_KINDS.book)[0]} ${esc(r.title)}</b><div class="mono">from ${esc(r.from||'someone')}</div>${r.why?`<div class="quote" style="font-size:.85rem">${esc(r.why)}</div>`:''}</span><span class="row" style="gap:6px"><select class="sel" style="width:auto" data-rcstatus="${r.id}">${['queued','consumed','declined'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}</select><button class="tbtn" data-rclog="${r.id}">log it →</button><button class="del-x inline" data-rcdel="${r.id}">×</button></span></div>`).join('') : '<div class="empty">Nobody\'s told you to read anything yet — or you\'ve forgotten already.</div>'}</section>`;
+      ${S.mediaRecs.length ? S.mediaRecs.map(r=>`<div class="rec-row"><span><b class="serif">${(MEDIA_KINDS[r.medium]||MEDIA_KINDS.book)[0]} ${esc(r.title)}</b><div class="mono">from ${esc(r.from||'someone')}${linkHrefOf(r.url)?` · <a class="autolink" href="${esc(linkHrefOf(r.url))}" target="_blank" rel="noopener noreferrer">${esc(linkLabel(r.url,40))}</a>`:''}</div>${r.why?`<div class="quote" style="font-size:.85rem">${esc(r.why)}</div>`:''}</span><span class="row" style="gap:6px"><select class="sel" style="width:auto" data-rcstatus="${r.id}">${['queued','consumed','declined'].map(s=>`<option value="${s}" ${r.status===s?'selected':''}>${s}</option>`).join('')}</select><button class="tbtn" data-rclog="${r.id}">log it →</button><button class="del-x inline" data-rcdel="${r.id}">×</button></span></div>`).join('') : '<div class="empty">Nobody\'s told you to read anything yet — or you\'ve forgotten already.</div>'}</section>`;
 
   $('#qAdd').onclick = () => openQueueItemModal();
   root.querySelectorAll('[data-qedit]').forEach(b=>b.onclick=()=>openQueueItemModal(byId(S.mediaQueue,b.dataset.qedit)));
@@ -420,7 +494,7 @@ function renderLibraryLists(root){
   $('#rcAdd').onclick = () => openRecModal();
   root.querySelectorAll('[data-rcstatus]').forEach(s=>s.onchange=()=>{ byId(S.mediaRecs,s.dataset.rcstatus).status = s.value; saveNow(); });
   root.querySelectorAll('[data-rcdel]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rcdel); requestDelete({label:r.title, node:b.closest('.rec-row'), remove:()=>spliceOut(S.mediaRecs,x=>x.id===r.id)}); });
-  root.querySelectorAll('[data-rclog]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rclog); r.status = 'consumed'; saveNow(); openMediaModal({title:r.title, kind:r.medium || 'book', status:'want'}); });
+  root.querySelectorAll('[data-rclog]').forEach(b=>b.onclick=()=>{ const r = byId(S.mediaRecs,b.dataset.rclog); r.status = 'consumed'; saveNow(); openMediaModal({title:r.title, kind:r.medium || 'book', status:'want', url:r.url||'', urlLabel:r.from?`sent by ${r.from}`:''}); });
 }
 
 /* ---------- the Shelf & the Review ---------- */
@@ -438,7 +512,7 @@ function renderLibrary(root, params, opts = {}){
   const view = S._mView || 'shelf'; const sortBy = S._mSort || 'consumed';
   const list = all.filter(e => { const x = mediaX(e);
       return (kind==='all' || x.kind===kind) && (status==='all' || x.status===status) && (res==='all' || x.resonanceLevel===res)
-        && (!q || `${e.title} ${x.creator||''} ${e.body||''} ${entryTags(e).join(' ')}`.toLowerCase().includes(q)); })
+        && (!q || `${e.title} ${x.creator||''} ${e.body||''} ${entryTags(e).join(' ')} ${(x.urls||[]).map(u=>`${u.label||''} ${u.url||''}`).join(' ')}`.toLowerCase().includes(q)); })
     .sort((a,b) => sortBy==='added' ? (b.createdAt||'').localeCompare(a.createdAt||'') : sortBy==='resonance' ? RESONANCE_LEVELS.findIndex(r=>r[0]===mediaX(b).resonanceLevel) - RESONANCE_LEVELS.findIndex(r=>r[0]===mediaX(a).resonanceLevel) : mediaDateConsumed(b).localeCompare(mediaDateConsumed(a)));
   const finished = all.filter(e => mediaX(e).status === 'finished');
   const thisYear = finished.filter(e => mediaDateConsumed(e).slice(0,4) === String(new Date().getFullYear()));
@@ -476,7 +550,7 @@ function renderLibrary(root, params, opts = {}){
       return `<div class="work" data-mopen="${e.id}" style="--c:${k[2]}">
         <div class="work-spine">${k[0]}</div>
         <div class="work-body">
-          <div class="work-title">${esc(e.title||'Untitled')}</div>
+          <div class="row between" style="gap:8px;align-items:flex-start"><div class="work-title">${esc(e.title||'Untitled')}</div>${mediaLinkArrowHTML(e)}</div>
           <div class="mono work-maker">${esc(x.creator||'')}${x.year?` · ${esc(x.year)}`:''}</div>
           <div class="row between" style="margin-top:6px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:'<span class="faint mono">no resonance yet</span>'}</div>
           ${x.oneLineCapture?`<div class="work-line">${esc(x.oneLineCapture)}</div>`:''}
@@ -485,7 +559,7 @@ function renderLibrary(root, params, opts = {}){
         </div></div>`; }).join('')
       : `<div class="empty">Nothing logged yet. The first one can be whatever you happen to be in the middle of.</div>`}</div>`
     : `<div class="stack" style="gap:6px">${list.length ? list.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind]||MEDIA_KINDS.book; const r = resonanceMeta(x.resonanceLevel);
-        return `<div class="row between click" data-mopen="${e.id}" style="padding:9px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer"><span class="row" style="gap:10px"><span>${k[0]}</span><b class="serif">${esc(e.title)}</b><span class="mono faint">${esc(x.creator||'')}</span></span><span class="row" style="gap:8px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}</span></div>`; }).join('') : '<div class="empty">Nothing matches.</div>'}</div>`}
+        return `<div class="row between click" data-mopen="${e.id}" style="padding:9px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer"><span class="row" style="gap:10px"><span>${k[0]}</span><b class="serif">${esc(e.title)}</b><span class="mono faint">${esc(x.creator||'')}</span></span><span class="row" style="gap:8px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}${mediaLinkArrowHTML(e)}</span></div>`; }).join('') : '<div class="empty">Nothing matches.</div>'}</div>`}
 
     ${all.length ? `<section class="section rv"><span class="sc">What you keep coming back to</span>
       <div class="tag-cloud" style="margin-top:10px">${allTags().filter(([t]) => mediaEntries().some(e=>entryTags(e).includes(t))).slice(0,24).map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('') || '<span class="faint">Tag a few works and the pattern shows up here.</span>'}</div></section>` : ''}
@@ -530,6 +604,7 @@ function openMediaModal(pre={}, onCreate=null){
         <input class="inp" id="mYear" placeholder="Year">
         <select class="sel" id="mStat">${MEDIA_STATUS.map(s=>`<option value="${s}" ${(pre.status||'progress')===s?'selected':''}>${MEDIA_STATUS_LABEL[s]}</option>`).join('')}</select>
       </div>
+      <input class="inp mono" id="mUrl" placeholder="Link — where it lives (optional)" value="${esc(pre.url||'')}">
       <select class="sel" id="mStage"><option value="">life stage — leave to date consumed, or pick one now</option>${S.stages.filter(s=>!s.notyet).map(s=>`<option value="${s.id}" ${pre.stageId===s.id?'selected':''}>${s.char} ${esc(s.name)}${s.years?' · '+esc(s.years):''}</option>`).join('')}</select>
       <div class="row" style="justify-content:flex-end"><button class="btn primary" id="mSave">Add to the shelf</button></div>
     </div>`, 'narrow');
@@ -538,8 +613,9 @@ function openMediaModal(pre={}, onCreate=null){
   m.querySelector('#mSave').onclick = () => {
     const title = m.querySelector('#mTitle').value.trim(); if(!title){ toast('It needs a title, at least.'); return; }
     const st = m.querySelector('#mStat').value; const stageId = m.querySelector('#mStage').value || '';
+    const url = m.querySelector('#mUrl').value.trim();
     const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[], links:{stages:stageId?[stageId]:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
-      extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, resonanceLevel:null, quotes:[], startedAt: st==='progress'?today():'', finishedAt: pre.finishedAt || (st==='finished'?today():''), oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
+      extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, resonanceLevel:null, quotes:[], urls:url?[newMediaUrl(url, pre.urlLabel||'')]:[], startedAt: st==='progress'?today():'', finishedAt: pre.finishedAt || (st==='finished'?today():''), oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
     S.entries.push(e); saveNow(); m.remove(); sound('success');
     if(onCreate){ onCreate(e); return; }
     rerender(); openMediaPanel(e.id);
@@ -563,6 +639,10 @@ function openMediaPanel(id){
       <div><div class="k">started</div>${ed(`entries.#${e.id}.extra.startedAt`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>
       <div><div class="k">date consumed (finished)</div>${ed(`entries.#${e.id}.extra.finishedAt`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>
     </div>
+
+    <div class="vp-sec"><div class="row between"><span class="sc">Where to find it</span><button class="btn sm ghost" id="mpAddL">＋ link</button></div>
+      <div class="faint" style="font-size:.78rem;margin-bottom:6px">The addresses this work lives at — the thing itself, where to get it, what was written about it. Hover a row to change it.</div>
+      <div class="lvl-res">${(x.urls||[]).map((u,i)=>mediaLinkRowHTML(e, u, i)).join('') || '<div class="faint" style="font-size:.8rem">No links yet. Paste one and it becomes a door.</div>'}</div></div>
 
     <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>
       <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div>
@@ -592,6 +672,17 @@ function openMediaPanel(id){
   p.querySelector('#mpKind').onchange = ev => { x.kind = ev.target.value; saveNow(); reopen(); };
   p.querySelectorAll('[data-res]').forEach(b => b.onclick = () => { x.resonanceLevel = (x.resonanceLevel===b.dataset.res) ? null : b.dataset.res; saveNow(); sound('click'); reopen(); });
   p.querySelector('#mpAddQ').onclick = () => { x.quotes.push({id:uid(), text:'', where:'', why:''}); saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelectorAll('#panel .passage-q .ed'); n.length && beginEdit(n[n.length-1]); },60); };
+  /* The fields on a link row only exist under the cursor, and focus() on a
+     display:none input does nothing at all — so the row being added is forced
+     open before the edit starts, the same way a new skill resource is. */
+  p.querySelector('#mpAddL').onclick = () => { mediaUrls(e).push(newMediaUrl()); saveNow(); reopen();
+    setTimeout(() => { const rows = document.querySelectorAll('#panel .res-row'); const last = rows[rows.length-1]; if(!last) return;
+      const edit = last.querySelector('.res-edit'); if(edit) edit.style.display = 'flex';
+      const fields = last.querySelectorAll('.ed'); if(fields[1]) beginEdit(fields[1]); }, 60); };
+  p.querySelectorAll('[data-lkind]').forEach(sel => sel.onchange = () => { const u = mediaUrls(e)[+sel.dataset.lkind]; if(!u) return; u.kind = mediaLinkKind(sel.value); saveNow(); reopen(); });
+  p.querySelectorAll('[data-ldel]').forEach(b => b.onclick = () => { const i = +b.dataset.ldel; const u = mediaUrls(e)[i]; if(!u) return;
+    requestDelete({label:u.label || linkLabel(u.url) || 'this link', node:b.closest('.res-row'),
+      remove:()=>{ const gone = mediaUrls(e).splice(i,1)[0]; return () => mediaUrls(e).splice(i,0,gone); }, after:reopen}); });
   p.querySelectorAll('[data-qdel]').forEach(b => b.onclick = () => { const i = +b.dataset.qdel; requestDelete({label:'Quote', node:b.closest('.passage'), remove:()=>{ const gone = x.quotes.splice(i,1)[0]; if(gone.quoteEntryId){ const qe = byId(S.entries, gone.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } return () => x.quotes.splice(i,0,gone); }, after:reopen}); });
   bindLinksEditor(p, e.links, reopen);
   p.querySelectorAll('[data-rec]').forEach(b => b.onclick = () => { x.recommend = (x.recommend===b.dataset.rec) ? '' : b.dataset.rec; saveNow(); reopen(); });

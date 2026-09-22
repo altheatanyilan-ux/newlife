@@ -626,6 +626,10 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .work-title{font-family:var(--serif);font-size:1.08rem;line-height:1.25}
 .work-maker{margin-top:2px}
 .work-line{margin-top:8px;font-family:var(--quote);font-style:italic;font-size:.88rem;color:var(--muted);line-height:1.55}
+/* the way straight out to the work, on a card that otherwise opens a panel:
+   big enough to press on a tablet, quiet enough not to compete with the title */
+.work-link{flex:none;font-size:.9rem;line-height:1;padding:2px 5px;border-radius:6px;text-decoration:none;color:var(--muted);opacity:.65;transition:opacity .2s var(--ease),background .2s var(--ease)}
+.work-link:hover{opacity:1;color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 12%,transparent)}
 .stars i{font-style:normal;color:var(--line-2);font-size:.85rem}
 .stars i.on{color:var(--gold)}
 .stars.click i{cursor:pointer;transition:color .15s var(--ease)}
