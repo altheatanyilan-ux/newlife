@@ -40,6 +40,7 @@ self.addEventListener('install', ev => {
             if(res.ok) await cache.put(url, res); }
       catch(e){ /* a missing extra must not fail the whole install */ }
     }));
+    self.skipWaiting();
   })());
 });
 
