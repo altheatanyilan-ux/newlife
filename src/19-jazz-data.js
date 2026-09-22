@@ -156,7 +156,7 @@ function jazzBook(){
       /* a cross-reference is a signpost, not an exercise */
       if(e.generatorType === 'reference') return;
       out[id] = {id, stage: e.stage, name: e.name || id,
-        gen: e.generator || null, args: e.generatorArgs || ['key'],
+        gen: e.generator || e.gen || null, args: e.generatorArgs || e.args || ['key'],
         kind: e.generatorType || '', why: e.whyItMatters || '',
         tip: e.memorizationTips || '', source: e.source || '',
         theory: e.theoryNotes || '',
@@ -169,6 +169,8 @@ function jazzBook(){
            cannot resolve a single melodic line, and is almost certainly
            wrong. Those three are different things and the room says which. */
         acc: JAZZ_ACCURACY[e.noteAccuracy] ? e.noteAccuracy : 'verified',
+        multiExample: !!e.multiExample,
+        generatorType: e.generatorType || '',
         /* and where to go and look it up: the book, the unit, the pages the
            notation is actually on, and what to look for when you get there */
         ref: (typeof jazzReference === 'function' ? jazzReference(id) : null)
@@ -251,8 +253,14 @@ function jazzScoreXml(ex, key, opts){
      staff, which is wrong for a room whose subject is largely left-hand
      voicings. The grand-staff pass is here rather than in each generator
      because there are eleven of them and there will be twelve. */
-  const xml = G[ex.gen].apply(G, args);
-  return typeof jazzGrandStaff === 'function' ? jazzGrandStaff(xml) : xml;
+  const gs = typeof jazzGrandStaff === 'function' ? jazzGrandStaff : x => x;
+  const result = G[ex.gen].apply(G, args);
+  /* Multi-example generators return {title, documents:[{subtitle,mxl}]}.
+     Pass each mxl through the grand-staff pass independently. */
+  if(result && typeof result === 'object' && Array.isArray(result.documents)){
+    return { title: result.title, documents: result.documents.map(d => ({...d, mxl: gs(d.mxl)})) };
+  }
+  return gs(result);
 }
 /* whether an exercise wants a distance chosen as well as a key */
 const jazzWantsInterval = ex => !!(ex && (ex.args || []).includes('intervalName'));
@@ -266,8 +274,10 @@ function jazzPickOther(list, now){
   const from = other.length ? other : list;
   return from[Math.floor(Math.random() * from.length)];
 }
-/* and whether it has any notation at all — some of the work is a project */
-const jazzHasScore = ex => !!(ex && ex.gen);
+/* whether an exercise has any notation — some are text-only */
+const jazzHasScore = ex => !!(ex && ex.gen && ex.generatorType !== 'instruction_only');
+/* whether an exercise returns multiple examples */
+const jazzIsMultiExample = ex => !!(ex && ex.multiExample);
 
 /* ---------- what is yours ---------- */
 const JAZZ_QUALITY = [['rough','Rough'], ['shaky','Shaky'], ['improving','Improving'],

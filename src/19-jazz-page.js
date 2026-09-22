@@ -296,8 +296,9 @@ function jazzExerciseHTML(id){
         ${jazzReferenceHTML(ex)}
         ${jazzHasScore(ex) ? `<div class="jz-stage-box" data-jzacc="${
             jazzFixCount(id) ? 'user_modified' : esc(ex.acc || 'verified')}">
+            ${jazzIsMultiExample(ex) ? `<div class="jz-ex-tabs" id="jzExTabs"></div>` : ''}
             <div class="jz-score" id="jzScore"></div></div>
-          ${jazzFixToolsHTML(id, ex)}`
+          ${jazzIsMultiExample(ex) ? '' : jazzFixToolsHTML(id, ex)}`
           : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
              It is a thing to do — at the instrument or on paper — and the words
              beside it are the whole of it.</div></div>`}
@@ -433,10 +434,29 @@ function bindJazzExercise(root, id){
   const plain = () => jazzScoreXml(ex, ui.key, {interval: ui.interval});
   const fixed = () => { const x = plain(); return x ? jazzApplyFixes(x, id, ui.key) : x; };
   const draw = () => { if(!jazzHasScore(ex)) return;
-    const xml = fixed();
+    const result = fixed();
     const box = root.querySelector('#jzScore');
-    if(xml) jazzEngrave(box, xml);
-    else if(box) box.innerHTML = '<div class="jz-noscore">The book names a way of writing this one out that this copy does not have.</div>'; };
+    if(!result){
+      if(box) box.innerHTML = '<div class="jz-noscore">The book names a way of writing this one out that this copy does not have.</div>';
+      return;
+    }
+    if(typeof result === 'object' && Array.isArray(result.documents)){
+      const tabs = root.querySelector('#jzExTabs');
+      if(tabs && result.documents.length){
+        const renderTab = i => {
+          [...tabs.querySelectorAll('[data-jzex]')].forEach((b,j) => b.classList.toggle('on', j===i));
+          jazzEngrave(box, result.documents[i].mxl);
+        };
+        tabs.innerHTML = result.documents.map((d,i) =>
+          `<button class="jz-ex-tab${i===0?' on':''}" data-jzex="${i}">${esc(d.subtitle)}</button>`
+        ).join('');
+        tabs.querySelectorAll('[data-jzex]').forEach((b,i) =>
+          b.onclick = () => { sound('click'); renderTab(i); });
+        renderTab(0);
+      } else if(box && result.documents.length) jazzEngrave(box, result.documents[0].mxl);
+      return;
+    }
+    jazzEngrave(box, result); };
   draw();
   bindJazzTips(root);
   bindJazzFixTools(root, id, ex, fixed);

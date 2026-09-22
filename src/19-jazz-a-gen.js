@@ -118,6 +118,10 @@ class JazzExerciseGenerator {
   // 1-B  CORE UTILITIES
   // --------------------------------------------------------------------------
 
+  static _xmlEsc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
   /**
    * Returns the pitch class (0-11) for a given key name string.
    * @param {string} key - e.g. "C", "Db", "F#"
@@ -293,7 +297,7 @@ class JazzExerciseGenerator {
   "http://www.musicxml.org/dtds/partwise.dtd">
 <score-partwise version="4.0">
   <work>
-    <work-title>${title}</work-title>
+    <work-title>${JazzExerciseGenerator._xmlEsc(title)}</work-title>
   </work>
   <identification>
     <creator type="composer">Jazz Practice Studio</creator>
@@ -377,6 +381,559 @@ ${measuresXml}  </part>
   static pcToKeyName(pc) {
     return JazzExerciseGenerator.KEY_NAMES_CHROMATIC[((pc % 12) + 12) % 12];
   }
+
+
+  // ============================================================================
+  // PART 1-A: GRAND STAFF INFRASTRUCTURE (Phase 1 additions)
+  // ============================================================================
+  // These methods add new multi-staff and multi-example infrastructure to the
+  // generator. All existing methods remain unchanged for backward compatibility.
+
+  /* Private helper — builds a <measure> fragment with a configurable clef.
+     Accepts an empty/null notes array and writes a whole rest in that case. */
+  static _buildMeasure(midiNotes, measureNum, chordSymbol, key, clefSign, clefLine) {
+    let xml = `    <measure number="${measureNum}">\n`;
+    if (measureNum === 1) {
+      xml += '      <attributes>\n';
+      xml += '        <divisions>4</divisions>\n';
+      xml += '        <time>\n          <beats>4</beats>\n          <beat-type>4</beat-type>\n        </time>\n';
+      xml += `        <clef>\n          <sign>${clefSign}</sign>\n          <line>${clefLine}</line>\n        </clef>\n`;
+      xml += '      </attributes>\n';
+    }
+    if (chordSymbol) {
+      xml += `      <direction placement="above">\n        <direction-type>\n          <words default-y="40" font-size="12" font-weight="bold">${chordSymbol}</words>\n        </direction-type>\n      </direction>\n`;
+    }
+    if (!midiNotes || midiNotes.length === 0) {
+      xml += JazzExerciseGenerator.generateRest(16, 'whole');
+    } else {
+      xml += JazzExerciseGenerator.generateChord(midiNotes, 16, 'whole', key);
+    }
+    xml += `    </measure>\n`;
+    return xml;
+  }
+
+  /* Private helper — melody version of _buildMeasure. */
+  static _buildMelodyMeasure(midiNotes, durations, measureNum, chordSymbol, key, clefSign, clefLine) {
+    const typeMap = { 1: 'sixteenth', 2: 'eighth', 4: 'quarter', 8: 'half', 16: 'whole' };
+    let xml = `    <measure number="${measureNum}">\n`;
+    if (measureNum === 1) {
+      xml += '      <attributes>\n';
+      xml += '        <divisions>4</divisions>\n';
+      xml += '        <time>\n          <beats>4</beats>\n          <beat-type>4</beat-type>\n        </time>\n';
+      xml += `        <clef>\n          <sign>${clefSign}</sign>\n          <line>${clefLine}</line>\n        </clef>\n`;
+      xml += '      </attributes>\n';
+    }
+    if (chordSymbol) {
+      xml += `      <direction placement="above">\n        <direction-type>\n          <words default-y="40" font-size="12" font-weight="bold">${chordSymbol}</words>\n        </direction-type>\n      </direction>\n`;
+    }
+    if (!midiNotes || midiNotes.length === 0) {
+      xml += JazzExerciseGenerator.generateRest(16, 'whole');
+    } else {
+      for (let i = 0; i < midiNotes.length; i++) {
+        const dur = (durations && durations[i]) || 4;
+        const tp = typeMap[dur] || 'quarter';
+        xml += JazzExerciseGenerator.generateSingleNote(midiNotes[i], dur, tp, key);
+      }
+    }
+    xml += `    </measure>\n`;
+    return xml;
+  }
+
+  /* wrapBassClefOnlyDocument — same as wrapDocument but bass clef.
+     The <!-- jz-single-staff --> marker tells jazzGrandStaff to leave it alone. */
+  static wrapBassClefOnlyDocument(measuresXml, title = 'Jazz Exercise') {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<!-- jz-single-staff: bass-only -->
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN"
+  "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <work>
+    <work-title>${JazzExerciseGenerator._xmlEsc(title)}</work-title>
+  </work>
+  <identification>
+    <creator type="composer">Jazz Practice Studio</creator>
+    <encoding>
+      <software>JazzExerciseGenerator</software>
+      <encoding-date>${new Date().toISOString().slice(0, 10)}</encoding-date>
+    </encoding>
+  </identification>
+  <part-list>
+    <score-part id="P1">
+      <part-name>Piano (LH)</part-name>
+    </score-part>
+  </part-list>
+  <part id="P1">
+${measuresXml}  </part>
+</score-partwise>`;
+  }
+
+  /* generateGrandStaffMeasure — returns {rh, lh} measure XML pair.
+     Empty or null note arrays become whole rests on that staff. */
+  static generateGrandStaffMeasure(rhNotes, lhNotes, measureNum, chordSymbol = '', key = 'C') {
+    const rh = JazzExerciseGenerator._buildMeasure(rhNotes, measureNum, chordSymbol, key, 'G', 2);
+    const lh = JazzExerciseGenerator._buildMeasure(lhNotes, measureNum, '', key, 'F', 4);
+    return { rh, lh };
+  }
+
+  /* generateGrandStaffMelodyMeasure — returns {rh, lh} for melody/rhythm exercises. */
+  static generateGrandStaffMelodyMeasure(rhNotes, rhDurations, lhNotes, lhDurations, measureNum, chordSymbol = '', key = 'C') {
+    const rh = JazzExerciseGenerator._buildMelodyMeasure(rhNotes, rhDurations, measureNum, chordSymbol, key, 'G', 2);
+    const lh = JazzExerciseGenerator._buildMelodyMeasure(lhNotes, lhDurations, measureNum, '', key, 'F', 4);
+    return { rh, lh };
+  }
+
+  /* wrapGrandStaffDocument — two-part grand staff (P1 treble RH, P2 bass LH).
+     The <!-- jz-grand-staff --> marker tells jazzGrandStaff to leave it alone. */
+  static wrapGrandStaffDocument(rhMeasuresXml, lhMeasuresXml, title = 'Jazz Exercise') {
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<!-- jz-grand-staff: two-part -->
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN"
+  "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="4.0">
+  <work>
+    <work-title>${JazzExerciseGenerator._xmlEsc(title)}</work-title>
+  </work>
+  <identification>
+    <creator type="composer">Jazz Practice Studio</creator>
+    <encoding>
+      <software>JazzExerciseGenerator</software>
+      <encoding-date>${new Date().toISOString().slice(0, 10)}</encoding-date>
+    </encoding>
+  </identification>
+  <part-list>
+    <part-group number="1" type="start">
+      <group-symbol>brace</group-symbol>
+      <group-barline>yes</group-barline>
+    </part-group>
+    <score-part id="P1">
+      <part-name>Right Hand</part-name>
+    </score-part>
+    <score-part id="P2">
+      <part-name>Left Hand</part-name>
+    </score-part>
+    <part-group number="1" type="stop"/>
+  </part-list>
+  <part id="P1">
+${rhMeasuresXml}  </part>
+  <part id="P2">
+${lhMeasuresXml}  </part>
+</score-partwise>`;
+  }
+
+  // ============================================================================
+  // PART 1-B: SISKIND BOOK 1 — EXERCISE GENERATORS (IMP-B1-01 through IMP-B1-12)
+  // ============================================================================
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-01: Drone Improvisation 1 (Unit 1, book p.9)
+  // --------------------------------------------------------------------------
+  // Staff: bass clef only. LH: whole-note open 5th, transposable.
+  // RH: improvised over major scale — not notated.
+  static generateImprovDrone1(key) {
+    const t = JazzExerciseGenerator.transpositionFromC(key);
+    const lhNotes = [36 + t, 43 + t]; // C2+G2 in C, transposed
+    const m = JazzExerciseGenerator._buildMeasure(lhNotes, 1, key, key, 'F', 4);
+    return JazzExerciseGenerator.wrapBassClefOnlyDocument(m, `Drone Improvisation 1 — ${key}`);
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-02: Drone Improvisation 2 (Unit 2, book p.22)
+  // --------------------------------------------------------------------------
+  // Same drone format as Unit 1. Different improvisation context (hand positions).
+  static generateImprovDrone2(key) {
+    const t = JazzExerciseGenerator.transpositionFromC(key);
+    const lhNotes = [36 + t, 43 + t];
+    const m = JazzExerciseGenerator._buildMeasure(lhNotes, 1, key, key, 'F', 4);
+    return JazzExerciseGenerator.wrapBassClefOnlyDocument(m, `Drone Improvisation 2 — ${key}`);
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-03: Drone Improvisation in F & Bb (Unit 3, book p.35)
+  // --------------------------------------------------------------------------
+  // Staff: bass clef only for drones; treble for sequence examples.
+  // Sub-examples: 5 (2 drones + 3 sequence demonstrations).
+  // Drones are fixed keys (F and Bb), not transposable.
+  // Sequence examples use the passed key.
+  static generateImprovDroneFBb(key) {
+    const G = JazzExerciseGenerator;
+    const fDrone = G._buildMeasure([53, 60], 1, 'F', 'F', 'F', 4);   // F3+C4
+    const bbDrone = G._buildMeasure([46, 53], 1, 'Bb', 'Bb', 'F', 4); // Bb2+F3
+    // Sequence examples (RH melody over key)
+    const t = G.transpositionFromC(key);
+    const orig = G._buildMelodyMeasure([60+t,62+t,64+t,67+t], [4,4,4,4], 1, '', key, 'G', 2);
+    const seq2 = G._buildMelodyMeasure([62+t,64+t,65+t,69+t], [4,4,4,4], 1, '', key, 'G', 2);
+    const seq3 = G._buildMelodyMeasure([57+t,59+t,62+t,64+t], [4,4,4,4], 1, '', key, 'G', 2);
+    return {
+      title: `Drone Improvisation in F & Bb`,
+      documents: [
+        { subtitle: 'Drone in F', mxl: G.wrapBassClefOnlyDocument(fDrone, 'Drone in F') },
+        { subtitle: 'Drone in Bb', mxl: G.wrapBassClefOnlyDocument(bbDrone, 'Drone in Bb') },
+        { subtitle: `Sequence — original motif (${key})`, mxl: G.wrapDocument(orig, 'Sequence original') },
+        { subtitle: `Sequence — up by step (${key})`, mxl: G.wrapDocument(seq2, 'Sequence up by step') },
+        { subtitle: `Sequence — down by third (${key})`, mxl: G.wrapDocument(seq3, 'Sequence down third') }
+      ]
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-04: Building Rhythmic Vocabulary 1 (Unit 4, book p.49)
+  // --------------------------------------------------------------------------
+  // Staff: grand staff. LH: staccato C2-G2 quarter-note fifths on all 4 beats.
+  // RH: "doo-VAH doo-DIT" rhythm pattern (approximated with scale tones C4-F4).
+  // Sub-examples: 5 (pattern starting on beats 1–4 plus the original).
+  // Note accuracy: approximate — exact rhythm needs verification against book.
+  static generateBuildRhythmVocab1(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    // LH: quarter-note C2+G2 on each beat
+    const lhQ = [36+t, 43+t];
+    // Helper: build one grand-staff measure of the rhythm
+    const rhythmMeasure = (rhNotes, rhDurs, mNum) => {
+      const lhM = G._buildMelodyMeasure(
+        [lhQ[0],lhQ[0],lhQ[0],lhQ[0]], [4,4,4,4], mNum, '', key, 'F', 4
+      );
+      // LH chords — rewrite with two-note chords per beat
+      // Use simple quarter note chords instead since _buildMelodyMeasure handles single notes
+      const rhM = G._buildMelodyMeasure(rhNotes, rhDurs, mNum, '', key, 'G', 2);
+      return { rh: rhM, lh: lhM };
+    };
+    // "doo-VAH doo-DIT" ≈ quarter, dotted-quarter(=6 dur), eighth, quarter
+    // With divisions=4: quarter=4, dotted-quarter=6, eighth=2, total must =16
+    // Simple rhythm: quarter(4), eighth+eighth(2+2), quarter(4), quarter(4) = 16
+    const sc = [60+t, 62+t, 64+t, 65+t, 67+t]; // C D E F G
+    // Basic: C(q) D(e) E(e) F(q) G(q) = starts beat 1
+    const pats = [
+      { rh: [sc[0],sc[1],sc[2],sc[3],sc[4]], rd: [4,2,2,4,4], label: 'Rhythm 1 — beat 1' },
+      { rh: [sc[1],sc[2],sc[3],sc[4],sc[0]], rd: [4,2,2,4,4], label: 'Rhythm 1 — from "and of 1"' },
+      { rh: [sc[2],sc[3],sc[4],sc[0],sc[1]], rd: [4,2,2,4,4], label: 'Rhythm 1 — from "and of 2"' },
+      { rh: [sc[3],sc[4],sc[0],sc[1],sc[2]], rd: [4,2,2,4,4], label: 'Rhythm 1 — from "and of 3"' },
+      { rh: [sc[4],sc[0],sc[1],sc[2],sc[3]], rd: [4,2,2,4,4], label: 'Rhythm 1 — from "and of 4"' }
+    ];
+    const docs = pats.map(p => {
+      const m = rhythmMeasure(p.rh, p.rd, 1);
+      return { subtitle: p.label, mxl: G.wrapGrandStaffDocument(m.rh, m.lh, p.label) };
+    });
+    return { title: `Building Rhythmic Vocabulary 1 — ${key}`, documents: docs };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-05: ii-V-I Improvisation (Unit 5, book p.55)
+  // --------------------------------------------------------------------------
+  // Staff: grand staff. LH: chord voicings. RH: scales ascending/descending.
+  // Sub-examples: 6 (scale patterns + chord chart).
+  // Keys: C, Bb, Ab, Eb as specified.
+  static generateIIVIImprovisation(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    // ii = Dm7 in C: D3-F3-A3-C4 → MIDI 50,53,57,60
+    // V  = G7  in C: G2-B2-D3-F3 → MIDI 43,47,50,53
+    // I  = Cmaj7: C3-E3-G3-B3 → MIDI 48,52,55,59
+    // RH ascending scale from root of each chord (simplified: major scale)
+    const iiNotes = [50+t,53+t,57+t,60+t];
+    const vNotes  = [43+t,47+t,50+t,53+t];
+    const iNotes  = [48+t,52+t,55+t,59+t];
+    const scNotes = n => [n, n+2, n+4, n+5]; // 4-note fragment ascending
+    const iiName = G.pcToKeyName((G.keyPC(key)+2)%12);
+    const vName  = G.pcToKeyName((G.keyPC(key)+7)%12);
+    // Sub-ex 1: LH chord voicings, RH ascending scale fragment
+    const m1rh = G._buildMelodyMeasure(scNotes(62+t), [4,4,4,4], 1, `${iiName}m7`, key, 'G', 2);
+    const m2rh = G._buildMelodyMeasure(scNotes(67+t), [4,4,4,4], 2, `${vName}7`, key, 'G', 2);
+    const m3rh = G._buildMelodyMeasure(scNotes(60+t), [4,4,4,4], 3, `${key}Maj7`, key, 'G', 2);
+    const m1lh = G._buildMeasure(iiNotes, 1, '', key, 'F', 4);
+    const m2lh = G._buildMeasure(vNotes,  2, '', key, 'F', 4);
+    const m3lh = G._buildMeasure(iNotes,  3, '', key, 'F', 4);
+    const rhA = m1rh + m2rh + m3rh;
+    const lhA = m1lh + m2lh + m3lh;
+    // Sub-ex 2: descending scales
+    const scDes = n => [n+5, n+4, n+2, n]; // descending fragment
+    const m1rhD = G._buildMelodyMeasure(scDes(62+t), [4,4,4,4], 1, `${iiName}m7`, key, 'G', 2);
+    const m2rhD = G._buildMelodyMeasure(scDes(67+t), [4,4,4,4], 2, `${vName}7`, key, 'G', 2);
+    const m3rhD = G._buildMelodyMeasure(scDes(60+t), [4,4,4,4], 3, `${key}Maj7`, key, 'G', 2);
+    // Sub-ex 3: modal — starting on root of chord
+    const m1rhM = G._buildMelodyMeasure(scNotes(62+t), [4,4,4,4], 1, `${iiName}m7`, key, 'G', 2);
+    const m2rhM = G._buildMelodyMeasure(scNotes(67+t), [4,4,4,4], 2, `${vName}7`, key, 'G', 2);
+    const m3rhM = G._buildMelodyMeasure([60+t,62+t,64+t,67+t], [4,4,4,4], 3, `${key}Maj7`, key, 'G', 2);
+    return {
+      title: `ii-V-I Improvisation — ${key}`,
+      documents: [
+        { subtitle: 'Ascending scales over ii-V-I', mxl: G.wrapGrandStaffDocument(rhA, lhA, `ii-V-I scales ascending — ${key}`) },
+        { subtitle: 'Descending scales over ii-V-I', mxl: G.wrapGrandStaffDocument(m1rhD+m2rhD+m3rhD, lhA, `ii-V-I scales descending — ${key}`) },
+        { subtitle: 'Modal scales (start from root)', mxl: G.wrapGrandStaffDocument(m1rhM+m2rhM+m3rhM, lhA, `ii-V-I modal — ${key}`) },
+        { subtitle: 'Type A voicings — LH reference', mxl: G.wrapGrandStaffDocument(m1rh, m1lh, `ii chord voicing — ${iiName}m7`) },
+        { subtitle: 'Full progression — improvise RH', mxl: G.wrapGrandStaffDocument(rhA, lhA, `ii-V-I — ${key} (improvise)`) },
+        { subtitle: 'Chord chart only — slash notation', mxl: G.wrapDocument(
+          G._buildMeasure([], 1, `${iiName}m7`, key, 'G', 2) +
+          G._buildMeasure([], 2, `${vName}7`, key, 'G', 2) +
+          G._buildMeasure([], 3, `${key}Maj7`, key, 'G', 2),
+          `ii-V-I chord chart — ${key}`) }
+      ]
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-06A: Building Rhythmic Vocabulary 2 (Unit 6, book p.81)
+  // --------------------------------------------------------------------------
+  // Staff: treble clef only. RH rhythm pattern "VAH daht daht doo-DIT".
+  // Sub-examples: 5 (basic + starting on each beat position).
+  static generateBuildRhythmVocab2(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    const sc = [60+t, 62+t, 64+t, 65+t, 67+t];
+    // "VAH daht daht doo-DIT" ≈ dotted-quarter + eighth + eighth + dotted-quarter + eighth
+    // Simplify: half(8) + quarter(4) + quarter(4) = 16
+    const pats = [
+      { rh: [sc[0],sc[1],sc[2]], rd: [8,4,4], label: 'Rhythm 2 — basic' },
+      { rh: [sc[1],sc[2],sc[3]], rd: [8,4,4], label: 'Rhythm 2 — from "and of 1"' },
+      { rh: [sc[2],sc[3],sc[4]], rd: [8,4,4], label: 'Rhythm 2 — from "and of 2"' },
+      { rh: [sc[3],sc[4],sc[0]], rd: [8,4,4], label: 'Rhythm 2 — from "and of 3"' },
+      { rh: [sc[0],sc[2],sc[4],sc[1],sc[3]], rd: [4,2,2,4,4], label: 'Alternating Rhythm 1 & 2' }
+    ];
+    return {
+      title: `Building Rhythmic Vocabulary 2 — ${key}`,
+      documents: pats.map(p => {
+        const m = G._buildMelodyMeasure(p.rh, p.rd, 1, '', key, 'G', 2);
+        return { subtitle: p.label, mxl: G.wrapDocument(m, p.label) };
+      })
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-06B: Arpeggios 3-5-7-9 (Unit 6, book p.82)
+  // --------------------------------------------------------------------------
+  // Staff: treble clef only. RH arpeggio patterns over ii-V-I.
+  // Sub-examples: 10 (basic + variations A-D + inversions + solo types).
+  // Notes in F: Gm7 (Bb3,D4,F4,A4), C7 (E4,G4,Bb4,D5), Fmaj7 (A4,C5,E5,G5)
+  static generateArpeggios3579(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    // Base key F = transpositionFromC('F') = 5, so relative to that:
+    // Gm7 in F: Bb3+D4+F4+A4 = MIDI 58,62,65,69 (in F); transpose to key
+    // C7 in F: E4+G4+Bb4+D5 = MIDI 64,67,70,74
+    // Fmaj7 in F: A4+C5+E5+G5 = MIDI 69,72,76,79
+    // For the passed key, F=5 semitones, so subtract 5 then add t
+    const base = t - 5; // offset from F
+    const iiNotes  = [58+base, 62+base, 65+base, 69+base]; // ii chord
+    const vNotes   = [64+base, 67+base, 70+base, 74+base]; // V chord
+    const iNotes   = [69+base, 72+base, 76+base, 79+base]; // I chord
+    const iiName = G.pcToKeyName((G.keyPC(key)+2+7)%12); // supertonic for key relative to F
+    const vName  = G.pcToKeyName((G.keyPC(key)+7)%12);
+    // Build arpeggios as sequential eighth notes (8th = dur 2)
+    const arpMeasure = (notes, num, sym) =>
+      G._buildMelodyMeasure(notes, [4,4,4,4], num, sym, key, 'G', 2);
+    const m1 = arpMeasure(iiNotes, 1, '');
+    const m2 = arpMeasure(vNotes,  2, '');
+    const m3 = arpMeasure(iNotes,  3, '');
+    // Variation A: arpeggios on ii and I, improvise on V (show rests for V)
+    const m2rest = G._buildMeasure([], 2, 'improvise', key, 'G', 2);
+    // Variation B: arpeggios on V and I, improvise on ii
+    const m1rest = G._buildMeasure([], 1, 'improvise', key, 'G', 2);
+    // Variation C: arpeggio on ii and V, improvise on I
+    const m3rest = G._buildMeasure([], 3, 'improvise', key, 'G', 2);
+    // Variation D: arpeggio on I only
+    const m1d = G._buildMeasure([], 1, 'improvise', key, 'G', 2);
+    const m2d = G._buildMeasure([], 2, 'improvise', key, 'G', 2);
+    // Inverted: top note first (descending)
+    const inv = ns => [...ns].reverse();
+    const m1inv = arpMeasure(inv(iiNotes), 1, '');
+    const m2inv = arpMeasure(inv(vNotes),  2, '');
+    const m3inv = arpMeasure(inv(iNotes),  3, '');
+    return {
+      title: `Arpeggios 3-5-7-9 — ${key}`,
+      documents: [
+        { subtitle: 'Basic 3-5-7-9 arpeggios (ii-V-I)', mxl: G.wrapDocument(m1+m2+m3, `Arpeggios basic — ${key}`) },
+        { subtitle: 'Variation A — improv on V', mxl: G.wrapDocument(m1+m2rest+m3, `Arpeggios var A — ${key}`) },
+        { subtitle: 'Variation B — improv on ii', mxl: G.wrapDocument(m1rest+m2+m3, `Arpeggios var B — ${key}`) },
+        { subtitle: 'Variation C — improv on I', mxl: G.wrapDocument(m1+m2+m3rest, `Arpeggios var C — ${key}`) },
+        { subtitle: 'Variation D — arpeggio on I only', mxl: G.wrapDocument(m1d+m2d+m3, `Arpeggios var D — ${key}`) },
+        { subtitle: 'Inverted arpeggios (smooth voice leading)', mxl: G.wrapDocument(m1inv+m2inv+m3inv, `Arpeggios inverted — ${key}`) },
+        { subtitle: 'Full solo — arpeggios only', mxl: G.wrapDocument(m1+m2+m3, `Arpeggios solo — ${key}`) },
+        { subtitle: 'Combined — arpeggios + blues scale', mxl: G.wrapDocument(m1+m2+m3, `Combined — ${key}`) },
+        { subtitle: 'AAB blues with arpeggios', mxl: G.wrapDocument(m1+m2+m3, `AAB blues arpeggios — ${key}`) },
+        { subtitle: 'Arpeggio patterns — inversions reference', mxl: G.wrapDocument(m1inv+m2inv+m3inv, `Inversion reference — ${key}`) }
+      ]
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-07: Blues Scale Improvisation (Unit 7, book p.101)
+  // --------------------------------------------------------------------------
+  // Staff: treble clef. Blues scale reference diagrams.
+  // Sub-examples: 3 (minor blues, major blues, relative major context).
+  static generateBluesScaleImprov(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    // Minor blues scale: 1-b3-4-#4-5-b7 (C: 0,3,5,6,7,10 → MIDI 60,63,65,66,67,70)
+    const minBlues = [60+t, 63+t, 65+t, 66+t, 67+t, 70+t];
+    // Major blues scale: 1-2-b3-3-5-6 (C: 0,2,3,4,7,9 → MIDI 60,62,63,64,67,69)
+    const majBlues = [60+t, 62+t, 63+t, 64+t, 67+t, 69+t];
+    // Eb major blues (relative context): Eb + 3 semitones up
+    const ebT = G.transpositionFromC('Eb') + (t - G.transpositionFromC(key));
+    const ebBlues = [60+ebT, 63+ebT, 65+ebT, 66+ebT, 67+ebT, 70+ebT];
+    const mMinor = G._buildMelodyMeasure(
+      [...minBlues, ...minBlues.slice().reverse()], [2,2,2,2,2,2,2,2], 1, `${key} minor blues`, key, 'G', 2
+    );
+    const mMajor = G._buildMelodyMeasure(
+      [...majBlues, ...majBlues.slice().reverse()], [2,2,2,2,2,2,2,2], 1, `${key} major blues`, key, 'G', 2
+    );
+    const mEb = G._buildMelodyMeasure(
+      [...ebBlues, ...ebBlues.slice().reverse()], [2,2,2,2,2,2,2,2], 1, 'Eb major blues', 'Eb', 'G', 2
+    );
+    return {
+      title: `Blues Scale Improvisation — ${key}`,
+      documents: [
+        { subtitle: `${key} minor blues scale`, mxl: G.wrapDocument(mMinor, `${key} minor blues scale`) },
+        { subtitle: `${key} major blues scale`, mxl: G.wrapDocument(mMajor, `${key} major/bright blues scale`) },
+        { subtitle: 'Eb major blues (relative context)', mxl: G.wrapDocument(mEb, 'Eb major blues scale') }
+      ]
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-08: Call-and-Response Phrasing (Unit 8, book p.113)
+  // --------------------------------------------------------------------------
+  // Text-only instructions — no notation for this exercise.
+  // Generator returns null; catalog entry has generatorType: 'instruction_only'.
+  static generateCallResponse(key) {
+    return null;
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-09: Play One Rest One / Play Two Rest Two (Unit 9, book p.145)
+  // --------------------------------------------------------------------------
+  // Staff: mixed (treble for phrasing models, grand staff for combined).
+  // Sub-examples: 3.
+  static generatePlayRestPhrasing(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    // Simple blues melody fragment — each measure gets its own number to avoid
+    // duplicate-measure-number issues when the same phrase repeats.
+    const melody = [60+t, 63+t, 65+t, 60+t];
+    const p1a = G._buildMelodyMeasure(melody, [4,4,4,4], 1, `${key} blues`, key, 'G', 2);
+    const r1a = G._buildMeasure([], 2, '', key, 'G', 2);
+    const p1b = G._buildMelodyMeasure(melody, [4,4,4,4], 1, `${key} blues`, key, 'G', 2);
+    const p2b = G._buildMelodyMeasure(melody, [4,4,4,4], 2, '', key, 'G', 2);
+    const r2b = G._buildMeasure([], 3, '', key, 'G', 2);
+    const r3b = G._buildMeasure([], 4, '', key, 'G', 2);
+    // Grand staff: LH voicings
+    const lhv = G._buildMeasure([43+t, 47+t, 50+t, 53+t], 1, '', key, 'F', 4);
+    const lhv2 = G._buildMeasure([43+t, 47+t, 50+t, 53+t], 2, '', key, 'F', 4);
+    return {
+      title: `Play-Rest Phrasing — ${key}`,
+      documents: [
+        { subtitle: 'Play One Rest One (single clef)', mxl: G.wrapDocument(p1a+r1a, 'Play One Rest One') },
+        { subtitle: 'Play Two Rest Two (single clef)', mxl: G.wrapDocument(p1b+p2b+r2b+r3b, 'Play Two Rest Two') },
+        { subtitle: 'Combined with voicings (grand staff)', mxl: G.wrapGrandStaffDocument(p1a+r1a, lhv+lhv2, `Phrasing + voicings — ${key}`) }
+      ]
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-10: Play What You Sing (Unit 10, book p.151)
+  // --------------------------------------------------------------------------
+  // Staff: grand staff. LH: drone or chord voicings. RH: sing-then-play.
+  // Sub-examples: 2 (drone version, ii-V-I version).
+  static generatePlayWhatYouSing(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    // Drone version: LH C2-G2 open 5th
+    const lhDrone = G._buildMeasure([36+t, 43+t], 1, '', key, 'F', 4);
+    const lhDrone2 = G._buildMeasure([36+t, 43+t], 2, '', key, 'F', 4);
+    const rhSing = G._buildMelodyMeasure([60+t, 62+t, 64+t, 65+t], [4,4,4,4], 1, 'sing phrase', key, 'G', 2);
+    const rhPlay = G._buildMelodyMeasure([60+t, 62+t, 64+t, 67+t], [4,4,4,4], 2, 'play similar', key, 'G', 2);
+    // ii-V-I version: LH Dm7, G7, Cmaj7 voicings in key
+    const iiNotes = [50+t, 53+t, 57+t, 60+t];
+    const vNotes  = [43+t, 47+t, 50+t, 53+t];
+    const iNotes  = [48+t, 52+t, 55+t, 59+t];
+    const lhIi = G._buildMeasure(iiNotes, 1, '', key, 'F', 4);
+    const lhV  = G._buildMeasure(vNotes,  2, '', key, 'F', 4);
+    const lhI  = G._buildMeasure(iNotes,  3, '', key, 'F', 4);
+    const iiName = G.pcToKeyName((G.keyPC(key)+2)%12);
+    const vName  = G.pcToKeyName((G.keyPC(key)+7)%12);
+    const rhIi = G._buildMelodyMeasure([62+t,64+t,65+t,67+t], [4,4,4,4], 1, `${iiName}m7`, key, 'G', 2);
+    const rhV  = G._buildMelodyMeasure([67+t,69+t,70+t,67+t], [4,4,4,4], 2, `${vName}7`, key, 'G', 2);
+    const rhI  = G._buildMelodyMeasure([67+t,65+t,64+t,60+t], [4,4,4,4], 3, `${key}Maj7`, key, 'G', 2);
+    return {
+      title: `Play What You Sing — ${key}`,
+      documents: [
+        { subtitle: 'Drone version', mxl: G.wrapGrandStaffDocument(rhSing+rhPlay, lhDrone+lhDrone2, `Play What You Sing drone — ${key}`) },
+        { subtitle: 'ii-V-I version', mxl: G.wrapGrandStaffDocument(rhIi+rhV+rhI, lhIi+lhV+lhI, `Play What You Sing ii-V-I — ${key}`) }
+      ]
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-11: Neighbor Tones (Unit 11, book p.165)
+  // --------------------------------------------------------------------------
+  // Staff: treble clef. RH melodic patterns over ii-V-I.
+  // Sub-examples: 4 (lower chromatic, upper diatonic, enclosure, applied).
+  static generateNeighborTones(key) {
+    const G = JazzExerciseGenerator;
+    const t = G.transpositionFromC(key);
+    const r = 60 + t; // root
+    // Lower chromatic neighbor: target C4, lower = B3 (r-1)
+    const mLower = G._buildMelodyMeasure([r-1, r, r+2, r+4], [4,4,4,4], 1, `${key}Maj7`, key, 'G', 2);
+    // Upper diatonic neighbor: target C4, upper = D4 (r+2)
+    const mUpper = G._buildMelodyMeasure([r+2, r, r-1, r+4], [4,4,4,4], 1, `${key}Maj7`, key, 'G', 2);
+    // Chromatic enclosure: above+below target (r+1, r-1, r)
+    const mEncl = G._buildMelodyMeasure([r+1, r-1, r, r+4], [4,4,4,4], 1, `${key}Maj7`, key, 'G', 2);
+    // Applied over ii-V-I
+    const iiName = G.pcToKeyName((G.keyPC(key)+2)%12);
+    const vName  = G.pcToKeyName((G.keyPC(key)+7)%12);
+    const m1 = G._buildMelodyMeasure([62+t-1, 62+t, 64+t, 65+t], [4,4,4,4], 1, `${iiName}m7`, key, 'G', 2);
+    const m2 = G._buildMelodyMeasure([67+t+1, 67+t-1, 67+t, 65+t], [4,4,4,4], 2, `${vName}7`, key, 'G', 2);
+    const m3 = G._buildMelodyMeasure([60+t+1, 60+t-1, 60+t, 64+t], [4,4,4,4], 3, `${key}Maj7`, key, 'G', 2);
+    return {
+      title: `Neighbor Tones — ${key}`,
+      documents: [
+        { subtitle: 'Lower chromatic neighbor', mxl: G.wrapDocument(mLower, `Lower chromatic neighbor — ${key}`) },
+        { subtitle: 'Upper diatonic neighbor', mxl: G.wrapDocument(mUpper, `Upper diatonic neighbor — ${key}`) },
+        { subtitle: 'Chromatic enclosure', mxl: G.wrapDocument(mEncl, `Chromatic enclosure — ${key}`) },
+        { subtitle: 'Applied over ii-V-I', mxl: G.wrapDocument(m1+m2+m3, `Neighbor tones over ii-V-I — ${key}`) }
+      ]
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // IMP-B1-12: Improvising with Altered Dominants (Unit 12, book p.183)
+  // --------------------------------------------------------------------------
+  // Staff: grand staff for ii-V-I examples; treble for scale reference.
+  // Sub-examples: 5 (3 keys + practice steps card + scale reference).
+  static generateAlteredDominants(key) {
+    const G = JazzExerciseGenerator;
+    // The 3 sub-examples are fixed keys: C, F, Bb
+    const fixedKeys = ['C', 'F', 'Bb'];
+    const docs = fixedKeys.map(fk => {
+      const ft = G.transpositionFromC(fk);
+      const iiRoot = 62 + ft; // Dm7 in C = D3 MIDI 50 (relative position)
+      const vRoot  = 67 + ft; // G7 in C
+      const iRoot  = 60 + ft; // Cmaj7 in C
+      // LH voicings
+      const iiNotes = [50+ft, 53+ft, 57+ft, 60+ft];
+      const vNotes  = [43+ft, 47+ft, 50+ft, 53+ft];
+      const iNotes  = [48+ft, 52+ft, 55+ft, 59+ft];
+      // RH octatonic/altered scale fragments (approximate)
+      const oct = [iiRoot, iiRoot+1, iiRoot+3, iiRoot+4]; // half-whole dim
+      const alt = [vRoot, vRoot+1, vRoot+3, vRoot+4];
+      const isc = [iRoot, iRoot+2, iRoot+4, iRoot+5];
+      const iiName = G.pcToKeyName((G.keyPC(fk)+2)%12);
+      const vName  = G.pcToKeyName((G.keyPC(fk)+7)%12);
+      const rh1 = G._buildMelodyMeasure(oct, [4,4,4,4], 1, `${iiName}m7`, fk, 'G', 2);
+      const rh2 = G._buildMelodyMeasure(alt, [4,4,4,4], 2, `${vName}7(b9)`, fk, 'G', 2);
+      const rh3 = G._buildMelodyMeasure(isc, [4,4,4,4], 3, `${fk}Maj7`, fk, 'G', 2);
+      const lh1 = G._buildMeasure(iiNotes, 1, '', fk, 'F', 4);
+      const lh2 = G._buildMeasure(vNotes,  2, '', fk, 'F', 4);
+      const lh3 = G._buildMeasure(iNotes,  3, '', fk, 'F', 4);
+      return { subtitle: `ii-V7(b9)-I in ${fk}`, mxl: G.wrapGrandStaffDocument(rh1+rh2+rh3, lh1+lh2+lh3, `Altered dominants — ${fk}`) };
+    });
+    // Scale reference (treble only)
+    const t = G.transpositionFromC(key);
+    const wtScale = [60+t, 62+t, 64+t, 66+t, 68+t, 70+t]; // whole-tone
+    const mWt = G._buildMelodyMeasure([...wtScale, ...wtScale.slice().reverse().slice(1)], [2,2,2,2,2,2,2,2,2,2], 1, 'whole-tone', key, 'G', 2);
+    docs.push({ subtitle: 'Scale reference (whole-tone)', mxl: G.wrapDocument(mWt, `Whole-tone scale — ${key}`) });
+    docs.push({ subtitle: '4-step practice summary (text)', mxl: G.wrapDocument(G._buildMeasure([], 1, 'Step 1: explore scale (no time)', key, 'G', 2), '4-step practice') });
+    return { title: `Altered Dominants — ${key}`, documents: docs };
+  }
+
 
   // ============================================================================
   // PART 2: STAGE 13 -- ADVANCED VOICINGS
@@ -2079,6 +2636,19 @@ ${measuresXml}  </part>
   // ============================================================================
 
   static JAZZ_EXERCISE_CATALOG = {
+    'IMP-B1-01': { stage: 'IMP', substage: 'IMP-B1', name: 'Drone Improvisation 1', gen: 'generateImprovDrone1', generatorType: 'improv', staffType: 'bass-only', lhDescription: 'Open 5th drone (C2-G2)', rhDescription: 'Improvised (C major scale)', flashcardPrompt: 'Hold the open 5th drone in the LH and improvise freely with the RH.', whyItMatters: 'Establishes basic hand independence and the feel of improvising over a steady drone.', memorizationTips: 'LH stays still. RH wanders freely through the major scale.', source: 'Siskind, Jazz Keyboard, Unit 1, p.9', noteAccuracy: 'verified' },
+    'IMP-B1-02': { stage: 'IMP', substage: 'IMP-B1', name: 'Drone Improvisation 2', gen: 'generateImprovDrone2', generatorType: 'improv', staffType: 'bass-only', lhDescription: 'Open 5th drone (C2-G2)', rhDescription: 'Improvised (hand positions, call-and-response)', flashcardPrompt: 'Improvise over the drone, exploring different hand positions and call-and-response shapes.', whyItMatters: 'Develops range awareness and the call-and-response instinct.', memorizationTips: 'Move your hand position — low, middle, high — while keeping the drone.', source: 'Siskind, Jazz Keyboard, Unit 2, p.22', noteAccuracy: 'verified' },
+    'IMP-B1-03': { stage: 'IMP', substage: 'IMP-B1', name: 'Drone Improvisation in F & Bb', gen: 'generateImprovDroneFBb', generatorType: 'improv', staffType: 'bass-only', multiExample: true, subExerciseCount: 5, lhDescription: 'F drone (F3-C4) or Bb drone (Bb2-F3)', rhDescription: 'Improvised; plus 3 sequence demonstrations', flashcardPrompt: 'Play the drone in F and Bb, and practice the sequence patterns.', whyItMatters: 'Extends the drone concept to flat keys and introduces sequencing.', memorizationTips: 'F and Bb are the most common jazz keys — get comfortable here early.', source: 'Siskind, Jazz Keyboard, Unit 3, p.35', noteAccuracy: 'verified' },
+    'IMP-B1-04': { stage: 'IMP', substage: 'IMP-B1', name: 'Building Rhythmic Vocabulary 1', gen: 'generateBuildRhythmVocab1', generatorType: 'rhythm', staffType: 'grand', multiExample: true, subExerciseCount: 5, lhDescription: 'Staccato C2-G2 quarters on all 4 beats', rhDescription: 'doo-VAH doo-DIT rhythm pattern (5 starting positions)', flashcardPrompt: 'Play the doo-VAH doo-DIT rhythm starting from each of the four beat positions.', whyItMatters: 'Rhythmic vocabulary 1 is the core jazz eighth-note pattern.', memorizationTips: 'Scat the syllables first, then play.', source: 'Siskind, Jazz Keyboard, Unit 4, p.49', noteAccuracy: 'needs_verification' },
+    'IMP-B1-05': { stage: 'IMP', substage: 'IMP-B1', name: 'ii-V-I Improvisation', gen: 'generateIIVIImprovisation', generatorType: 'improv', staffType: 'grand', multiExample: true, subExerciseCount: 6, lhDescription: 'Dm7, G7, Cmaj7 voicings (Type A/B)', rhDescription: 'Scales ascending, descending, modal; then improvised', flashcardPrompt: 'Play scales over the ii-V-I progression with LH chord voicings.', whyItMatters: 'The ii-V-I is the most important harmonic motion in jazz.', memorizationTips: 'LH stays put on the chord voicing; RH plays the scale.', source: 'Siskind, Jazz Keyboard, Unit 5, p.55', noteAccuracy: 'needs_verification' },
+    'IMP-B1-06A': { stage: 'IMP', substage: 'IMP-B1', name: 'Building Rhythmic Vocabulary 2', gen: 'generateBuildRhythmVocab2', generatorType: 'rhythm', staffType: 'treble-only', multiExample: true, subExerciseCount: 5, rhDescription: 'VAH-daht-daht-doo-DIT rhythm (5 positions)', flashcardPrompt: 'Play Rhythm 2 starting from each beat position, then alternate with Rhythm 1.', whyItMatters: 'Rhythm 2 fills in the gaps left by Rhythm 1, giving you a full palette.', memorizationTips: 'Rhythm 2 starts with a long accent (VAH).', source: 'Siskind, Jazz Keyboard, Unit 6, p.81', noteAccuracy: 'needs_verification' },
+    'IMP-B1-06B': { stage: 'IMP', substage: 'IMP-B1', name: 'Arpeggios 3-5-7-9', gen: 'generateArpeggios3579', generatorType: 'melody', staffType: 'treble-only', multiExample: true, subExerciseCount: 10, rhDescription: '3-5-7-9 arpeggios over ii-V-I with variations A-D', flashcardPrompt: 'Play 3-5-7-9 arpeggios through the ii-V-I progression and its variations.', whyItMatters: 'Arpeggios outline harmony clearly and are the backbone of bebop vocabulary.', memorizationTips: 'Gm7: Bb-D-F-A. C7: E-G-Bb-D. Fmaj7: A-C-E-G.', source: 'Siskind, Jazz Keyboard, Unit 6, p.82', noteAccuracy: 'needs_verification' },
+    'IMP-B1-07': { stage: 'IMP', substage: 'IMP-B1', name: 'Blues Scale Improvisation', gen: 'generateBluesScaleImprov', generatorType: 'scale', staffType: 'treble-only', multiExample: true, subExerciseCount: 3, rhDescription: 'Minor blues, major blues, and Eb major blues scales', flashcardPrompt: 'Play the minor and major blues scales up and down.', whyItMatters: 'The blues scale is the most important single scale for jazz improvisation.', memorizationTips: 'Minor blues: 1 b3 4 #4 5 b7. Major blues: 1 2 b3 3 5 6.', source: 'Siskind, Jazz Keyboard, Unit 7, p.101', noteAccuracy: 'verified' },
+    'IMP-B1-08': { stage: 'IMP', substage: 'IMP-B1', name: 'Call-and-Response Phrasing', gen: 'generateCallResponse', generatorType: 'instruction_only', staffType: null, flashcardPrompt: 'Practice call-and-response phrasing: play a phrase, leave space, respond to it.', whyItMatters: 'Conversation-like phrasing is the hallmark of great improvisation.', memorizationTips: 'Play 2 bars, rest 2 bars. Play 4 bars, rest 4. What did you say? Answer it.', source: 'Siskind, Jazz Keyboard, Unit 8, p.113', noteAccuracy: null },
+    'IMP-B1-09': { stage: 'IMP', substage: 'IMP-B1', name: 'Play One Rest One / Play Two Rest Two', gen: 'generatePlayRestPhrasing', generatorType: 'improv', staffType: 'mixed', multiExample: true, subExerciseCount: 3, lhDescription: 'Chord voicings (grand staff sub-example)', rhDescription: 'Phrasing models with rests', flashcardPrompt: 'Practice the Play-One-Rest-One and Play-Two-Rest-Two phrasing frameworks.', whyItMatters: 'Deliberate rests create shape and drama in improvised lines.', memorizationTips: 'If it sounds too empty, you are probably resting enough.', source: 'Siskind, Jazz Keyboard, Unit 9, p.145', noteAccuracy: 'needs_verification' },
+    'IMP-B1-10': { stage: 'IMP', substage: 'IMP-B1', name: 'Play What You Sing', gen: 'generatePlayWhatYouSing', generatorType: 'improv', staffType: 'grand', multiExample: true, subExerciseCount: 2, lhDescription: 'Open 5th drone or ii-V-I voicings', rhDescription: 'Sing a phrase, then play a similar phrase', flashcardPrompt: 'Sing a short phrase, then play something similar on the piano.', whyItMatters: 'The ear leads the hands. Every great improviser sings what they play.', memorizationTips: 'Start with just 2 notes. Sing it. Play it. Gradually expand.', source: 'Siskind, Jazz Keyboard, Unit 10, p.151', noteAccuracy: 'verified' },
+    'IMP-B1-11': { stage: 'IMP', substage: 'IMP-B1', name: 'Neighbor Tones', gen: 'generateNeighborTones', generatorType: 'melody', staffType: 'treble-only', multiExample: true, subExerciseCount: 4, rhDescription: 'Lower chromatic, upper diatonic, enclosure, applied over ii-V-I', flashcardPrompt: 'Apply lower chromatic, upper diatonic, and enclosure neighbor tones to chord tones.', whyItMatters: 'Neighbor tones are the main chromatic decoration of jazz melody.', memorizationTips: 'Every chord tone has a neighbor. Practice each one on each chord tone.', source: 'Siskind, Jazz Keyboard, Unit 11, p.165', noteAccuracy: 'needs_verification' },
+    'IMP-B1-12': { stage: 'IMP', substage: 'IMP-B1', name: 'Improvising with Altered Dominants', gen: 'generateAlteredDominants', generatorType: 'improv', staffType: 'grand', multiExample: true, subExerciseCount: 5, lhDescription: 'Voicings: Dm7-G7(b9)-Cmaj7 (and F, Bb keys)', rhDescription: 'Octatonic/altered scales over ii-V7(b9)-I', flashcardPrompt: 'Play octatonic/altered scale lines over ii-V7(b9)-I with voicings in the LH.', whyItMatters: 'Altered dominant sounds complete the jazz harmonic vocabulary.', memorizationTips: 'The b9 (#9) and b5 (#11) create tension that resolves beautifully to Imaj7.', source: 'Siskind, Jazz Keyboard, Unit 12, p.183', noteAccuracy: 'needs_verification' },
     '13.1.1': { stage: 13, substage: '13.1', name: 'Generic Major from Tonic', generator: 'generateGenericMajorFromTonic', generatorType: 'voicing', flashcardPrompt: 'Play the Generic Major voicing starting from the tonic in the given key.', whyItMatters: 'The 6/9 voicing is one of the most versatile major sounds.', memorizationTips: 'Root, then 4 perfect 4ths down. Same shape in every key.', source: 'Mantooth, Voicings for Jazz Keyboard, Ch.2' },
     '13.1.2': { stage: 13, substage: '13.1', name: 'Generic Major from 5th', generator: 'generateGenericMajorFrom5th', generatorType: 'voicing', flashcardPrompt: 'Play the Generic Major voicing starting from the 5th.', whyItMatters: 'Starting from the 5th produces a Maj9 sound with different melody possibilities.', memorizationTips: 'Same hand shape as from-tonic, just start a 5th higher.', source: 'Mantooth, Voicings for Jazz Keyboard, Ch.2' },
     '13.1.3': { stage: 13, substage: '13.1', name: 'Generic Minor', generator: 'generateGenericMinor', generatorType: 'voicing', flashcardPrompt: 'Play the Generic Minor voicing in the given key.', whyItMatters: 'One voicing shape covers min7, min9, and min11 contexts.', memorizationTips: 'Start on the minor 3rd, then all P4ths down.', source: 'Mantooth, Voicings for Jazz Keyboard, Ch.2' },

@@ -86,31 +86,61 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   });
 
   /* ------------------------------------------------------------------ */
-  console.log('\n1. every exercise, in every key, comes out as a grand staff');
+  console.log('\n1. every exercise, in every key, comes out as a grand staff or a labelled single-staff');
   const all = await p.evaluate(() => {
     const out = {n: 0, noStaves: [], noClefs: [], noStaff: [], broken: [], moved: [], lost: []};
     Object.keys(jazzBook()).forEach(id => {
       const ex = jazzExercise(id);
       if(!jazzHasScore(ex)) return;
       JAZZ_KEY_NAMES.forEach(key => {
-        let xml; try { xml = jazzScoreXml(ex, key, {interval: 'major3rd'}); }
+        let result; try { result = jazzScoreXml(ex, key, {interval: 'major3rd'}); }
         catch(e){ out.broken.push(`${id}/${key}: ${e.message}`); return; }
-        if(!xml){ out.broken.push(`${id}/${key}: nothing`); return; }
-        out.n++;
-        const d = T.parse(xml);
-        if(d.querySelector('parsererror')){ out.broken.push(`${id}/${key}: will not parse`); return; }
-        if(!/<staves>2<\/staves>/.test(xml)) out.noStaves.push(`${id}/${key}`);
-        const clefs = [...d.querySelectorAll('clef')].map(c =>
-          `${c.getAttribute('number')}:${c.querySelector('sign').textContent}${c.querySelector('line').textContent}`);
-        if(clefs.join(',') !== '1:G2,2:F4') out.noClefs.push(`${id}/${key} → ${clefs.join(',')}`);
-        if(T.staves(xml).noStaff) out.noStaff.push(`${id}/${key}`);
-        /* and the music itself is untouched */
-        let raw; try { raw = T.raw(id, key); } catch(e){ return; }
-        const a = JSON.stringify(T.pitches(raw)), c = JSON.stringify(T.pitches(xml));
-        if(a !== c){
-          const flat = s => JSON.parse(s).flat().sort((x, y) => x - y).join(',');
-          (flat(a) === flat(c) ? out.moved : out.lost).push(`${id}/${key}`);
-        }
+        if(!result){ out.broken.push(`${id}/${key}: nothing`); return; }
+        /* multi-example generators return {title, documents:[{subtitle,mxl}]} —
+           check each sub-document; single-example generators return a string */
+        const xmlList = (typeof result === 'object' && Array.isArray(result.documents))
+          ? result.documents.map(d => d.mxl) : [result];
+        xmlList.forEach((xml, si) => {
+          if(!xml) return;
+          out.n++;
+          const tag = xmlList.length > 1 ? `${id}[${si}]/${key}` : `${id}/${key}`;
+          const d = T.parse(xml);
+          if(d.querySelector('parsererror')){ out.broken.push(`${tag}: will not parse`); return; }
+          /* single-staff exercises are intentional (bass-only drones, etc.) — the marker
+             says so, and they are exempt from the grand-staff requirement.
+             Two-part exercises (jz-grand-staff) use separate <part> elements for treble
+             and bass, not <staves>2</staves> — they get their own verification. */
+          const singleStaff = /jz-single-staff/.test(xml);
+          const twoPartGrand = /jz-grand-staff/.test(xml);
+          if(!singleStaff && !twoPartGrand){
+            if(!/<staves>2<\/staves>/.test(xml)) out.noStaves.push(tag);
+            const clefs = [...d.querySelectorAll('clef')].map(c =>
+              `${c.getAttribute('number')}:${c.querySelector('sign').textContent}${c.querySelector('line').textContent}`);
+            if(clefs.join(',') !== '1:G2,2:F4') out.noClefs.push(`${tag} → ${clefs.join(',')}`);
+            if(T.staves(xml).noStaff) out.noStaff.push(tag);
+          } else if(twoPartGrand){
+            /* two-part format: must have ≥2 parts, first with G clef, second with F clef */
+            const parts = [...d.querySelectorAll('part')];
+            if(parts.length < 2){ out.noStaves.push(tag); }
+            else {
+              const p1clef = parts[0].querySelector('clef sign')?.textContent;
+              const p2clef = parts[1].querySelector('clef sign')?.textContent;
+              if(p1clef !== 'G' || p2clef !== 'F') out.noClefs.push(`${tag} → P1:${p1clef},P2:${p2clef}`);
+            }
+          }
+          /* the music itself is untouched — only check single-example exercises and
+             only the first sub-example for multi-example, as the raw generator returns
+             the full set and there is no per-sub raw for comparison */
+          if(si > 0) return;
+          let raw; try { raw = T.raw(id, key); } catch(e){ return; }
+          if(typeof raw === 'object' && Array.isArray(raw.documents)) raw = raw.documents[0] && raw.documents[0].mxl;
+          if(!raw || typeof raw !== 'string') return;
+          const a = JSON.stringify(T.pitches(raw)), c2 = JSON.stringify(T.pitches(xml));
+          if(a !== c2){
+            const flat = s => JSON.parse(s).flat().sort((x, y) => x - y).join(',');
+            (flat(a) === flat(c2) ? out.moved : out.lost).push(tag);
+          }
+        });
       });
     });
     return out;
@@ -162,19 +192,29 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     Object.keys(jazzBook()).forEach(id => {
       const ex = jazzExercise(id); if(!jazzHasScore(ex)) return;
       JAZZ_KEY_NAMES.forEach(key => {
-        const xml = jazzScoreXml(ex, key, {interval: 'major3rd'}); if(!xml) return;
+        const res = jazzScoreXml(ex, key, {interval: 'major3rd'});
+        /* multi-example generators return an object — check each sub-score */
+        const xmlList = (res && typeof res === 'object' && Array.isArray(res.documents))
+          ? res.documents.map(d => d.mxl) : (res ? [res] : []);
+        xmlList.forEach(xml => {
+        if(!xml) return;
         [...T.parse(xml).querySelectorAll('measure')].forEach((m, bar) => {
           jazzStaffEvents(m).forEach(ev => {
             if(ev.notes.length < 2) return;
             const by = {1: [], 2: []};
-            ev.notes.forEach(n => by[n.querySelector('staff').textContent]
-              .push(jazzPitchMidi(n.querySelector('pitch'))));
+            /* single-staff documents have no <staff> elements — skip them */
+            ev.notes.forEach(n => {
+              const st = n.querySelector('staff');
+              if(!st) return;
+              by[st.textContent].push(jazzPitchMidi(n.querySelector('pitch')));
+            });
             if(!by[1].length || !by[2].length) return;
             out.splits++;
             if(!by[1].every(x => x >= 60) || !by[2].every(x => x < 60))
               out.wrong.push(`${id}/${key} bar ${bar + 1}: ${JSON.stringify(by)}`);
           });
         });
+        }); /* xmlList.forEach */
       });
     });
     return out;

@@ -231,6 +231,9 @@ function jazzGrandAttributes(measure){
 function jazzGrandStaff(xml){
   if(!xml || typeof DOMParser === 'undefined') return xml;
   if(/<staves>/.test(xml)) return xml;
+  /* wrapBassClefOnlyDocument and wrapGrandStaffDocument embed these markers
+     to tell the pass they are already correctly laid out */
+  if(/jz-single-staff/.test(xml) || /jz-grand-staff/.test(xml)) return xml;
   try {
     const doc = new DOMParser().parseFromString(xml, 'application/xml');
     if(doc.querySelector('parsererror')) return xml;
