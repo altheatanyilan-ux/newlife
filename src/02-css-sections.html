@@ -1963,6 +1963,57 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-cto{color:var(--muted);font-size:2.2rem}
 @media (max-width:640px){.jz-cto{font-size:1.7rem}}
 
+/* ---- Unit Assignments ---- */
+.jz-unbook{margin-bottom:28px}
+.jz-unbook-head{font-family:var(--serif);font-size:1.05rem;margin:0 0 10px;
+  border-bottom:1px solid var(--line);padding-bottom:6px;color:var(--text)}
+.jz-unlist{display:flex;flex-direction:column;gap:6px}
+.jz-uncard{display:flex;align-items:center;gap:10px;padding:9px 12px;
+  border:1px solid var(--line);border-radius:10px;cursor:pointer;
+  background:var(--card);transition:border-color .15s}
+.jz-uncard:hover{border-color:var(--page-accent)}
+.jz-uncard.current{border-color:color-mix(in srgb,var(--page-accent) 70%,transparent);
+  background:color-mix(in srgb,var(--page-accent) 6%,var(--card))}
+.jz-uncard-id{font-family:var(--mono);font-size:.62rem;color:var(--faint);
+  letter-spacing:.06em;min-width:44px}
+.jz-uncard-name{flex:1;font-size:.88rem}
+.jz-uncard-prog{font-family:var(--mono);font-size:.7rem;color:var(--muted);white-space:nowrap}
+.jz-unit-prog-bar{height:3px;border-radius:2px;background:var(--line);overflow:hidden;
+  margin-top:4px}
+.jz-unit-prog-bar i{display:block;height:100%;background:var(--page-accent);border-radius:2px}
+.jz-unit-assignments{margin-top:16px;display:flex;flex-direction:column;gap:6px}
+.jz-ua{display:flex;align-items:flex-start;gap:9px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:10px;cursor:pointer;
+  background:var(--card);transition:background .15s,border-color .15s}
+.jz-ua:hover{border-color:var(--page-accent)}
+.jz-ua.done{background:color-mix(in srgb,var(--page-accent) 5%,var(--card));
+  border-color:color-mix(in srgb,var(--page-accent) 30%,var(--line))}
+.jz-ua-check{flex:0 0 auto;margin-top:2px;accent-color:var(--page-accent)}
+.jz-ua-body{flex:1;min-width:0}
+.jz-ua-meta{display:flex;flex-wrap:wrap;gap:5px 8px;margin-bottom:4px}
+.jz-ua-part{font-family:var(--mono);font-size:.57rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--page-accent);opacity:.8}
+.jz-ua-cat{font-family:var(--mono);font-size:.57rem;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line);
+  border-radius:20px;padding:1px 7px}
+.jz-ua-min{font-family:var(--mono);font-size:.57rem;color:var(--faint)}
+.jz-ua-text{font-size:.85rem;line-height:1.55;color:var(--text)}
+.jz-ua.done .jz-ua-text{color:var(--muted);text-decoration:line-through;
+  text-decoration-color:color-mix(in srgb,var(--page-accent) 50%,transparent)}
+.jz-unit-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+/* unit summary widget on the plan page */
+.jz-unit-summary{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.jz-unit-summary-head{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.jz-unit-row{display:flex;align-items:center;gap:8px;padding:6px 0;
+  border-top:1px dashed color-mix(in srgb,var(--line) 50%,transparent)}
+.jz-unit-row:first-of-type{border-top:0}
+.jz-unit-row-name{flex:1;font-size:.86rem}
+.jz-unit-current-badge{font-family:var(--mono);font-size:.54rem;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--page-accent);border:1px solid var(--page-accent);
+  border-radius:20px;padding:1px 7px;opacity:.8}
+.jz-unit-row-prog{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+
 /* ---- Listening Library ---- */
 .jl-quote{border-left:3px solid var(--page-accent);padding:8px 12px;margin:14px 0;
   color:var(--muted);font-style:italic;font-size:.88rem;display:flex;flex-direction:column;gap:4px}

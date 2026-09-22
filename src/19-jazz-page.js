@@ -89,6 +89,11 @@ routes.jazz = function(root, params){
     root.innerHTML = `<div class="page jz-page">${jazzImprovHTML()}</div>`;
     bindJazzImprov(root); return;
   }
+  if(want === 'units'){
+    const activeUnitId = (params && params[1]) ? params[1] : (jazzUi()._unitId || null);
+    root.innerHTML = `<div class="page jz-page">${jazzUnitsHTML(activeUnitId)}</div>`;
+    bindJazzUnits(root); return;
+  }
   /* The address decides which of the two views this is, and nothing else.
      It used to only ever SET the open exercise from the address and never
      clear it, so #/jazz with no exercise in it fell through to whichever one
@@ -186,6 +191,7 @@ function jazzRoadHTML(){
       <button class="btn sm ghost" id="jzAllTips">\u{1f3c6} Golden tips</button>
       <button class="btn sm ghost" id="jzListen">\u{1f3a7} Listening Library</button>
       <button class="btn sm ghost" id="jzImprov">\u{1f3bc} Improvisation</button>
+      <button class="btn sm ghost" id="jzUnits">\u{1f4cb} Unit Assignments</button>
       <span class="grow"></span>
       <label class="jz-gate mono"><input type="checkbox" id="jzGate" ${jazzGated() ? 'checked' : ''}>
         one stage at a time</label>
@@ -264,6 +270,8 @@ function bindJazzRoad(root){
   if(listen) listen.onclick = () => navigate('#/jazz/listen');
   const improv = root.querySelector('#jzImprov');
   if(improv) improv.onclick = () => navigate('#/jazz/improv');
+  const units = root.querySelector('#jzUnits');
+  if(units) units.onclick = () => navigate('#/jazz/units');
   $$('[data-jztoggle]', root).forEach(h => h.onclick = ev => {
     if(ev.target.closest('[data-jzopen]')) return;
     jazzToggleCollapse(h.dataset.jztoggle);

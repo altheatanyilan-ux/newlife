@@ -69,6 +69,7 @@ function jazzPlanHTML(){
       <button class="btn sm ghost" id="jzPback">← the roadmap</button></div>
     ${jazzTipOfDayHTML()}
     ${jazzStageHeadHTML(stage)}
+    ${typeof jazzCurrentUnitSummaryHTML === 'function' ? jazzCurrentUnitSummaryHTML() : ''}
     ${!started ? '' : !plan ? '<div class="empty">This stage has no plan template yet.</div>' : `
     <div class="jz-plan">
       <div class="row between" style="align-items:baseline">
