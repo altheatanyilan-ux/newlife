@@ -98,9 +98,46 @@ const JAZZ_STAGE_NOTES = {
     theory:'"When tunes originally in 4/4 are adapted to 5/4, every other measure loses one beat. In 7/4, every other measure gains one." And then: write a contrafact over a standard’s changes, reharmonise something that is not a jazz tune, and find out what you actually have.',
     werner:'The goal was never the exercises. It was to be able to say something.',
     mindset:'Finish something. An unfinished piece teaches you less than a bad finished one.'},
+  '6A': {n:'6A', name:'Chord-scale theory and the modes', needs:6,
+    blurb:'What scale goes with this chord — and why.',
+    theory:'"Every chord in the jazz repertoire has its own scale." The seven modes of the major scale, the seven of the melodic minor, the symmetrical scales built from alternating half and whole steps — each maps to a chord type in context. The altered scale (melodic minor from the 7th) is the single most important: it contains every alteration the dominant 7th admits and resolves by half step in both directions.',
+    werner:'Scales are not a goal. They are a description of what you are already hearing.',
+    mindset:'Before you play the scale, name the chord it belongs to and hear it resolve. A mode drilled in isolation is just a scale; a mode heard in context is a colour.'},
+  13: {n:13, name:'Advanced voicings and large harmony', needs:12,
+    blurb:'Five-note shapes, upper structures, and quartal stacks.',
+    theory:'Generic voicings (Mantooth Ch.\u202f2) stack four perfect fourths from a chord tone, producing a 6/9, min11, or dominant 9 sound from one unchanging shape. Miracle voicings (Ch.\u202f4) use one major third plus three fourths and serve five functions from a single hand position. Polychord fractions (Ch.\u202f6\u2013\u202f7) put a major triad in the right hand over the tritone in the left and reach every altered dominant colour. Berklee\u2019s guide tones, hybrid voicings, upper-structure polychords, and quartal stacks complete the picture.',
+    werner:'The hand has to get there before the mind has time to calculate. That is the only test of whether you have it.',
+    mindset:'Learn each shape as a shape — the same hand position in every key — before you think about what it is called. One shape, twelve keys, then name it.'},
+  15: {n:15, name:'Constant structures and non-functional harmony', needs:13,
+    blurb:'Moving by interval with the chord quality unchanged.',
+    theory:'"Non-functional harmony moves the same voicing by a fixed interval regardless of the key or scale." A Maj7 chord sliding up by half steps, or down by minor thirds, or a dominant moving through major-third key centres (the Coltrane cycle): none of these resolve in the traditional sense. The motion is the point, and the ear adjusts. Berklee Book of Jazz Harmony Chapter\u202f10 is the source.',
+    werner:'When there is no resolution to wait for, you have to stay present. That is what this material asks.',
+    mindset:'Do not look for the tonic. There is not one. Move evenly, listen to the quality staying constant, and let the motion speak for itself.'},
+  'V1': {n:'V1', name:'Scat syllables and rhythm foundations', needs:6,
+    blurb:'The alphabet before the sentences.',
+    theory:'Scat singing is not an oral approximation of an instrument — it is a language with its own phonemes, its own rhythmic idiom, and its own relationship to the harmony. Bob Stoloff\u2019s Scat! begins where the language begins: straight eighths on one pitch, the syllables ba-da-la-na, and four rhythm etudes that put the figures in the hands and the mouth before any melody is asked for.',
+    werner:'You cannot improvise in a language you cannot yet speak.',
+    mindset:'Sing the syllable on the note before you think about the note. The articulation is the instrument; the pitch is what rides it.'},
+  'V2': {n:'V2', name:'Melodic patterns and chord scales for the voice', needs:'V1',
+    blurb:'Diatonic phrases, ii-V patterns, and the scales behind them.',
+    theory:'Stoloff\u2019s second block of material moves from syllables to melody: diatonic scale patterns ascending and descending, the same patterns in 3/4, the one-measure and two-measure ii-V modal patterns (Dorian ascending, Mixolydian descending), triplet embellishments, extended ii-V arpeggios through the cycle of fifths, and the four chord scales every jazz vocalist needs — Ionian, Dorian, Mixolydian, and altered.',
+    werner:'A pattern is a borrowed sentence. Borrow enough of them and you will eventually have something to say of your own.',
+    mindset:'Sing the mode that belongs to the chord, not the scale you know best. Dorian on the ii. Mixolydian on the V. Ionian on the I. Make those three automatic before anything else.'},
+  'V3': {n:'V3', name:'Walking and singing the bass', needs:'V2',
+    blurb:'Roots, fifths, sevenths — the chord tones in time.',
+    theory:'"The syllable doon sounds most authentic on the quarter note." Stoloff\u2019s bass-line material moves from roots and fifths through the cycle of fifths, to roots, fifths, and sevenths, to roots, thirds, and sevenths, and finally to a walking bass with chromatic approach notes. Each step is one more chord tone in time, and the goal is the full walking line — four quarter notes per bar, moving through the changes by ear.',
+    werner:'The bass holds the music up. When you can walk and sing, you can hear the harmony from underneath, which is the most useful place.',
+    mindset:'Sing doon on every note before you think about pitch. Time first, then tone, then the note name. In that order.'},
+  'V4': {n:'V4', name:'Bebop lines and hearing the changes', needs:'V3',
+    blurb:'Chromatic passing, enclosures, and hearing the harmony you are singing through.',
+    theory:'Michele Weir\u2019s Fearless Vocal Improvisation covers the three diatonic line shapes (ascending, descending, wave), the two bebop devices everyone uses (chromatic passing tone approaching a chord tone by half step from below; enclosure, which brackets a target from above and below), the bebop ii-V lick that combines them, and three levels of hearing changes — root alone, full arpeggio, guide tones.',
+    werner:'Hearing changes is not a skill you acquire once. It is a practice you return to every time you play a tune you think you already know.',
+    mindset:'On the ii, hear the minor third and the seventh. On the V, hear the major third and the flat seventh. On the I, hear the major seventh. Three sounds, not a dozen notes.'},
 };
-/* the rungs, in order, with P0 before everything */
-const JAZZ_STAGE_IDS = ['P0', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+/* the rungs, in order — P0 through 12 (Siskind), then 6A (Levine chord-scales),
+   13 (Mantooth/Berklee advanced voicings), 15 (Berklee constant structures),
+   and V1–V4 (Stoloff/Weir vocal) */
+const JAZZ_STAGE_IDS = ['P0', 1, 2, 3, 4, 5, 6, '6A', 7, 8, 9, 10, 11, 12, 13, 15, 'V1', 'V2', 'V3', 'V4'];
 
 /* ---------- the catalogue, read rather than written ----------
    Both shipped catalogues are merged into one flat table keyed by the id the
@@ -140,6 +177,7 @@ function jazzBook(){
     }); };
   try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
   try { take(typeof STAGES_0_12_CATALOG !== 'undefined' ? STAGES_0_12_CATALOG : null); } catch(e){}
+  try { take((typeof JazzExerciseGenerator !== 'undefined' && JazzExerciseGenerator.JAZZ_EXERCISE_CATALOG) ? JazzExerciseGenerator.JAZZ_EXERCISE_CATALOG : null); } catch(e){}
   /* and the layer a textbook leaves out — the listening, the mistakes, the
      checkpoints. Merged here rather than written into the shipped files, so
      those stay exactly as they arrived. */
@@ -177,8 +215,12 @@ function jazzStages(){
     const s = book[id].stage;
     (byStage[s] = byStage[s] || []).push(id);
   });
-  const ord = id => { const m = /^(?:P0|\d+)\.(\d+)([a-z]?)$/.exec(id);
-    return m ? +m[1] * 10 + (m[2] ? m[2].charCodeAt(0) - 96 : 0) : 0; };
+  const ord = id => {
+    let m = /^[A-Za-z\d]+\.(\d+)\.(\d+)([a-z]?)$/.exec(id);
+    if(m) return (+m[1]) * 100 + (+m[2]) * 10 + (m[3] ? m[3].charCodeAt(0) - 96 : 0);
+    m = /^[A-Za-z\d]+\.(\d+)([a-z]?)$/.exec(id);
+    return m ? +m[1] * 10 + (m[2] ? m[2].charCodeAt(0) - 96 : 0) : 0;
+  };
   _jazzLadder = JAZZ_STAGE_IDS.map(sid => {
     const note = JAZZ_STAGE_NOTES[sid] || {};
     const subs = (byStage[sid] || []).sort((a, b) => ord(a) - ord(b));
