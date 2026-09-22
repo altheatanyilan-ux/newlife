@@ -231,8 +231,8 @@ const JAZZ_REFERENCES = {
   '12.4': ['Siskind Book 3', 'Unit 11', 'pp.240–253',
     'The writing exercises at the end of the unit, after the clave material.'],
   '12.5': ['Siskind Book 3', 'Unit 11', 'pp.240–253',
-    'Metric modulation, in the same unit as the odd-meter work.']
-},
+    'Metric modulation, in the same unit as the odd-meter work.'],
+
   /* ---- Stage 6A: chord-scale theory (Levine, The Jazz Theory Book) ---- */
   '6A.1': ['Levine', 'Ch.3 “The Modes”', '—',
     'One mode of the major scale, ascending and descending. The chapter opens with D Dorian as its first example, then instructs the reader to practise all seven modes from every root.'],
