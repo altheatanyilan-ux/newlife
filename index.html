@@ -2488,6 +2488,10 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-fixbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
 .jz-fixed{font-size:.66rem;color:#6b7f8e;letter-spacing:.03em}
 .jz-stale{font-size:.66rem;color:#c47832;line-height:1.5;max-width:56ch;flex:1 1 20em}
+/* deal me one: it sits with the key picker, not with the page's buttons,
+   because it is a way of choosing a key and not a thing that happens */
+.jz-dice{font-family:var(--mono);font-size:.68rem;padding:4px 9px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;white-space:nowrap;transition:border-color .2s var(--ease),color .2s var(--ease)}
+.jz-dice:hover{border-color:var(--page-accent);color:var(--page-accent)}
 
 .tbtn.danger{color:#c4484e}
 
@@ -59658,6 +59662,16 @@ function jazzScoreXml(ex, key, opts){
 }
 /* whether an exercise wants a distance chosen as well as a key */
 const jazzWantsInterval = ex => !!(ex && (ex.args || []).includes('intervalName'));
+/* An exercise that IS the randomiser — the drill whose whole point is that
+   you cannot see what is coming. It gets both dice; everything else gets the
+   key. */
+const jazzRandomises = ex => !!(ex && (ex.kind === 'interval_flashcard' || jazzWantsInterval(ex)));
+/* one at random, never the one you are already looking at */
+function jazzPickOther(list, now){
+  const other = list.filter(x => x !== now);
+  const from = other.length ? other : list;
+  return from[Math.floor(Math.random() * from.length)];
+}
 /* and whether it has any notation at all — some of the work is a project */
 const jazzHasScore = ex => !!(ex && ex.gen);
 
@@ -61749,6 +61763,13 @@ function jazzExerciseHTML(id){
           <div class="jz-keypick">${JAZZ_KEY_NAMES.map(k =>
             `<button class="jz-k${k === key ? ' on' : ''}${r.keys[k] ? ' got' : ''}" data-jzkey="${esc(k)}"
               title="${r.keys[k] ? 'yours' : 'not yet'}">${esc(jazzPretty(k))}</button>`).join('')}</div>
+          <!-- Every exercise in this room is twelve exercises, and choosing
+               which of the twelve by pressing the one you feel like is how
+               you end up practising four of them. P0.11 is called a
+               randomiser and had nothing to press; now everything does. -->
+          <button class="jz-dice" id="jzDice" title="${jazzRandomises(ex)
+            ? 'deal a new root and a new distance' : 'take a key at random'}">🎲 ${
+            jazzRandomises(ex) ? 'deal one' : 'random key'}</button>
         </div>
         <!-- the first stage is about distances rather than chords, so it asks
              for one as well as for a key -->
@@ -61911,6 +61932,19 @@ function bindJazzExercise(root, id){
   root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
   $$('[data-jzkey]', root).forEach(b => b.onclick = () => {
     ui.key = b.dataset.jzkey; sound('click'); rerender(); });
+  const dice = root.querySelector('#jzDice');
+  /* Never the one already on the screen: a randomiser that deals you the
+     same card you are looking at has not dealt you anything, and pressing it
+     twice to get a new one is the tell that it is broken. */
+  if(dice) dice.onclick = () => {
+    ui.key = jazzPickOther(JAZZ_KEY_NAMES, ui.key);
+    if(jazzRandomises(ex)) ui.interval = jazzPickOther(JAZZ_INTERVALS, ui.interval);
+    sound('click');
+    toast(jazzRandomises(ex)
+      ? `${jazzPretty(ui.key)} — ${jazzSayInterval(ui.interval)}. Play it before you look.`
+      : `In ${jazzPretty(ui.key)}.`);
+    rerender();
+  };
   const got = root.querySelector('#jzGot');
   if(got) got.onclick = () => {
     const have = !!jazzRecord(id).keys[ui.key];

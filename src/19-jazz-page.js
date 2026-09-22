@@ -245,6 +245,13 @@ function jazzExerciseHTML(id){
           <div class="jz-keypick">${JAZZ_KEY_NAMES.map(k =>
             `<button class="jz-k${k === key ? ' on' : ''}${r.keys[k] ? ' got' : ''}" data-jzkey="${esc(k)}"
               title="${r.keys[k] ? 'yours' : 'not yet'}">${esc(jazzPretty(k))}</button>`).join('')}</div>
+          <!-- Every exercise in this room is twelve exercises, and choosing
+               which of the twelve by pressing the one you feel like is how
+               you end up practising four of them. P0.11 is called a
+               randomiser and had nothing to press; now everything does. -->
+          <button class="jz-dice" id="jzDice" title="${jazzRandomises(ex)
+            ? 'deal a new root and a new distance' : 'take a key at random'}">🎲 ${
+            jazzRandomises(ex) ? 'deal one' : 'random key'}</button>
         </div>
         <!-- the first stage is about distances rather than chords, so it asks
              for one as well as for a key -->
@@ -407,6 +414,19 @@ function bindJazzExercise(root, id){
   root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
   $$('[data-jzkey]', root).forEach(b => b.onclick = () => {
     ui.key = b.dataset.jzkey; sound('click'); rerender(); });
+  const dice = root.querySelector('#jzDice');
+  /* Never the one already on the screen: a randomiser that deals you the
+     same card you are looking at has not dealt you anything, and pressing it
+     twice to get a new one is the tell that it is broken. */
+  if(dice) dice.onclick = () => {
+    ui.key = jazzPickOther(JAZZ_KEY_NAMES, ui.key);
+    if(jazzRandomises(ex)) ui.interval = jazzPickOther(JAZZ_INTERVALS, ui.interval);
+    sound('click');
+    toast(jazzRandomises(ex)
+      ? `${jazzPretty(ui.key)} — ${jazzSayInterval(ui.interval)}. Play it before you look.`
+      : `In ${jazzPretty(ui.key)}.`);
+    rerender();
+  };
   const got = root.querySelector('#jzGot');
   if(got) got.onclick = () => {
     const have = !!jazzRecord(id).keys[ui.key];

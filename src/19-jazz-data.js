@@ -214,6 +214,16 @@ function jazzScoreXml(ex, key, opts){
 }
 /* whether an exercise wants a distance chosen as well as a key */
 const jazzWantsInterval = ex => !!(ex && (ex.args || []).includes('intervalName'));
+/* An exercise that IS the randomiser — the drill whose whole point is that
+   you cannot see what is coming. It gets both dice; everything else gets the
+   key. */
+const jazzRandomises = ex => !!(ex && (ex.kind === 'interval_flashcard' || jazzWantsInterval(ex)));
+/* one at random, never the one you are already looking at */
+function jazzPickOther(list, now){
+  const other = list.filter(x => x !== now);
+  const from = other.length ? other : list;
+  return from[Math.floor(Math.random() * from.length)];
+}
 /* and whether it has any notation at all — some of the work is a project */
 const jazzHasScore = ex => !!(ex && ex.gen);
 
