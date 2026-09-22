@@ -30,6 +30,20 @@
    were changed, and there is one button that puts it all back.
    ============================================================ */
 
+/* ---------- which layout a correction was recorded against ----------
+   A fix is "the fourth note of bar two", and which note that is depends on
+   how the notes are laid out on the page. When the room grew a bass clef,
+   a chord that straddles middle C stopped being four notes in a row and
+   became some on one stave and some on the other — so the fourth note of
+   bar two is not the note it was. Applying an old correction to the new
+   layout would move the wrong note, silently, in a score whose whole point
+   is that the notes are right.
+
+   So a correction says which layout it was recorded against, and one from
+   before the bass clef is not applied. It is not deleted either: the page
+   says it is there and cannot be used, and there is a button to let it go. */
+const JAZZ_FIX_LAYOUT = 2;      /* 1 = one treble stave; 2 = the grand staff */
+
 /* ---------- what you have changed ---------- */
 function jazzFixState(){
   const j = jazzState();
@@ -40,8 +54,15 @@ function jazzFixState(){
 function jazzFixes(exId){
   const all = jazzFixState();
   const row = all[exId];
-  return row && Array.isArray(row.notes) ? row.notes : [];
+  if(!row || !Array.isArray(row.notes)) return [];
+  return (row.layout || 1) === JAZZ_FIX_LAYOUT ? row.notes : [];
 }
+/* corrections that are stored and cannot be trusted against this layout */
+function jazzFixStale(exId){
+  const row = jazzFixState()[exId];
+  return !!(row && Array.isArray(row.notes) && row.notes.length && (row.layout || 1) !== JAZZ_FIX_LAYOUT);
+}
+const jazzFixStaleCount = exId => jazzFixStale(exId) ? jazzFixState()[exId].notes.length : 0;
 const jazzFixCount = exId => jazzFixes(exId).length;
 const jazzFixedAt = exId => (jazzFixState()[exId] || {}).at || null;
 /** Where it came from, for the sentence on the page. */
@@ -50,7 +71,8 @@ const jazzFixSource = exId => (jazzFixState()[exId] || {}).from || '';
 function jazzSetFixes(exId, notes, from){
   const all = jazzFixState();
   if(!notes || !notes.length) delete all[exId];
-  else all[exId] = {notes: notes.slice(), at: new Date().toISOString(), from: from || 'edited'};
+  else all[exId] = {notes: notes.slice(), at: new Date().toISOString(), from: from || 'edited',
+    layout: JAZZ_FIX_LAYOUT};
   saveNow();
   return jazzFixes(exId);
 }

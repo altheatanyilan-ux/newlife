@@ -205,7 +205,12 @@ function jazzScoreXml(ex, key, opts){
     a === 'key' ? key
     : a === 'intervalName' ? (o.interval || 'major3rd')
     : a);
-  return G[ex.gen].apply(G, args);
+  /* Every generator writes its own measures and most of them write a treble
+     staff, which is wrong for a room whose subject is largely left-hand
+     voicings. The grand-staff pass is here rather than in each generator
+     because there are eleven of them and there will be twelve. */
+  const xml = G[ex.gen].apply(G, args);
+  return typeof jazzGrandStaff === 'function' ? jazzGrandStaff(xml) : xml;
 }
 /* whether an exercise wants a distance chosen as well as a key */
 const jazzWantsInterval = ex => !!(ex && (ex.args || []).includes('intervalName'));

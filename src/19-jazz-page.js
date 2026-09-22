@@ -316,10 +316,17 @@ function jazzFixToolsHTML(id, ex){
     ${n ? `<span class="jz-fixed mono" title="${esc(jazzFixSource(id))}">\u2713 ${n} note${
       n === 1 ? '' : 's'} corrected by you</span>
       <button class="tbtn danger" id="jzReset">\u21a9 put it back</button>` : ''}
+    ${jazzFixStale(id) ? `<span class="jz-stale mono">\u26a0 ${jazzFixStaleCount(id)} correction${
+      jazzFixStaleCount(id) === 1 ? '' : 's'} were recorded before this room had a bass clef.
+      A note's place on the page has changed, so they are not being applied \u2014 correct the file again,
+      or let them go.</span>
+      <button class="tbtn danger" id="jzDropStale">forget them</button>` : ''}
     <input type="file" id="jzUpFile" accept=".musicxml,.xml,application/xml,text/xml" hidden>
   </div>`;
 }
 function bindJazzFixTools(root, id, ex, xmlOf){
+  const drop = root.querySelector('#jzDropStale');
+  if(drop) drop.onclick = () => { jazzClearFixes(id); toast('Forgotten. The notation is the generator\u2019s again.'); rerender(); };
   const down = root.querySelector('#jzDown');
   if(down) down.onclick = () => {
     const xml = xmlOf();
