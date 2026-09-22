@@ -1963,6 +1963,126 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-cto{color:var(--muted);font-size:2.2rem}
 @media (max-width:640px){.jz-cto{font-size:1.7rem}}
 
+/* ---- Listening Library ---- */
+.jl-quote{border-left:3px solid var(--page-accent);padding:8px 12px;margin:14px 0;
+  color:var(--muted);font-style:italic;font-size:.88rem;display:flex;flex-direction:column;gap:4px}
+.jl-quote p{margin:0}
+.jl-book{margin-bottom:28px}
+.jl-bookname{font-family:var(--serif);font-size:1.08rem;margin:0 0 8px;
+  border-bottom:1px solid var(--line);padding-bottom:6px}
+.jl-sub{font-size:.82rem;color:var(--muted);margin:0 0 10px}
+.jl-rows{display:flex;flex-direction:column;gap:2px}
+.jl-row{display:grid;grid-template-columns:5rem 1fr 80px 3.2rem;align-items:center;
+  gap:8px;padding:7px 10px;border-radius:8px;border:1px solid transparent;
+  background:none;cursor:pointer;text-align:left;width:100%;
+  transition:background .15s var(--ease),border-color .15s var(--ease)}
+.jl-row:hover{background:color-mix(in srgb,var(--page-accent) 6%,transparent);
+  border-color:color-mix(in srgb,var(--page-accent) 20%,transparent)}
+.jl-row.jl-done{background:color-mix(in srgb,#7f916a 8%,transparent)}
+.jl-row.jl-done .jl-count{color:#7f916a}
+.jl-num{font-size:.6rem;letter-spacing:.05em;white-space:nowrap}
+.jl-ti{display:flex;flex-direction:column;gap:1px;min-width:0}
+.jl-ti b{font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jl-album{font-size:.7rem;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jl-bar{position:relative;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.jl-bfill{position:absolute;inset:0 auto 0 0;background:var(--page-accent);
+  border-radius:2px;transition:width .3s var(--ease)}
+.jl-row.jl-done .jl-bfill{background:#7f916a}
+.jl-count{font-size:.6rem;text-align:right;color:var(--muted)}
+@media (max-width:520px){
+  .jl-row{grid-template-columns:3.5rem 1fr 60px 2.6rem}
+  .jl-album{display:none}}
+.jl-comping{display:flex;flex-direction:column;gap:10px}
+.jl-cm{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:.84rem}
+.jl-cm-with{display:block;font-size:.76rem}
+.jl-cm-why{margin:4px 0 0;font-size:.8rem;color:var(--muted)}
+.jl-levels{display:flex;flex-direction:column;gap:6px}
+.jl-level{display:flex;align-items:flex-start;gap:10px;font-size:.85rem}
+.jl-ln{font-size:.58rem;letter-spacing:.08em;min-width:1.4rem;padding-top:2px}
+.jl-detail{max-width:72ch}
+.jl-meta{font-size:.9rem;color:var(--muted);margin:3px 0}
+.jl-src{font-size:.6rem;color:var(--faint);letter-spacing:.04em;margin:0 0 14px}
+.jl-counter{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:12px 0}
+.jl-counter.jl-done{border-color:color-mix(in srgb,#7f916a 50%,var(--line));
+  background:color-mix(in srgb,#7f916a 6%,transparent)}
+.jl-cbar{height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}
+.jl-cbfill{height:100%;background:var(--page-accent);border-radius:3px;transition:width .3s var(--ease)}
+.jl-counter.jl-done .jl-cbfill{background:#7f916a}
+.jl-crow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.jl-cnum{font-family:var(--serif);font-size:2.2rem;line-height:1}
+.jl-cof{font-size:.8rem;color:var(--muted);font-family:var(--mono)}
+.jl-check{font-size:.82rem;color:#7f916a;font-weight:600}
+.jl-section{margin:16px 0}
+.jl-sh{display:block;font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.jl-pers{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px}
+.jl-person{font-size:.84rem}
+.jl-fm{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:4px}
+.jl-fts{padding:4px 10px 4px 0;white-space:nowrap;color:var(--muted);font-size:.72rem}
+.jl-fsect{padding:4px 10px;font-weight:600}
+.jl-fm td{border-bottom:1px solid var(--line);vertical-align:top;padding:4px 6px 4px 0}
+.jl-fm tr:last-child td{border-bottom:0}
+.jl-body{font-family:var(--serif);font-size:.88rem;line-height:1.6;margin:4px 0;max-width:60ch}
+.jl-wtlf{margin:4px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:5px}
+.jl-wtlf li{font-size:.84rem;line-height:1.5;max-width:60ch}
+.jl-conns-list{margin:4px 0 0;padding-left:16px;display:flex;flex-direction:column;gap:4px}
+.jl-conns-list li{font-size:.83rem}
+.jl-pf{background:color-mix(in srgb,var(--page-accent) 5%,transparent);
+  border-radius:8px;padding:10px 12px}
+.jl-stream a{text-decoration:none}
+
+/* ---- Improvisation Exercises ---- */
+.ji-book{margin-bottom:26px}
+.ji-bookname{font-family:var(--serif);font-size:1.08rem;margin:0 0 8px;
+  border-bottom:1px solid var(--line);padding-bottom:6px}
+.ji-rows{display:flex;flex-direction:column;gap:2px}
+.ji-row{display:grid;grid-template-columns:6rem 1fr 5rem;align-items:center;
+  gap:8px;padding:7px 10px;border-radius:8px;border:1px solid transparent;
+  background:none;cursor:pointer;text-align:left;width:100%;
+  transition:background .15s var(--ease),border-color .15s var(--ease)}
+.ji-row:hover{background:color-mix(in srgb,var(--page-accent) 6%,transparent);
+  border-color:color-mix(in srgb,var(--page-accent) 20%,transparent)}
+.ji-refrow{grid-template-columns:1fr}
+.ji-refs .ji-row{grid-template-columns:1fr}
+.ji-eid{font-size:.6rem;letter-spacing:.05em;white-space:nowrap}
+.ji-ti{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ji-ti b{font-size:.88rem}
+.ji-meta{font-size:.7rem;letter-spacing:.02em}
+.ji-type{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;text-align:right;
+  color:var(--muted);white-space:nowrap}
+@media (max-width:520px){
+  .ji-row{grid-template-columns:3.5rem 1fr}
+  .ji-type{display:none}}
+.ji-detail{max-width:72ch}
+.ji-setup{}
+.ji-setupgrid{display:grid;grid-template-columns:6rem 1fr;gap:4px 10px;
+  font-size:.85rem;margin-top:6px;align-items:baseline}
+.ji-setupgrid .faint{font-size:.78rem}
+.ji-pofs{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.ji-pof{display:flex;align-items:flex-start;gap:10px}
+.ji-pn{font-size:.6rem;letter-spacing:.08em;min-width:1.4rem;padding-top:3px}
+.ji-pof > div{flex:1}
+.ji-pof b{font-size:.88rem}
+.ji-pof p{font-size:.84rem;line-height:1.55;color:var(--muted);margin:3px 0}
+.ji-prompt{font-style:italic;color:var(--page-accent) !important;margin-top:4px !important}
+.ji-faq{margin-bottom:10px}
+.ji-faq b{font-size:.86rem}
+.ji-faq p{font-size:.84rem;color:var(--muted);margin:3px 0}
+.ji-corea{display:flex;flex-direction:column;gap:12px;margin:14px 0}
+.ji-cstep{display:flex;align-items:flex-start;gap:14px}
+.ji-cl{font-family:var(--serif);font-size:2rem;line-height:1;color:var(--page-accent);
+  min-width:2rem;text-align:center}
+.ji-cstep b{font-size:.92rem}
+.ji-cstep p{font-size:.84rem;color:var(--muted);margin:4px 0}
+.ji-levine{display:flex;flex-direction:column;gap:10px;margin:8px 0}
+.ji-lpr{display:flex;align-items:flex-start;gap:10px;font-size:.85rem}
+.ji-lpr .ji-ln{font-size:.58rem;letter-spacing:.08em;min-width:1.6rem;padding-top:3px}
+.ji-lpr > span:last-child{flex:1}
+.ji-lpr b{font-size:.88rem}
+.ji-lpr p{font-size:.84rem;color:var(--muted);margin:3px 0}
+.ji-qlist{padding-left:18px;display:flex;flex-direction:column;gap:7px;margin:12px 0}
+.ji-qlist li{font-size:.86rem;line-height:1.55;max-width:58ch}
+
 /* planning the week: the parts of a life, and the few things being carried */
 .wp-aspect{display:grid;grid-template-columns:auto minmax(150px,1fr) minmax(0,1.6fr);gap:10px;
   align-items:center;cursor:default;box-shadow:inset 3px 0 0 -1px var(--c)}

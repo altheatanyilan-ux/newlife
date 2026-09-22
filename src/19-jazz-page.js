@@ -77,6 +77,18 @@ routes.jazz = function(root, params){
     bindJazzSession(root); return; }
   if(want === 'progress'){ root.innerHTML = `<div class="page jz-page">${jazzProgressHTML()}</div>`;
     bindJazzPlan(root); return; }
+  if(want === 'listen'){
+    const ls = jazzListenState();
+    if(params && params[1]) ls.detailId = params[1];
+    root.innerHTML = `<div class="page jz-page">${jazzListenHTML()}</div>`;
+    bindJazzListen(root); return;
+  }
+  if(want === 'improv'){
+    const is = jazzImprovState();
+    if(params && params[1]) is.detailId = params[1];
+    root.innerHTML = `<div class="page jz-page">${jazzImprovHTML()}</div>`;
+    bindJazzImprov(root); return;
+  }
   /* The address decides which of the two views this is, and nothing else.
      It used to only ever SET the open exercise from the address and never
      clear it, so #/jazz with no exercise in it fell through to whichever one
@@ -172,6 +184,8 @@ function jazzRoadHTML(){
       <button class="btn sm ghost" id="jzCards">\u{1f3af} Flashcards</button>
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
       <button class="btn sm ghost" id="jzAllTips">\u{1f3c6} Golden tips</button>
+      <button class="btn sm ghost" id="jzListen">\u{1f3a7} Listening Library</button>
+      <button class="btn sm ghost" id="jzImprov">\u{1f3bc} Improvisation</button>
       <span class="grow"></span>
       <label class="jz-gate mono"><input type="checkbox" id="jzGate" ${jazzGated() ? 'checked' : ''}>
         one stage at a time</label>
@@ -245,6 +259,10 @@ function bindJazzRoad(root){
   const gate = root.querySelector('#jzGate');
   if(gate) gate.onchange = () => { jazzState().settings.gate = gate.checked;
     saveNow(); sound('click'); rerender(); };
+  const listen = root.querySelector('#jzListen');
+  if(listen) listen.onclick = () => navigate('#/jazz/listen');
+  const improv = root.querySelector('#jzImprov');
+  if(improv) improv.onclick = () => navigate('#/jazz/improv');
   $$('[data-jztoggle]', root).forEach(h => h.onclick = ev => {
     if(ev.target.closest('[data-jzopen]')) return;
     jazzToggleCollapse(h.dataset.jztoggle);
