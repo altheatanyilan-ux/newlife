@@ -2334,6 +2334,15 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-stage.here{border-color:var(--page-accent);
   box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 12%,transparent)}
 .jz-stage.shut{opacity:.5}
+.jz-stage.collapsed .jz-subs,.jz-stage.collapsed .jz-why{display:none}
+.jz-shead:hover{background:color-mix(in srgb,var(--page-accent) 4%,transparent);border-radius:9px}
+.jz-toggle-arrow{font-size:.65rem;opacity:.45;margin-left:4px;transition:transform .15s}
+.jz-view-tabs{display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.jz-view-tab{background:none;border:1px solid transparent;border-radius:20px;padding:4px 14px;
+  font-size:.78rem;cursor:pointer;color:var(--muted);transition:all .16s var(--ease)}
+.jz-view-tab.on{background:var(--page-accent);color:#fff;border-color:var(--page-accent)}
+.jz-view-tab:hover:not(.on){border-color:var(--line);background:var(--card)}
+.jz-view-blurb{font-size:.8rem;color:var(--faint);margin:-4px 0 12px;font-style:italic}
 /* four columns now, not three: the number, the name, the difficulty badge
    and the count. Left at three, the badge wrapped onto a second row and
    pushed the count under the title on every stage. */
@@ -58051,15 +58060,12 @@ function jazzCitation(ref){
    tune. A derived checklist says so, so that a checkpoint nobody wrote is
    never mistaken for one somebody did.
 
-   FOUR STAGES IN THE BRIEF ARE NOT IN THIS CATALOGUE. It asks for 6A
-   (chord-scale theory), 13 (Mantooth voicings), 15 (constant structures) and
-   V1–V3 (scat). This room's ladder is P0 and 1–12, out of Siskind, and
-   inventing four stages of exercises to hang metadata on would be inventing
-   a curriculum rather than enriching one. Their material is folded into the
-   stages that do exist and are about the same thing: the chord-scale
-   material into stage 8, the quartal and Mantooth material into 8.3b and
-   8.3c, the constant-structure material into 10.4. Nothing is lost; nothing
-   is fabricated to hold it.
+   STAGES 6A, 13, 15, V1–V4 are now in this catalogue. Stage-level enrichment
+   (historicalContext, expectedDifficulty, typicalTimeToMaster) covers all of
+   them. Exercise-level enrichment is present for the key entry-point exercises
+   in each new stage (6A.1, 13.1.1, V1.3); other exercises fall back to their
+   stage-level data via jazzMergeEnrichment. Stages P0–12 continue to carry
+   full per-exercise data as before.
    ============================================================ */
 
 /* The five the brief names, in order, so a badge can be drawn from them. */
@@ -58203,6 +58209,77 @@ const JAZZ_STAGE_RICH = {
        listenFor:'The vamp is a three plus a two, every bar, for five minutes. Count it once and then stop counting and feel it.'},
       {artist:'Don Ellis', track:'Bulgarian Bulge', album:'Electric Bath', year:1967, label:'Columbia', timestamp:null,
        listenFor:'Asymmetric meter played as though it were the most natural pulse in the world.'}]},
+  '6A': {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'Major scale modes: 3–4 weeks. Melodic minor modes: another 4–6 weeks. Diminished and whole-tone: 2 weeks. Total fluency with the chord-scale system takes 3–6 months of daily practice. This is a major milestone — many university programmes spend an entire semester on it.',
+    historicalContext: 'Chord-scale theory was systematised in the 1950s by George Russell (The Lydian Chromatic Concept, 1953) and later codified at Berklee College of Music. Before it, jazz musicians learned scales by ear from recordings. Levine’s claim is that almost every chord symbol in the music can be addressed with four scale families: the major scale, the melodic minor scale, the diminished scale, and the whole-tone scale. That is one of the most elegant simplifications in jazz education.',
+    commonMistakes: ['Levine’s warning: thinking of a mode as its parent scale started on a different note. D Dorian is not C major from D. It is D as home, with a minor third, a natural sixth and a minor seventh. Play it over a Dm7 drone and listen to its character.',
+      'Confusing which mode belongs to which chord. The rule is short: Dorian for minor seventh, Mixolydian for dominant, Ionian for major seventh. Those three cover most of the music.',
+      'Not learning the avoid notes. Levine: the fourth over a Maj7 and over a Dom7 is an avoid note in voicings, though not in melodies.'],
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, label:'Columbia', timestamp:'1:31–2:30',
+       listenFor:'The whole A section is D Dorian. Miles is not thinking “C major starting on D.” He is thinking “D is home, and these are the sounds available.” That is the Dorian sound.'},
+      {artist:'Herbie Hancock', track:'Maiden Voyage', album:'Maiden Voyage', year:1965, label:'Blue Note', timestamp:null,
+       listenFor:'Hancock uses Dorian voicings throughout. The opening vamp is a masterclass in Dorian colour.'}]},
+  13: {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Generic voicings: 2–3 weeks. Miracle voicings: 3–4 weeks. Polychord fractions: 4–6 weeks. The full Berklee voicing toolkit: 2–3 months. Professional-level fluency with all voicing systems: 6–12 months.',
+    historicalContext: 'Frank Mantooth (1947–2004) was a jazz pianist, arranger and educator at the University of North Texas. His Voicings for Jazz Keyboard introduced a systematic approach to contemporary voicings that deliberately avoided stacked thirds. Mantooth: “Traditional tertian voicings should be largely abandoned in favour of more sophisticated, contemporary techniques.” The Berklee system — guide tones, polychords, hybrids, quartal — represents the institutional codification of practices developed by Bill Evans, McCoy Tyner, Herbie Hancock and Chick Corea.',
+    commonMistakes: ['Forgetting the Rule of Thumb: keep the right-hand thumb between middle C and the C above it. Below middle C the voicing sounds muddy; above high C it sounds thin.',
+      'Not understanding that Generic Major from the tonic and from the fifth produce different voicings for the same chord. Context — what comes before and after — decides which to use.',
+      'Using Generic voicings on diminished and half-diminished chords. Mantooth: the quartal construction is impossible for diminished chords, which require special treatment.'],
+    listeningAssignments: [
+      {artist:'Herbie Hancock', track:'Maiden Voyage', album:'Maiden Voyage', year:1965, label:'Blue Note', timestamp:null,
+       listenFor:'Mantooth lists this in his recommended listening. The voicings on the title track are quartal and generic — they avoid stacked thirds and create the open, modern sound Mantooth’s system produces.'},
+      {artist:'McCoy Tyner', track:'Passion Dance', album:'The Real McCoy', year:1967, label:'Blue Note', timestamp:null,
+       listenFor:'The quintessential quartal left hand. This is the sound Generic voicings are designed to produce.'}]},
+  15: {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Two to three weeks to get through the basic constant-structure patterns. Using them inside a tune without losing the form takes another month. Creating original constant-structure passages as a compositional tool is an ongoing skill.',
+    historicalContext: 'Constant structures — moving a single chord quality in parallel through a non-functional interval series — appear in Debussy and Ravel decades before jazz adapted them. In jazz they became a signature device of the post-bop era: Coltrane’s “Central Park West,” Shorter’s modal ballads, Hancock’s Blue Note records. The Berklee Book of Jazz Harmony systematises them as a complement to functional progressions, where the interest is colour and motion rather than tension and release.',
+    commonMistakes: ['Treating every interval as equally usable. Parallel major triads moving by semitone is simply parallel fifths. Constant structures work best when the interval of transposition is irregular enough to destroy any functional expectation.',
+      'Playing them without rhythmic interest. A voicing moving by a fixed interval every beat is a drill; the same voicing with syncopation and space is music.'],
+    listeningAssignments: [
+      {artist:'John Coltrane', track:'Central Park West', album:'Coltrane’s Sound', year:1960, label:'Atlantic', timestamp:null,
+       listenFor:'Coltrane uses parallel chromatic motion through major seventh chords. Every chord has the same quality; none of them function in the traditional sense.'},
+      {artist:'Herbie Hancock', track:'Dolphin Dance', album:'Maiden Voyage', year:1965, label:'Blue Note', timestamp:null,
+       listenFor:'Listen for the passages where the harmony steps sideways with no obligation to land anywhere functional. That is the constant-structure device in a song.'}]},
+  'V1': {
+    expectedDifficulty: 'beginner',
+    typicalTimeToMaster: 'Two to three weeks for the basic syllable shapes. Four to six before the syllable-rhythm combinations feel natural at tempo. The scat vocabulary of stage V2 is what turns these syllables into improvising.',
+    historicalContext: 'Scat singing was invented by Louis Armstrong (some say accidentally, on Heebie Jeebies in 1926) and codified as a vocal jazz discipline by Ella Fitzgerald and Dizzy Gillespie’s bop collaborators in the 1940s. The syllables are not arbitrary — each one has a physical relationship to articulation, breath and pitch placement. Stoloff’s method systematises what the masters did intuitively: the vowel shapes control resonance, and the consonants control attack.',
+    commonMistakes: ['Using one syllable for everything. Stoloff: the most common vowels are ah, ee and oo. Force yourself to match syllable to articulation: dah for accented, dit for staccato, dwee for legato.',
+      'Ignoring the rhythm before adding the syllables. The time is not a container for the syllables — the syllables live inside the time, and the time has to exist first.',
+      'Practising only at one tempo. Stoloff: start at ♩=96 and increase a little each day until you can articulate all four rhythm studies at 160 with clarity.'],
+    listeningAssignments: [
+      {artist:'Ella Fitzgerald', track:'How High the Moon', album:'Ella in Berlin: Mack the Knife', year:1960, label:'Verve', timestamp:null,
+       listenFor:'The definitive scat performance. Notice Ella’s syllable variety — she never uses ‘doo’ for everything. Listen for ba-doo-dee-yah, shoo-bee-doo-bee-doo, and her rhythmic precision.'},
+      {artist:'Bobby McFerrin', track:'Blackbird', album:'The Voice', year:1984, label:'Elektra', timestamp:null,
+       listenFor:'McFerrin’s solo technique demonstrates the ultimate extension of scat: simultaneously singing melody, bass and percussion. Watch how his syllable choices match the articulation.'}]},
+  'V2': {
+    expectedDifficulty: 'moderate',
+    typicalTimeToMaster: 'Three to four weeks for the diatonic patterns in a few keys. Two to three months before the chord-scale patterns feel natural over a moving ii-V. The material from Stoloff Chapter 2 is the bridge between syllable drills and real jazz improvisation.',
+    historicalContext: 'The vocabulary of jazz vocal improvisation is built from the same melodic material as instrumental jazz — diatonic patterns, arpeggios, chord scales — but delivered through a medium that cannot play multiple notes at once and must therefore imply harmony through melody. This is why Stoloff’s method is essentially Mark Levine’s chord-scale theory applied to the voice: the same material, learned through the ear rather than through the hands.',
+    commonMistakes: ['Singing patterns without connecting them to the harmony. A diatonic pattern over Dm7 and the same pattern over G7 should feel different — one is home, the other is motion.',
+      'Skipping the triplet patterns. Swing feel is built from the relationship between duple and triple subdivisions, and a vocalist who has never drilled triplet scat has a metrical gap that shows.']},
+  'V3': {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'Three to four weeks to sing a walking line cleanly on pitches. Six to eight before both the bass line and the melody feel independent. Hand independence on the piano is one thing; independence between two simultaneous melodic ideas from one throat is quite another.',
+    historicalContext: 'Bass-line singing is the survival skill of the jazz vocalist without a rhythm section. Bobby McFerrin codified it as a performance technique; Stoloff teaches it as a hearing exercise. Singing the bass while improvising melody forces you to hear the harmonic motion independently from the melodic motion — which is exactly what comping pianists have to do in the other direction.',
+    commonMistakes: ['Letting the bass line flatten out rhythmically. A walking bass that is technically on pitch but rhythmically inert does not walk. The swing of the bass notes is the whole point.',
+      'Learning the melody and the bass separately and then expecting them to fit together. They do not. The coordination has to be practised as one thing from the beginning.']},
+  'V4': {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Two to three weeks per bebop line to have it transposable and in time. Using one spontaneously inside an improvisation takes several months. The goal of this stage is the same as stage 6 on the piano: a vocabulary you can reach into without thinking about it.',
+    historicalContext: 'Bebop was primarily an instrumental music, and its lines were designed for brass and reeds at high speed. That vocalists absorbed and sang these lines anyway — Ella Fitzgerald, Anita O’Day, Jon Hendricks — shows the power of the melodic vocabulary. Weir’s Fearless Vocal Improvisation takes the most useful bebop phrases and systematises their application for singers: how to start a line on the and-of-two, how to resolve a chromatic enclosure, how to hear a chord tone approaching and land on it.',
+    commonMistakes: ['Rushing the enclosures. A bebop lick depends on the landing note, not on the surrounding notes. If the resolution is late, the line sounds like a mistake even if every note was correct.',
+      'Learning the lines without learning what they are outlining. Every bebop phrase has a chord tone at its heart; knowing which one lets you vary the approach rather than repeating the exact phrase.'],
+    listeningAssignments: [
+      {artist:'Ella Fitzgerald', track:'How High the Moon', album:'Ella in Berlin: Mack the Knife', year:1960, label:'Verve', timestamp:null,
+       listenFor:'Ella’s bebop lines over the bridge are as accurate and as fast as any instrumentalist’s. Listen to how she implies every chord change while the rhythm section comp is minimal.'},
+      {artist:'Anita O’Day', track:'Sweet Georgia Brown', album:'Anita O’Day at Mister Kelly’s', year:1958, label:'Verve', timestamp:null,
+       listenFor:'A slower demonstration of the same technique: hear how the phrase-starts anticipate the bar, and how each landing note is always a chord tone.'}]},
+
 };
 
 /* ---------- the exercises ----------
@@ -58914,6 +58991,94 @@ const JAZZ_EX_RICH = {
     connections: ['It requires the meters of 12.1 and 12.2 and the hemiola of 12.3', 'It is what the whole stage has been building toward'],
     practiceStrategy: 'Find the common unit — the note value that stays the same across the change — and count it through the join. Without a common unit there is no modulation, only a stumble.',
     creativeChallenge: 'Modulate from four into three in the middle of a chorus and back again by the top of the next. If a listener can tap through it, you did it properly.'},
+  /* ===== 6A — chord-scale theory ===== */
+  '6A.1': {
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'So What', album:'Kind of Blue', year:1959, timestamp:'1:31-2:30', label:'Columbia',
+       listenFor:'The entire A section is D Dorian. Listen to how Miles improvises — he thinks "D is home, and these are the sounds available." That\'s the Dorian sound.'},
+      {artist:'Herbie Hancock', track:'Maiden Voyage', album:'Maiden Voyage', year:1965, timestamp:null, label:'Blue Note',
+       listenFor:'Hancock uses Dorian voicings extensively. The opening vamp is a masterclass in Dorian color.'}
+    ],
+    commonMistakes: [
+      'Levine\'s #1 warning: thinking of modes as "parent scale starting on a different note." D Dorian is NOT "C major starting on D." It\'s the sound of D as home with a minor 3rd, natural 6th, and minor 7th. Play D Dorian over a Dm7 drone and listen to its character.',
+      'Confusing which mode goes with which chord. The rule: Dorian = minor 7th, Mixolydian = dominant 7th, Ionian = major 7th.',
+      'Not learning the avoid notes. Levine: the 4th on a Maj7 and the 4th on a Dom7 are avoid notes in voicings (not in melodies). Phrygian has b2 and b6 as avoids.'
+    ],
+    masteryChecklist: [
+      'Can play D Dorian from memory ascending and descending',
+      'Can play Dorian mode starting on all 12 roots',
+      'Can improvise 8 bars using only Dorian mode over a Dm7 drone',
+      'Can name the chord type associated with each of the 7 modes',
+      'Can identify Dorian vs Aeolian by ear (Dorian has the brighter natural 6th)'
+    ],
+    whenToUse: 'Play the Dorian mode on any minor 7th chord that functions as a ii chord (the most common situation). Also works on minor 7th chords functioning as i in modal tunes. Levine: "On a D-7 chord, play the D Dorian mode."',
+    connections: [
+      'Dorian-Mixolydian-Ionian are the three modes for ii-V-I (Stage 2) — they all share the same parent scale',
+      'The natural 6th in Dorian distinguishes it from Aeolian (which has b6) — this single note creates a completely different mood',
+      'Stage 8 (Modal Jazz) explores extended Dorian improvisation in modal tunes like "So What"'
+    ],
+    practiceStrategy: 'Levine recommends: play D Dorian ascending and descending over a Dm7 chord held in LH. Start on different notes of the mode (not just the root). Then practice connecting modes: D Dorian → G Mixolydian → C Ionian through a ii-V-I. Eventually, you should think "key of C" and the modes for ii-V-I appear automatically.',
+    creativeChallenge: 'Compose a 4-bar melody using ONLY D Dorian over a Dm7 drone. Then play the same rhythm using Mixolydian over G7. Then Ionian over Cmaj7. Compare the emotional color of each mode with identical rhythms.'},
+
+  /* ===== 13 — advanced voicings ===== */
+  '13.1.1': {
+    listeningAssignments: [
+      {artist:'Herbie Hancock', track:'Maiden Voyage', album:'Maiden Voyage', year:1965, timestamp:null, label:'Blue Note',
+       listenFor:'Mantooth specifically lists this as recommended listening. Hancock\'s voicings avoid stacked thirds and create the open, modern sound that Mantooth\'s Generic system produces.'},
+      {artist:'McCoy Tyner', track:'Passion Dance', album:'The Real McCoy', year:1967, timestamp:null, label:'Blue Note',
+       listenFor:'McCoy\'s left-hand voicings are the quintessential quartal sound — stacked 4ths with tremendous power. This is the sound Generic voicings produce.'},
+      {artist:'Red Garland', track:"Relaxin'", album:"Relaxin' with the Miles Davis Quintet", year:1956, timestamp:null, label:'Prestige',
+       listenFor:'Mantooth lists this album in his recommended listening. Listen to Red Garland\'s comping — smooth, contextual voice-leading with minimal motion between chords.'}
+    ],
+    commonMistakes: [
+      'Forgetting the Rule of Thumb: keep the RH thumb between middle C and C above middle C (C4–C5). Below middle C = muddy. Above C5 = too thin.',
+      'Not understanding that Generic Major from the tonic and from the 5th produce DIFFERENT voicings for the same chord. Context determines which to use.',
+      'Using Generic voicings on diminished and half-diminished chords. Mantooth says the quartal construction "is obviously impossible" for diminished family chords — these require special treatment (Chapter 9).'
+    ],
+    masteryChecklist: [
+      'Can build Generic Major voicing (from tonic) in all 12 keys instantly',
+      'Can build Generic Major (from 5th) in all 12 keys',
+      'Can build Generic Minor in all 12 keys',
+      'Can build Generic Dominant (from tonic AND from 5th) in all 12 keys',
+      'Can play a ii-V-I using Generic voicings with minimal motion and Rule of Thumb observed'
+    ],
+    whenToUse: 'Mantooth: these voicings are for comping behind a soloist in a band setting. They avoid doubling the bass player\'s roots and create a modern, non-tertial sound. Use them when you want a fuller alternative to Type A/B voicings.',
+    connections: [
+      'Generic voicings are built from the same perfect 4ths you drilled in Stage P0',
+      'The tritone indicators (3rd and 7th) in Generic Dominant voicings are the same guide tones from Stage 2 shell voicings — Mantooth adds quartal color above them',
+      'Miracle Voicings (Stage 13.2) are Generic voicings that serve 5 different harmonic functions — same construction, more flexibility'
+    ],
+    practiceStrategy: 'Mantooth\'s weekly syllabus: (1) Learn the formula for each family (Major, Minor, Dominant). (2) Practice each type in all 12 keys. (3) Practice the ii-V-I workout — Cmi to F7 to BbMaj using generics. (4) Maintain the Rule of Thumb across all keys. (5) Practice with a bass player or iRealPro backing track.',
+    creativeChallenge: 'Voice the chord progression to Tadd Dameron\'s "Lady Bird" using ONLY Generic and Miracle voicings. Then compare your version to the Mantooth example in Chapter 8.'},
+
+  /* ===== V1 — scat foundations ===== */
+  'V1.3': {
+    listeningAssignments: [
+      {artist:'Ella Fitzgerald', track:'How High the Moon', album:'Ella in Berlin: Mack the Knife', year:1960, timestamp:null, label:'Verve',
+       listenFor:'The definitive scat performance. Notice Ella\'s syllable variety — she never uses "doo" for everything. Listen for "ba-doo-dee-yah," "shoo-bee-doo-bee-doo," and her incredible rhythmic precision.'},
+      {artist:'Bobby McFerrin', track:'Blackbird', album:'The Voice', year:1984, timestamp:null, label:'Elektra',
+       listenFor:'McFerrin\'s solo vocal technique demonstrates the ultimate extension of scat — simultaneously singing melody, bass, and percussion. Listen to his syllable choices and how they match the articulation.'}
+    ],
+    commonMistakes: [
+      'Stoloff: "The most frequently used vowels in traditional scat singing are ah, ee and oo." Beginners tend to use "doo" for everything. Force yourself to match syllable to articulation — "dah" for accented, "dit" for staccato, "dwee" for legato.',
+      'Stoloff: "Syllable combinations with 2 vowels (du-be, da-be) may sound trite after several repetitions." Combine 2-syllable rhythms with triplets (du-ee-a) to avoid monotony.',
+      'Not practicing at different tempos. Stoloff: "Start at 96 and increase your speed a little each day until you are able to articulate all 4 rhythm etudes at 160 with clarity and precision."'
+    ],
+    masteryChecklist: [
+      'Can articulate each line of the warm-up at tempo 96 with straight 8th feel',
+      'Can articulate at 144 with clarity',
+      'Can sing each vowel (ah, ee, oo) clearly with consonants b, d, l, n',
+      'Can properly produce the "dn" syllable (tongue to roof of mouth, nasal attack — NOT "din")'
+    ],
+    whenToUse: 'Use as a daily vocal warm-up before any scat practice. Like a pianist\'s Hanon exercises, this warm-up trains the mouth muscles and breath coordination needed for everything else.',
+    connections: [
+      'The rhythmic patterns here (duple and triple combinations) are the same rhythmic vocabulary used in piano improvisation (Stage 6)',
+      'The vowel placement principles (ee for high notes, ah/oo for low) apply to all vocal jazz performance',
+      'These syllables will be applied to melodic patterns in V2 (diatonic patterns) and V3 (scat performance)'
+    ],
+    practiceStrategy: "Stoloff's approach: (1) Listen to CD tracks 1 and 4 to hear correct articulation. (2) Practice with straight 8th feel first. (3) Then swing 8th feel. (4) Use a metronome — start at 96, increase gradually. (5) Practice the challenging syllables (especially 'dn') in isolation before applying to phrases.",
+    creativeChallenge: 'Record yourself scatting a simple 4-bar phrase using ONLY the syllables from this warm-up. Then listen to 30 seconds of Ella Fitzgerald scatting and transcribe her syllable choices. How do they compare?'},
+
 };
 
 /* ---------- a checklist nobody wrote ----------
@@ -61847,9 +62012,25 @@ const jazzDifficultyHTML = d => !d ? '' :
   `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
 
 /* ---------- the roadmap ---------- */
+const JAZZ_VOICE_STAGES = ['V1', 'V2', 'V3', 'V4'];
+const jazzRoadView = () => jazzUi().roadView || 'piano';
+const jazzStageCollapsed = id => !!(jazzState().settings.collapsed || {})[String(id)];
+function jazzToggleCollapse(id){
+  const st = jazzState().settings;
+  if(!st.collapsed) st.collapsed = {};
+  const k = String(id);
+  st.collapsed[k] = !st.collapsed[k];
+  saveNow();
+}
+
 function jazzRoadHTML(){
   const now = jazzNowStage();
   const ladder = jazzStages();
+  const view = jazzRoadView();
+  const isVoice = view === 'voice';
+  const shown = ladder.filter(s => isVoice
+    ? JAZZ_VOICE_STAGES.includes(String(s.id))
+    : !JAZZ_VOICE_STAGES.includes(String(s.id)));
   const all = ladder.map(s => jazzStageGot(s));
   const done = sum(all.map(g => g.done)), of = sum(all.map(g => g.of));
   return `<h1 class="serif">Jazz Studio</h1>
@@ -61862,30 +62043,41 @@ function jazzRoadHTML(){
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
       <button class="btn sm ghost" id="jzAllTips">\u{1f3c6} Golden tips</button>
       <span class="grow"></span>
-      <!-- the ladder is advice, not a lock. Anybody who wants it to be a
-           lock can have that; nobody gets it without asking. -->
       <label class="jz-gate mono"><input type="checkbox" id="jzGate" ${jazzGated() ? 'checked' : ''}>
         one stage at a time</label>
     </div>
-    <div class="jz-road">${ladder.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
+    <div class="jz-view-tabs" role="tablist">
+      <button class="jz-view-tab${!isVoice ? ' on' : ''}" data-jzview="piano" role="tab"
+        aria-selected="${!isVoice}">Piano</button>
+      <button class="jz-view-tab${isVoice ? ' on' : ''}" data-jzview="voice" role="tab"
+        aria-selected="${isVoice}">\u{1f3a4} Voice</button>
+    </div>
+    ${isVoice ? `<p class="jz-view-blurb">Vocal improvisation stages \u2014 scat, bebop phrasing,
+      and hearing the changes. These run alongside the piano curriculum;
+      V1 opens after stage 6.</p>` : ''}
+    <div class="jz-road">${shown.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
 }
 function jazzStageHTML(s, here){
   const got = jazzStageGot(s);
   const open = jazzStageOpen(s);
+  const collapsed = open && jazzStageCollapsed(s.id);
   /* run ahead if you like \u2014 it just says so */
   const ahead = open && !jazzStageReached(s);
   const pct = got.of ? Math.round(got.done / got.of * 100) : 0;
-  return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}" data-jzstage="${esc(s.id)}">
-    <header class="jz-shead">
+  return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}${
+    collapsed ? ' collapsed' : ''}" data-jzstage="${esc(s.id)}">
+    <header class="jz-shead" data-jztoggle="${esc(s.id)}"
+      title="${collapsed ? 'Expand this stage' : 'Collapse this stage'}" style="cursor:pointer">
       <span class="jz-sn mono">${s.n === 0 ? 'P' : s.n}</span>
       <span class="jz-st"><b class="serif">${esc(s.name)}</b>
         <span class="faint">${esc(s.blurb)}</span></span>
       ${jazzDifficultyHTML(s.expectedDifficulty)}
       <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
-        ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}</span>
+        ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}
+        <span class="jz-toggle-arrow" aria-hidden="true">${collapsed ? '\u25b6' : '\u25bc'}</span></span>
     </header>
     <div class="jz-sbar"><i style="width:${pct}%"></i></div>
-    ${open ? `<div class="jz-subs">${s.subs.map(id => {
+    ${open && !collapsed ? `<div class="jz-subs">${s.subs.map(id => {
       const ex = jazzExercise(id); if(!ex) return '';
       const n = jazzKeysGot(id);
       return `<button class="jz-sub" data-jzopen="${esc(id)}">
@@ -61904,22 +62096,15 @@ function jazzStageHTML(s, here){
           <p class="jz-wm">${esc(s.mindset)}</p></div>
         ${s.historicalContext ? `<div class="jz-note"><span class="sc">Where this came from</span>
           <p class="serif">${esc(s.historicalContext)}</p></div>` : ''}
-        <!-- The most useful sentence on the page, and the one a textbook
-             never prints. Four weeks into Type A/B voicings, a student who
-             thinks it should have taken one is about to decide they have no
-             talent. "Three to five weeks, and most people hit a wall in the
-             first" is the whole answer. -->
         ${s.typicalTimeToMaster ? `<div class="jz-note jz-howlong"><span class="sc">How long this honestly takes</span>
           <p>${esc(s.typicalTimeToMaster)}</p></div>` : ''}
         ${jazzMistakesHTML(s.commonMistakes)}
         ${jazzListeningHTML(s.listeningAssignments)}
       </details>`
-    : `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>`}
+    : (!open ? `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>` : '')}
   </section>`;
 }
 function bindJazzRoad(root){
-  /* bindJazzPlan binds the tips as well as the stage header, and binding them
-     twice here would only set the same handlers again */
   bindJazzPlan(root);
   $$('[data-jzopen]', root).forEach(b => b.onclick = () => {
     jazzUi().exId = b.dataset.jzopen; navigate('#/jazz/' + b.dataset.jzopen); });
@@ -61930,6 +62115,17 @@ function bindJazzRoad(root){
   const gate = root.querySelector('#jzGate');
   if(gate) gate.onchange = () => { jazzState().settings.gate = gate.checked;
     saveNow(); sound('click'); rerender(); };
+  $$('[data-jztoggle]', root).forEach(h => h.onclick = ev => {
+    if(ev.target.closest('[data-jzopen]')) return;
+    jazzToggleCollapse(h.dataset.jztoggle);
+    sound('click');
+    rerender();
+  });
+  $$('[data-jzview]', root).forEach(b => b.onclick = () => {
+    jazzUi().roadView = b.dataset.jzview;
+    sound('click');
+    rerender();
+  });
 }
 
 /* ---------- one exercise ---------- */

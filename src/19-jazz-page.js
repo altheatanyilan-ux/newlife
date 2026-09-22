@@ -142,9 +142,25 @@ const jazzDifficultyHTML = d => !d ? '' :
   `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
 
 /* ---------- the roadmap ---------- */
+const JAZZ_VOICE_STAGES = ['V1', 'V2', 'V3', 'V4'];
+const jazzRoadView = () => jazzUi().roadView || 'piano';
+const jazzStageCollapsed = id => !!(jazzState().settings.collapsed || {})[String(id)];
+function jazzToggleCollapse(id){
+  const st = jazzState().settings;
+  if(!st.collapsed) st.collapsed = {};
+  const k = String(id);
+  st.collapsed[k] = !st.collapsed[k];
+  saveNow();
+}
+
 function jazzRoadHTML(){
   const now = jazzNowStage();
   const ladder = jazzStages();
+  const view = jazzRoadView();
+  const isVoice = view === 'voice';
+  const shown = ladder.filter(s => isVoice
+    ? JAZZ_VOICE_STAGES.includes(String(s.id))
+    : !JAZZ_VOICE_STAGES.includes(String(s.id)));
   const all = ladder.map(s => jazzStageGot(s));
   const done = sum(all.map(g => g.done)), of = sum(all.map(g => g.of));
   return `<h1 class="serif">Jazz Studio</h1>
@@ -157,30 +173,41 @@ function jazzRoadHTML(){
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
       <button class="btn sm ghost" id="jzAllTips">\u{1f3c6} Golden tips</button>
       <span class="grow"></span>
-      <!-- the ladder is advice, not a lock. Anybody who wants it to be a
-           lock can have that; nobody gets it without asking. -->
       <label class="jz-gate mono"><input type="checkbox" id="jzGate" ${jazzGated() ? 'checked' : ''}>
         one stage at a time</label>
     </div>
-    <div class="jz-road">${ladder.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
+    <div class="jz-view-tabs" role="tablist">
+      <button class="jz-view-tab${!isVoice ? ' on' : ''}" data-jzview="piano" role="tab"
+        aria-selected="${!isVoice}">Piano</button>
+      <button class="jz-view-tab${isVoice ? ' on' : ''}" data-jzview="voice" role="tab"
+        aria-selected="${isVoice}">\u{1f3a4} Voice</button>
+    </div>
+    ${isVoice ? `<p class="jz-view-blurb">Vocal improvisation stages \u2014 scat, bebop phrasing,
+      and hearing the changes. These run alongside the piano curriculum;
+      V1 opens after stage 6.</p>` : ''}
+    <div class="jz-road">${shown.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
 }
 function jazzStageHTML(s, here){
   const got = jazzStageGot(s);
   const open = jazzStageOpen(s);
+  const collapsed = open && jazzStageCollapsed(s.id);
   /* run ahead if you like \u2014 it just says so */
   const ahead = open && !jazzStageReached(s);
   const pct = got.of ? Math.round(got.done / got.of * 100) : 0;
-  return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}" data-jzstage="${esc(s.id)}">
-    <header class="jz-shead">
+  return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}${
+    collapsed ? ' collapsed' : ''}" data-jzstage="${esc(s.id)}">
+    <header class="jz-shead" data-jztoggle="${esc(s.id)}"
+      title="${collapsed ? 'Expand this stage' : 'Collapse this stage'}" style="cursor:pointer">
       <span class="jz-sn mono">${s.n === 0 ? 'P' : s.n}</span>
       <span class="jz-st"><b class="serif">${esc(s.name)}</b>
         <span class="faint">${esc(s.blurb)}</span></span>
       ${jazzDifficultyHTML(s.expectedDifficulty)}
       <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
-        ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}</span>
+        ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}
+        <span class="jz-toggle-arrow" aria-hidden="true">${collapsed ? '\u25b6' : '\u25bc'}</span></span>
     </header>
     <div class="jz-sbar"><i style="width:${pct}%"></i></div>
-    ${open ? `<div class="jz-subs">${s.subs.map(id => {
+    ${open && !collapsed ? `<div class="jz-subs">${s.subs.map(id => {
       const ex = jazzExercise(id); if(!ex) return '';
       const n = jazzKeysGot(id);
       return `<button class="jz-sub" data-jzopen="${esc(id)}">
@@ -199,22 +226,15 @@ function jazzStageHTML(s, here){
           <p class="jz-wm">${esc(s.mindset)}</p></div>
         ${s.historicalContext ? `<div class="jz-note"><span class="sc">Where this came from</span>
           <p class="serif">${esc(s.historicalContext)}</p></div>` : ''}
-        <!-- The most useful sentence on the page, and the one a textbook
-             never prints. Four weeks into Type A/B voicings, a student who
-             thinks it should have taken one is about to decide they have no
-             talent. "Three to five weeks, and most people hit a wall in the
-             first" is the whole answer. -->
         ${s.typicalTimeToMaster ? `<div class="jz-note jz-howlong"><span class="sc">How long this honestly takes</span>
           <p>${esc(s.typicalTimeToMaster)}</p></div>` : ''}
         ${jazzMistakesHTML(s.commonMistakes)}
         ${jazzListeningHTML(s.listeningAssignments)}
       </details>`
-    : `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>`}
+    : (!open ? `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>` : '')}
   </section>`;
 }
 function bindJazzRoad(root){
-  /* bindJazzPlan binds the tips as well as the stage header, and binding them
-     twice here would only set the same handlers again */
   bindJazzPlan(root);
   $$('[data-jzopen]', root).forEach(b => b.onclick = () => {
     jazzUi().exId = b.dataset.jzopen; navigate('#/jazz/' + b.dataset.jzopen); });
@@ -225,6 +245,17 @@ function bindJazzRoad(root){
   const gate = root.querySelector('#jzGate');
   if(gate) gate.onchange = () => { jazzState().settings.gate = gate.checked;
     saveNow(); sound('click'); rerender(); };
+  $$('[data-jztoggle]', root).forEach(h => h.onclick = ev => {
+    if(ev.target.closest('[data-jzopen]')) return;
+    jazzToggleCollapse(h.dataset.jztoggle);
+    sound('click');
+    rerender();
+  });
+  $$('[data-jzview]', root).forEach(b => b.onclick = () => {
+    jazzUi().roadView = b.dataset.jzview;
+    sound('click');
+    rerender();
+  });
 }
 
 /* ---------- one exercise ---------- */
