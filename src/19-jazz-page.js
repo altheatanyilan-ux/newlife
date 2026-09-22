@@ -155,6 +155,7 @@ function jazzRoadHTML(){
       <button class="btn primary" id="jzPlanGo">\u{1f4cb} Today\u2019s practice</button>
       <button class="btn sm ghost" id="jzCards">\u{1f3af} Flashcards</button>
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
+      <button class="btn sm ghost" id="jzAllTips">\u{1f3c6} Golden tips</button>
       <span class="grow"></span>
       <!-- the ladder is advice, not a lock. Anybody who wants it to be a
            lock can have that; nobody gets it without asking. -->
@@ -212,6 +213,8 @@ function jazzStageHTML(s, here){
   </section>`;
 }
 function bindJazzRoad(root){
+  /* bindJazzPlan binds the tips as well as the stage header, and binding them
+     twice here would only set the same handlers again */
   bindJazzPlan(root);
   $$('[data-jzopen]', root).forEach(b => b.onclick = () => {
     jazzUi().exId = b.dataset.jzopen; navigate('#/jazz/' + b.dataset.jzopen); });
@@ -260,6 +263,11 @@ function jazzExerciseHTML(id){
           : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
              It is a thing to do — at the instrument or on paper — and the words
              beside it are the whole of it.</div></div>`}
+        <!-- what is true of this exercise and of every other one. Under the
+             score because that is where the eyes are, shut because four
+             paragraphs between the notation and the buttons would be four
+             paragraphs nobody asked for. -->
+        ${jazzTipsHTML(ex)}
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
           <button class="btn ${r.keys[key] ? 'ghost' : 'primary'}" id="jzGot">${
             r.keys[key] ? `✓ ${esc(jazzPretty(key))} is yours — take it back` : `Mark ${esc(jazzPretty(key))} as yours`}</button>
@@ -385,6 +393,7 @@ function bindJazzExercise(root, id){
     if(xml) jazzEngrave(box, xml);
     else if(box) box.innerHTML = '<div class="jz-noscore">The book names a way of writing this one out that this copy does not have.</div>'; };
   draw();
+  bindJazzTips(root);
   bindJazzFixTools(root, id, ex, fixed);
   $$('[data-jzint]', root).forEach(b => b.onclick = () => {
     ui.interval = b.dataset.jzint; sound('click'); rerender(); });

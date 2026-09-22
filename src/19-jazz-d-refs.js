@@ -38,6 +38,10 @@ const JAZZ_BOOKS = {
   'Berklee Harmony': 'The Berklee Book of Jazz Harmony',
   'Stoloff': 'Scat! Vocal Improvisation Techniques',
   'Weir': 'The Jazz Singer’s Handbook',
+  /* the vocal-technique text the golden tips cite for warming up, cooling
+     down and mental practice — the research named the author and the
+     chapters, not the title, and this is the identification */
+  'Peckham': 'The Contemporary Singer',
   'Design Doc': 'Jazz Practice Studio — design notes'
 };
 

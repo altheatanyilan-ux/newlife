@@ -1784,6 +1784,37 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-stage-box[data-jzacc="user_modified"]{
   border-left:3px solid #6b7f8e;
   background:color-mix(in srgb,#6b7f8e 6%,var(--card))}
+/* the golden tips — what is true of every exercise.
+   Gold, and only here: the room's accent is the terracotta everything else
+   uses, and a trophy in terracotta is just another note. */
+.jz-tips{margin-top:12px;border:1px solid color-mix(in srgb,#c9a227 34%,var(--line));
+  border-radius:12px;background:color-mix(in srgb,#c9a227 4%,var(--card));padding:8px 12px}
+.jz-tips > summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;
+  flex-wrap:wrap;font-size:.84rem}
+.jz-tips > summary::-webkit-details-marker{display:none}
+.jz-tips > summary::after{content:'▸';margin-left:auto;color:var(--faint);transition:transform .2s var(--ease)}
+.jz-tips[open] > summary::after{transform:rotate(90deg)}
+.jz-tipt{font-size:1rem}
+.jz-tiplist{display:flex;flex-direction:column;gap:10px;margin:10px 0}
+.jz-tip{border-left:2px solid color-mix(in srgb,#c9a227 50%,transparent);padding:2px 0 2px 11px}
+.jz-tip.starred{border-left-color:#c9a227}
+.jz-tiphead{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.jz-tiphead > b{font-size:.9rem}
+.jz-tipi{font-size:.95rem;flex:none}
+.jz-star{margin-left:auto;background:none;border:0;cursor:pointer;font-size:.95rem;line-height:1;
+  color:var(--faint);padding:2px 4px;border-radius:6px;transition:color .2s var(--ease)}
+.jz-star:hover{color:#c9a227}
+.jz-star.on{color:#c9a227}
+.jz-tiptext{font-size:.84rem;line-height:1.6;margin:4px 0 0;max-width:66ch;color:var(--ink)}
+.jz-tipsrc{font-size:.66rem;color:var(--faint);margin:5px 0 0}
+.jz-tipgo{margin-top:5px}
+/* the one at the top of the day's plan */
+.jz-today-tip{border:1px solid color-mix(in srgb,#c9a227 40%,var(--line));border-radius:14px;
+  padding:12px 15px;margin-bottom:16px;background:color-mix(in srgb,#c9a227 5%,var(--card))}
+.jz-today-tip > b{display:block;font-size:1.02rem;margin-top:6px}
+.jz-today-tip .jz-tiptext{font-size:.88rem}
+.jz-today-tip .row{margin-top:9px}
+.jz-tip-panel .jz-tiplist{margin-top:8px}
 /* take it away, fix it, bring it back */
 .jz-fixbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
 .jz-fixed{font-size:.66rem;color:#6b7f8e;letter-spacing:.03em}

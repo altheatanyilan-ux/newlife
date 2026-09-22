@@ -67,6 +67,7 @@ function jazzPlanHTML(){
   return `<div class="row between" style="align-items:baseline">
       <h1 class="serif" style="margin:0">Today’s practice</h1>
       <button class="btn sm ghost" id="jzPback">← the roadmap</button></div>
+    ${jazzTipOfDayHTML()}
     ${jazzStageHeadHTML(stage)}
     ${!started ? '' : !plan ? '<div class="empty">This stage has no plan template yet.</div>' : `
     <div class="jz-plan">
@@ -226,6 +227,7 @@ function jazzProgressHTML(){
 let _jzSessTick = null;
 function bindJazzPlan(root){
   const ui = jazzUi();
+  bindJazzTips(root);
   const back = root.querySelector('#jzPback');
   if(back) back.onclick = () => navigate('#/jazz');
   const prog = root.querySelector('#jzProgGo');
