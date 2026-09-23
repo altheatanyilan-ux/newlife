@@ -501,7 +501,11 @@ function planTaskMilestone(t){
    ticked by hand — the date is met when the work under it is */
 function planMilestoneProgress(id){
   const ts = planMilestoneTasks(id);
-  return {total: ts.length, done: ts.filter(t => t.done).length};
+  const done = ts.filter(t => t.done).length;
+  /* "left" is the number the timeline shows, because the question a date on a
+     timeline asks is how much is still between you and it. Done over total
+     says the same thing arithmetically and makes you do the subtraction. */
+  return {total: ts.length, done, left: ts.length - done};
 }
 /* The milestones worth thinking about when choosing what to do next: not met,
    dated, and near enough to matter. Sorted by how soon, because that is the
