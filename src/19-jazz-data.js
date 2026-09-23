@@ -98,6 +98,31 @@ const JAZZ_STAGE_NOTES = {
     theory:'"When tunes originally in 4/4 are adapted to 5/4, every other measure loses one beat. In 7/4, every other measure gains one." And then: write a contrafact over a standard’s changes, reharmonise something that is not a jazz tune, and find out what you actually have.',
     werner:'The goal was never the exercises. It was to be able to say something.',
     mindset:'Finish something. An unfinished piece teaches you less than a bad finished one.'},
+  /* ---- Book 2, which the ladder had no rungs for ----
+     Stages 1-7 are Book 1 and 8-12 are Book 3; Book 2 — the transcriptions,
+     the scale patterns, the minor two-five-one, rhythm changes, drop-two and
+     the ballads — fell down the gap between them. These four go where the
+     material goes, between 7 and 8, the way 6A sits between 6 and 7. */
+  '7A': {n:'7A', name:'Transcription, and comping that moves', needs:7,
+    blurb:'The COREA process, and a left hand with more than two rhythms in it.',
+    theory:'"Transcription is the way every jazz musician before you learned to play." The COREA process makes it a method rather than a chore: Copy the solo note for note, Observe what the artist is actually doing, Repeat it with the record until it is yours, Extract the devices, Apply them somewhere else. Alongside it the comping vocabulary opens up — the Red Garland rhythm on the two upbeats, locked and semi-locked hands, and the first intervallic scale patterns in the right hand.',
+    werner:'You are not trying to sound like the record. You are trying to find out what the person on it knew.',
+    mindset:'Copy four bars at a time and get them exactly, rests included. A transcription that is nearly right teaches you something that is nearly true.'},
+  '7B': {n:'7B', name:'The minor two-five-one, and learning a tune properly', needs:'7A',
+    blurb:'Three formulas, two scale games, and the eleven steps.',
+    theory:'The minor ii-V-i needs its own voicings — the Low Note, High Note and Root formulas — and its own scales: locrian natural two on the half-diminished, the altered scale on the dominant. The Scale Games force continuous eighth notes without running up and down. And this is where the eleven-step tune mastery process arrives: melody, memorise, personalise, harmony, voicings, both hands, comping, improvise, coordinate, intro and ending, dream solo.',
+    werner:'A tune you have played a hundred times and never analysed is a tune you do not know.',
+    mindset:'Take one tune through all eleven steps before you take a second tune through step one. Depth is the point.'},
+  '7C': {n:'7C', name:'Rhythm changes, and how to start and stop', needs:'7B',
+    blurb:'The second most common form, and the performance around it.',
+    theory:'Rhythm changes moves too fast to think through, so it has to be vocabulary: 3-5-7-9 arpeggios connected by half step through the I-vi-ii-V, and a bridge that is a cycle of dominants. Around it goes everything a performance needs and a practice room never teaches — three introductions (last four measures, vamp, rubato), three stock endings (scalar run, arpeggiated fill, the Count Basie), and the three-time tag.',
+    werner:'Nobody ever remembers the middle of the solo. They remember how it started and how it ended.',
+    mindset:'Practise the endings in all twelve keys before you need one. On the stand is the wrong place to work out how to stop.'},
+  '7D': {n:'7D', name:'Drop-two, ballads, and hearing yourself', needs:'7C',
+    blurb:'Walking in four, the ballad devices, and the seventeen questions.',
+    theory:'Drop-two voicings come from closed position by dropping the second voice from the top an octave, and they are what a walking bass in four wants above it. The ballad devices are their own vocabulary: back-phrasing, bell tones, interlocking fifths and sixths, the left-hand shuttle. And the book ends by turning the method on yourself — record a take, transcribe it, and answer seventeen questions about what you actually played rather than what you meant to.',
+    werner:'The recording does not care what you intended. That is what makes it useful.',
+    mindset:'Answer the seventeen honestly or do not answer them. The three areas for improvement become next month’s practice, so a flattering answer costs you the month.'},
   '6A': {n:'6A', name:'Chord-scale theory and the modes', needs:6,
     blurb:'What scale goes with this chord — and why.',
     theory:'"Every chord in the jazz repertoire has its own scale." The seven modes of the major scale, the seven of the melodic minor, the symmetrical scales built from alternating half and whole steps — each maps to a chord type in context. The altered scale (melodic minor from the 7th) is the single most important: it contains every alteration the dominant 7th admits and resolves by half step in both directions.',
@@ -134,10 +159,12 @@ const JAZZ_STAGE_NOTES = {
     werner:'Hearing changes is not a skill you acquire once. It is a practice you return to every time you play a tune you think you already know.',
     mindset:'On the ii, hear the minor third and the seventh. On the V, hear the major third and the flat seventh. On the I, hear the major seventh. Three sounds, not a dozen notes.'},
 };
-/* the rungs, in order — P0 through 12 (Siskind), then 6A (Levine chord-scales),
+/* the rungs, in order — P0 through 7 (Siskind Book 1), 6A (Levine
+   chord-scales), 7A–7D (Siskind Book 2), 8 through 12 (Siskind Book 3),
    13 (Mantooth/Berklee advanced voicings), 15 (Berklee constant structures),
    and V1–V4 (Stoloff/Weir vocal) */
-const JAZZ_STAGE_IDS = ['P0', 1, 2, 3, 4, 5, 6, '6A', 7, 8, 9, 10, 11, 12, 13, 15, 'V1', 'V2', 'V3', 'V4'];
+const JAZZ_STAGE_IDS = ['P0', 1, 2, 3, 4, 5, 6, '6A', 7, '7A', '7B', '7C', '7D',
+  8, 9, 10, 11, 12, 13, 15, 'V1', 'V2', 'V3', 'V4'];
 
 /* ---------- the catalogue, read rather than written ----------
    Both shipped catalogues are merged into one flat table keyed by the id the
@@ -180,6 +207,11 @@ function jazzBook(){
   try { take(typeof STAGE_P0_CATALOG !== 'undefined' ? STAGE_P0_CATALOG : null); } catch(e){}
   try { take(typeof STAGES_0_12_CATALOG !== 'undefined' ? STAGES_0_12_CATALOG : null); } catch(e){}
   try { take((typeof JazzExerciseGenerator !== 'undefined' && JazzExerciseGenerator.JAZZ_EXERCISE_CATALOG) ? JazzExerciseGenerator.JAZZ_EXERCISE_CATALOG : null); } catch(e){}
+  /* the unit assignment material — coordination drills, comping patterns,
+     scale patterns, worksheets, transcription projects and the rest. It
+     belongs on the ladder beside everything else rather than in a room of
+     its own, so it arrives here as one more catalogue. */
+  try { take(typeof siskindMaterialCatalog === 'function' ? siskindMaterialCatalog() : null); } catch(e){ console.warn('the Siskind material did not merge', e); }
   /* and the layer a textbook leaves out — the listening, the mistakes, the
      checkpoints. Merged here rather than written into the shipped files, so
      those stay exactly as they arrived. */

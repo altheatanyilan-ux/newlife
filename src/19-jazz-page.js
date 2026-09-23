@@ -94,10 +94,6 @@ routes.jazz = function(root, params){
     root.innerHTML = `<div class="page jz-page">${jazzUnitsHTML(activeUnitId)}</div>`;
     bindJazzUnits(root); return;
   }
-  if(want === 'catalog'){
-    root.innerHTML = `<div class="page jz-page">${jazzCatalogHTML()}</div>`;
-    bindJazzCatalog(root); return;
-  }
   /* The address decides which of the two views this is, and nothing else.
      It used to only ever SET the open exercise from the address and never
      clear it, so #/jazz with no exercise in it fell through to whichever one
@@ -196,7 +192,6 @@ function jazzRoadHTML(){
       <button class="btn sm ghost" id="jzListen">\u{1f3a7} Listening Library</button>
       <button class="btn sm ghost" id="jzImprov">\u{1f3bc} Improvisation</button>
       <button class="btn sm ghost" id="jzUnits">\u{1f4cb} Unit Assignments</button>
-      <button class="btn sm ghost" id="jzCatalog">\u{1f4da} Curriculum Catalog</button>
       <span class="grow"></span>
       <label class="jz-gate mono"><input type="checkbox" id="jzGate" ${jazzGated() ? 'checked' : ''}>
         one stage at a time</label>
@@ -252,6 +247,7 @@ function jazzStageHTML(s, here){
           <p class="jz-wm">${esc(s.mindset)}</p></div>
         ${s.historicalContext ? `<div class="jz-note"><span class="sc">Where this came from</span>
           <p class="serif">${esc(s.historicalContext)}</p></div>` : ''}
+        ${typeof jazzStageBandHTML === 'function' ? jazzStageBandHTML(s.id) : ''}
         ${s.typicalTimeToMaster ? `<div class="jz-note jz-howlong"><span class="sc">How long this honestly takes</span>
           <p>${esc(s.typicalTimeToMaster)}</p></div>` : ''}
         ${jazzMistakesHTML(s.commonMistakes)}
@@ -277,8 +273,6 @@ function bindJazzRoad(root){
   if(improv) improv.onclick = () => navigate('#/jazz/improv');
   const units = root.querySelector('#jzUnits');
   if(units) units.onclick = () => navigate('#/jazz/units');
-  const catalog = root.querySelector('#jzCatalog');
-  if(catalog) catalog.onclick = () => navigate('#/jazz/catalog');
   $$('[data-jztoggle]', root).forEach(h => h.onclick = ev => {
     if(ev.target.closest('[data-jzopen]')) return;
     jazzToggleCollapse(h.dataset.jztoggle);
@@ -341,6 +335,11 @@ function jazzExerciseHTML(id){
              score because that is where the eyes are, shut because four
              paragraphs between the notation and the buttons would be four
              paragraphs nobody asked for. -->
+        <!-- the unit assignment material, where there is any: the two hands
+             of a coordination drill, the COREA steps of a transcription, the
+             seventeen questions. It belongs on the exercise rather than in a
+             catalogue of its own. -->
+        ${typeof jazzMaterialHTML === 'function' ? jazzMaterialHTML(id) : ''}
         ${jazzTipsHTML(ex)}
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
           <button class="btn ${r.keys[key] ? 'ghost' : 'primary'}" id="jzGot">${
@@ -468,6 +467,7 @@ function jazzChecklistHTML(id){
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
+  try { if(typeof bindJazzMaterial === 'function') bindJazzMaterial(root, id); } catch(e){}
   /* what this copy generates, then what you have corrected, then what you have amended */
   const plain   = () => jazzScoreXml(ex, ui.key, {interval: ui.interval});
   const fixed   = () => { const x = plain(); return x ? jazzApplyFixes(x, id, ui.key) : x; };

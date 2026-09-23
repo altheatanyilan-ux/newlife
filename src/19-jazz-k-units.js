@@ -216,7 +216,7 @@ const SISKIND_UNITS = [
   /* ── BOOK 2 ──────────────────────────────────────────────── */
 
   {id:'B2-U1', book:2, unit:1, name:'Including Transcriptions',
-   stageId:'B2', stageLabel:'Book 2 Stage 1',
+   stageId:'7A', stageLabel:'Stage 7A',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Scale patterns in thirds, fourths, fifths, sixths and sevenths — start at about 120 BPM and increase gradually. About 15 minutes per day.'},
@@ -233,7 +233,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U2', book:2, unit:2, name:'The COREA Process',
-   stageId:'B2', stageLabel:'Book 2 Stage 2',
+   stageId:'7A', stageLabel:'Stage 7A',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Three-note and four-note scale patterns (triadic and seventh-chord) — practice with triplets and with eighth notes. About 15 minutes per day.'},
@@ -250,7 +250,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U3', book:2, unit:3, name:'Minor ii-V-i',
-   stageId:'B2', stageLabel:'Book 2 Stage 3',
+   stageId:'7B', stageLabel:'Stage 7B',
    assignments:[
     {part:'rote', minutes:10, category:'scale-pattern',
      text:'Scale Game 1 — continuous eighth notes without simply running scales up and down. Melodic decisions in real time. About 10 minutes per day.'},
@@ -267,7 +267,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U4', book:2, unit:4, name:'Improvising Over Minor ii-V-i',
-   stageId:'B2', stageLabel:'Book 2 Stage 4',
+   stageId:'7B', stageLabel:'Stage 7B',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Scale Game 2 — switch scales every 2 measures, ascending by half steps. Start slowly. About 10–20 minutes per day.'},
@@ -286,7 +286,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U5', book:2, unit:5, name:'Going Deeper with Minor ii-V-i',
-   stageId:'B2', stageLabel:'Book 2 Stage 5',
+   stageId:'7B', stageLabel:'Stage 7B',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Chromatic lead-in patterns — approaching guidetone lines from below by half step, above by half step, and chromatic enclosures. All twelve keys, about 15 minutes per day.'},
@@ -301,7 +301,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U6', book:2, unit:6, name:'Playing a Tune with Minor ii-V-i',
-   stageId:'B2', stageLabel:'Book 2 Stage 6',
+   stageId:'7B', stageLabel:'Stage 7B',
    assignments:[
     {part:'rote', minutes:20, category:'scale-pattern',
      text:'Octatonic scale patterns — two-note, three-note, and four-note patterns from the diminished scale. About 20 minutes per day.'},
@@ -320,7 +320,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U7', book:2, unit:7, name:'Revisiting the Blues Form',
-   stageId:'B2', stageLabel:'Book 2 Stage 7',
+   stageId:'7C', stageLabel:'Stage 7C',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Non-chord-tone scale patterns 1 — lower neighbors and chromatic enclosures targeting scale notes. All twelve keys, about 15 minutes per day.'},
@@ -337,7 +337,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U8', book:2, unit:8, name:'Introducing Closed-Position Voicings',
-   stageId:'B2', stageLabel:'Book 2 Stage 8',
+   stageId:'7C', stageLabel:'Stage 7C',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Non-chord-tone patterns 2 — double neighbors, the "Joy Spring" pattern, and the "Yodel Lick." Named after iconic jazz solos where these devices appear.'},
@@ -352,7 +352,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U9', book:2, unit:9, name:'Rhythm Changes and Endings',
-   stageId:'B2', stageLabel:'Book 2 Stage 9',
+   stageId:'7C', stageLabel:'Stage 7C',
    assignments:[
     {part:'rote', minutes:20, category:'scale-pattern',
      text:'Arpeggio patterns for rhythm changes — 3-5-7-9 arpeggios for I-vi-ii-V progressions with half-step connections between chord tones.'},
@@ -369,7 +369,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U10', book:2, unit:10, name:'Drop-Two Voicings and Bass in Four',
-   stageId:'B2', stageLabel:'Book 2 Stage 10',
+   stageId:'7D', stageLabel:'Stage 7D',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Bebop scale patterns — major and melodic minor bebop scales in multiple melodic shapes. The chromatic passing tone lands chord tones on downbeats.'},
@@ -384,7 +384,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U11', book:2, unit:11, name:'Adding Color to Ballads',
-   stageId:'B2', stageLabel:'Book 2 Stage 11',
+   stageId:'7D', stageLabel:'Stage 7D',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Hemiola patterns — mixing quarter note plus eighth note groupings (1.5-beat patterns) against 4/4 time. Includes descending seventh chords with double-note turns.'},
@@ -403,7 +403,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U12', book:2, unit:12, name:'Learning a Tune by Ear',
-   stageId:'B2', stageLabel:'Book 2 Stage 12',
+   stageId:'7D', stageLabel:'Stage 7D',
    assignments:[
     {part:'rote', minutes:20, category:'scale-pattern',
      text:'Non-chord-tone technical challenges — the capstone of Book 2\'s pattern work. Push your pattern vocabulary to its physical and musical limits.'},
@@ -641,6 +641,9 @@ const SISKIND_UNITS = [
 ];
 
 /* ---------- stage-to-units map ---------- */
+/* Which units belong to which rung. Book 1 sits on stages 1-7 and Book 3 on
+   8-12; Book 2 had nowhere to go at all until 7A-7D were added to the ladder,
+   so its twelve units were mapped to nothing and never surfaced. */
 const UNIT_STAGE_MAP = {
   'P0': [],
   1:    ['B1-U1','B1-U2'],
@@ -650,6 +653,10 @@ const UNIT_STAGE_MAP = {
   5:    ['B1-U9','B1-U10'],
   6:    ['B1-U11','B1-U12'],
   7:    ['B1-U10','B1-U11','B1-U12'],
+  '7A': ['B2-U1','B2-U2'],
+  '7B': ['B2-U3','B2-U4','B2-U5','B2-U6'],
+  '7C': ['B2-U7','B2-U8','B2-U9'],
+  '7D': ['B2-U10','B2-U11','B2-U12'],
   8:    ['B3-U1','B3-U2','B3-U3','B3-U4'],
   9:    ['B3-U5','B3-U9'],
   10:   ['B3-U6','B3-U7','B3-U8'],

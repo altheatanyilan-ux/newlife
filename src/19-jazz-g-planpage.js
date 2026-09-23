@@ -76,7 +76,31 @@ function jazzPlanHTML(){
         <span class="sc">Meeting the benchmark</span>
         <span class="mono faint">about ${plan.totalMinutes} min · set ${esc(plan.set)}</span>
       </div>
+      <!-- how long you have today. The short budgets rotate through the four
+           parts rather than shrinking all of them into uselessness. -->
+      <div class="jz-budget">
+        <span class="sc">Time today</span>
+        <div class="jz-budget-picks">${JAZZ_BUDGETS.map(b =>
+          `<button class="jz-budget-pick${b.id === plan.budget ? ' on' : ''}"
+            data-jzbudget="${esc(b.id)}">${b.minutes >= 180 ? '3 hr +'
+              : b.minutes >= 120 ? '2 hr' : b.minutes >= 60 ? '1 hr' : '30 min'}</button>`).join('')}</div>
+        <p class="jz-budget-note">${esc(plan.budgetName)} — ${esc(plan.budgetNote)}${
+          plan.dropped.length ? ` Today skips ${esc(plan.dropped.join(', '))}.` : ''}</p>
+      </div>
+      ${plan.focus ? `<div class="jz-focus">
+        <span class="sc">Focus, from your last self-analysis</span>
+        <p class="serif">${esc(plan.focus)}</p>
+        <p class="mono faint">you wrote this after recording ${esc(plan.analysisTune || 'a take')}</p>
+      </div>` : ''}
       ${plan.required.map((b, i) => jazzPlanBlockHTML(b, i)).join('')}
+      ${(plan.material || []).length ? `<div class="jz-matdue">
+        <span class="sc">From this stage’s unit assignments</span>
+        <p class="mono faint">least practised first — the rest of the stage is on the roadmap</p>
+        ${plan.material.map(m => `<a class="jz-matdue-row" href="#/jazz/${esc(m.id)}">
+          <span class="jz-matdue-name">${esc(m.name)}</span>
+          <span class="mono jz-matdue-meta">${m.keys ? `${m.keys}/12 keys` : 'not started'}${
+            m.last == null ? '' : ` · ${esc(relDays(m.last))}`}</span></a>`).join('')}
+      </div>` : ''}
       ${plan.track ? jazzListenBlockHTML(plan) : ''}
       ${plan.bonus.length ? `<div class="sc" style="margin-top:16px">Exceeding it</div>
         ${plan.bonus.map((b, i) => `<div class="jz-block bonus">
@@ -229,6 +253,8 @@ let _jzSessTick = null;
 function bindJazzPlan(root){
   const ui = jazzUi();
   bindJazzTips(root);
+  $$('[data-jzbudget]', root).forEach(b => b.onclick = () => {
+    jazzSetSessionBudget(b.dataset.jzbudget); sound('click'); rerender(); });
   const back = root.querySelector('#jzPback');
   if(back) back.onclick = () => navigate('#/jazz');
   const prog = root.querySelector('#jzProgGo');

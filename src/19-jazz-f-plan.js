@@ -202,6 +202,63 @@ const JAZZ_PLAN_TEMPLATES = {
       ['listening', 20, [['Guided listening',
         '"Cheek to Cheek" by Ahmad Jamal, twenty times.', 20, 0, 0]]]]},
 
+  /* ---- Book 2 ----
+     Four templates for the four rungs Book 2 now has. The minutes are the
+     ones Siskind writes on the assignment pages themselves — fifteen a day
+     for scale patterns, thirty for comping on tunes — rather than a division
+     of two hours into four equal parts. */
+  '7A': {hours: 40, days: 21, daily: 120, source: 'Siskind Book 2, Units 1–2',
+    parts: [
+      ['fundamentals', 15, [['Improvise with stepwise connections',
+        'Over a two-five-one, connect to the thirds by step. Then the same with pickups — A, B and C types.', 15, 3, 0]]],
+      ['rote', 35, [['Scale patterns in thirds through sevenths',
+        'Thirds, fourths, fifths, sixths, sevenths. Start around 120 and raise it only when it is clean.', 15, 4, 2],
+        ['Four-note one-handed voicings, or the coordination exercise',
+        'One or the other, not both. The voicings if the hand is unsure, the coordination drill if it is not.', 20, 4, 1]]],
+      ['tunes', 30, [['Comping with Red Garland, or locked hands',
+        'On tunes, not in the abstract. One pattern for a whole chorus before you allow yourself to change.', 30, 0, 0]]],
+      ['listening', 30, [['Transcribe, and play along',
+        'The COREA process on the unit’s recording. Play along thirty times or more — they are play-alongs, not practice sessions.', 30, 0, 0]]]]},
+
+  '7B': {hours: 45, days: 24, daily: 120, source: 'Siskind Book 2, Units 3–6',
+    parts: [
+      ['fundamentals', 15, [['Guidetone lines, then chromatic lead-ins',
+        'The thirds and sevenths alone first. Then approach each one by half step from below, from above, and with an enclosure.', 15, 3, 0]]],
+      ['rote', 35, [['The scale games',
+        'Scale Game 1 — continuous eighths without running up and down. Then Scale Game 2 — a new scale every two bars, ascending by half steps.', 15, 4, 1],
+        ['Minor two-five-one voicings, all three formulas',
+        'Low Note, High Note and Root, in every key. Write one out before you play it if the shape will not come.', 20, 4, 2]]],
+      ['tunes', 40, [['A tune through the eleven steps',
+        'One tune. Find the step you are on and do that step, rather than replaying the ones you have already done.', 40, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening for how the minor two-five is voiced.', 20, 0, 0]]]]},
+
+  '7C': {hours: 40, days: 21, daily: 120, source: 'Siskind Book 2, Units 7–9',
+    parts: [
+      ['fundamentals', 15, [['Non-chord-tone patterns',
+        'Lower neighbours and chromatic enclosures onto scale notes. Then the double neighbours and the named licks.', 15, 3, 0]]],
+      ['rote', 35, [['Arpeggios for rhythm changes',
+        '3-5-7-9 through the I-vi-ii-V, connected by half step. The bridge is a cycle of dominants — practise it separately.', 20, 4, 2],
+        ['Introductions and endings, in all twelve keys',
+        'Three ways in and three ways out. Practise them before you need one.', 15, 4, 1]]],
+      ['tunes', 30, [['A blues and a rhythm changes, complete',
+        'Introduction, head, solo, ending. A whole performance rather than a chorus that stops.', 30, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'The unit’s track, twenty times, listening to how the pianist starts and stops.', 20, 0, 0]]]]},
+
+  '7D': {hours: 40, days: 21, daily: 120, source: 'Siskind Book 2, Units 10–12',
+    parts: [
+      ['fundamentals', 15, [['Bebop scales, then hemiolas',
+        'The chromatic passing tone that puts chord tones on downbeats. Then mix a quarter and an eighth to get three-beat patterns against four.', 15, 3, 0]]],
+      ['rote', 35, [['Drop-two voicings and a bass in four',
+        'The closed position first, then drop the second voice from the top. Walking bass underneath once the shapes are secure.', 20, 4, 2],
+        ['The ballad devices',
+        'Back-phrasing, bell tones, interlocking fifths and sixths, the left-hand shuttle. One per session.', 15, 4, 1]]],
+      ['tunes', 30, [['A ballad, slowly',
+        'Slow tempo comping and melody. A ballad played nervously fast is the commonest fault at this stage.', 30, 0, 0]]],
+      ['listening', 20, [['Learn one by ear, and record yourself',
+        'Form, melody, key, harmony, voicings — by ear, no lead sheet. Then record a take and answer the seventeen questions.', 20, 0, 0]]]]},
+
   8: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Units 1–5',
     parts: [
       ['fundamentals', 15, [['Modal patterns',
@@ -616,11 +673,102 @@ function jazzTodaysPlan(sid){
       description: `${track.artist} — ${track.track}. ${jazzListens(track)} of ${JAZZ_LISTEN_TARGET} so far.`,
       minutes: 10, why: 'Siskind: "any study of jazz without gobs and gobs of listening is truly futile"'});
 
+  /* ---------- how long you actually have ----------
+     The four-part session assumes two hours. On a thirty-minute day the book
+     does not want a quarter of each part — it wants one part, done properly,
+     and the next part tomorrow. So the short sessions rotate rather than
+     shrink, and only the two-hour and longer ones keep all four. */
+  const budget = jazzSessionBudget();
+  const shaped = jazzShapePlan(required, budget, day);
+
+  /* and what the last self-analysis said to work on, which is a better
+     focus prompt than anything that could be invented here */
+  const analysis = typeof jazzLatestAnalysis === 'function' ? jazzLatestAnalysis() : null;
+  const focus = analysis && analysis.improvementGoals && analysis.improvementGoals.length
+    ? analysis.improvementGoals[(day - 1) % analysis.improvementGoals.length] : null;
+
   return {stage, day, pace: p, paceName: pace.name,
-    totalMinutes: sum(required.map(r => r.minutes)),
+    totalMinutes: sum(shaped.blocks.map(r => r.minutes)),
     set: jazzDescentForDay(day).name,
-    required, bonus, track,
+    required: shaped.blocks, bonus, track,
+    budget, budgetName: shaped.name, budgetNote: shaped.note,
+    dropped: shaped.dropped, focus, analysisTune: analysis ? analysis.tuneName : null,
+    material: jazzMaterialDue(stage, day),
     plays: track ? jazzListens(track) : 0, target: JAZZ_LISTEN_TARGET};
+}
+
+/* ---------- time scaling ----------
+   Four budgets, and a different allocation strategy for each. */
+const JAZZ_BUDGETS = [
+  {id:'30', minutes:30, name:'Abbreviated',
+   note:'One part today, the next tomorrow. Four days makes a whole session.'},
+  {id:'60', minutes:60, name:'Condensed',
+   note:'A short warm-up and the two parts you have gone longest without.'},
+  {id:'120', minutes:120, name:'Full',
+   note:'All four parts, at roughly half an hour each. This is the session the book assumes.'},
+  {id:'180', minutes:180, name:'Extended',
+   note:'All four, and room for a second tune or a second transcription.'}
+];
+const JAZZ_PART_ORDER = ['fundamentals','rote','tunes','listening'];
+function jazzSessionBudget(){
+  const st = jazzState().settings;
+  return JAZZ_BUDGETS.find(b => b.id === st.budget) ? st.budget : '120';
+}
+function jazzSetSessionBudget(id){
+  jazzState().settings.budget = JAZZ_BUDGETS.find(b => b.id === id) ? id : '120';
+  saveNow();
+}
+/* Which parts survive the budget, and at what length. The rotation is by
+   day number, so a run of thirty-minute days still covers all four parts. */
+function jazzShapePlan(blocks, budgetId, day){
+  const b = JAZZ_BUDGETS.find(x => x.id === budgetId) || JAZZ_BUDGETS[2];
+  const present = JAZZ_PART_ORDER.filter(p => blocks.some(x => x.category === p));
+  if(!present.length) return {blocks, name:b.name, note:b.note, dropped:[]};
+
+  if(b.id === '30'){
+    const pick = present[(day - 1) % present.length];
+    const kept = blocks.filter(x => x.category === pick);
+    const each = Math.max(5, Math.round(30 / kept.length / 5) * 5);
+    return {blocks: kept.map(x => Object.assign({}, x, {minutes: each})),
+      name:b.name, note:b.note, dropped: present.filter(p => p !== pick)};
+  }
+  if(b.id === '60'){
+    /* two parts, advancing by one each day, so a run of one-hour days still
+       covers all four rather than repeating the same pair */
+    const start = (day - 1) % present.length;
+    const pick = [present[start], present[(start + 1) % present.length]];
+    const kept = blocks.filter(x => pick.includes(x.category));
+    const each = Math.max(5, Math.round(50 / kept.length / 5) * 5);
+    return {blocks: kept.map(x => Object.assign({}, x, {minutes: each})),
+      name:b.name, note:b.note, dropped: present.filter(p => !pick.includes(p))};
+  }
+  if(b.id === '180'){
+    return {blocks: blocks.map(x => Object.assign({}, x,
+      {minutes: Math.max(5, Math.round(x.minutes * 1.5 / 5) * 5)})),
+      name:b.name, note:b.note, dropped: []};
+  }
+  return {blocks, name:b.name, note:b.note, dropped: []};
+}
+
+/* ---------- rotation through the stage's material ----------
+   The unit assignment material on this stage, least-touched first, so the
+   plan can name two or three specific things rather than a category. */
+function jazzMaterialDue(stage, day){
+  if(typeof siskindMaterialsForStage !== 'function') return [];
+  const all = siskindMaterialsForStage(stage.id);
+  if(!all.length) return [];
+  const scored = all.map(m => {
+    const r = jazzRecord(m.ladderId);
+    const keys = Object.keys(r.keys || {}).length;
+    const last = r.lastAt ? daysSince(r.lastAt) : 999;
+    return {m, keys, last};
+  }).sort((a, b) => (a.keys - b.keys) || (b.last - a.last));
+  /* rotate the window so the same three are not named every day */
+  const off = (day - 1) % Math.max(1, scored.length);
+  const rot = scored.slice(off).concat(scored.slice(0, off));
+  return rot.slice(0, 3).map(x => ({
+    id: x.m.ladderId, name: x.m.name, kind: x.m.kind,
+    keys: x.keys, last: x.last === 999 ? null : x.last}));
 }
 
 /* ---------- the session ----------
