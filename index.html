@@ -65201,6 +65201,9 @@ function jzeSession(id, key){
     staff: score.staffConfig === 'bass' ? 'bass' : 'treble',
     dur: 3,                         /* the toolbar's chosen length, 1-5 */
     sel: {mi: 0, staff: score.staffConfig === 'bass' ? 'bass' : 'treble', ni: 0},
+    /* the note a Shift+letter would stack onto: the one last entered, or
+       last clicked. Not the cursor, which has moved past it by then. */
+    lastEntry: null,
     undo: [], redo: [], dirty: false
   };
 }
@@ -65255,6 +65258,15 @@ function jzeSwitchStaff(s){
 /* A letter names a pitch class; the octave chosen is the one that puts it
    nearest the note being replaced, which is what MuseScore does. */
 const JZE_LETTER_PC = {C:0, D:2, E:4, F:5, G:7, A:9, B:11};
+/* The lowest note of this name strictly above a given pitch — how a chord
+   is spelled upward from its root. */
+function jzeAboveMidi(letter, above){
+  const pc = JZE_LETTER_PC[letter.toUpperCase()];
+  if(pc == null) return null;
+  let m = Math.floor(above / 12) * 12 + pc;
+  while(m <= above) m += 12;
+  return m > 108 ? jzeNearestMidi(letter, above) : m;
+}
 function jzeNearestMidi(letter, near){
   const pc = JZE_LETTER_PC[letter.toUpperCase()];
   if(pc == null) return null;
@@ -65285,28 +65297,60 @@ function jzeReplacePitch(s, letter){
   n.pitch = midi; n.isRest = false;
   return true;
 }
+/* The whole chord a note belongs to: its base and every note stacked on it.
+   Length and dot belong to the chord rather than to one of its notes, and a
+   base note cannot become a rest while notes are still stacked on it. */
+function jzeGroupOf(notes, ni){
+  let start = ni;
+  while(start > 0 && notes[start].isChord) start--;
+  return {start, end: jzeChordEnd(notes, start)};
+}
 function jzeSetDuration(s, dn){
-  const n = jzeSelNote(s);
+  const notes = jzeSelNotes(s);
+  const n = notes[s.sel.ni];
   if(!n) return false;
   jzeSnap(s);
   const d = jzeDurByN(dn);
-  n.type = d.type; n.duration = d.units + (n.dotted ? Math.floor(d.units / 2) : 0);
+  const g = jzeGroupOf(notes, s.sel.ni);
+  for(let i = g.start; i < g.end; i++){
+    notes[i].type = d.type;
+    notes[i].duration = d.units + (notes[i].dotted ? Math.floor(d.units / 2) : 0);
+  }
   return true;
 }
 function jzeToRest(s){
-  const n = jzeSelNote(s);
+  const notes = jzeSelNotes(s);
+  const n = notes[s.sel.ni];
   if(!n || n.isRest) return false;
   jzeSnap(s);
-  n.isRest = true; n.pitch = null; n.isChord = false;
+  if(n.isChord){
+    /* one voice out of a chord: take the note away, leave the chord standing */
+    notes.splice(s.sel.ni, 1);
+    s.sel.ni = Math.max(0, s.sel.ni - 1);
+    return true;
+  }
+  /* the base: the notes stacked on it go with it, or they would be left
+     describing a chord on a rest, which is not a thing MusicXML can say */
+  const g = jzeGroupOf(notes, s.sel.ni);
+  notes.splice(g.start, g.end - g.start, {pitch:null, duration:n.duration,
+    type:n.type, isRest:true, isChord:false, dotted:!!n.dotted, tied:false});
+  s.sel.ni = g.start;
+  if(s.lastEntry && s.lastEntry.mi === s.sel.mi && s.lastEntry.staff === s.sel.staff)
+    s.lastEntry = null;
   return true;
 }
 function jzeToggleDot(s){
-  const n = jzeSelNote(s);
+  const notes = jzeSelNotes(s);
+  const n = notes[s.sel.ni];
   if(!n) return false;
   jzeSnap(s);
-  const base = jzeDurByType(n.type).units;
-  n.dotted = !n.dotted;
-  n.duration = n.dotted ? base + Math.floor(base / 2) : base;
+  const g = jzeGroupOf(notes, s.sel.ni);
+  const on = !n.dotted;
+  for(let i = g.start; i < g.end; i++){
+    const base = jzeDurByType(notes[i].type).units;
+    notes[i].dotted = on;
+    notes[i].duration = on ? base + Math.floor(base / 2) : base;
+  }
   return true;
 }
 function jzeToggleTie(s){
@@ -65320,7 +65364,54 @@ function jzeAccidental(s, by){
   jzeSnap(s); n.pitch = Math.max(12, Math.min(108, n.pitch + by)); return true;
 }
 /* Note Input mode: a pitch is PLACED at the cursor and the cursor moves on. */
+/* Where a chord group ends: the base note at ni, plus every note stacked on
+   it. A new member is inserted here so the group stays contiguous, which is
+   what <chord/> means — each chord note belongs to the note before it. */
+function jzeChordEnd(notes, ni){
+  let i = ni + 1;
+  while(i < notes.length && notes[i].isChord) i++;
+  return i;
+}
+/* Adding a note to a chord.
+
+   This is the one MuseScore behaviour that is easy to get wrong, and the
+   first version did. Entering a pitch advances the cursor past it, so by the
+   time you press Shift+letter the cursor is on the NEXT slot — usually the
+   rest that was just pushed along. Stacking onto the cursor therefore stacked
+   onto nothing and silently placed an ordinary note instead.
+
+   So a chord is added to the note last entered (or last clicked), not to
+   wherever the cursor has since moved, and the cursor does not move again. A
+   chord member also takes the base note's length rather than the toolbar's:
+   in MusicXML a <chord/> note must have the same duration as the note it sits
+   on, or the bar no longer adds up. */
+function jzeStack(s, letter){
+  const at = s.lastEntry;
+  if(!at) return false;
+  const notes = jzeNotes(s, at.mi, at.staff);
+  const base = notes[at.ni];
+  if(!base || base.isRest) return false;
+  const end = jzeChordEnd(notes, at.ni);
+  /* A chord is built upward. Picking the nearest octave the way note entry
+     does would put the G of a C major triad BELOW the root, because G3 is
+     nearer to C4 than G4 is — so you would type C, E, G and get a second
+     inversion. Each new voice goes above the top of the chord so far. */
+  let top = base.pitch;
+  for(let i = at.ni; i < end; i++) if(notes[i].pitch > top) top = notes[i].pitch;
+  const midi = jzeAboveMidi(letter, top);
+  if(midi == null) return false;
+  /* a pitch already in the chord is not added twice */
+  for(let i = at.ni; i < end; i++) if(notes[i].pitch === midi) return false;
+  jzeSnap(s);
+  notes.splice(end, 0, {pitch: midi, duration: base.duration, type: base.type,
+    isRest: false, isChord: true, dotted: !!base.dotted, tied: false});
+  /* the selection follows the note you just added, so the footer names it */
+  s.sel.mi = at.mi; s.sel.staff = at.staff; s.sel.ni = end;
+  if(s.score.staffConfig === 'grand') s.staff = at.staff;
+  return true;
+}
 function jzePlace(s, letter, asChord){
+  if(asChord && letter !== null) return jzeStack(s, letter);
   const notes = jzeSelNotes(s);
   const d = jzeDurByN(s.dur);
   const near = (() => { for(let i = notes.length - 1; i >= 0; i--)
@@ -65329,21 +65420,19 @@ function jzePlace(s, letter, asChord){
   if(letter !== null && midi == null) return false;
   jzeSnap(s);
   const note = {pitch: midi, duration: d.units, type: d.type,
-    isRest: letter === null, isChord: !!asChord, dotted: false, tied: false};
+    isRest: letter === null, isChord: false, dotted: false, tied: false};
   const at = notes[s.sel.ni];
-  if(asChord && at && !at.isRest){
-    notes.splice(s.sel.ni + 1, 0, note);
-    s.sel.ni += 1;
-    return true;
-  }
   /* an untouched whole-bar rest is replaced rather than pushed along */
   if(at && at.isRest && notes.length === 1) notes.splice(0, 1, note);
   else if(at) notes.splice(s.sel.ni, 1, note);
   else notes.push(note);
-  if(s.sel.ni + 1 < notes.length) s.sel.ni += 1;
+  /* what a following Shift+letter will stack onto */
+  s.lastEntry = note.isRest ? null : {mi: s.sel.mi, staff: s.sel.staff, ni: s.sel.ni};
+  const after = jzeChordEnd(notes, s.sel.ni);
+  if(after < notes.length) s.sel.ni = after;
   else if(s.sel.mi + 1 < s.score.measures.length){ s.sel.mi += 1; s.sel.ni = 0; }
   else { notes.push({pitch:null, duration:d.units, type:d.type, isRest:true,
-    isChord:false, dotted:false, tied:false}); s.sel.ni += 1; }
+    isChord:false, dotted:false, tied:false}); s.sel.ni = after; }
   return true;
 }
 function jzeAddMeasure(s){
@@ -65621,6 +65710,16 @@ function bindJazzScoreEditor(overlay, afterSave){
     s.sel.staff = hit.dataset.jzestaff;
     s.sel.ni = +hit.dataset.jzeni;
     if(s.score.staffConfig === 'grand') s.staff = s.sel.staff;
+    /* clicking a note also makes it the one a chord would be added to, so
+       Shift+letter works on a note you picked rather than only on one you
+       have just typed. A chord member stacks onto its own base. */
+    const picked = jzeSelNote(s);
+    if(picked && !picked.isRest){
+      let base = s.sel.ni;
+      const arr = jzeSelNotes(s);
+      while(base > 0 && arr[base].isChord) base--;
+      s.lastEntry = {mi: s.sel.mi, staff: s.sel.staff, ni: base};
+    } else s.lastEntry = null;
     redrawChrome();
     jzeOverlay(overlay); jzeFoot(overlay);
   });
