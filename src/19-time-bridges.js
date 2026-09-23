@@ -123,6 +123,10 @@ function bindTimeLinkPick(m){
    second timer would count the same hour twice. */
 function timeAutoStart(fields){
   timeState();
+  /* Unless you have turned that off. Every room asks through here, so this
+     one line is the whole switch — and it only governs the clock a room
+     starts for you. A timer you start by hand is untouched. */
+  if(!timeSettings().autoTrack) return null;
   if(timeRunning()) return null;
   const f = Object.assign({source:'auto'}, fields || {});
   /* The category a room asks for is one you can rename, put away or throw

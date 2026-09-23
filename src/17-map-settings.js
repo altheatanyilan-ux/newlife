@@ -19,6 +19,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Landing page</b><div class="d">Where the site opens.</div></div><select class="sel" style="width:auto" id="sHome">${[['compass','Compass'],['today','Today']].map(([v,l])=>`<option value="${v}" ${(S.settings.home||'compass')===v?'selected':''}>${l}</option>`).join('')}</select></div>
     </div>
     <div class="card rv"><h3>The clock</h3>
+      <div class="opt"><div><b>Walking into a room starts it</b><div class="d">Opening a practice room, a drill or a session starts the clock by itself and tags it to the room. Turn it off on the days you are in those rooms to work on them rather than to practise — an afternoon of building is not an afternoon of playing, and it is easier not to record it than to delete it afterwards. Starting the clock by hand still works either way.</div></div><label class="toggle ${timeSettings().autoTrack?'on':''}" id="sTimeAuto"><span class="sw"></span></label></div>
       <div class="opt"><div><b>The timer in the corner</b><div class="d">One clock for the whole house, on every page. Off, and the rooms that start it still log their own time; nothing is lost, it simply stops being in one place.</div></div><label class="toggle ${timeSettings().widget?'on':''}" id="sTimeWidget"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Start it in</b><div class="d">The category a timer with nothing said about it falls into.</div></div>
         <select class="sel" style="width:auto" id="sTimeCat"><option value="">nothing</option>${timeCategories().map(c =>
@@ -122,6 +123,18 @@ routes.settings = function(root){
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   /* the clock */
+  $('#sTimeAuto') && ($('#sTimeAuto').onclick = function(){
+    const st = timeSettings();
+    const on = st.autoTrack = !st.autoTrack;
+    /* Turning it off mid-sitting stops a clock a room started, rather than
+       leaving one running that you have just said you did not want. What you
+       started by hand is yours and keeps running. */
+    if(!on){ const e = timeRunning();
+      if(e && e.source === 'auto'){ stopTimer(); paintTimeDock(); } }
+    saveNow();
+    this.classList.toggle('on', on);
+    toast(on ? 'Rooms will start the clock again.'
+      : 'Rooms will no longer start the clock. Start it by hand when you mean to.'); });
   $('#sTimeWidget') && ($('#sTimeWidget').onclick = function(){
     timeSettings().widget = !timeSettings().widget; saveNow();
     this.classList.toggle('on', timeSettings().widget); paintTimeDock(); });

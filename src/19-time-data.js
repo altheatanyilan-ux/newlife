@@ -104,13 +104,33 @@ function timeState(){
     c.emoji = String(c.emoji || '\u25cb').trim().slice(0, 8) || '\u25cb';
     c.color = /^#[0-9a-fA-F]{3,8}$/.test(c.color || '') ? c.color : '#8a8d8f';
     c.off = !!c.off; });
-  t.settings = Object.assign({
+  /* FILLED IN, NOT REPLACED. This used to be
+        t.settings = Object.assign({…defaults}, t.settings || {});
+     which builds a NEW object every time it is called — and it is called by
+     timeSettings(), which every reader and every writer goes through. So
+        timeSettings().widget = !timeSettings().widget
+     evaluated the left side first, held that object, then called
+     timeSettings() again for the right side, which replaced the settings
+     with a fresh copy. The assignment landed on the copy that had just been
+     thrown away, and the toggle silently did nothing. Keeping one object and
+     filling in only the missing keys means a write goes where it is read. */
+  t.settings = t.settings && typeof t.settings === 'object' ? t.settings : {};
+  const timeDefaults = {
     defaultCategory: null,
     widget: true,               /* the pill, on every page */
     round: 1,                   /* say the minutes as they are */
     autoNods: true,             /* a sitting on a project is a nod on it */
     autoInteractions: true,     /* an hour with somebody is an hour with them */
-  }, t.settings || {});
+    /* Whether walking into a room starts the clock by itself. On, because
+       that is the point of it. Off for the days you are in the practice
+       rooms to work on them rather than to practise — an afternoon of
+       building the thing should not come back as an afternoon of playing,
+       and deleting those entries one at a time afterwards is worse than
+       not recording them. Starting the clock by hand still works. */
+    autoTrack: true,
+  };
+  for(const k in timeDefaults)
+    if(t.settings[k] === undefined) t.settings[k] = timeDefaults[k];
   t.settings.round = TIME_ROUNDING.includes(+t.settings.round) ? +t.settings.round : 1;
   return S.timeEntries;
 }
