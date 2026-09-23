@@ -163,10 +163,18 @@ function siskindMaterialCatalog(){
     index[id] = {kind, row, stageId:String(stage), name:rec.name};
     return id;
   };
+  /* The page range is written the way the rest of the reference table writes
+     it — "p.12", or "pp.39–40", or an em dash where the page is not known.
+     A source line like "Book 1 p.12" carries the book twice and does not
+     match that shape, so only the page part of it is kept. */
+  const pageOnly = s => {
+    const m = /(pp?\.\s*\d+(?:\s*[–-]\s*\d+)?)/.exec(String(s || ''));
+    return m ? m[1].replace(/\s+/g, '').replace('-', '–') : '—';
+  };
   const ref = (book, unit, pages, description) => ({
     book: SISKIND_BOOK_KEY[book] || 'Siskind Book 1',
     bookFull: SISKIND_BOOK_TITLE[book] || 'Jazz Piano Fundamentals',
-    chapter: `Unit ${unit}`, pageNumbers: pages || '—', description: description || ''
+    chapter: `Unit ${unit}`, pageNumbers: pageOnly(pages), description: description || ''
   });
 
   /* ---- 1. Coordination exercises ---- */

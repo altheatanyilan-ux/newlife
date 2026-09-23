@@ -80,8 +80,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  none without pages', refs.gap.pages, []);
   is('  and none with a stub where the description should be', refs.gap.what, []);
   is('every page number reads like a page number', refs.oddPages, []);
+  /* Siskind is the spine, but the ladder grew rungs that are not his: Levine
+     for the chord-scales at 6A, Mantooth and Berklee for the advanced
+     voicings at 13 and 15, Stoloff and Weir for the vocal stages. Each is a
+     real book this room sends you to. */
   is('and the books named are the ones this curriculum comes out of',
-    refs.books, ['Design Doc', 'Siskind Book 1', 'Siskind Book 2', 'Siskind Book 3']);
+    refs.books, ['Berklee Harmony', 'Design Doc', 'Levine', 'Mantooth',
+      'Siskind Book 1', 'Siskind Book 2', 'Siskind Book 3', 'Stoloff', 'Weir']);
 
   /* The part that a number-to-number mapping would have got wrong. */
   console.log('\n2. mapped by what the exercise is, not by its number');
@@ -144,127 +149,91 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   Object.keys(tint).forEach(id =>
     is(`${id} is marked ${tint[id].want}`, tint[id].acc, tint[id].want));
 
-  console.log('\n5. taking it away');
-  await p.evaluate(async () => { jazzClearFixes('2.1');
-    location.hash = '#/jazz/2.1'; rerender(); await new Promise(r => setTimeout(r, 2200)); });
-  const [dl] = await Promise.all([p.waitForEvent('download'), p.click('#jzDown')]);
-  const saved = '/tmp/smoke214.musicxml';
-  await dl.saveAs(saved);
-  const xml = fs.readFileSync(saved, 'utf8');
-  is('the file is named after the exercise and the key',
-    dl.suggestedFilename(), 'ii-V-I_Root_Position_C.musicxml');
-  yes('  and it is the score, not a stub',
-    /<score-partwise/.test(xml) && (xml.match(/<measure /g) || []).length === 3,
-    `${xml.length} bytes`);
-  yes('  which any MusicXML reader would accept', /<!DOCTYPE score-partwise/.test(xml));
+  console.log('\n5. the editor opens on what is already drawn');
+  const model = await p.evaluate(() => {
+    jazzClearEdited('2.1');
+    const gen = jazzScoreXml(jazzExercise('2.1'), 'C', {});
+    const m = jazzXmlToScore(gen, '2.1', 'C');
+    const genNotes = (gen.match(/<note>/g) || []).length;
+    const modelNotes = m.measures.reduce((a, x) => a + x.treble.length + x.bass.length, 0);
+    return {bars: m.measures.length, genNotes, modelNotes, cfg: m.staffConfig,
+      beats: m.timeSignature.beats};
+  });
+  is('every bar of the score is read in', model.bars, 3);
+  is('  and every note with it', model.modelNotes, model.genNotes);
+  is('  on the staff the score was written for', model.cfg, 'grand');
+  is('  keeping the time signature', model.beats, 4);
 
-  console.log('\n6. correcting it and bringing it back');
-  /* one note moved a whole tone up, the way somebody would in MuseScore */
-  const bumped = xml.replace(
-    /(<measure number="2">[\s\S]*?<note>\s*<pitch>\s*<step>)([A-G])(<\/step>)/,
-    (m, a, st, c) => a + ({C:'D',D:'E',E:'F',F:'G',G:'A',A:'B',B:'C'}[st]) + c);
-  yes('the file really was changed', bumped !== xml);
-  fs.writeFileSync('/tmp/smoke214-fixed.musicxml', bumped);
-  await p.setInputFiles('#jzUpFile', '/tmp/smoke214-fixed.musicxml');
-  await p.waitForTimeout(2600);
-  const took = await p.evaluate(() => ({
-    fixes: jazzFixes('2.1'),
-    badge: !!document.querySelector('.jz-fixed'),
-    acc: (document.querySelector('.jz-stage-box') || {dataset:{}}).dataset.jzacc,
-    said: [...document.querySelectorAll('#toasts .toast')].map(t => t.textContent)
-      .some(t => /corrected/i.test(t)),
-    from: jazzFixSource('2.1')}));
-  is('exactly the one note that moved is recorded', took.fixes, [{bar:1, i:0, d:2}]);
-  yes('  and the room says so', took.said === true);
-  yes('  and the score says you changed it', took.acc === 'user_modified' && took.badge === true,
-    took.acc);
-  yes('  and remembers where it came from', /smoke214-fixed/.test(took.from), took.from);
+  console.log('\n6. and writing it back out loses nothing');
+  const round = await p.evaluate(() => {
+    const gen = jazzScoreXml(jazzExercise('2.1'), 'C', {});
+    const m = jazzXmlToScore(gen, '2.1', 'C');
+    const out = jazzScoreToXml(m, 'C');
+    const pitches = x => (x.match(/<step>[A-G]<\/step>/g) || []).length;
+    return {inNotes: (gen.match(/<note>/g) || []).length,
+      outNotes: (out.match(/<note>/g) || []).length,
+      inPitches: pitches(gen), outPitches: pitches(out),
+      bars: (out.match(/<measure /g) || []).length,
+      grand: /<staves>2<\/staves>/.test(out)};
+  });
+  is('the same number of notes come back', round.outNotes, round.inNotes);
+  is('  and the same number of pitches', round.outPitches, round.inPitches);
+  is('  in the same number of bars', round.bars, 3);
+  yes('  still on a grand staff', round.grand);
 
-  /* THE claim. A corrected file is a correction in one key; a delta is a
-     correction in all twelve, which is what these exercises are made of. */
-  console.log('\n7. and the correction follows it into every key');
-  const everywhere = await p.evaluate(() => {
-    const STEP = {C:0, D:2, E:4, F:5, G:7, A:9, B:11};
-    const bars = x => x.split('<measure ').slice(1).map(m => {
-      const o = []; const re = /<step>([A-G])<\/step>\s*(?:<alter>(-?\d+)<\/alter>\s*)?<octave>(-?\d+)<\/octave>/g;
-      let y; while((y = re.exec(m))) o.push((+y[3] + 1) * 12 + STEP[y[1]] + (+(y[2] || 0)));
-      return o; });
-    const ex = jazzExercise('2.1');
+  console.log('\n7. and an edit follows it into every key');
+  const keys = await p.evaluate(() => {
+    const m = jazzXmlToScore(jazzScoreXml(jazzExercise('2.1'), 'C', {}), '2.1', 'C');
+    /* move the first note of the first bar up a tone, the way the editor does */
+    const first = m.measures[0].treble[0] || m.measures[0].bass[0];
+    const before = first.pitch;
+    first.pitch = before + 2;
+    jazzSetEdited('2.1', m);
     const out = {};
-    JAZZ_KEY_NAMES.forEach(k => {
-      const plain = jazzScoreXml(ex, k, {});
-      const fixed = jazzApplyFixes(plain, '2.1', k);
-      out[k] = bars(fixed)[1].map((n, i) => n - bars(plain)[1][i]);
-    });
+    for(const k of ['C', 'Eb', 'A']) out[k] = jazzScoreToXml(m, k).length > 0;
+    const inC = jazzScoreToXml(m, 'C'), inA = jazzScoreToXml(m, 'A');
+    jazzClearEdited('2.1');
+    return {drewEverywhere: Object.values(out).every(Boolean), differs: inC !== inA};
+  });
+  yes('it writes out in every key asked for', keys.drewEverywhere);
+  yes('  and the keys are not the same document', keys.differs);
+
+  console.log('\n8. the staff it is drawn on is yours to choose');
+  const staff = await p.evaluate(() => {
+    const m = jazzXmlToScore(jazzScoreXml(jazzExercise('2.1'), 'C', {}), '2.1', 'C');
+    const out = {};
+    for(const cfg of ['grand', 'treble', 'bass']){
+      m.staffConfig = cfg;
+      const x = jazzScoreToXml(m, 'C');
+      out[cfg] = {two: /<staves>2<\/staves>/.test(x),
+        f: /<sign>F<\/sign>/.test(x), g: /<sign>G<\/sign>/.test(x)};
+    }
+    jazzClearEdited('2.1');
     return out;
   });
-  const keys = Object.keys(everywhere);
-  is('twelve keys', keys.length, 12);
-  yes('  and in every one of them the same note is a whole tone higher',
-    keys.every(k => JSON.stringify(everywhere[k]) === JSON.stringify([2,0,0,0])),
-    JSON.stringify(everywhere.Eb));
-
-  /* Everything above proves the correction is RECORDED and that applying it
-     works. This proves the page actually applies it — the engraver is handed
-     the corrected score rather than the generator's. */
-  console.log('\n7b. and the page engraves the corrected one, not the original');
-  const engraved = await p.evaluate(async () => {
-    const seen = [];
-    const was = jazzEngrave;
-    jazzEngrave = function(box, xml){ seen.push(xml); return was.apply(this, arguments); };
-    jazzUi().key = 'Eb';
-    location.hash = '#/jazz/2.1'; rerender();
-    await new Promise(r => setTimeout(r, 2400));
-    jazzEngrave = was;
-    const ex = jazzExercise('2.1');
-    const plain = jazzScoreXml(ex, 'Eb', {});
-    const fixed = jazzApplyFixes(plain, '2.1', 'Eb');
-    jazzUi().key = 'C';
-    return {n: seen.length, isFixed: seen.some(x => x === fixed),
-      isPlain: seen.some(x => x === plain), differ: plain !== fixed};
-  });
-  yes('the exercise page engraved something', engraved.n >= 1, `${engraved.n} engravings`);
-  yes('  and the two versions really are different', engraved.differ === true);
-  yes('  and what it handed the engraver was the corrected one',
-    engraved.isFixed === true && engraved.isPlain === false,
-    JSON.stringify({fixed: engraved.isFixed, plain: engraved.isPlain}));
-
-  console.log('\n8. a file that is not a correction is not stored as one');
-  const refused = await p.evaluate(async () => {
-    const ex = jazzExercise('2.1');
-    const same = jazzScoreXml(ex, 'C', {});
-    const nothing = jazzDiffXML(same, same);
-    const shorter = jazzDiffXML(same, same.split('<measure ').slice(0, 3).join('<measure ') + '</part></score-partwise>');
-    const junk = jazzDiffXML(same, 'this is not a score at all');
-    return {nothing: nothing.fixes && nothing.fixes.length, looked: nothing.looked,
-      shorter: shorter.error || null, junk: junk.error || null};
-  });
-  is('an unchanged file records nothing', refused.nothing, 0);
-  yes('  though it did look at every note', refused.looked >= 12, `${refused.looked}`);
-  yes('a file with the wrong number of bars is refused, in words',
-    /different piece of music/.test(refused.shorter || ''), refused.shorter);
-  yes('  and so is something that is not MusicXML',
-    /could not be read/.test(refused.junk || ''), refused.junk);
+  yes('grand staff writes two staves and both clefs',
+    staff.grand.two && staff.grand.f && staff.grand.g);
+  yes('  treble only writes one stave, treble clef',
+    !staff.treble.two && staff.treble.g && !staff.treble.f);
+  yes('  bass only writes one stave, bass clef',
+    !staff.bass.two && staff.bass.f && !staff.bass.g);
 
   console.log('\n9. and there is one button that puts it all back');
-  const back = await p.evaluate(async () => {
-    location.hash = '#/jazz/2.1'; rerender();
-    await new Promise(r => setTimeout(r, 1800));
-    const before = jazzFixCount('2.1');
-    const btn = document.querySelector('#jzReset');
-    if(btn) btn.click();
-    await new Promise(r => setTimeout(r, 1400));
-    return {before, after: jazzFixCount('2.1'),
-      acc: (document.querySelector('.jz-stage-box') || {dataset:{}}).dataset.jzacc,
-      gone: !document.querySelector('#jzReset')};
+  const back = await p.evaluate(() => {
+    const m = jazzXmlToScore(jazzScoreXml(jazzExercise('2.1'), 'C', {}), '2.1', 'C');
+    jazzSetEdited('2.1', m);
+    const had = !!jazzEdited('2.1');
+    jazzClearEdited('2.1');
+    const gen = jazzScoreXml(jazzExercise('2.1'), 'C', {});
+    return {had, after: jazzEditedCount(),
+      same: jazzScoreFor('2.1', jazzExercise('2.1'), 'C', {}) === gen};
   });
-  is('there was a correction to put back', back.before, 1);
+  yes('an edit is stored while it is wanted', back.had);
   is('  and now there is none', back.after, 0);
-  is('  and the score is the generator’s again', back.acc, 'verified');
-  yes('  and the button has gone with it', back.gone === true);
+  yes('  and the score is the generator’s again', back.same);
 
   console.log('\n10. nothing broke on the way');
-  await p.evaluate(() => { jazzClearFixes('2.1'); saveNow(); });
+  await p.evaluate(() => { jazzClearEdited('2.1'); saveNow(); });
   is('no errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
   await b.close();

@@ -378,34 +378,41 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  with barlines running through both, as a system\u2019s do',
       drew.grand.joined > 0 && drew.one.joined === 0, JSON.stringify(drew));
 
-  console.log('\n5b. and what you download is the grand staff too');
-  is('the saved file has both clefs', await p.evaluate(() => {
-    const xml = jazzApplyFixes(jazzScoreXml(jazzExercise('2.1'), 'C', {}), '2.1', 'C');
+  console.log('\n5b. and what the editor reads is the grand staff too');
+  is('the score it opens on has both clefs', await p.evaluate(() => {
+    const xml = jazzScoreFor('2.1', jazzExercise('2.1'), 'C', {});
     return /<staves>2<\/staves>/.test(xml) && /<sign>F<\/sign>/.test(xml); }), true);
 
   /* ------------------------------------------------------------------ */
-  console.log('\n6. a correction recorded before the bass clef is not applied to it');
-  await p.evaluate(() => {
-    const f = jazzFixState();
-    f['2.1'] = {notes: [{bar: 0, i: 0, d: -1}], at: new Date().toISOString(), from: 'an old file', layout: 1};
-    saveNow();
-  });
-  is('it is held back rather than moving the wrong note', await p.evaluate(() => jazzFixes('2.1')), []);
-  is('  and the room says it is holding it', await p.evaluate(() => jazzFixStale('2.1')), true);
-  await p.evaluate(() => { location.hash = '#/jazz'; }); await p.waitForTimeout(600);
-  await p.evaluate(() => { location.hash = '#/jazz/2.1'; }); await p.waitForTimeout(2400);
-  yes('  in words, on the page', await p.evaluate(() =>
-    /before this room had a bass clef/.test(document.querySelector('.jz-stale')?.textContent || '')));
-  await p.click('#jzDropStale'); await p.waitForTimeout(900);
-  is('  and lets you let it go', await p.evaluate(() => [jazzFixStale('2.1'), jazzFixCount('2.1')]), [false, 0]);
+  console.log('\n6. an edited score is drawn instead of the generator’s');
+  is('nothing is overridden until something is saved', await p.evaluate(() => {
+    jazzClearEdited('2.1');
+    const gen = jazzScoreXml(jazzExercise('2.1'), 'C', {});
+    return jazzScoreFor('2.1', jazzExercise('2.1'), 'C', {}) === gen; }), true);
+  is('  a saved score takes over', await p.evaluate(() => {
+    const model = jazzXmlToScore(jazzScoreXml(jazzExercise('2.1'), 'C', {}), '2.1', 'C');
+    model.staffConfig = 'bass';
+    jazzSetEdited('2.1', model);
+    const out = jazzScoreFor('2.1', jazzExercise('2.1'), 'C', {});
+    return /<sign>F<\/sign>/.test(out) && !/<staves>2<\/staves>/.test(out); }), true);
+  yes('  and the page says so', await p.evaluate(() =>
+    /edited this score/.test(jazzEditedBannerHTML('2.1'))));
+  is('  and it can be put back', await p.evaluate(() => {
+    jazzClearEdited('2.1');
+    const gen = jazzScoreXml(jazzExercise('2.1'), 'C', {});
+    return jazzScoreFor('2.1', jazzExercise('2.1'), 'C', {}) === gen; }), true);
 
-  console.log('\n6b. a correction made now is applied');
-  is('it moves the note it names', await p.evaluate(() => {
-    jazzSetFixes('2.1', [{bar: 0, i: 0, d: -1}], 'a test');
-    const before = T.pitches(jazzScoreXml(jazzExercise('2.1'), 'C', {}))[0];
-    const after = T.pitches(jazzApplyFixes(jazzScoreXml(jazzExercise('2.1'), 'C', {}), '2.1', 'C'))[0];
-    jazzClearFixes('2.1');
-    return [before.length === after.length, JSON.stringify(before) !== JSON.stringify(after)]; }), [true, true]);
+  console.log('\n6b. a score edited in one key is right in the others');
+  is('the notes move with the key', await p.evaluate(() => {
+    const model = jazzXmlToScore(jazzScoreXml(jazzExercise('2.1'), 'C', {}), '2.1', 'C');
+    jazzSetEdited('2.1', model);
+    const inC = T.pitches(jazzScoreToXml(model, 'C'))[0];
+    const inEb = T.pitches(jazzScoreToXml(model, 'Eb'))[0];
+    jazzClearEdited('2.1');
+    /* same number of notes, every one of them three semitones up */
+    const moved = inC.length === inEb.length && inC.length > 0 &&
+      inC.every((m, i) => inEb[i] - m === 3);
+    return [inC.length === inEb.length, moved]; }), [true, true]);
 
   /* ------------------------------------------------------------------ */
   console.log('\n— errors —');

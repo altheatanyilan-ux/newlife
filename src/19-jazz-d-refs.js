@@ -51,6 +51,38 @@ const JAZZ_REFERENCES = {
   'P0.*': ['Design Doc', 'Stage P0', '—',
     'Stage P0 is this studio’s own addition rather than a chapter of anybody’s book: the twelve distances, drilled from every root, before the chord work in Siskind Book 1 Unit 1 begins.'],
 
+  /* ---- the improvisation exercises ----
+     These carried their unit and pages in their own catalogue from the day
+     they arrived, but nothing mapped them into a citation, so thirteen
+     exercises sat in the room with no address on them. The page ranges are
+     the ones their own records give. */
+  'IMP-B1-01': ['Siskind Book 1', 'Unit 1', 'pp.9–10',
+    'The drone improvisation: a low open fifth held in the left hand, and the right hand wandering the major scale over it. The page gives the points of focus — listening, phrase endings, rhythmic variety.'],
+  'IMP-B1-02': ['Siskind Book 1', 'Unit 2', 'p.23',
+    'The second drone improvisation, on hand positions and call-and-response: play a phrase, then answer it with a different one.'],
+  'IMP-B1-03': ['Siskind Book 1', 'Unit 3', 'pp.35–36',
+    'Drone improvisation moved into F and B flat, introducing grace notes and sequences as ways of shaping a phrase.'],
+  'IMP-B1-04': ['Siskind Book 1', 'Unit 4', 'pp.49–50',
+    'Building rhythmic vocabulary: phrases that begin on different beats of the bar, so that not everything lands on beat one.'],
+  'IMP-B1-05': ['Siskind Book 1', 'Unit 5', 'pp.62–63',
+    'Improvising over the two-five-one rather than over a drone, with the focus prompts the unit sets for it.'],
+  'IMP-B1-06A': ['Siskind Book 1', 'Unit 6', 'pp.81–82',
+    'The second rhythmic vocabulary exercise: mixing quarter notes and eighth notes within a phrase instead of running the scale.'],
+  'IMP-B1-06B': ['Siskind Book 1', 'Unit 6', 'pp.82–83',
+    'The 3-5-7-9 arpeggio exercise, ascending and descending through all twelve keys.'],
+  'IMP-B1-07': ['Siskind Book 1', 'Unit 7', 'p.113',
+    'Improvising on the blues with the blues scale, in the AAB shape the unit describes.'],
+  'IMP-B1-08': ['Siskind Book 1', 'Unit 8', 'p.113',
+    'Call-and-response phrasing over the blues form, mixing the blues scale with arpeggios.'],
+  'IMP-B1-09': ['Siskind Book 1', 'Unit 9', 'p.150',
+    'Play One Rest One and Play Two Rest Two: leaving space deliberately, counted rather than felt.'],
+  'IMP-B1-10': ['Siskind Book 1', 'Unit 10', 'pp.151–152',
+    'Play What You Sing — sing a phrase over the drone or the two-five-one, then find it on the keyboard. The inner-ear exercise.'],
+  'IMP-B1-11': ['Siskind Book 1', 'Unit 11', 'p.165',
+    'Neighbour tones and chromatic enclosure as improvisational devices.'],
+  'IMP-B1-12': ['Siskind Book 1', 'Unit 12', 'pp.183–184',
+    'Improvising with altered dominants, using the altered scale over the V chord.'],
+
   /* ---- Stage 1: chord construction ---- */
   '1.1': ['Siskind Book 1', 'Unit 1', 'pp.14–17',
     '"Three Ways to Find It", then the chart of every major seventh chord in root position.'],

@@ -228,6 +228,33 @@ function jazzGrandAttributes(measure){
    score that will not parse, a part with no measures, one that already has
    two staves. A room that draws the wrong clef is a nuisance; a room that
    draws nothing is broken. */
+/* ---------- reading and writing a pitch in a MusicXML document ----------
+   These live here rather than with the editor because the grand-staff pass
+   below needs them to decide which hand a line belongs to, and that pass
+   runs on every generated score whether anything has been edited or not. */
+const JAZZ_STEP_PC = {C:0, D:2, E:4, F:5, G:7, A:9, B:11};
+function jazzPitchMidi(pitchEl){
+  if(!pitchEl) return null;
+  const step = (pitchEl.querySelector('step') || {}).textContent;
+  const oct = +((pitchEl.querySelector('octave') || {}).textContent);
+  const alter = +((pitchEl.querySelector('alter') || {}).textContent || 0);
+  if(!step || !isFinite(oct)) return null;
+  return (oct + 1) * 12 + JAZZ_STEP_PC[step] + alter;
+}
+/* Spelled the way the key spells it, so a note edited in G♭ does not come
+   back as F♯ and disagree with the accidentals in the rest of the bar. */
+function jazzSpellMidi(midi, key){
+  const G = typeof JazzExerciseGenerator !== 'undefined' ? JazzExerciseGenerator : null;
+  const map = G && G.pitchMapForKey ? G.pitchMapForKey(key) : null;
+  const pc = ((midi % 12) + 12) % 12;
+  const spelling = (map && map[pc]) ||
+    [{step:'C',alter:0},{step:'D',alter:-1},{step:'D',alter:0},{step:'E',alter:-1},
+     {step:'E',alter:0},{step:'F',alter:0},{step:'G',alter:-1},{step:'G',alter:0},
+     {step:'A',alter:-1},{step:'A',alter:0},{step:'B',alter:-1},{step:'B',alter:0}][pc];
+  return {step: spelling.step, alter: spelling.alter || 0,
+    octave: Math.floor(midi / 12) - 1};
+}
+
 function jazzGrandStaff(xml){
   if(!xml || typeof DOMParser === 'undefined') return xml;
   if(/<staves>/.test(xml)) return xml;

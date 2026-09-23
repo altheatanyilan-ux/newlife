@@ -236,7 +236,7 @@ function jazzStageHTML(s, here){
           jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
           jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
             esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}${
-          jazzAmend(id) ? '<span class="jae-pill mono" title="you have corrected this exercise">✏️ corrected</span>' : ''}</span>
+          jazzEdited(id) ? '<span class="jz-editpill mono" title="you have edited this score">✏️ edited</span>' : ''}</span>
         <span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
           `<i class="${jazzRecord(id).keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
         <span class="mono jz-subc">${n}/12</span></button>`; }).join('')}</div>
@@ -322,12 +322,12 @@ function jazzExerciseHTML(id){
         </div>` : ''}
         ${jazzAccuracyHTML(ex)}
         ${jazzReferenceHTML(ex)}
-        ${jazzAmendBannerHTML(id)}
+        ${jazzEditedBannerHTML(id)}
         ${jazzHasScore(ex) ? `<div class="jz-stage-box" data-jzacc="${
-            jazzAmend(id) ? 'user_amended' : jazzFixCount(id) ? 'user_modified' : esc(ex.acc || 'verified')}">
+            jazzEdited(id) ? 'user_edited' : esc(ex.acc || 'verified')}">
             ${jazzIsMultiExample(ex) ? `<div class="jz-ex-tabs" id="jzExTabs"></div>` : ''}
             <div class="jz-score" id="jzScore"></div></div>
-          ${jazzIsMultiExample(ex) ? '' : jazzFixToolsHTML(id, ex)}`
+          ${jazzIsMultiExample(ex) ? '' : jazzScoreToolsHTML(id)}`
           : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
              It is a thing to do — at the instrument or on paper — and the words
              beside it are the whole of it.</div></div>`}
@@ -377,65 +377,26 @@ function jazzExerciseHTML(id){
       </aside>
     </div>`;
 }
-/* ---------- take it away, fix it, bring it back ----------
+/* ---------- the way into the editor ----------
    Put under the engraving rather than in the sidebar, because the thing you
-   are about to correct is the thing you are looking at. */
-function jazzFixToolsHTML(id, ex){
-  const n = jazzFixCount(id);
+   are about to change is the thing you are looking at. One button, because
+   the editor is now the only way a score gets changed. */
+function jazzScoreToolsHTML(id){
+  const on = jazzEdited(id);
   return `<div class="jz-fixbar">
-    <button class="tbtn" id="jzEdit" title="edit the notes directly in the browser">\u270f\ufe0f Edit notes</button>
-    <button class="tbtn" id="jzDown" title="save it as a MusicXML file you can open in MuseScore">\u2b07 MusicXML</button>
-    <button class="tbtn" id="jzUp" title="bring back a file you have corrected">\u{1f4e4} Import a corrected one</button>
+    <button class="tbtn" id="jzEdit" title="open the score editor">✏️ Edit score</button>
     <span class="grow"></span>
-    ${n ? `<span class="jz-fixed mono" title="${esc(jazzFixSource(id))}">\u2713 ${n} note${
-      n === 1 ? '' : 's'} corrected by you</span>
-      <button class="tbtn danger" id="jzReset">\u21a9 put it back</button>` : ''}
-    ${jazzFixStale(id) ? `<span class="jz-stale mono">\u26a0 ${jazzFixStaleCount(id)} correction${
-      jazzFixStaleCount(id) === 1 ? '' : 's'} were recorded before this room had a bass clef.
-      A note's place on the page has changed, so they are not being applied \u2014 correct the file again,
-      or let them go.</span>
-      <button class="tbtn danger" id="jzDropStale">forget them</button>` : ''}
-    <input type="file" id="jzUpFile" accept=".musicxml,.xml,application/xml,text/xml" hidden>
+    ${on ? `<span class="jz-fixed mono">✏️ edited by you</span>
+      <button class="tbtn danger" id="jzReset">↩ Reset to original</button>` : ''}
   </div>`;
 }
-function bindJazzFixTools(root, id, ex, xmlOf){
+function bindJazzScoreTools(root, id){
   const edit = root.querySelector('#jzEdit');
-  if(edit) edit.onclick = () => openJazzEditor(id, xmlOf, jazzUi().key, () => rerender());
-  const drop = root.querySelector('#jzDropStale');
-  if(drop) drop.onclick = () => { jazzClearFixes(id); toast('Forgotten. The notation is the generator\u2019s again.'); rerender(); };
-  const down = root.querySelector('#jzDown');
-  if(down) down.onclick = () => {
-    const xml = xmlOf();
-    if(!xml){ toast('There is nothing to save for this one.'); return; }
-    const name = jazzDownloadXML(xml, ex.name, jazzPretty(jazzUi().key));
-    sound('success'); toast(`Saved as ${name}. Correct it in MuseScore and bring it back.`, 6000);
-  };
-  const up = root.querySelector('#jzUp'), file = root.querySelector('#jzUpFile');
-  if(up && file){
-    up.onclick = () => file.click();
-    file.onchange = async () => {
-      const f = file.files && file.files[0];
-      if(!f) return;
-      const theirs = await f.text();
-      /* compared against what this copy would draw, unfixed, in the key the
-         file was exported from \u2014 which is the key on the screen */
-      const mine = jazzScoreXml(ex, jazzUi().key, {interval: jazzUi().interval});
-      const out = jazzDiffXML(mine, theirs);
-      file.value = '';
-      if(out.error){ toast(out.error, 8000); sound('error'); return; }
-      if(!out.fixes.length){
-        toast(`Nothing differs \u2014 all ${out.looked} notes match what this copy draws.`, 6000);
-        return;
-      }
-      jazzSetFixes(id, out.fixes, `imported from ${f.name}`);
-      sound('success');
-      toast(`${out.fixes.length} note${out.fixes.length === 1 ? '' : 's'} corrected. It will follow the exercise into every key.`, 7000);
-      rerender();
-    };
-  }
+  if(edit) edit.onclick = () => openJazzScoreEditor(id, jazzUi().key, () => rerender());
   const reset = root.querySelector('#jzReset');
   if(reset) reset.onclick = () => {
-    jazzClearFixes(id); sound('click'); toast('Back to what the generator draws.'); rerender();
+    jazzClearEdited(id); sound('click');
+    toast('Back to what the generator draws.'); rerender();
   };
 }
 
@@ -468,10 +429,9 @@ function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
   try { if(typeof bindJazzMaterial === 'function') bindJazzMaterial(root, id); } catch(e){}
-  /* what this copy generates, then what you have corrected, then what you have amended */
-  const plain   = () => jazzScoreXml(ex, ui.key, {interval: ui.interval});
-  const fixed   = () => { const x = plain(); return x ? jazzApplyFixes(x, id, ui.key) : x; };
-  const amended = () => { const a = jazzAmend(id); return a ? jazzAmendToXml(a, ui.key) : fixed(); };
+  /* What this copy draws: the score you have edited if there is one, and
+     what the generator writes if there is not. One override, not three. */
+  const amended = () => jazzScoreFor(id, ex, ui.key, {interval: ui.interval});
   const draw = () => { if(!jazzHasScore(ex)) return;
     const result = amended();
     const box = root.querySelector('#jzScore');
@@ -498,7 +458,7 @@ function bindJazzExercise(root, id){
     jazzEngrave(box, result); };
   draw();
   bindJazzTips(root);
-  bindJazzFixTools(root, id, ex, amended);
+  bindJazzScoreTools(root, id);
   $$('[data-jzint]', root).forEach(b => b.onclick = () => {
     ui.interval = b.dataset.jzint; sound('click'); rerender(); });
   root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
