@@ -326,7 +326,7 @@ function jzeToolbarHTML(s){
   </div>`;
 }
 const JZE_TIP = {
-  normal:'Click a note to select it. ↑↓ move it by a semitone, Ctrl+↑↓ by an octave, A–G replace it, 1–5 change its length, Delete makes it a rest. ←→ walk through the notes.',
+  normal:'Click a note — it turns blue, and the keys then act on it. ↑↓ move it by a semitone, Ctrl+↑↓ by an octave, A–G replace it, 1–5 change its length, Delete makes it a rest. ←→ walk through the notes.',
   input:'Choose a length, then type A–G to place a note. The cursor moves on by itself. Shift+letter stacks a chord, 0 puts in a rest. N or Escape to come back out.'
 };
 function jzeEditorHTML(s){
@@ -387,6 +387,7 @@ async function jzeDraw(root){
 function jzeOverlay(root){
   const s = _jze, ov = root.querySelector('#jzeOverlay'), box = root.querySelector('#jzePreview');
   if(!s || !ov || !box) return;
+  jzeUnpaint();
   ov.innerHTML = '';
   let hits = [];
   try { hits = jzeHitTargets(box); } catch(e){ hits = []; }
@@ -401,14 +402,52 @@ function jzeOverlay(root){
     const mi = h.measure;
     const arr = jzeNotes(s, mi, staff);
     if(!arr || h.ni >= arr.length) continue;
+    const chosen = s.sel.mi === mi && s.sel.staff === staff && s.sel.ni === h.ni;
     const b = document.createElement('button');
-    b.className = 'jze-hit' + (s.sel.mi === mi && s.sel.staff === staff && s.sel.ni === h.ni ? ' sel' : '');
-    b.style.left = (h.x - boxRect.left - 7) + 'px';
-    b.style.top  = (h.y - boxRect.top - 7) + 'px';
+    b.className = 'jze-hit' + (chosen ? ' sel' : '');
+    b.style.left = (h.x - boxRect.left - 10) + 'px';
+    b.style.top  = (h.y - boxRect.top - 10) + 'px';
     b.dataset.jzemi = mi; b.dataset.jzeni = h.ni; b.dataset.jzestaff = staff;
     b.title = `bar ${mi + 1}, note ${h.ni + 1}`;
     ov.appendChild(b);
+    /* The selected note turns blue — the note itself, not a marker floating
+       over it. Without this the editor looks broken: the keys were changing
+       the right note all along, but nothing on the page said which one was
+       selected, so there was no way to tell it had worked. */
+    if(chosen) jzePaint(h.gn, JZE_BLUE);
   }
+}
+const JZE_BLUE = '#2f6fed';
+/* What has been painted blue, and what it looked like before. The selection
+   often moves without the score being re-drawn — walking with the arrow keys
+   changes nothing about the music — so the previous note has to be put back
+   by hand. Left to itself the blue accumulated until half the score was
+   highlighted. */
+let _jzePainted = [];
+function jzeUnpaint(){
+  for(const {el, fill, stroke} of _jzePainted){
+    try {
+      if(fill === null) el.removeAttribute('fill'); else el.setAttribute('fill', fill);
+      if(stroke === null) el.removeAttribute('stroke'); else el.setAttribute('stroke', stroke);
+    } catch(e){}
+  }
+  _jzePainted = [];
+}
+function jzePaint(gn, colour){
+  if(!gn) return;
+  try {
+    let els = typeof gn.getNoteheadSVGs === 'function' ? gn.getNoteheadSVGs() : null;
+    if(!els || !els.length){
+      const g = typeof gn.getSVGGElement === 'function' ? gn.getSVGGElement() : null;
+      els = g ? [...g.querySelectorAll('path')] : [];
+    }
+    for(const el of els){
+      if(!el || !el.setAttribute) continue;
+      _jzePainted.push({el, fill: el.getAttribute('fill'), stroke: el.getAttribute('stroke')});
+      el.setAttribute('fill', colour);
+      el.setAttribute('stroke', colour);
+    }
+  } catch(e){ /* the engraver's shape is its own; a missed highlight is not fatal */ }
 }
 /* The positions, read out of OSMD's graphic sheet. Kept in one place and
    wrapped, because it is the part most likely to change under us. */
@@ -436,7 +475,7 @@ function jzeHitTargets(box){
             const ay = bb.AbsolutePosition ? bb.AbsolutePosition.y : null;
             if(ax == null || ay == null) return;
             out.push({measure: measureIdx, staff: staffIdx, ni: ni++,
-              x: svgRect.left + ax * unit, y: svgRect.top + ay * unit});
+              x: svgRect.left + ax * unit, y: svgRect.top + ay * unit, gn});
           });
         });
       });
