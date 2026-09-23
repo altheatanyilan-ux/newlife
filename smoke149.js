@@ -42,8 +42,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  a milestone knows its work in return',
      await p.evaluate(i => planMilestoneTasks(i).map(t => t.text).join(' | '), ids.a),
      'Write the release note | Cut the branch');
+  /* "left" is what the timeline shows beside each date, so it is part of the
+     answer rather than something the caller works out for itself */
   is('  and how much of it is left',
-     await p.evaluate(i => JSON.stringify(planMilestoneProgress(i)), ids.a), '{"total":2,"done":0}');
+     await p.evaluate(i => JSON.stringify(planMilestoneProgress(i)), ids.a),
+     '{"total":2,"done":0,"left":2}');
+  is('  which falls as the work is finished',
+     await p.evaluate(i => { const t = planMilestoneTasks(i)[0];
+       t.done = true;
+       const after = planMilestoneProgress(i).left;
+       t.done = false;
+       return `${after} then ${planMilestoneProgress(i).left}`; }, ids.a), '1 then 2');
 
   console.log('\n2. pressing a date narrows the list to its work');
   is('everything shows to begin with', (await rows()).length, 3);
