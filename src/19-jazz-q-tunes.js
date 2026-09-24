@@ -227,7 +227,8 @@ function jazzParseChart(str){
         const wm = /^(.*?)\(([A-Za-z][A-Za-z .]+|[A-G][b#]?)\)$/.exec(t);
         if(wm && JAZZ_CHORD_RE.test(wm[1]) && !/^(b|#|M7|maj7|b6|b9|#9|#11|b13)/.test(wm[2])){ t = wm[1]; note = wm[2]; }
         if(/\.\.\.$/.test(t)){ t = t.replace(/\.\.\.$/, ''); notes.push('…'); }
-        const chord = t ? jazzParseChord(t) : null;
+        /* road-map words ("D.C. al FINE") are directions, not an F chord and a D */
+        const chord = t && !/^(D\.[CS]\.?|FINE|Fine|al|Coda|CODA|Segno)$/.test(t) ? jazzParseChord(t) : null;
         if(chord){ chords.push({text: t, chord, optional}); if(count && toks.length === 1) span = count; else if(count) chords[chords.length - 1].beats = count; }
         else if(t) notes.push(t);
         if(note) notes.push(note);

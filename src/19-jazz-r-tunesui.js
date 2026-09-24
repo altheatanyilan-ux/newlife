@@ -60,11 +60,13 @@ function jazzTunesHTML(){
 function jazzTunesResultsHTML(){
   const u = jazzTunesUi();
   const rows = jazzTuneFilter(u);
+  /* how many takes each tune has in the journal */
+  const takes = {}; (typeof jazzTuneTakes === 'function' ? jazzTuneTakes() : []).forEach(x => { takes[x.tuneId] = (takes[x.tuneId] || 0) + 1; });
   return `<p class="mono faint jt-count">${rows.length} ${rows.length === 1 ? 'tune' : 'tunes'}</p>
     <div class="jt-list">${rows.slice(0, u.show).map(r => {
       const t = r.tune, st = jazzRepStatus(r.id);
       return `<div class="jt-row${r.analyzed ? ' an' : ''}">
-        <a class="jt-title" href="#/jazz/tune/${esc(r.id)}">${esc(r.title)}</a>
+        <a class="jt-title" href="#/jazz/tune/${esc(r.id)}">${esc(r.title)}${takes[r.id] ? ` <span class="jt-takes mono" title="${takes[r.id]} recorded take${takes[r.id] === 1 ? '' : 's'}">🎙 ${takes[r.id]}</span>` : ''}</a>
         <span class="mono faint jt-where">${esc(jazzTuneWhere(r))}</span>
         ${t ? `<span class="jt-meta">${esc(t.key)} · ${esc(t.form)} · ${esc(t.difficulty)} · ${esc(t.category)}</span>
           <span class="jt-stages">${(r.v3 || []).map(a => jazzStageChip(a)).join('')}</span>`
@@ -107,11 +109,12 @@ function jazzChartHTML(t, key, overlay){
         const mk = marks[b.n] || [];
         return `<div class="jt-bar${b.repeat ? ' rep' : ''}" data-bar="${b.n}"${mk.length ? ` title="${esc(mk.map(k => JAZZ_TUNE_PATTERNS[k].said).join(', '))}"` : ''}>
           <span class="jt-bn mono">${b.n}</span>
-          <div class="jt-chords">${b.repeat && b.chords.length ? '<span class="jt-sim">%</span>'
-            : b.chords.map(c => `<span class="jt-ch${c.optional ? ' opt' : ''}" style="flex:${c.beats || 1}">${c.optional ? '(' : ''}${
+          <div class="jt-chords">${b.repeat && b.chords.length ? `<span class="jt-sim" data-ci="0" data-sym="${esc(jazzTransposeChord(b.chords[0].text, semis, key))}" data-orig="${esc(b.chords[0].text)}">%</span>`
+            : b.chords.map((c, ci) => `<span class="jt-ch${c.optional ? ' opt' : ''}" style="flex:${c.beats || 1}" data-ci="${ci}"
+              data-sym="${esc(jazzTransposeChord(c.text, semis, key))}" data-orig="${esc(c.text)}">${c.optional ? '(' : ''}${
               esc(jazzPrettyChord(jazzTransposeChord(c.text, semis, key)))}${c.optional ? ')' : ''}</span>`).join('')}</div>
           ${b.notes.length ? `<span class="jt-note">${esc(b.notes.join(' '))}</span>` : ''}
-          ${mk.length ? `<span class="jt-marks">${mk.map(k => `<i class="${JAZZ_TUNE_PATTERNS[k].dashed ? 'dash' : ''}" style="--c:${JAZZ_TUNE_PATTERNS[k].color}"></i>`).join('')}</span>` : ''}
+          ${mk.length ? `<span class="jt-marks">${mk.map(k => `<i class="${JAZZ_TUNE_PATTERNS[k].dashed ? 'dash' : ''}" data-kind="${k}" title="${esc(JAZZ_TUNE_PATTERNS[k].said)} — tap to loop it" style="--c:${JAZZ_TUNE_PATTERNS[k].color}"></i>`).join('')}</span>` : ''}
         </div>`; }).join('')}</div></div>`).join('')}</div>`;
 }
 function jazzPatternLegendHTML(t){
@@ -148,18 +151,20 @@ function jazzTuneHTML(id){
         <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
           <label class="jz-gate mono"><input type="checkbox" id="jtOverlay" ${u.overlay ? 'checked' : ''}> show the patterns</label>
           ${u.overlay ? jazzPatternLegendHTML(t) : ''}</div>
+        ${jazzPracticePanelHTML(t)}
         ${jazzChartHTML(t, key, u.overlay)}
-        <p class="mono faint jt-help">A chord with (n) after it fills n bars; % repeats the bar before; chords in brackets are optional.</p>
+        <p class="mono faint jt-help">Tap a chord for its scales and voicings. While it plays (or after “set a loop”), tap a start bar and an end bar to loop them;
+          tap a pattern’s coloured bar to loop that pattern. A chord with (n) after it fills n bars; % repeats the bar before; chords in brackets are optional.</p>
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
-          <button class="btn primary" data-jzgo="#/jazz/playalong/${esc(t.id)}">🥁 Play along</button>
-          <a class="btn sm ghost" href="${esc(jazzIrealLink(t, key))}" title="opens the chart in iReal Pro, if it is installed">iReal Pro ↗</a>
           <button class="btn sm ghost" id="jtCopy">copy the changes</button></div>
         ${a.spans.length ? `<div class="jz-note" style="margin-top:14px"><span class="sc">What the analysis found</span>
           <ul class="jt-spans">${a.spans.map(s => `<li><i class="${JAZZ_TUNE_PATTERNS[s.kind].dashed ? 'dash' : ''}" style="--c:${JAZZ_TUNE_PATTERNS[s.kind].color}"></i>
-            <span class="mono">bars ${s.from}${s.to !== s.from ? '–' + s.to : ''}</span> ${esc(s.label)}</li>`).join('')}</ul></div>` : ''}
+            <span class="mono">bars ${s.from}${s.to !== s.from ? '–' + s.to : ''}</span> ${esc(s.label)}
+            <button class="tbtn jt-loopbtn" data-jtloop="${s.from}-${s.to}" title="loop bars ${s.from}–${s.to}">⟳</button></li>`).join('')}</ul></div>` : ''}
       </div>
       <aside class="jz-side">
         ${jazzRepControlsHTML(t.id)}
+        ${jazzJournalSideHTML(t.id)}
         <div class="jz-note"><span class="sc">v3 stages</span>
           <div class="jt-stagelist">${(r.v3 || []).map(x => { const st = jazzStage(String(x.stage));
             return `<div><span class="jt-stage${x.role === 'primary' ? ' pri' : ''}">${x.stage}</span> ${esc(st ? st.name : '')}
@@ -191,7 +196,15 @@ function jazzRepControlsHTML(id){
 function bindJazzTune(root, id){
   const u = jazzTuneUi();
   $$('[data-jzgo]', root).forEach(b => b.onclick = () => navigate(b.dataset.jzgo));
-  $$('[data-jtkey]', root).forEach(b => b.onclick = () => { u.key = b.dataset.jtkey; sound('click'); rerender(); });
+  $$('[data-jtkey]', root).forEach(b => b.onclick = () => { u.key = b.dataset.jtkey; sound('click');
+    /* playing: the band takes the new key from its next repeat */
+    const t = jazzTune(id);
+    if(t && _jzBand && _jzBand.running && _jzBand._tune === id){ _jzBand.set('toKey', u.key); _jzBand.set('semis', jazzTuneShift(t, u.key)); }
+    rerender(); });
+  const t0 = jazzTune(id);
+  if(t0){ bindJazzPracticePanel(root, t0);
+    const side = root.querySelector('#jzjSide');
+    if(side) bindJazzTakeRows(side, () => rerender()); }
   const ov = root.querySelector('#jtOverlay');
   if(ov) ov.onchange = () => { u.overlay = ov.checked; rerender(); };
   $$('[data-jtset]', root).forEach(b => b.onclick = () => { jazzRepSet(b.dataset.jtid, b.dataset.jtset || null); sound('success'); rerender(); });

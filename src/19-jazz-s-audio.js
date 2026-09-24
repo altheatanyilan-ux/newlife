@@ -156,13 +156,15 @@ function jazzChartBeats(chart, beatsPerBar, semis, toKey){
 }
 /* a walking line: root on the chord's first beat, chord tones between,
    and a half step into the next root on the beat before it changes */
-function jazzWalkBass(beats){
+function jazzWalkBass(beats, loop){
   const line = [];
   let prev = 36;
   beats.forEach((b, i) => {
     const spec = jazzChordSpec(b.sym);
     if(!spec){ line.push(null); return; }
-    const next = beats[i + 1] && beats[i + 1].sym !== b.sym ? jazzChordSpec(beats[i + 1].sym) : null;
+    /* looping, the last bar walks into the first */
+    const after = beats[i + 1] || (loop ? beats[0] : null);
+    const next = after && after.sym !== b.sym ? jazzChordSpec(after.sym) : null;
     const place = pc => { let m = 28 + ((pc - 28) % 12 + 12) % 12; while(Math.abs(m - prev) > 7 && m + 12 <= 55) m += 12; while(m > 52) m -= 12; return m; };
     let m;
     if(b.first || i === 0) m = place(spec.bassPc != null ? spec.bassPc : spec.pc);
@@ -182,16 +184,27 @@ function jazzBand(chart, opts){
   const o = Object.assign({bpm: 120, swing: 0.62, semis: 0, loop: true, countIn: true, style: 'swing',
     layers: {bass: true, piano: true, drums: true}}, opts || {});
   const per = o.style === 'waltz' ? 3 : 4;
-  const beats = jazzChartBeats(chart, per, o.semis, o.toKey);
-  const bass = jazzWalkBass(beats);
-  let ctx = null, master = null, timer = null, i = 0, next = 0, running = false, voicing = null;
+  /* range: [from, to] — only those bars, as the chart numbers them */
+  const barsIn = () => { const r = o.range;
+    return r ? {bars: (chart.bars || []).filter(b => b.n >= r[0] && b.n <= r[1])} : chart; };
+  let beats = [], bass = [];
+  const build = () => { beats = jazzChartBeats(barsIn(), per, o.semis, o.toKey); bass = jazzWalkBass(beats, o.loop); };
+  build();
+  let ctx = null, master = null, timer = null, i = 0, next = 0, running = false, voicing = null, pass = 1, dirty = false;
   const spb = () => 60 / o.bpm;
   const schedule = limit => {
     const until = limit != null ? limit : ctx.currentTime + 0.12;
     while(running && next < until){
       if(i >= beats.length){
         if(!o.loop){ running = false; setTimeout(() => o.onEnd && o.onEnd(), 300); return; }
-        i = 0;
+        i = 0; pass++;
+        /* a repeat: the caller may change the tempo, the key or the range for
+           the next pass (onLoop gets the pass number and how many ms until it
+           is heard); a new key or range is written out before it plays */
+        if(o.onLoop){ try { o.onLoop(pass, Math.max(0, (next - ctx.currentTime) * 1000)); } catch(e){ console.warn(e); } }
+        if(!running) return;
+        if(dirty){ dirty = false; build(); voicing = null; }
+        if(!beats.length){ running = false; return; }
       }
       const b = beats[i], t = next, beat = spb();
       const sw = beat * o.swing;                         /* where the "and" of the beat falls */
@@ -226,14 +239,13 @@ function jazzBand(chart, opts){
     }
   };
   return {
-    beats,
     start(ctxIn){
       ctx = ctxIn || jazzAudioCtx(); if(!ctx) return false;
       const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
       const offline = !!(OAC && ctx instanceof OAC);
       if(!offline && ctx.resume) ctx.resume();
       master = ctx.createGain(); master.gain.value = 0.8; master.connect(ctx.destination);
-      next = o.at != null ? Math.max(o.at, ctx.currentTime + 0.02) : ctx.currentTime + 0.1; i = 0; running = true; voicing = null;
+      next = o.at != null ? Math.max(o.at, ctx.currentTime + 0.02) : ctx.currentTime + 0.1; i = 0; pass = 1; running = true; voicing = null;
       if(o.countIn){ for(let k = 0; k < per; k++) jzVoiceClick(ctx, master, next + k * spb(), k === 0); next += per * spb(); }
       /* offline, everything is scheduled at once, up to the end of the buffer */
       if(offline){ schedule(ctx.length / ctx.sampleRate); running = false; return true; }
@@ -242,8 +254,11 @@ function jazzBand(chart, opts){
     },
     stop(){ running = false; if(timer) clearInterval(timer); timer = null;
       if(master){ try { master.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.05); } catch(e){} setTimeout(() => { try { master.disconnect(); } catch(e){} }, 400); } },
-    set(k, v){ o[k] = v; },
+    set(k, v){ o[k] = v; if(k === 'semis' || k === 'toKey' || k === 'range') dirty = true; },
     setLayer(k, on){ o.layers[k] = on; },
+    get beats(){ return beats; },
+    get pass(){ return pass; },
+    get bpm(){ return o.bpm; },
     get running(){ return running; }
   };
 }

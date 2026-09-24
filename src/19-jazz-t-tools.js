@@ -237,74 +237,37 @@ const JAZZ_PLAY_PRESETS = [
 const jazzPlayUi = () => S._jplay = S._jplay || {bpm: 120, semis: 0, swing: 0.62, layers: {bass: true, piano: true, drums: true}, click: false};
 let _jzBand = null, _jzClick = null;
 function jazzPlayAlongHTML(id){
-  const u = jazzPlayUi();
   const tune = (id && (jazzTune(id) || JAZZ_PLAY_PRESETS.find(p => p.id === id))) || JAZZ_PLAY_PRESETS[0];
-  u.id = tune.id;
-  const tonic = jazzTuneTonic(tune);
-  const toKey = JAZZ_TUNE_FLAT[((tonic.pc + u.semis) % 12 + 12) % 12];
-  const style = tune.category === 'bossa' ? 'bossa' : /3\/4/.test(tune.timeSignature || '') ? 'waltz' : 'swing';
+  jazzPlayUi().id = tune.id;
+  const u = jazzTuneUi();
+  const key = JAZZ_KEY_NAMES.includes(u.key) ? u.key : '';
   const analysed = jazzTuneIndex().rows.filter(r => r.analyzed);
   return `<div class="row between" style="align-items:baseline">
       <h1 class="serif" style="margin:0">Play-along</h1>
       <button class="btn sm ghost" data-jzgo="#/jazz">← the roadmap</button></div>
     <div class="jzt-doc">${jazzV3FeatureHTML('4C')}</div>
-    <div class="jzp-panel">
-      <label class="pd-q"><span class="k">what to play over</span>
-        <select class="sel" id="jpTune"><optgroup label="From the curriculum">${JAZZ_PLAY_PRESETS.map(p =>
-          `<option value="${esc(p.id)}" ${p.id === tune.id ? 'selected' : ''}>${esc(p.title)}</option>`).join('')}</optgroup>
-          <optgroup label="From the Real Book">${analysed.map(r => `<option value="${esc(r.id)}" ${r.id === tune.id ? 'selected' : ''}>${esc(r.title)}</option>`).join('')}</optgroup></select></label>
-      <div class="jzp-row">
-        <label class="pd-q"><span class="k">tempo <b class="mono" id="jpBpmV">${u.bpm}</b> bpm</span>
-          <input type="range" min="40" max="300" step="2" id="jpBpm" value="${u.bpm}"></label>
-        <label class="pd-q"><span class="k">key <b class="mono">${u.semis > 0 ? '+' : ''}${u.semis}</b> → ${esc(jazzPretty(toKey))}${tonic.minor ? ' minor' : ''}</span>
-          <input type="range" min="-6" max="6" step="1" id="jpSemis" value="${u.semis}"></label>
-        <label class="pd-q"><span class="k">swing <b class="mono" id="jpSwingV">${Math.round(u.swing * 100)}%</b></span>
-          <input type="range" min="50" max="75" step="1" id="jpSwing" value="${Math.round(u.swing * 100)}"></label></div>
-      <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center">
-        <button class="btn primary" id="jpGo">${_jzBand && _jzBand.running ? '■ Stop' : '▶ Play'}</button>
-        ${['bass', 'piano', 'drums'].map(k => `<span class="jzp-layer"><label class="jz-gate mono"><input type="checkbox" data-jplayer="${k}" ${u.layers[k] ? 'checked' : ''}> ${k}</label>
-          <button class="tbtn" data-jpsolo="${k}" title="hear only the ${k}">solo</button></span>`).join('')}
-        <label class="jz-gate mono"><input type="checkbox" id="jpClick" ${u.click ? 'checked' : ''}> metronome on 2 and 4</label>
-        <a class="btn sm ghost" href="${esc(jazzIrealLink(tune, toKey))}">iReal Pro ↗</a>
-        <span class="mono faint">${esc(style)}</span></div>
-      <p class="faint jzp-note">Solo track mode isolates one instrument. For a real recording, stem-separation tools such as
-        Moises or LALAL.AI split a track into its instruments; this band is synthesised, so each instrument is already its own track.</p>
-    </div>
-    ${jazzChartHTML(tune, toKey, false)}`;
+    <label class="pd-q"><span class="k">what to play over</span>
+      <select class="sel" id="jpTune"><optgroup label="From the curriculum">${JAZZ_PLAY_PRESETS.map(p =>
+        `<option value="${esc(p.id)}" ${p.id === tune.id ? 'selected' : ''}>${esc(p.title)}</option>`).join('')}</optgroup>
+        <optgroup label="From the Real Book">${analysed.map(r => `<option value="${esc(r.id)}" ${r.id === tune.id ? 'selected' : ''}>${esc(r.title)}</option>`).join('')}</optgroup></select></label>
+    <div class="jz-keyrow"><span class="mono faint">in the key of</span>
+      <div class="jz-keypick"><button class="jz-k wide${key ? '' : ' on'}" data-jtkey="">as written</button>${JAZZ_KEY_NAMES.map(k =>
+        `<button class="jz-k${k === key ? ' on' : ''}" data-jtkey="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div></div>
+    ${jazzPracticePanelHTML(tune)}
+    <p class="faint jzp-note">Solo track mode isolates one instrument. For a real recording, stem-separation tools such as
+      Moises or LALAL.AI split a track into its instruments; this band is synthesised, so each instrument is already its own track.</p>
+    ${jazzChartHTML(tune, key, false)}
+    ${jazzTune(tune.id) ? `<p class="mono faint"><a href="#/jazz/tune/${esc(tune.id)}">the tune page</a> has the analysis, the chord popovers and the journal</p>` : ''}`;
 }
 function bindJazzPlayAlong(root){
   const u = jazzPlayUi();
   const tune = jazzTune(u.id) || JAZZ_PLAY_PRESETS.find(p => p.id === u.id) || JAZZ_PLAY_PRESETS[0];
-  const tonic = jazzTuneTonic(tune);
-  const toKey = () => JAZZ_TUNE_FLAT[((tonic.pc + u.semis) % 12 + 12) % 12];
-  const style = tune.category === 'bossa' ? 'bossa' : /3\/4/.test(tune.timeSignature || '') ? 'waltz' : 'swing';
   $$('[data-jzgo]', root).forEach(b => b.onclick = () => navigate(b.dataset.jzgo));
-  const stop = () => { if(_jzBand){ _jzBand.stop(); _jzBand = null; } if(_jzClick){ _jzClick.stop(); _jzClick = null; }
-    $$('.jt-bar.now', root).forEach(b => b.classList.remove('now')); const g = root.querySelector('#jpGo'); if(g) g.textContent = '▶ Play'; };
-  root.querySelector('#jpTune').onchange = e => { stop(); navigate('#/jazz/playalong/' + e.target.value); };
-  const bpm = root.querySelector('#jpBpm');
-  bpm.oninput = () => { u.bpm = +bpm.value; root.querySelector('#jpBpmV').textContent = u.bpm;
-    if(_jzBand) _jzBand.set('bpm', u.bpm); if(_jzClick) _jzClick.set('bpm', u.bpm); };
-  const sw = root.querySelector('#jpSwing');
-  sw.oninput = () => { u.swing = +sw.value / 100; root.querySelector('#jpSwingV').textContent = sw.value + '%'; if(_jzBand) _jzBand.set('swing', u.swing); };
-  root.querySelector('#jpSemis').onchange = e => { u.semis = +e.target.value; stop(); rerender(); };
-  $$('[data-jplayer]', root).forEach(c => c.onchange = () => { u.layers[c.dataset.jplayer] = c.checked; if(_jzBand) _jzBand.setLayer(c.dataset.jplayer, c.checked); });
-  $$('[data-jpsolo]', root).forEach(b => b.onclick = () => { ['bass', 'piano', 'drums'].forEach(k => { u.layers[k] = k === b.dataset.jpsolo;
-    const c = root.querySelector(`[data-jplayer="${k}"]`); if(c) c.checked = u.layers[k]; if(_jzBand) _jzBand.setLayer(k, u.layers[k]); }); });
-  const click = root.querySelector('#jpClick');
-  click.onchange = () => { u.click = click.checked; if(_jzBand){ if(u.click && !_jzClick){ _jzClick = jazzMetronome({bpm: u.bpm, beats: style === 'waltz' ? 3 : 4}); _jzClick.start(); } else if(!u.click && _jzClick){ _jzClick.stop(); _jzClick = null; } } };
-  root.querySelector('#jpGo').onclick = () => {
-    if(_jzBand && _jzBand.running){ stop(); return; }
-    stop();
-    const semis = jazzTuneShift(tune, toKey());
-    _jzBand = jazzBand(jazzParseChart(tune.chordProgression), {bpm: u.bpm, swing: u.swing, semis, toKey: toKey(), style,
-      layers: Object.assign({}, u.layers), onBar: n => { $$('.jt-bar.now', root).forEach(b => b.classList.remove('now'));
-        const el = root.querySelector(`.jt-bar[data-bar="${n}"]`); if(el) el.classList.add('now'); }});
-    _jzBand.start();
-    if(u.click){ _jzClick = jazzMetronome({bpm: u.bpm, beats: style === 'waltz' ? 3 : 4}); _jzClick.start(); }
-    root.querySelector('#jpGo').textContent = '■ Stop';
-  };
-  addEventListener('hashchange', stop, {once: true});
+  root.querySelector('#jpTune').onchange = e => { if(_jzBand){ _jzBand.stop(); _jzBand = null; } navigate('#/jazz/playalong/' + e.target.value); };
+  $$('[data-jtkey]', root).forEach(b => b.onclick = () => { jazzTuneUi().key = b.dataset.jtkey; sound('click');
+    if(_jzBand && _jzBand.running && _jzBand._tune === tune.id){ _jzBand.set('toKey', b.dataset.jtkey); _jzBand.set('semis', jazzTuneShift(tune, b.dataset.jtkey)); }
+    rerender(); });
+  bindJazzPracticePanel(root, tune);
 }
 
 /* ---------- 4D: audiation ---------- */
