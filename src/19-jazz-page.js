@@ -89,6 +89,24 @@ routes.jazz = function(root, params){
     root.innerHTML = `<div class="page jz-page">${jazzImprovHTML()}</div>`;
     bindJazzImprov(root); return;
   }
+  /* Curriculum v3's rooms: the document about itself, the tune database's
+     five modules, and the Section 4 features. Each is its own address so
+     Back works between them. A room whose file is missing says so rather
+     than drawing a blank page. */
+  const v3Rooms = {
+    about: ['jazzAboutHTML', 'bindJazzAbout'],
+    tunes: ['jazzTunesHTML', 'bindJazzTunes'], tune: ['jazzTuneHTML', 'bindJazzTune'],
+    repertoire: ['jazzRepertoireHTML', 'bindJazzRepertoire'], analysis: ['jazzAnalysisHTML', 'bindJazzAnalysis'],
+    playalong: ['jazzPlayAlongHTML', 'bindJazzPlayAlong'], record: ['jazzRecordHTML', 'bindJazzRecord'],
+    audiation: ['jazzAudiationHTML', 'bindJazzAudiation'], mindset: ['jazzMindsetHTML', 'bindJazzMindset']};
+  if(want && v3Rooms[want]){
+    const [draw, bind] = v3Rooms[want];
+    const rest = (params || []).slice(1);
+    root.innerHTML = `<div class="page jz-page">${typeof window[draw] === 'function'
+      ? window[draw](...rest) : '<div class="empty">This room is not in this copy.</div>'}</div>`;
+    try { if(typeof window[bind] === 'function') window[bind](root, ...rest); } catch(e){ console.warn('jazz room did not bind', want, e); }
+    return;
+  }
   if(want === 'units'){
     const activeUnitId = (params && params[1]) ? params[1] : (jazzUi()._unitId || null);
     root.innerHTML = `<div class="page jz-page">${jazzUnitsHTML(activeUnitId)}</div>`;
@@ -108,6 +126,8 @@ routes.jazz = function(root, params){
   }
   root.innerHTML = `<div class="page jz-page">${jazzRoadHTML()}</div>`;
   bindJazzRoad(root);
+  if(ui.scrollTo){ const el = root.querySelector(`[data-jzstage="${ui.scrollTo}"]`); ui.scrollTo = null;
+    if(el) setTimeout(() => el.scrollIntoView({block: 'start', behavior: 'smooth'}), 60); }
 };
 
 /* ---------- the layer a textbook leaves out ----------
@@ -159,7 +179,8 @@ const jazzDifficultyHTML = d => !d ? '' :
   `<span class="jz-diff" data-jzd="${esc(d)}" title="how hard this stage is">${esc(d)}</span>`;
 
 /* ---------- the roadmap ---------- */
-const JAZZ_VOICE_STAGES = ['V1', 'V2', 'V3', 'V4'];
+/* the Voice Track, which has its own view (Curriculum v3 gives it six levels) */
+const JAZZ_VOICE_STAGES = typeof JAZZ_V3_VOICE === 'object' ? JAZZ_V3_VOICE : ['V1', 'V2', 'V3', 'V4', 'V5', 'V6'];
 const jazzRoadView = () => jazzUi().roadView || 'piano';
 const jazzStageCollapsed = id => !!(jazzState().settings.collapsed || {})[String(id)];
 function jazzToggleCollapse(id){
@@ -181,20 +202,31 @@ function jazzRoadHTML(){
   const all = ladder.map(s => jazzStageGot(s));
   const done = sum(all.map(g => g.done)), of = sum(all.map(g => g.of));
   return `<h1 class="serif">Jazz Studio</h1>
-    <p class="page-blurb">Not pieces — patterns, in all twelve keys, until the hands go there
-      without being asked. ${done} of ${of} keys are yours.</p>
+    <p class="page-blurb">Thirteen stages, from the twelve distances to where the studying stops —
+      patterns in all twelve keys until the hands go there without being asked.
+      ${done} of ${of} are yours.</p>
     ${jazzStageHeadHTML(jazzActiveStage())}
-    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      <button class="btn primary" id="jzPlanGo">\u{1f4cb} Today\u2019s practice</button>
+    <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button class="btn primary" id="jzPlanGo">\u{1f4cb} Today’s practice</button>
       <button class="btn sm ghost" id="jzCards">\u{1f3af} Flashcards</button>
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
-      <button class="btn sm ghost" id="jzAllTips">\u{1f3c6} Golden tips</button>
-      <button class="btn sm ghost" id="jzListen">\u{1f3a7} Listening Library</button>
-      <button class="btn sm ghost" id="jzImprov">\u{1f3bc} Improvisation</button>
-      <button class="btn sm ghost" id="jzUnits">\u{1f4cb} Unit Assignments</button>
       <span class="grow"></span>
       <label class="jz-gate mono"><input type="checkbox" id="jzGate" ${jazzGated() ? 'checked' : ''}>
         one stage at a time</label>
+    </div>
+    <div class="row jz-tools" style="gap:6px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="tbtn" data-jzgo="#/jazz/tunes">\u{1f4da} Tune library</button>
+      <button class="tbtn" data-jzgo="#/jazz/repertoire">\u{1f3b5} Repertoire</button>
+      <button class="tbtn" data-jzgo="#/jazz/analysis">\u{1f50e} Harmonic analysis</button>
+      <button class="tbtn" data-jzgo="#/jazz/playalong">\u{1f941} Play-along</button>
+      <button class="tbtn" data-jzgo="#/jazz/listen">\u{1f3a7} Listening</button>
+      <button class="tbtn" data-jzgo="#/jazz/record">\u{1f399}️ Record</button>
+      <button class="tbtn" data-jzgo="#/jazz/audiation">\u{1f442} Audiation</button>
+      <button class="tbtn" data-jzgo="#/jazz/mindset">\u{1f9d8} Mindset</button>
+      <button class="tbtn" data-jzgo="#/jazz/improv">\u{1f3bc} Improvisation</button>
+      <button class="tbtn" data-jzgo="#/jazz/units">\u{1f4cb} Units</button>
+      <button class="tbtn" id="jzAllTips">\u{1f3c6} Practice tips</button>
+      <button class="tbtn" data-jzgo="#/jazz/about">ℹ️ About v3</button>
     </div>
     <div class="jz-view-tabs" role="tablist">
       <button class="jz-view-tab${!isVoice ? ' on' : ''}" data-jzview="piano" role="tab"
@@ -202,63 +234,83 @@ function jazzRoadHTML(){
       <button class="jz-view-tab${isVoice ? ' on' : ''}" data-jzview="voice" role="tab"
         aria-selected="${isVoice}">\u{1f3a4} Voice</button>
     </div>
-    ${isVoice ? `<p class="jz-view-blurb">Vocal improvisation stages \u2014 scat, bebop phrasing,
-      and hearing the changes. These run alongside the piano curriculum;
-      V1 opens after stage 6.</p>` : ''}
+    ${isVoice ? `<p class="jz-view-blurb">${esc(((JAZZ_V3_DOC.overview || {}).V || {paras: ['']}).paras[0])}
+      V1 opens after Stage 1.</p>` : ''}
     <div class="jz-road">${shown.map(s => jazzStageHTML(s, s.id === now.id)).join('')}</div>`;
 }
 function jazzStageHTML(s, here){
   const got = jazzStageGot(s);
   const open = jazzStageOpen(s);
   const collapsed = open && jazzStageCollapsed(s.id);
-  /* run ahead if you like \u2014 it just says so */
+  /* run ahead if you like — it just says so */
   const ahead = open && !jazzStageReached(s);
   const pct = got.of ? Math.round(got.done / got.of * 100) : 0;
+  const num = s.n === 'DT' ? 'DT' : s.n;
   return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}${
-    collapsed ? ' collapsed' : ''}" data-jzstage="${esc(s.id)}">
+    collapsed ? ' collapsed' : ''}${s.track ? ' jz-track' : ''}" data-jzstage="${esc(s.id)}">
     <header class="jz-shead" data-jztoggle="${esc(s.id)}"
       title="${collapsed ? 'Expand this stage' : 'Collapse this stage'}" style="cursor:pointer">
-      <span class="jz-sn mono">${s.n === 0 ? 'P' : s.n}</span>
+      <span class="jz-sn mono">${esc(String(num))}</span>
       <span class="jz-st"><b class="serif">${esc(s.name)}</b>
+        ${s.subtitle ? `<span class="jz-ssub">${esc(s.subtitle)}</span>` : ''}
         <span class="faint">${esc(s.blurb)}</span></span>
       ${jazzDifficultyHTML(s.expectedDifficulty)}
       <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
+        s.outcome ? `<em class="jz-weeks" title="how long the v3 plan gives this stage">${esc(s.outcome.time)}</em>` : ''}${
         ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}
-        <span class="jz-toggle-arrow" aria-hidden="true">${collapsed ? '\u25b6' : '\u25bc'}</span></span>
+        <span class="jz-toggle-arrow" aria-hidden="true">${collapsed ? '▶' : '▼'}</span></span>
     </header>
     <div class="jz-sbar"><i style="width:${pct}%"></i></div>
-    ${open && !collapsed ? `<div class="jz-subs">${s.subs.map(id => {
+    ${open && !collapsed ? `${jazzV3GoldenHTML(s)}
+      <div class="jz-subs">${s.subs.map(id => {
       const ex = jazzExercise(id); if(!ex) return '';
-      const n = jazzKeysGot(id);
-      return `<button class="jz-sub" data-jzopen="${esc(id)}">
-        <span class="jz-subn mono">${esc(id)}</span>
-        <span class="jz-subt">${esc(ex.name)}${
+      const single = jazzIsSingle(id);
+      const r = jazzRecord(id);
+      return `<button class="jz-sub${ex.isV3 ? ' jz-subv3' : ''}" data-jzopen="${esc(id)}">
+        <span class="jz-subn mono">${esc(jazzV3Label(ex))}</span>
+        <span class="jz-subt">${jazzV3TypePill(ex, true)} ${esc(ex.name)}${
           jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
           jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
             esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}${
-          jazzEdited(id) ? '<span class="jz-editpill mono" title="you have edited this score">✏️ edited</span>' : ''}</span>
-        <span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
-          `<i class="${jazzRecord(id).keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
-        <span class="mono jz-subc">${n}/12</span></button>`; }).join('')}</div>
+          jazzEdited(id) ? '<span class="jz-editpill mono" title="you have edited this score">✏️ edited</span>' : ''}${
+          jazzV3ConflictPillHTML(id)}</span>
+        ${single ? `<span class="jz-keys jz-one"><i class="${r.done ? 'on' : ''}" title="${r.done ? 'done' : 'not yet'}"></i></span>
+          <span class="mono jz-subc">${r.done ? 'done' : 'read'}</span>`
+        : `<span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
+          `<i class="${r.keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
+        <span class="mono jz-subc">${jazzKeysGot(id)}/12</span>`}</button>`; }).join('')}</div>
       <details class="jz-why"><summary><span class="mono">why this stage</span></summary>
-        <p class="serif">${esc(s.theory)}</p>
+        ${jazzV3OutcomeHTML(s)}
+        ${jazzV3ParasHTML(s.theory, 'serif')}
+        ${s.intro ? `<p class="serif">${esc(s.intro)}</p>` : ''}
+        ${s.sources ? `<p class="jz-src mono">Sources: ${esc(s.sources)}</p>` : ''}
+        ${s.beside ? `<p class="jz-src mono">Runs beside piano Stage ${esc(s.beside.join('–'))}.</p>` : ''}
+        ${jazzV3ThreadsHTML(s)}
         <div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
           <p>${esc(s.werner)}</p>
           <p class="jz-wm">${esc(s.mindset)}</p></div>
+        ${jazzV3AudiationHTML(s)}
         ${s.historicalContext ? `<div class="jz-note"><span class="sc">Where this came from</span>
-          <p class="serif">${esc(s.historicalContext)}</p></div>` : ''}
+          ${jazzV3ParasHTML(s.historicalContext, 'serif')}</div>` : ''}
         ${typeof jazzStageBandHTML === 'function' ? jazzStageBandHTML(s.id) : ''}
         ${s.typicalTimeToMaster ? `<div class="jz-note jz-howlong"><span class="sc">How long this honestly takes</span>
-          <p>${esc(s.typicalTimeToMaster)}</p></div>` : ''}
+          ${jazzV3ParasHTML(s.typicalTimeToMaster)}</div>` : ''}
         ${jazzMistakesHTML(s.commonMistakes)}
         ${jazzListeningHTML(s.listeningAssignments)}
+        ${jazzV3CarriedHTML(s)}
       </details>`
-    : (!open ? `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished in all twelve keys.</p>` : '')}
+    : (!open ? `<p class="jz-shut mono">Shut until ${esc((jazzStage(s.needs) || {}).name || 'the stage before it')} is finished.</p>` : '')}
   </section>`;
 }
 function bindJazzRoad(root){
   bindJazzPlan(root);
-  $$('[data-jzopen]', root).forEach(b => b.onclick = () => {
+  bindJazzTips(root);
+  $$('[data-jzgo]', root).forEach(b => b.onclick = ev => { ev.stopPropagation(); navigate(b.dataset.jzgo); });
+  /* the "differs" pill sits inside a row that is itself a button to its own
+     exercise; it goes to the other side of the disagreement instead */
+  $$('.jzv3-diff[data-jzopen]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); ev.preventDefault(); navigate('#/jazz/' + b.dataset.jzopen); });
+  $$('button[data-jzopen]', root).forEach(b => b.onclick = () => {
     jazzUi().exId = b.dataset.jzopen; navigate('#/jazz/' + b.dataset.jzopen); });
   const cards = root.querySelector('#jzCards');
   if(cards) cards.onclick = () => navigate('#/jazz/cards');
@@ -267,12 +319,6 @@ function bindJazzRoad(root){
   const gate = root.querySelector('#jzGate');
   if(gate) gate.onchange = () => { jazzState().settings.gate = gate.checked;
     saveNow(); sound('click'); rerender(); };
-  const listen = root.querySelector('#jzListen');
-  if(listen) listen.onclick = () => navigate('#/jazz/listen');
-  const improv = root.querySelector('#jzImprov');
-  if(improv) improv.onclick = () => navigate('#/jazz/improv');
-  const units = root.querySelector('#jzUnits');
-  if(units) units.onclick = () => navigate('#/jazz/units');
   $$('[data-jztoggle]', root).forEach(h => h.onclick = ev => {
     if(ev.target.closest('[data-jzopen]')) return;
     jazzToggleCollapse(h.dataset.jztoggle);
@@ -293,13 +339,19 @@ function jazzExerciseHTML(id){
   const ui = jazzUi();
   const key = JAZZ_KEY_NAMES.includes(ui.key) ? ui.key : 'C';
   const got = jazzKeysGot(id);
+  const single = jazzIsSingle(id);
+  const draws = jazzHasScore(ex);
+  /* a theory page with no notation is read, not played in a key */
+  const keyed = draws || !single;
+  const readsHere = !draws && !!((ex.v3 && ex.v3.theory) || ex.theory);
   return `<div class="row between" style="align-items:baseline;gap:10px;flex-wrap:wrap">
       <button class="btn sm ghost" id="jzBack">← the roadmap</button>
-      <span class="mono faint">${at ? `${esc(ex.id)} · ${esc(at.stage.name)}` : ''}</span></div>
-    <h1 class="serif" style="margin-top:8px">${esc(ex.name)}</h1>
+      <span class="mono faint">${at ? `${esc(jazzV3Label(ex))} · Stage ${esc(String(at.stage.n))} — ${esc(at.stage.name)}` : ''}</span></div>
+    <h1 class="serif" style="margin-top:8px">${esc(ex.name)} ${jazzV3TypePill(ex)}</h1>
     <div class="jz-cols">
       <div class="jz-main">
-        <div class="jz-keyrow">
+        ${jazzV3PanelHTML(ex)}
+        ${keyed ? `<div class="jz-keyrow">
           <span class="mono faint">in the key of</span>
           <div class="jz-keypick">${JAZZ_KEY_NAMES.map(k =>
             `<button class="jz-k${k === key ? ' on' : ''}${r.keys[k] ? ' got' : ''}" data-jzkey="${esc(k)}"
@@ -311,7 +363,7 @@ function jazzExerciseHTML(id){
           <button class="jz-dice" id="jzDice" title="${jazzRandomises(ex)
             ? 'deal a new root and a new distance' : 'take a key at random'}">🎲 ${
             jazzRandomises(ex) ? 'deal one' : 'random key'}</button>
-        </div>
+        </div>` : ''}
         <!-- the first stage is about distances rather than chords, so it asks
              for one as well as for a key -->
         ${jazzWantsInterval(ex) ? `<div class="jz-keyrow">
@@ -328,9 +380,9 @@ function jazzExerciseHTML(id){
             ${jazzIsMultiExample(ex) ? `<div class="jz-ex-tabs" id="jzExTabs"></div>` : ''}
             <div class="jz-score" id="jzScore"></div></div>
           ${jazzIsMultiExample(ex) ? '' : jazzScoreToolsHTML(id)}`
-          : `<div class="jz-stage-box"><div class="jz-noscore">This one has nothing to read.
-             It is a thing to do — at the instrument or on paper — and the words
-             beside it are the whole of it.</div></div>`}
+          : `<div class="jz-stage-box">${jazzV3MainTextHTML(ex)}</div>`}
+        ${jazzV3YouTubeHTML(ex)}
+        ${typeof jazzV3ToolHTML === 'function' ? jazzV3ToolHTML(ex) : ''}
         <!-- what is true of this exercise and of every other one. Under the
              score because that is where the eyes are, shut because four
              paragraphs between the notation and the buttons would be four
@@ -342,18 +394,26 @@ function jazzExerciseHTML(id){
         ${typeof jazzMaterialHTML === 'function' ? jazzMaterialHTML(id) : ''}
         ${jazzTipsHTML(ex)}
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:12px">
-          <button class="btn ${r.keys[key] ? 'ghost' : 'primary'}" id="jzGot">${
-            r.keys[key] ? `✓ ${esc(jazzPretty(key))} is yours — take it back` : `Mark ${esc(jazzPretty(key))} as yours`}</button>
+          ${single ? `<button class="btn ${r.done ? 'ghost' : 'primary'}" id="jzDone">${
+            r.done ? '✓ Done — take it back' : (ex.type === 'LISTEN' ? 'Mark as heard and done' : 'Mark as read and understood')}</button>`
+          : `<button class="btn ${r.keys[key] ? 'ghost' : 'primary'}" id="jzGot">${
+            r.keys[key] ? `✓ ${esc(jazzPretty(key))} is yours — take it back` : `Mark ${esc(jazzPretty(key))} as yours`}</button>`}
           <button class="btn sm ghost" id="jzLog">+ Log a sitting</button>
-          <button class="btn sm ghost" id="jzCard">\u{1f3af} Put this in the cards</button>
+          ${draws ? `<button class="btn sm ghost" id="jzCard">\u{1f3af} Put this in the cards</button>` : ''}
         </div>
-        <div class="jz-count mono">${got} of 12 keys${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
+        <div class="jz-count mono">${single ? (r.done ? `done ${esc(relDays(daysSince(r.done)))}` : 'not yet done')
+          : `${got} of 12 keys`}${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
         ${jazzChecklistHTML(id)}
       </div>
       <aside class="jz-side">
         ${ex.why ? `<div class="jz-note"><span class="sc">Why it matters</span><p class="serif">${esc(ex.why)}</p></div>` : ''}
         ${ex.tip ? `<div class="jz-note"><span class="sc">How to get it in</span><p>${esc(ex.tip)}</p></div>` : ''}
-        ${ex.theory ? `<div class="jz-note"><span class="sc">The book says</span><p class="serif">${esc(ex.theory)}</p></div>` : ''}
+        ${ex.theory && !readsHere ? `<div class="jz-note"><span class="sc">${ex.isV3 ? 'The v3 document says' : 'The book says'}</span>${jazzV3ParasHTML(ex.theory, 'serif')}</div>` : ''}
+        ${!ex.isV3 && ex.v3 && ex.v3.theory ? `<div class="jz-note"><span class="sc">The v3 document says</span>${jazzV3ParasHTML(ex.v3.theory, 'serif')}</div>` : ''}
+        ${at && at.stage.goldenTip ? jazzV3GoldenHTML(at.stage) : ''}
+        ${typeof jazzRecommendedTunesHTML === 'function' ? jazzRecommendedTunesHTML(ex) : ''}
+        ${typeof IMPROVISATION_LIBRARY === 'object' && (IMPROVISATION_LIBRARY.guidedImprovisation || []).some(e => e.id === id)
+          ? `<button class="tbtn" data-jzgo="#/jazz/improv/${esc(id)}">the full guide in the Improvisation room \u2192</button>` : ''}
         ${ex.doubt ? `<div class="jz-note"><span class="sc">About these notes</span><p class="faint">${esc(ex.doubt)}</p></div>` : ''}
         ${ex.whenToUse ? `<div class="jz-note"><span class="sc">When you would use it</span>
           <p class="serif">${esc(ex.whenToUse)}</p></div>` : ''}
@@ -477,6 +537,13 @@ function bindJazzExercise(root, id){
       : `In ${jazzPretty(ui.key)}.`);
     rerender();
   };
+  const done = root.querySelector('#jzDone');
+  if(done) done.onclick = () => {
+    const on = jazzSetDone(id, !jazzRecord(id).done);
+    sound(on ? 'success' : 'click'); if(on) toast('Done.'); rerender(); };
+  $$('[data-jzgo]', root).forEach(b => b.onclick = () => navigate(b.dataset.jzgo));
+  $$('.jzv3-diff[data-jzopen]', root).forEach(b => b.onclick = () => navigate('#/jazz/' + b.dataset.jzopen));
+  try { if(typeof jazzV3BindTools === 'function') jazzV3BindTools(root, ex); } catch(e){ console.warn('a v3 tool did not bind', e); }
   const got = root.querySelector('#jzGot');
   if(got) got.onclick = () => {
     const have = !!jazzRecord(id).keys[ui.key];

@@ -22,7 +22,7 @@ const SISKIND_UNITS = [
   /* ── BOOK 1 ──────────────────────────────────────────────── */
 
   {id:'B1-U1', book:1, unit:1, name:'Getting Oriented',
-   stageId:1, stageLabel:'Stage 1',
+   stageId:'1', stageLabel:'Stage 1',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Improvisation Exercise 1 — Drone Improvisation 1: listen to phrases and rhythms over a held bass note. Timer on, five minutes minimum.'},
@@ -37,7 +37,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U2', book:1, unit:2, name:'Comping Basics',
-   stageId:1, stageLabel:'Stage 1',
+   stageId:'1', stageLabel:'Stage 1',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Drone Improvisation 2 — hand positions and call-and-response. Take a phrase, then answer it with a different one. Two minutes minimum.'},
@@ -54,7 +54,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U3', book:1, unit:3, name:'Introducing ii-V-I',
-   stageId:2, stageLabel:'Stage 2',
+   stageId:'2', stageLabel:'Stage 2',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Drone Improvisation in F and B♭ — use grace notes and sequences over a held bass note. Aim for musical phrases, not scales.'},
@@ -69,7 +69,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U4', book:1, unit:4, name:'Going Deeper with ii-V-I',
-   stageId:2, stageLabel:'Stage 2',
+   stageId:'2', stageLabel:'Stage 2',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Building Rhythmic Vocabulary 1 — practice rhythmic phrases starting on different beats of the bar. Avoid always landing on beat one.'},
@@ -88,7 +88,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U5', book:1, unit:5, name:'Evening in Lyon',
-   stageId:3, stageLabel:'Stage 3',
+   stageId:'2', stageLabel:'Stage 2',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'ii-V-I Improvisation in C, B♭, A♭ and B major — stay in one key for two minutes before moving.'},
@@ -103,7 +103,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U6', book:1, unit:6, name:'Type A/B Voicings',
-   stageId:3, stageLabel:'Stage 3',
+   stageId:'2', stageLabel:'Stage 2',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Building Rhythmic Vocabulary 2 — mix quarter notes and eighth notes in phrases over a drone. Avoid running the scale.'},
@@ -118,7 +118,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U7', book:1, unit:7, name:'The Blues Form',
-   stageId:4, stageLabel:'Stage 4',
+   stageId:'3', stageLabel:'Stage 3',
    assignments:[
     {part:'fundamentals', minutes:15, category:'tune-app',
      text:'Blues form memorization in C, F, G and B♭ — play the form with one finger first, then with both hands. Say the chord name before you play each one.'},
@@ -133,7 +133,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U8', book:1, unit:8, name:'Playing Bass in Two',
-   stageId:4, stageLabel:'Stage 4',
+   stageId:'3', stageLabel:'Stage 3',
    assignments:[
     {part:'fundamentals', minutes:10, category:'coordination',
      text:'Play One, Rest One / Play Two, Rest Two exercises over ii-V-Is in E♭, A♭ and D — bass in two with voice leading. Silence is half the exercise.'},
@@ -150,7 +150,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U9', book:1, unit:9, name:'Blues for Sammie',
-   stageId:5, stageLabel:'Stage 5',
+   stageId:'3', stageLabel:'Stage 3',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Play One/Rest One and Play Two/Rest Two variations in G, A and B♭ — mix the two approaches within a single chorus.'},
@@ -167,7 +167,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U10', book:1, unit:10, name:'Altered Dominants',
-   stageId:5, stageLabel:'Stage 5',
+   stageId:'4', stageLabel:'Stage 4',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Play What You Sing — over a drone, then over a ii-V-I. Sing a phrase before you play it, then play exactly what you sang.'},
@@ -184,7 +184,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U11', book:1, unit:11, name:'More Altered Dominants',
-   stageId:6, stageLabel:'Stage 6',
+   stageId:'4', stageLabel:'Stage 4',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Neighbor tones and chromatic enclosure practice — lower neighbors, then chromatic enclosures targeting chord tones. All twelve keys.'},
@@ -201,7 +201,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B1-U12', book:1, unit:12, name:'Capstone',
-   stageId:6, stageLabel:'Stage 6',
+   stageId:'4', stageLabel:'Stage 4',
    assignments:[
     {part:'rote', minutes:20, category:'scale-pattern',
      text:'Altered scale improvisation — practice the altered scale as melodic minor a semitone up from the root. Apply to V chords in ii-V-I progressions.'},
@@ -216,7 +216,7 @@ const SISKIND_UNITS = [
   /* ── BOOK 2 ──────────────────────────────────────────────── */
 
   {id:'B2-U1', book:2, unit:1, name:'Including Transcriptions',
-   stageId:'7A', stageLabel:'Stage 7A',
+   stageId:'6', stageLabel:'Stage 6',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Scale patterns in thirds, fourths, fifths, sixths and sevenths — start at about 120 BPM and increase gradually. About 15 minutes per day.'},
@@ -233,7 +233,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U2', book:2, unit:2, name:'The COREA Process',
-   stageId:'7A', stageLabel:'Stage 7A',
+   stageId:'6', stageLabel:'Stage 6',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Three-note and four-note scale patterns (triadic and seventh-chord) — practice with triplets and with eighth notes. About 15 minutes per day.'},
@@ -250,7 +250,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U3', book:2, unit:3, name:'Minor ii-V-i',
-   stageId:'7B', stageLabel:'Stage 7B',
+   stageId:'7', stageLabel:'Stage 7',
    assignments:[
     {part:'rote', minutes:10, category:'scale-pattern',
      text:'Scale Game 1 — continuous eighth notes without simply running scales up and down. Melodic decisions in real time. About 10 minutes per day.'},
@@ -267,7 +267,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U4', book:2, unit:4, name:'Improvising Over Minor ii-V-i',
-   stageId:'7B', stageLabel:'Stage 7B',
+   stageId:'7', stageLabel:'Stage 7',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Scale Game 2 — switch scales every 2 measures, ascending by half steps. Start slowly. About 10–20 minutes per day.'},
@@ -286,7 +286,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U5', book:2, unit:5, name:'Going Deeper with Minor ii-V-i',
-   stageId:'7B', stageLabel:'Stage 7B',
+   stageId:'7', stageLabel:'Stage 7',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Chromatic lead-in patterns — approaching guidetone lines from below by half step, above by half step, and chromatic enclosures. All twelve keys, about 15 minutes per day.'},
@@ -301,7 +301,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U6', book:2, unit:6, name:'Playing a Tune with Minor ii-V-i',
-   stageId:'7B', stageLabel:'Stage 7B',
+   stageId:'7', stageLabel:'Stage 7',
    assignments:[
     {part:'rote', minutes:20, category:'scale-pattern',
      text:'Octatonic scale patterns — two-note, three-note, and four-note patterns from the diminished scale. About 20 minutes per day.'},
@@ -320,7 +320,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U7', book:2, unit:7, name:'Revisiting the Blues Form',
-   stageId:'7C', stageLabel:'Stage 7C',
+   stageId:'8', stageLabel:'Stage 8',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Non-chord-tone scale patterns 1 — lower neighbors and chromatic enclosures targeting scale notes. All twelve keys, about 15 minutes per day.'},
@@ -337,7 +337,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U8', book:2, unit:8, name:'Introducing Closed-Position Voicings',
-   stageId:'7C', stageLabel:'Stage 7C',
+   stageId:'8', stageLabel:'Stage 8',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Non-chord-tone patterns 2 — double neighbors, the "Joy Spring" pattern, and the "Yodel Lick." Named after iconic jazz solos where these devices appear.'},
@@ -352,7 +352,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U9', book:2, unit:9, name:'Rhythm Changes and Endings',
-   stageId:'7C', stageLabel:'Stage 7C',
+   stageId:'8', stageLabel:'Stage 8',
    assignments:[
     {part:'rote', minutes:20, category:'scale-pattern',
      text:'Arpeggio patterns for rhythm changes — 3-5-7-9 arpeggios for I-vi-ii-V progressions with half-step connections between chord tones.'},
@@ -369,7 +369,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U10', book:2, unit:10, name:'Drop-Two Voicings and Bass in Four',
-   stageId:'7D', stageLabel:'Stage 7D',
+   stageId:'9', stageLabel:'Stage 9',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Bebop scale patterns — major and melodic minor bebop scales in multiple melodic shapes. The chromatic passing tone lands chord tones on downbeats.'},
@@ -384,7 +384,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U11', book:2, unit:11, name:'Adding Color to Ballads',
-   stageId:'7D', stageLabel:'Stage 7D',
+   stageId:'9', stageLabel:'Stage 9',
    assignments:[
     {part:'rote', minutes:15, category:'scale-pattern',
      text:'Hemiola patterns — mixing quarter note plus eighth note groupings (1.5-beat patterns) against 4/4 time. Includes descending seventh chords with double-note turns.'},
@@ -403,7 +403,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B2-U12', book:2, unit:12, name:'Learning a Tune by Ear',
-   stageId:'7D', stageLabel:'Stage 7D',
+   stageId:'9', stageLabel:'Stage 9',
    assignments:[
     {part:'rote', minutes:20, category:'scale-pattern',
      text:'Non-chord-tone technical challenges — the capstone of Book 2\'s pattern work. Push your pattern vocabulary to its physical and musical limits.'},
@@ -418,7 +418,7 @@ const SISKIND_UNITS = [
   /* ── BOOK 3 ──────────────────────────────────────────────── */
 
   {id:'B3-U1', book:3, unit:1, name:'Modal Jazz Basics',
-   stageId:8, stageLabel:'Stage 8',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Drone improvisations over static bass notes — two full minutes over one drone without stopping. Then move the bass note while keeping the same scale.'},
@@ -435,7 +435,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U2', book:3, unit:2, name:'Improvising Within a Single Mode',
-   stageId:8, stageLabel:'Stage 8',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Play gestures from Miles Davis\'s "So What" solo without using the original notes — borrow the contour and the rhythm, but change every pitch.'},
@@ -454,7 +454,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U3', book:3, unit:3, name:'Modal Cross-Sections',
-   stageId:8, stageLabel:'Stage 8',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Memory Games — repeat a thematic idea at the beginning of every 8-bar, 16-bar or 32-bar section. Creates architecture in the improvisation.'},
@@ -471,7 +471,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U4', book:3, unit:4, name:'Pentatonic Scale Theory',
-   stageId:8, stageLabel:'Stage 8',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Shifting upper structures every 2 beats, connecting them by step. Keep the line flowing across the structural changes.'},
@@ -490,7 +490,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U5', book:3, unit:5, name:'Pentatonic Voicings',
-   stageId:9, stageLabel:'Stage 9',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Changing mindset every 8 measures — alternate between upper structures, quadratonics, pentatonics, and triad pairs within a single improvisation.'},
@@ -509,7 +509,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U6', book:3, unit:6, name:'Modes of the Melodic Minor',
-   stageId:10, stageLabel:'Stage 10',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Tonicization every four measures — add a dominant chord a fifth above (or half step above / tritone away) to each target chord. Play it in time.'},
@@ -526,7 +526,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U7', book:3, unit:7, name:'Comping Outside of the Mode',
-   stageId:10, stageLabel:'Stage 10',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Alternating between major and melodic minor modes — switch every two bars at first, then every four, then freely. Keep the line connected.'},
@@ -547,7 +547,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U8', book:3, unit:8, name:'Modal Interchange',
-   stageId:10, stageLabel:'Stage 10',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:10, category:'improvisation',
      text:'Sidestepping to create tension and release over ascending chord sequences — step outside by a half step, hold for two bars, then resolve in.'},
@@ -566,7 +566,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U9', book:3, unit:9, name:'Modal Voicings for Tonal Progressions',
-   stageId:9, stageLabel:'Stage 9',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Modal interchange circuits — cycle through major, minor, and dominant modal options for a single chord type. Play each option back to back so the ear hears the difference.'},
@@ -585,7 +585,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U10', book:3, unit:10, name:'Modal Blues',
-   stageId:11, stageLabel:'Stage 11',
+   stageId:'10', stageLabel:'Stage 10',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Bebop shapes over a single mode — use the shape (contour and rhythm) of a familiar bebop melody but apply it to modal material.'},
@@ -606,7 +606,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U11', book:3, unit:11, name:'Odd Time Signatures',
-   stageId:12, stageLabel:'Stage 12',
+   stageId:'12', stageLabel:'Stage 12',
    assignments:[
     {part:'fundamentals', minutes:15, category:'improvisation',
      text:'Improvise over Coltrane Changes using arpeggios, guidetones, continuous scales, and bebop shapes — treat the Coltrane Changes as a familiar landscape now.'},
@@ -625,7 +625,7 @@ const SISKIND_UNITS = [
   ]},
 
   {id:'B3-U12', book:3, unit:12, name:'Playing Free',
-   stageId:12, stageLabel:'Stage 12',
+   stageId:'12', stageLabel:'Stage 12',
    assignments:[
     {part:'fundamentals', minutes:20, category:'improvisation',
      text:'Layering Rhythms — combine rhythmic subdivision, rhythmic grouping, melody and shape simultaneously. Start with one dimension and add the next when the first is internalized.'},
@@ -645,24 +645,33 @@ const SISKIND_UNITS = [
    8-12; Book 2 had nowhere to go at all until 7A-7D were added to the ladder,
    so its twelve units were mapped to nothing and never surfaced. */
 const UNIT_STAGE_MAP = {
+  /* Curriculum v3, Section 7 Module 2: "B1 Units 1-2 map to v3 Stage 1. B1
+     Units 3-6 map to v3 Stage 2. B1 Units 7-9 map to v3 Stage 3. B1 Units
+     10-12 map to v3 Stage 4. B2 Units 1-2 map to v3 Stage 6. B2 Units 3-6
+     map to v3 Stage 7. B2 Units 7-9 map to v3 Stage 8. B2 Units 10-12 map
+     to v3 Stage 9. B3 Units 1-6 map to v3 Stage 10. B3 Units 7-9 map to v3
+     Stage 10. B3 Units 10-12 map to v3 Stages 10-12." Stages 5 and 11 are
+     Levine and Berklee rather than Siskind, so no unit lands on them. */
   'P0': [],
-  1:    ['B1-U1','B1-U2'],
-  2:    ['B1-U3','B1-U4'],
-  3:    ['B1-U5','B1-U6'],
-  4:    ['B1-U7','B1-U8'],
-  5:    ['B1-U9','B1-U10'],
-  6:    ['B1-U11','B1-U12'],
-  7:    ['B1-U10','B1-U11','B1-U12'],
-  '7A': ['B2-U1','B2-U2'],
-  '7B': ['B2-U3','B2-U4','B2-U5','B2-U6'],
-  '7C': ['B2-U7','B2-U8','B2-U9'],
-  '7D': ['B2-U10','B2-U11','B2-U12'],
-  8:    ['B3-U1','B3-U2','B3-U3','B3-U4'],
-  9:    ['B3-U5','B3-U9'],
-  10:   ['B3-U6','B3-U7','B3-U8'],
-  11:   ['B3-U10'],
-  12:   ['B3-U11','B3-U12'],
-  V1:   [], V2:[], V3:[], V4:[]
+  '1': ['B1-U1', 'B1-U2'],
+  '2': ['B1-U3', 'B1-U4', 'B1-U5', 'B1-U6'],
+  '3': ['B1-U7', 'B1-U8', 'B1-U9'],
+  '4': ['B1-U10', 'B1-U11', 'B1-U12'],
+  '5': [],
+  '6': ['B2-U1', 'B2-U2'],
+  '7': ['B2-U3', 'B2-U4', 'B2-U5', 'B2-U6'],
+  '8': ['B2-U7', 'B2-U8', 'B2-U9'],
+  '9': ['B2-U10', 'B2-U11', 'B2-U12'],
+  'DT': [],
+  '10': ['B3-U1', 'B3-U2', 'B3-U3', 'B3-U4', 'B3-U5', 'B3-U6', 'B3-U7', 'B3-U8', 'B3-U9', 'B3-U10'],
+  '11': [],
+  '12': ['B3-U11', 'B3-U12'],
+  'V1': [],
+  'V2': [],
+  'V3': [],
+  'V4': [],
+  'V5': [],
+  'V6': []
 };
 
 /* ---------- state ---------- */

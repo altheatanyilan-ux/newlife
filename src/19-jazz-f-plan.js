@@ -87,14 +87,18 @@ const jazzPaceMinutes = (id, sid) => Math.round(
    `pick` how many exercises to draw from the stage for it. A `tune` activity
    is about repertoire rather than about a catalogue exercise, so it names no
    keys: you play it in the key the tune is in. */
+/* ---- Curriculum v3 ----
+   The templates are keyed by the v3 stages now. The document gives each
+   stage a length (Section 3: "~2 weeks" to "~12 weeks", "~78 weeks (~1.5
+   years at 2 hours/day practice)") and that is what `days` is: weeks times
+   seven, at the two-hour day it assumes. Stage 0 keeps the half-hour day
+   it always had — it is a warm-up rather than a unit of a book, and the
+   activity list under it adds up to thirty minutes.
+
+   Where a v3 stage absorbed several old rungs, its activities are theirs
+   combined and re-weighted, with the Siskind minute proportions kept. */
 const JAZZ_PLAN_TEMPLATES = {
-  /* The source gives P0 ten hours over seven days AND a thirty-minute daily
-     plan, and those cannot both be true: half an hour for a week is three
-     and a half hours. The activity list is the more specific of the two, and
-     a benchmark you cannot reach by following the plan printed under it is a
-     benchmark that teaches people to ignore benchmarks. So the hours here
-     are the ones the plan actually adds up to. */
-  'P0': {hours: 4, days: 7, daily: 30, source: 'Stage P0 — a warm-up stage, not a unit of the book',
+  'P0': {hours: 7, days: 14, daily: 30, source: 'Curriculum v3, Stage 0 — about two weeks. A warm-up stage, not a unit of a book',
     parts: [
       ['fundamentals', 10, [['Interval micro-drill',
         'One interval, from all twelve roots, round the circle of fourths. One interval a day, not twelve.', 10, 12, 1]]],
@@ -105,216 +109,178 @@ const JAZZ_PLAN_TEMPLATES = {
       ['listening', 10, [['Interval recognition',
         'Ear training away from the instrument. Name what you hear before you look.', 10, 0, 0]]]]},
 
-  1: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Units 1–2',
+  '1': {hours: 56, days: 28, daily: 120, source: 'Curriculum v3, Stage 1 — about four weeks. Siskind Book 1, Units 1–2',
     parts: [
-      ['fundamentals', 10, [['Drone improvisation',
-        'Five to ten minutes over a drone, with a timer running so it is a practice rather than a noodle.', 10, 2, 0]]],
+      ['fundamentals', 10, [['Drone improvisation, then play what you sing',
+        'Five minutes over a drone with a timer running; then sing a two- to four-note phrase and find it.', 10, 2, 0]]],
       ['rote', 30, [['Coordination exercise, all twelve keys',
         'The coordination exercise round the twelve, slowly enough that both hands stay honest.', 15, 3, 1],
         ['Chord flashcards and the vamp piece',
         'Chord recall against the clock, then the vamp piece to put the chords somewhere musical.', 15, 3, 2]]],
       ['tunes', 30, [['Swing articulation',
-        'The swing exercises, watching the articulation rather than the notes.', 10, 2, 0],
-        ['Find the chords in a Real Book tune',
-        'Take a standard and name every chord in it by type before playing any of them.', 20, 0, 0]]],
+        'The swing exercises and the Charleston, watching the articulation rather than the notes.', 10, 2, 0],
+        ['Read a lead sheet, and find its form',
+        'Take a standard, name its form (AABA, ABAC…) and every chord in it by type before playing any of them.', 20, 0, 0]]],
       ['listening', 30, [['Guided listening',
-        'The unit’s track, following the form all the way through. Twenty times over the fortnight, not twenty times today.', 30, 0, 0]]]]},
+        'The stage’s track, following the form all the way through. Twenty times over the month, not twenty times today.', 30, 0, 0]]]]},
 
-  2: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Units 3–4',
+  '2': {hours: 84, days: 42, daily: 120, source: 'Curriculum v3, Stage 2 — about six weeks. Siskind Book 1, Units 3–6',
     parts: [
       ['fundamentals', 10, [['Drone improvisation in F and B♭',
         'Grace notes and sequences over a drone, in the two keys the unit asks for.', 10, 2, 0]]],
-      ['rote', 30, [['Two-five-one descending by whole steps',
-        'One of the two descent sets, joined, without stopping between keys.', 15, 6, 2],
-        ['A lick, transposed round the twelve',
-        'One lick, all twelve keys, articulation before speed.', 15, 4, 1]]],
-      ['tunes', 30, [['Two Real Book tunes',
-        'Circle every two-five-one, learn the chords, comp with the melody, and put the lick where it fits.', 30, 0, 0]]],
+      ['rote', 40, [['Two-five-one descending by whole steps',
+        'One of the two descent sets, joined, without stopping between keys. Shells first, then Type A and B.', 15, 6, 2],
+        ['The voicing formulas',
+        'Type A and Type B for major, dominant and minor sevenths, until the shape arrives before the thought.', 15, 3, 2],
+        ['One hand, and a bass in two',
+        'Three notes in one hand, both types, with root and fifth under them in the other.', 10, 3, 1]]],
+      ['tunes', 50, [['Two Real Book tunes',
+        'Circle every two-five-one, then comp through the form with A/B voicings under a Charleston.', 30, 0, 0],
+        ['A standard, solo',
+        'Voicing in one hand, bass in the other, melody sung. If somebody can follow the tune, it works.', 20, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        '"I Want More" by Dexter Gordon twenty times, then "So What" by Miles Davis twenty times.', 20, 0, 0]]]]},
+        'The stage’s tracks, twenty times each, listening to the left hand.', 20, 0, 0]]]]},
 
-  3: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Unit 6',
-    parts: [
-      ['fundamentals', 10, [['Building rhythmic vocabulary',
-        'Rhythm 2: quarters and eighths mixed, in a swing feel, over a drone.', 10, 3, 0]]],
-      ['rote', 40, [['The voicing formulas',
-        'Type A and Type B for major, dominant and minor sevenths, until the shape arrives before the thought.', 20, 3, 2],
-        ['Two-five-one with A/B, descending whole steps',
-        'A descent set with the voicings, alternating the type through each progression.', 20, 6, 2]]],
-      ['tunes', 30, [['3-5-7-9 arpeggios',
-        'The arpeggios through a tune’s changes rather than through an exercise.', 10, 3, 1],
-        ['Comp through a Real Book tune',
-        'Type A/B under a Charleston rhythm, all the way round the form.', 20, 0, 0]]],
-      ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, listening to the left hand.', 20, 0, 0]]]]},
-
-  4: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1, Unit 8',
-    parts: [
-      ['fundamentals', 10, [['Hand independence',
-        'Bass alone until it is boring, then the voicing on top of it. The coordination is the exercise.', 10, 3, 0]]],
-      ['rote', 35, [['One-handed shells',
-        'Three notes in one hand, both types, round the twelve.', 20, 3, 2],
-        ['A bass in two',
-        'Root on one and the fifth, the third, or a semitone into the next root on three. All three formulas.', 15, 3, 1]]],
-      ['tunes', 30, [['A standard, solo',
-        'Voicing in one hand, bass in the other, melody sung. If somebody can follow the tune, it works.', 30, 0, 0]]],
-      ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, listening to what the left hand is doing while the right is busy.', 20, 0, 0]]]]},
-
-  5: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 7–9',
+  '3': {hours: 84, days: 42, daily: 120, source: 'Curriculum v3, Stage 3 — about six weeks. Siskind Book 1, Units 7–9',
     parts: [
       ['fundamentals', 10, [['Play one, rest one',
         'The phrasing model, and the blues scale in every key. Silence is half the exercise.', 10, 4, 0]]],
-      ['rote', 30, [['One-handed A/B through a two-five-one',
-        'The voicings from the stage before, now under a blues.', 15, 4, 2],
-        ['Blues scale and arpeggios, mixed',
-        'Neither one alone: the scale is a safety net and the arpeggios are the changes.', 15, 4, 2]]],
+      ['rote', 35, [['Chord tones, then approach notes',
+        'Only the chord tones over the blues, then each approached by half step. The changes first, decoration second.', 15, 4, 2],
+        ['One lick, twelve keys',
+        'A single lick round the circle, then the same lick against a Charleston in the left hand.', 20, 4, 1]]],
       ['tunes', 40, [['A blues, every way round',
-        'Melody, comping, bass in two, and improvising — the same twelve bars four different ways.', 40, 4, 0]]],
+        'Melody, comping, bass in two, and improvising — the same twelve bars four different ways. Record the solo.', 40, 4, 0]]],
       ['listening', 20, [['Guided listening',
-        '"Now’s the Time" by Charlie Parker twenty times, then "D. and E." by Oscar Peterson twenty times.', 20, 0, 0]]]]},
+        '“Now’s the Time” by Charlie Parker, “Billie’s Bounce”, “Bag’s Groove” — twenty times each, over the six weeks.', 20, 0, 0]]]]},
 
-  6: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 3–12 (the licks)',
+  '4': {hours: 84, days: 42, daily: 120, source: 'Curriculum v3, Stage 4 — about six weeks. Siskind Book 1, Units 10–12, with Levine and Berklee',
     parts: [
-      ['fundamentals', 10, [['Articulation on the syllables',
-        'The scat syllables before the notes. A lick with flat dynamics is a scale exercise.', 10, 2, 0]]],
-      ['rote', 35, [['One lick, twelve keys',
-        'A single lick round the circle. A week a lick, not a lick a day.', 20, 4, 1],
-        ['The lick against comping',
-        'The same lick with a Charleston in the left hand. This is the step everybody skips.', 15, 3, 1]]],
-      ['tunes', 30, [['Put it in a tune',
-        'Find the two-five-ones in a standard and play into the lick and out of it. The joins are the hard part.', 30, 0, 0]]],
-      ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, listening for how little is played rather than how much.', 20, 0, 0]]]]},
-
-  7: {hours: 45, days: 21, daily: 120, source: 'Siskind Book 1, Units 10–12',
-    parts: [
-      ['fundamentals', 10, [['Play what you sing',
-        'Sing a phrase over a two-five-one, then play it. The inner ear exercise, every day.', 10, 3, 0]]],
+      ['fundamentals', 15, [['Name the chord, then the mode',
+        'Before a scale is played, name the chord it belongs to and hear it resolve. A mode heard in context is a colour.', 15, 3, 1]]],
       ['rote', 40, [['Flat nine and flat thirteen, all keys',
         'One alteration at a time, and know which note it replaced.', 15, 4, 2],
         ['Tritone substitution, all keys',
         'Plain and substituted back to back, in the same key, so the difference is audible.', 15, 4, 1],
-        ['The altered, octatonic and whole-tone scales',
-        'Learn the altered scale as melodic minor a semitone up. One fact instead of twelve scales.', 10, 3, 1]]],
+        ['Melodic minor, the altered scale, the symmetric scales',
+        'The altered scale as melodic minor a semitone up. One fact instead of twelve scales.', 10, 3, 1]]],
       ['tunes', 30, [['Altered voicings on a standard',
-        'Every V chord altered for one chorus, then only where your ear wants one. And the turnarounds.', 30, 0, 0]]],
+        'Every V chord altered for one chorus, then only where your ear wants one.', 30, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        '"Cheek to Cheek" by Ahmad Jamal, twenty times.', 20, 0, 0]]]]},
+        '“Blue in Green”, “Nardis”, “Cheek to Cheek” — twenty times each, hearing the colour of each chord.', 20, 0, 0]]]]},
 
-  /* ---- Book 2 ----
-     Four templates for the four rungs Book 2 now has. The minutes are the
-     ones Siskind writes on the assignment pages themselves — fifteen a day
-     for scale patterns, thirty for comping on tunes — rather than a division
-     of two hours into four equal parts. */
-  '7A': {hours: 40, days: 21, daily: 120, source: 'Siskind Book 2, Units 1–2',
+  '5': {hours: 56, days: 28, daily: 120, source: 'Curriculum v3, Stage 5 — about four weeks. Levine Ch. 5, Berklee Ch. 2/7',
+    parts: [
+      ['fundamentals', 10, [['The plain progression, then the device',
+        'Play the bars without the slash chord or the passing diminished first, every time, so you can hear what it adds.', 10, 3, 0]]],
+      ['rote', 40, [['Slash chords and passing diminished chords',
+        'C/E, F/G, D♭/C, A♭/B♭; then a diminished chord between two diatonic chords a step apart.', 20, 4, 2],
+        ['A dominant chain to the tonic',
+        'A7–D7–G7–C, each chord the V of the next, in several keys.', 20, 4, 1]]],
+      ['tunes', 50, [['Find every device in a standard',
+        '“Body and Soul” or “Stella by Starlight”: mark every slash chord, passing diminished, dominant chain and deceptive resolution.', 30, 0, 0],
+        ['Play the ones you found',
+        'Only the bars with a device in them, slowly, until each one sounds like what it is.', 20, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        'Coleman Hawkins, “Body and Soul”, twenty times, hearing the diminished passing chords.', 20, 0, 0]]]]},
+
+  '6': {hours: 84, days: 42, daily: 120, source: 'Curriculum v3, Stage 6 — about six weeks. Siskind Book 2, Units 1–2, Levine Ch. 18–19, Mantooth Ch. 11',
     parts: [
       ['fundamentals', 15, [['Improvise with stepwise connections',
-        'Over a two-five-one, connect to the thirds by step. Then the same with pickups — A, B and C types.', 15, 3, 0]]],
-      ['rote', 35, [['Scale patterns in thirds through sevenths',
-        'Thirds, fourths, fifths, sixths, sevenths. Start around 120 and raise it only when it is clean.', 15, 4, 2],
-        ['Four-note one-handed voicings, or the coordination exercise',
-        'One or the other, not both. The voicings if the hand is unsure, the coordination drill if it is not.', 20, 4, 1]]],
-      ['tunes', 30, [['Comping with Red Garland, or locked hands',
-        'On tunes, not in the abstract. One pattern for a whole chorus before you allow yourself to change.', 30, 0, 0]]],
-      ['listening', 30, [['Transcribe, and play along',
-        'The COREA process on the unit’s recording. Play along thirty times or more — they are play-alongs, not practice sessions.', 30, 0, 0]]]]},
+        'Over a two-five-one, connect to the thirds by step. Then the same with pickups.', 15, 3, 0]]],
+      ['rote', 35, [['Comping rhythms, one a chorus',
+        'Red Garland, locked hands, Freddie Green, the Count Basie rhythm — one pattern for a whole chorus before you change.', 20, 4, 2],
+        ['The soprano line',
+        'Voice a ii-V-I-vi so the top note moves by step; then comp in 3/4.', 15, 4, 1]]],
+      ['tunes', 30, [['Memorise a tune, four steps',
+        'Melody, bass notes, inner voices, then other keys — and the eleven steps for the tune you mean to keep.', 30, 0, 0]]],
+      ['listening', 40, [['Transcribe, and play along',
+        'The COREA process on the stage’s recording — a few bars at a time, exactly, rests included. Play along thirty times or more.', 40, 0, 0]]]]},
 
-  '7B': {hours: 45, days: 24, daily: 120, source: 'Siskind Book 2, Units 3–6',
+  '7': {hours: 84, days: 42, daily: 120, source: 'Curriculum v3, Stage 7 — about six weeks. Siskind Book 2, Units 3–6, Levine Ch. 4/6, Berklee Ch. 4',
     parts: [
       ['fundamentals', 15, [['Guidetone lines, then chromatic lead-ins',
         'The thirds and sevenths alone first. Then approach each one by half step from below, from above, and with an enclosure.', 15, 3, 0]]],
-      ['rote', 35, [['The scale games',
-        'Scale Game 1 — continuous eighths without running up and down. Then Scale Game 2 — a new scale every two bars, ascending by half steps.', 15, 4, 1],
+      ['rote', 35, [['The scale patterns',
+        'One scale pattern a week in all twelve keys, starting around 80 and adding five when it is clean.', 15, 4, 1],
         ['Minor two-five-one voicings, all three formulas',
-        'Low Note, High Note and Root, in every key. Write one out before you play it if the shape will not come.', 20, 4, 2]]],
-      ['tunes', 40, [['A tune through the eleven steps',
-        'One tune. Find the step you are on and do that step, rather than replaying the ones you have already done.', 40, 0, 0]]],
+        'Low Note, High Note and Root, in every key, and the line cliché under a minor chord.', 20, 4, 2]]],
+      ['tunes', 50, [['A minor-key standard',
+        '“Beautiful Love” or “Softly As in a Morning Sunrise”: the minor ii-V-is found, voiced, and improvised over with guidetones.', 50, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, listening for how the minor two-five is voiced.', 20, 0, 0]]]]},
+        'The stage’s tracks, twenty times each, listening for how the minor two-five is voiced.', 20, 0, 0]]]]},
 
-  '7C': {hours: 40, days: 21, daily: 120, source: 'Siskind Book 2, Units 7–9',
+  '8': {hours: 84, days: 42, daily: 120, source: 'Curriculum v3, Stage 8 — about six weeks. Siskind Book 2, Units 7–9, and the Barry Harris method',
     parts: [
-      ['fundamentals', 15, [['Non-chord-tone patterns',
-        'Lower neighbours and chromatic enclosures onto scale notes. Then the double neighbours and the named licks.', 15, 3, 0]]],
+      ['fundamentals', 15, [['The 6th diminished scale',
+        'C6 and its diminished chord, up and down, then harmonised note by note. Then B♭6 over the A section.', 15, 3, 0]]],
       ['rote', 35, [['Arpeggios for rhythm changes',
         '3-5-7-9 through the I-vi-ii-V, connected by half step. The bridge is a cycle of dominants — practise it separately.', 20, 4, 2],
         ['Introductions and endings, in all twelve keys',
         'Three ways in and three ways out. Practise them before you need one.', 15, 4, 1]]],
-      ['tunes', 30, [['A blues and a rhythm changes, complete',
-        'Introduction, head, solo, ending. A whole performance rather than a chorus that stops.', 30, 0, 0]]],
+      ['tunes', 50, [['A blues and a rhythm changes, complete',
+        'Introduction, head, a solo built from one motif, ending. A whole performance rather than a chorus that stops.', 50, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, listening to how the pianist starts and stops.', 20, 0, 0]]]]},
+        '“Oleo” and “Anthropology”, twenty times each, listening to how the pianist starts and stops.', 20, 0, 0]]]]},
 
-  '7D': {hours: 40, days: 21, daily: 120, source: 'Siskind Book 2, Units 10–12',
+  '9': {hours: 112, days: 56, daily: 120, source: 'Curriculum v3, Stage 9 — about eight weeks. Siskind Book 2, Units 10–12, Levine Ch. 18',
     parts: [
-      ['fundamentals', 15, [['Bebop scales, then hemiolas',
-        'The chromatic passing tone that puts chord tones on downbeats. Then mix a quarter and an eighth to get three-beat patterns against four.', 15, 3, 0]]],
-      ['rote', 35, [['Drop-two voicings and a bass in four',
-        'The closed position first, then drop the second voice from the top. Walking bass underneath once the shapes are secure.', 20, 4, 2],
-        ['The ballad devices',
-        'Back-phrasing, bell tones, interlocking fifths and sixths, the left-hand shuttle. One per session.', 15, 4, 1]]],
-      ['tunes', 30, [['A ballad, slowly',
-        'Slow tempo comping and melody. A ballad played nervously fast is the commonest fault at this stage.', 30, 0, 0]]],
-      ['listening', 20, [['Learn one by ear, and record yourself',
-        'Form, melody, key, harmony, voicings — by ear, no lead sheet. Then record a take and answer the seventeen questions.', 20, 0, 0]]]]},
+      ['fundamentals', 15, [['Walking bass, then drop-two over it',
+        'The bass line alone until it is comfortable, then drop-two shapes on top.', 15, 3, 0]]],
+      ['rote', 35, [['The ballad devices',
+        'Back-phrasing, bell tones, interlocking fifths and sixths, the left-hand shuttle. One per session.', 20, 4, 1],
+        ['Solo piano textures',
+        'Stride, the shuttle, shells with the melody on top — one texture for a whole chorus.', 15, 4, 1]]],
+      ['tunes', 50, [['A ballad, slowly, alone',
+        'Rubato introduction, the melody back-phrased, the accompaniment moving underneath. A ballad played nervously fast is the commonest fault here.', 50, 0, 0]]],
+      ['listening', 20, [['Guided listening',
+        '“Peace Piece”, “My Funny Valentine”, “Waltz for Debby” — twenty times each.', 20, 0, 0]]]]},
 
-  8: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Units 1–5',
+  'DT': {hours: 28, days: 28, daily: 60, source: 'Curriculum v3, Section 4E — the dual-tasking track, after Stage 9',
+    parts: [
+      ['fundamentals', 15, [['The level you are on',
+        'Level 1 root over shells; Level 2 melody over basic voicings; Level 3 scat over full voicings; Level 4 lyrics over a real accompaniment.', 15, 2, 1]]],
+      ['tunes', 30, [['A tune, singing and playing',
+        'The whole form, without stopping. If singing makes the comping fall apart, go back one level.', 30, 0, 0]]],
+      ['listening', 15, [['Shirley Horn or Diana Krall',
+        'One track, listening only to where the piano plays while the voice sings, and where it waits.', 15, 0, 0]]]]},
+
+  '10': {hours: 112, days: 56, daily: 120, source: 'Curriculum v3, Stage 10 — about eight weeks. Siskind Book 3, Units 1–10, Levine Ch. 8',
     parts: [
       ['fundamentals', 15, [['Modal patterns',
-        'Voicing drills draped beneath the mode, up and down, as smoothly as the hand allows.', 15, 3, 1]]],
-      ['rote', 20, [['Comping practice',
-        'So What voicings, quartal, pentatonic — and switching between them mid-chorus.', 20, 3, 2]]],
-      ['fundamentals', 15, [['Drone improvisation',
-        'Two full minutes over one drone without stopping. Everything after the first thirty seconds is invention.', 15, 2, 0]]],
-      ['tunes', 30, [['A modal tune',
-        '"So What", "Little Sunflower", "Maiden Voyage" — comping and improvising over harmony that will not move.', 30, 0, 0]]],
+        'One modal pattern draped beneath the mode, up and down, as smoothly as the hand allows.', 15, 3, 1]]],
+      ['rote', 35, [['Comping practice',
+        'So What voicings, quartal, pentatonic — and switching between them mid-chorus.', 20, 3, 2],
+        ['Two minutes over a drone',
+        'Without stopping. Everything after the first thirty seconds is invention.', 15, 2, 0]]],
+      ['tunes', 50, [['A modal tune, and a modal blues',
+        '“So What”, “Impressions”, “Maiden Voyage” — then “All Blues”. One departure outside per chorus, resolved.', 50, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times. Transcription every other day.', 20, 0, 0]]]]},
+        '“Maiden Voyage” and “Impressions”, twenty times each. Transcription every other day.', 20, 0, 0]]]]},
 
-  9: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 1 Unit 12 and Book 3',
+  '11': {hours: 84, days: 42, daily: 120, source: 'Curriculum v3, Stage 11 — about six weeks. Levine Ch. 13–14, Berklee Ch. 8/10',
     parts: [
-      ['fundamentals', 15, [['Guide-tone lines',
+      ['fundamentals', 15, [['Guide-tone lines through the plain changes',
         'The thirds and sevenths through a set of changes, on their own, before anything is added to them.', 15, 3, 1]]],
-      ['rote', 30, [['One substitution at a time',
-        'Secondary dominants, the backdoor, the walk-up, the turnarounds — added to a plain progression one at a time.', 30, 4, 3]]],
-      ['tunes', 30, [['Reharmonise eight bars',
-        'Take a standard, write out new changes for the first eight bars, and play from what you wrote.', 30, 0, 0]]],
+      ['rote', 35, [['One substitution at a time',
+        'Secondary dominants, the backdoor, the walk-up, tritone subs, constant structures — one at a time on a plain progression.', 35, 4, 3]]],
+      ['tunes', 50, [['Reharmonise a standard three ways',
+        'Take “Here’s That Rainy Day” or your own song, write three different sets of changes, and play from what you wrote.', 50, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, following the bass to hear what was replaced.', 20, 0, 0]]]]},
+        '“Here’s That Rainy Day” and “’Round Midnight”, twenty times each, following the bass to hear what was replaced.', 20, 0, 0]]]]},
 
-  10: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Units 6–8',
-    parts: [
-      ['fundamentals', 15, [['One shape, four motions',
-        'Plane a single voicing chromatically, by whole steps, by minor thirds and by major thirds.', 15, 3, 1]]],
-      ['rote', 30, [['Out and back in two bars',
-        'Sidestep into a target and resolve it, in time. A sidestep that arrives late is a mistake.', 30, 4, 2]]],
-      ['tunes', 30, [['One departure per chorus',
-        'Play everything inside except one phrase. One departure that resolves beats a chorus of vagueness.', 30, 0, 0]]],
-      ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, working out where the centre actually is.', 20, 0, 0]]]]},
-
-  11: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Unit 10',
-    parts: [
-      ['fundamentals', 10, [['The plain blues, cold',
-        'The twelve bars from memory before any of the variations. A variation on something you do not have is just notes.', 10, 4, 0]]],
-      ['rote', 30, [['One modal blues at a time',
-        'Mixolydian, Dorian, Aeolian — each beside the plain form in the same key, so the one changed note is audible.', 30, 4, 2]]],
-      ['tunes', 30, [['A modal blues, played',
-        '"Footprints", "Equinox" — the head, then comping, then two choruses.', 30, 4, 0]]],
-      ['listening', 20, [['Guided listening',
-        'The unit’s track, twenty times, hearing how much of the blues survives.', 20, 0, 0]]]]},
-
-  12: {hours: 30, days: 14, daily: 120, source: 'Siskind Book 3, Unit 11',
+  '12': {hours: 168, days: 84, daily: 120, source: 'Curriculum v3, Stage 12 — about twelve weeks. Siskind Book 3, Units 11–12, Mantooth, Dobbins',
     parts: [
       ['fundamentals', 15, [['Count it, then stop counting',
         'Five as three plus two, out loud, then as two plus three. They are different pieces of music.', 15, 3, 1]]],
-      ['rote', 25, [['A progression in five and in seven',
-        'The bass line alone until it is comfortable, then the chords. Adding harmony to an unsteady meter is how both fall apart.', 25, 3, 2]]],
-      ['tunes', 30, [['Write something',
-        'Four bars, played, before writing any more. The composition exercises are finished rather than mastered.', 30, 0, 0]]],
+      ['rote', 35, [['Advanced voicings, one system a week',
+        'Generic, miracle, polychord, four-way close, drop-two, clusters — one shape in all twelve keys before it gets a name.', 20, 3, 2],
+        ['A progression in five and in seven',
+        'The bass line alone until it is comfortable, then the chords.', 15, 3, 2]]],
+      ['tunes', 50, [['Write something',
+        'An original tune, arranged for a combo. Four bars played before writing any more; the rest follows.', 50, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        'Take Five, Don Ellis, the Mahavishnu records — twenty times, and stop counting.', 20, 0, 0]]]]}
+        '“The Peacocks” and “Isfahan”, twenty times each.', 20, 0, 0]]]]}
 };
 const jazzPlanTemplate = sid => JAZZ_PLAN_TEMPLATES[sid] || JAZZ_PLAN_TEMPLATES[String(sid)] || null;
 
@@ -535,7 +501,9 @@ function jazzWeakest(stage, n){
   const worth = id => {
     const r = jazzRecord(id);
     const mins = sum((r.logs || []).map(l => +l.minutes || 0));
-    const keys = jazzKeysGot(id);
+    /* scaled to twelve, so a theory page marked read weighs like a
+       finished exercise rather than like a twelfth of one */
+    const keys = jazzExGot(id) * 12 / jazzExUnits(id);
     const rating = (r.logs && r.logs[0] && r.logs[0].quality) || '';
     const bad = rating === 'rough' ? -2 : rating === 'shaky' ? -1
       : rating === 'automatic' ? 2 : rating === 'solid' ? 1 : 0;

@@ -21,9 +21,8 @@
    own "why this stage" panel, because that is the question it
    answers. */
 function jazzStageBandHTML(stageId){
-  const b = typeof siskindBandFor === 'function' ? siskindBandFor(stageId) : null;
-  if(!b) return '';
-  return `<div class="jz-note jzm-band">
+  const bands = typeof siskindBandsFor === 'function' ? siskindBandsFor(stageId) : [];
+  return bands.map(b => `<div class="jz-note jzm-band">
     <span class="sc">Where this sits — ${esc(b.name)}</span>
     <p class="mono jzm-band-books">${esc(b.books)}</p>
     <div class="jzm-band-grid">
@@ -33,7 +32,7 @@ function jazzStageBandHTML(stageId){
     </div>
     <p><b>Beside what is already here.</b> ${esc(b.complement)}</p>
     <p><b>Why here.</b> ${esc(b.progression)}</p>
-  </div>`;
+  </div>`).join('');
 }
 
 /* The twelve-key grid, for anything the book asks in all twelve. */

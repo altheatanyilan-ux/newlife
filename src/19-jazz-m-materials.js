@@ -14,15 +14,18 @@
    because that is the week they belong to. Material kept in a
    library of its own is material nobody opens.
 
-   Book 1 lands on stages 1-6, Book 3 on stages 8-12 — both of
-   which already existed. Book 2 had no rungs at all, which is
-   why 7A-7D were added to the ladder in 19-jazz-data.js.
+   Since Curriculum v3 the stage each one sits on is the v3
+   layout's decision (19-jazz-o-v3.js): Book 1 across stages 1-4,
+   Book 2 across 6-9, Book 3 on 10 and 12. The ids were minted
+   under the old rungs (1-6, 7A-7D, 8-12) and keep those names.
    ============================================================ */
 
 /* ---------- Section 3: the master integration table ----------
-   Which book and unit belongs to which rung. Book 1 and Book 3
-   reproduce the mapping the unit list already used; Book 2 is
-   new, and fills the gap between them. */
+   Which book and unit a rung was minted under. Since Curriculum v3
+   this is ONLY the namespace a material's id is drawn from — "7A.903"
+   is still 7A.903, because everything practised is kept under that id
+   — and where the rung actually sits is decided by the v3 layout in
+   19-jazz-o-v3.js. */
 const SISKIND_UNIT_STAGE = {
   1: {1:'1', 2:'1', 3:'2', 4:'2', 5:'3', 6:'3', 7:'4', 8:'4', 9:'5', 10:'5', 11:'6', 12:'6'},
   2: {1:'7A', 2:'7A', 3:'7B', 4:'7B', 5:'7B', 6:'7B', 7:'7C', 8:'7C', 9:'7C',
@@ -45,43 +48,43 @@ const SISKIND_STAGE_BANDS = [
    complement:'The stage already teaches chord construction and the two-five-one. The coordination exercises give the left hand a rhythmic job from the first week, and the swing articulation work fixes the feel before the melodic material gets complicated enough to hide it.',
    progression:'Coordination 1 comes before Coordination 2 so that whole-note voicings are secure before the Charleston adds a rhythm to them. The swing exercises run in parallel throughout rather than being finished and put away.'},
 
-  {stages:['3','4'], name:'Tune mastery and the blues', books:'Book 1, Units 5-8',
+  {stages:['2','3'], name:'Tune mastery and the blues', books:'Book 1, Units 5-8',
    unlocks:['Melody personalisation: ghost notes, turns, double notes','Comping variations: lead-ins, push-offs, long-short','Blues form written practice'],
    prerequisites:'Coordination Exercises 1-4, the ii-V-I written practice, and familiarity with Type A voicings.',
    complement:'Type A/B voicings and the blues form are already here. The melody personalisation techniques are what turn a correctly played melody into a performance, and the comping variations stop the left hand repeating one rhythm for a whole chorus.',
    progression:'Personalisation arrives now because there is finally enough harmonic and rhythmic vocabulary for an interpretive choice to mean something. Earlier it would just be decoration.'},
 
-  {stages:['5','6'], name:'Voicings, bossa nova and the first tunes', books:'Book 1, Units 9-12',
+  {stages:['3','4'], name:'Voicings, bossa nova and the first tunes', books:'Book 1, Units 9-12',
    unlocks:['Coordination Exercises 5-6','Bossa nova comping, three styles','Vibrato imitation','One-handed voicings with comping rhythms'],
    prerequisites:'Coordination Exercises 1-4, the swing feel exercises, and the melody personalisation techniques.',
    complement:'Altered dominants and one-handed voicings are already at this stage. Bossa nova adds a contrasting rhythmic feel and broadens the stylistic range; the constant-bassline coordination work is what makes solo and duo playing possible.',
    progression:'Bossa nova sits here because the left hand is now independent enough for syncopated Latin patterns. Its eighth notes are straight, not swung, which is the whole difficulty.'},
 
-  {stages:['7A'], name:'Advanced comping and transcription', books:'Book 2, Units 1-2',
+  {stages:['6'], name:'Advanced comping and transcription', books:'Book 2, Units 1-2',
    unlocks:['Book 2 Coordination Exercises 1-2','Red Garland rhythm','Locked and semi-locked hands','Scale Patterns 1-2','Transcription Projects 1-2 (COREA)','Sidestep, tonicization, leave-out'],
    prerequisites:'All six Book 1 coordination exercises, all the Book 1 comping patterns, the melody personalisation techniques, and Type A/B voicings.',
    complement:'This is where the listening library stops being passive. The COREA process turns a record into a method, and the scale patterns give the right hand structured material for the first time.',
    progression:'A pivotal transition: from pre-defined coordination drills to open-ended pattern work, and from listening to transcribing. The first two transcription projects use deliberately simpler recordings to build confidence with the method.'},
 
-  {stages:['7B'], name:'Minor keys and the eleven steps', books:'Book 2, Units 3-6',
+  {stages:['7'], name:'Minor keys and the eleven steps', books:'Book 2, Units 3-6',
    unlocks:['Book 2 Coordination Exercises 3-5','Scale Patterns 3-6','The full 11-step tune mastery workflow','Free comping','The four types of musical memory, and transposition'],
-   prerequisites:'The stage 7A material, Scale Patterns 1-2, and at least one completed transcription project.',
+   prerequisites:'The stage 6 material (Book 2, Units 1-2), Scale Patterns 1-2, and at least one completed transcription project.',
    complement:'Minor ii-V-i voicings and guidetone lines belong here. The new scale patterns give the right hand melodic material specific to minor keys, and the memorisation tools help retain a repertoire that is now growing faster than repetition alone can hold.',
    progression:'The eleven-step workflow activates fully here because there is finally enough vocabulary for all eleven steps to mean something. Free comping marks the move from pattern-based playing to intuitive playing.'},
 
-  {stages:['7C'], name:'Rhythm changes, introductions and endings', books:'Book 2, Units 7-9',
+  {stages:['8'], name:'Rhythm changes, introductions and endings', books:'Book 2, Units 7-9',
    unlocks:['Scale Patterns 7-9','Three introductions, three stock endings, three tags','Freddie Green comping and shout-chorus voicings','Transcription Projects 3-5'],
-   prerequisites:'The stage 7B material, the 11-step workflow, and proficiency in free comping.',
+   prerequisites:'The stage 7 material (Book 2, Units 3-6), the 11-step workflow, and proficiency in free comping.',
    complement:'Closed-position voicings and rhythm changes are the harmonic content here. The introductions and endings give you the ability to perform a complete, finished rendition rather than a chorus that starts and stops arbitrarily.',
    progression:'Endings are practised in all twelve keys before they are needed, because the bandstand is the wrong place to work out how to stop.'},
 
-  {stages:['7D'], name:'Drop-two, ballads and self-assessment', books:'Book 2, Units 10-12',
+  {stages:['9'], name:'Drop-two, ballads and self-assessment', books:'Book 2, Units 10-12',
    unlocks:['Book 2 Coordination Exercise 6 (walking bass)','Scale Patterns 10-12','Back-phrasing, bell tones, interlocking fifths and sixths','Left-hand shuttle','Self-Transcription Analysis, the 17-question diagnostic'],
-   prerequisites:'The stage 7C material, at least two completed transcription projects, and the introductions and endings.',
+   prerequisites:'The stage 8 material (Book 2, Units 7-9), at least two completed transcription projects, and the introductions and endings.',
    complement:'Drop-two voicings and walking bass are the technical content. The self-transcription analysis is the feedback loop: it feeds directly back into what the practice plan suggests next.',
    progression:'The diagnostic is placed last because it requires enough experience to evaluate your own playing meaningfully. Its seventeen questions assume awareness of rhythmic variety, chord-tone usage and phrase construction, all of which were built earlier.'},
 
-  {stages:['8','9','10','11','12'], name:'Modal jazz', books:'Book 3, Units 1-12',
+  {stages:['10','11','12'], name:'Modal jazz', books:'Book 3, Units 1-12',
    unlocks:['All 12 Modal Patterns','Modal voicing comping, quartal and So What voicings','Pentatonic voicings','Planing and sidestepping in a modal context','Modal interchange','Odd meter comping','Free playing','Transcription Projects 7-12'],
    prerequisites:'All of the Book 2 material, including the six coordination exercises, the scale patterns, the transcription projects and the self-transcription workflow.',
    complement:'Modal scales and advanced improvisation already form the core of these stages. The new material provides the structured practice vehicles: twelve methodical modal patterns, the voicing exercises that teach modal harmonic language, and planing.',
@@ -90,22 +93,25 @@ const SISKIND_STAGE_BANDS = [
 function siskindBandFor(stageId){
   return SISKIND_STAGE_BANDS.find(b => b.stages.includes(String(stageId))) || null;
 }
+/* A v3 stage can take in two of the Siskind bands (stage 2 is Book 1
+   Units 3-6, which straddles the first two), so the stage shows each. */
+const siskindBandsFor = stageId => SISKIND_STAGE_BANDS.filter(b => b.stages.includes(String(stageId)));
 
 /* The long threads: categories that run across many stages and
    change character as they go. */
 const SISKIND_THREADS = [
-  {name:'Coordination Exercises', span:'Stages 1 – 7D',
-   gist:'The longest-running thread. Simple scales over whole-note voicings at stage 1; modes and arpeggios with two-beat rhythms by stage 2; melodic embellishment and mixed comping at 3-5; Book 2 material with advanced scale patterns and complex comping rhythms from 7A; rhythmic displacement and walking bass by 7D.'},
+  {name:'Coordination Exercises', span:'Stages 1 – 9',
+   gist:'The longest-running thread. Simple scales over whole-note voicings at stage 1; modes and arpeggios with two-beat rhythms by stage 2; melodic embellishment and mixed comping at 3-5; Book 2 material with advanced scale patterns and complex comping rhythms from stage 6; rhythmic displacement and walking bass by stage 9.'},
   {name:'Comping Patterns', span:'Stages 1 – 12',
-   gist:'At every stage. The Charleston at stage 1; variations and two-measure patterns through 4-6; the Red Garland rhythm and locked hands at 7A; free comping at 7B; modal comping with quartal voicings through Book 3.'},
-  {name:'Scale Patterns', span:'Stages 7A – 12',
-   gist:'Begins with intervallic and triadic patterns, expands to twelve distinct types by 7D, then the twelve modal patterns of Book 3 bring pentatonic, planing and augmented-scale material.'},
-  {name:'Transcription Projects', span:'Stages 7A – 12',
-   gist:'Two introductory COREA projects at 7A, four more across 7B-7D with increasingly complex recordings, then six modal projects through Book 3. The self-transcription analysis at 7D is the feedback loop that informs all of it.'},
+   gist:'At every stage. The Charleston at stage 1; variations and two-measure patterns through 2-4; the Red Garland rhythm, locked hands and free comping at stage 6; modal comping with quartal voicings at stage 10.'},
+  {name:'Scale Patterns', span:'Stages 7 – 12',
+   gist:'Begins with intervallic and triadic patterns at stage 7, expands to twelve distinct types by stage 9, then the twelve modal patterns of Book 3 bring pentatonic, planing and augmented-scale material.'},
+  {name:'Transcription Projects', span:'Stages 6 – 12',
+   gist:'Two introductory COREA projects at stage 6, more across stages 6-9 with increasingly complex recordings, then the modal projects at stage 10. The self-transcription analysis, at stage 6 beside the COREA process, is the feedback loop that informs all of it.'},
   {name:'Written Practice', span:'Stages 2 – 12',
-   gist:'ii-V-I voicing worksheets at stage 2, blues form analysis at 7C, advanced voicing worksheets at 7B, and modal voicing worksheets throughout Book 3. Away from the keyboard at every level.'},
-  {name:'Tune Application Workflow', span:'Stages 3 – 12',
-   gist:'Introduced in simplified form at stage 3 and expanded to the full eleven steps at 7B. From there it is the central organising structure for learning any new tune.'}
+   gist:'ii-V-I voicing worksheets at stage 2, minor-progression worksheets at stage 7, blues and rhythm-changes worksheets at stage 8, and modal voicing worksheets at stage 10. Away from the keyboard at every level.'},
+  {name:'Tune Application Workflow', span:'Stages 6 – 12',
+   gist:'Arrives with memorising tunes at stage 6, as the full eleven steps. From there it is the central organising structure for learning any new tune.'}
 ];
 
 /* ---------- building the rungs ----------
@@ -135,8 +141,11 @@ function siskindMaterial(ladderId){
 /* Every rung this file contributes, for the plan engine. */
 function siskindMaterialsForStage(stageId){
   if(!_siskindIndex) siskindMaterialCatalog();
+  /* by the stage the rung sits on in the v3 layout; the stage it was minted
+     under is only its id's namespace now */
+  const on = id => (typeof jazzV3StageOf === 'function' && jazzV3StageOf(id)) || _siskindIndex[id].stageId;
   return Object.keys(_siskindIndex)
-    .filter(id => String(_siskindIndex[id].stageId) === String(stageId))
+    .filter(id => String(on(id)) === String(stageId))
     .map(id => Object.assign({ladderId:id}, _siskindIndex[id]));
 }
 /* Find the rung a catalog row ended up on, so cross-references

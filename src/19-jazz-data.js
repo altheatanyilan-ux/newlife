@@ -159,10 +159,12 @@ const JAZZ_STAGE_NOTES = {
     werner:'Hearing changes is not a skill you acquire once. It is a practice you return to every time you play a tune you think you already know.',
     mindset:'On the ii, hear the minor third and the seventh. On the V, hear the major third and the flat seventh. On the I, hear the major seventh. Three sounds, not a dozen notes.'},
 };
-/* the rungs, in order — P0 through 7 (Siskind Book 1), 6A (Levine
-   chord-scales), 7A–7D (Siskind Book 2), 8 through 12 (Siskind Book 3),
-   13 (Mantooth/Berklee advanced voicings), 15 (Berklee constant structures),
-   and V1–V4 (Stoloff/Weir vocal) */
+/* The rungs as they were before Curriculum v3 — P0 through 7 (Siskind Book
+   1), 6A (Levine chord-scales), 7A–7D (Siskind Book 2), 8 through 12
+   (Siskind Book 3), 13 (Mantooth/Berklee), 15 (Berklee constant
+   structures), V1–V4 (Stoloff/Weir). Kept as the record of the old ladder:
+   the ladder itself is JAZZ_V3_ORDER now (19-jazz-o-v3.js), and the notes
+   above are what each v3 stage carries from the rungs it absorbed. */
 const JAZZ_STAGE_IDS = ['P0', 1, 2, 3, 4, 5, 6, '6A', 7, '7A', '7B', '7C', '7D',
   8, 9, 10, 11, 12, 13, 15, 'V1', 'V2', 'V3', 'V4'];
 
@@ -212,6 +214,11 @@ function jazzBook(){
      belongs on the ladder beside everything else rather than in a room of
      its own, so it arrives here as one more catalogue. */
   try { take(typeof siskindMaterialCatalog === 'function' ? siskindMaterialCatalog() : null); } catch(e){ console.warn('the Siskind material did not merge', e); }
+  /* Curriculum v3: every exercise moved to the stage the document puts it
+     on, the document's words carried onto the ones it describes, and its
+     new entries added. Before the enrichment, so that an exercise's
+     fallback listening and mistakes come from the stage it is on now. */
+  try { if(typeof jazzV3Apply === 'function') jazzV3Apply(out); } catch(e){ console.warn('the v3 layout did not apply', e); }
   /* and the layer a textbook leaves out — the listening, the mistakes, the
      checkpoints. Merged here rather than written into the shipped files, so
      those stay exactly as they arrived. */
@@ -230,35 +237,41 @@ const JAZZ_ACCURACY = {
   approximate: {tone:'warn', short:'approximate',
     said:'These notes were built from the book\u2019s description of the exercise rather than from its printed notation. The shape is right; a note here or there may not be.'},
   needs_manual_verification: {tone:'bad', short:'unverified',
-    said:'These notes are NOT reliable. The source they were taken from could not be read at a resolution that resolves a single melodic line, so they are a reconstruction. Check them against the book before practising this one for any length of time \u2014 a lick learnt wrong in twelve keys takes longer to correct than to learn.'}
+    said:'These notes are NOT reliable. The source they were taken from could not be read at a resolution that resolves a single melodic line, so they are a reconstruction. Check them against the book before practising this one for any length of time \u2014 a lick learnt wrong in twelve keys takes longer to correct than to learn.'},
+  /* Two more since Curriculum v3, because the document's notation is
+     neither of the above. Some of its entries carry MusicXML: that is the
+     document's own example, printed as written — nothing is wrong with it,
+     but nobody here checked it against a book either. Others describe a
+     score in a sentence and give no notation, and the notes drawn for
+     those are one reading of the sentence. */
+  doc_example: {tone:'ok', short:'the v3 example',
+    said:'These notes are the Curriculum v3 document\u2019s own MusicXML, reproduced exactly as it prints them and transposed to the key you choose. They have not been checked against the books the document draws on.'},
+  from_description: {tone:'warn', short:'written from a description',
+    said:'The Curriculum v3 document describes this score in words and gives no notation for it. These notes were written from that description, which is quoted beside them: the shape follows it, and the particular notes are one way of realising it.'}
 };
 const jazzAccuracy = ex => JAZZ_ACCURACY[(ex && ex.acc) || 'verified'] || JAZZ_ACCURACY.verified;
-const jazzTrusted = ex => !ex || (ex.acc || 'verified') === 'verified';
+/* trusted enough to draw without a warning over it */
+const jazzTrusted = ex => !ex || jazzAccuracy(ex).tone === 'ok';
 
 const jazzExercise = id => jazzBook()[id] || null;
 /* what P0's own file says about the stage it is, which none of the others carry */
 const jazzP0Info = () => { try { return STAGE_P0_CATALOG._stageInfo || {}; } catch(e){ return {}; } };
 
-/* the ladder, built from the two of them */
+/* The ladder. Since Curriculum v3 it is the document's thirteen stages,
+   the dual-tasking track after Stage 9, and the six Voice Track levels —
+   in that order, with each stage's exercises in the order the document
+   lists them rather than sorted by id, because a stage now holds ids from
+   several old rungs (Stage 4 is 6A.x and 7.x) and sorting those by number
+   would interleave them. The old rungs' notes above are kept: each v3
+   stage carries the teaching of the rungs it absorbed. */
 let _jazzLadder = null;
 function jazzStages(){
   if(_jazzLadder) return _jazzLadder;
   const book = jazzBook();
-  const byStage = {};
-  Object.keys(book).forEach(id => {
-    const s = book[id].stage;
-    (byStage[s] = byStage[s] || []).push(id);
-  });
-  const ord = id => {
-    let m = /^[A-Za-z\d]+\.(\d+)\.(\d+)([a-z]?)$/.exec(id);
-    if(m) return (+m[1]) * 100 + (+m[2]) * 10 + (m[3] ? m[3].charCodeAt(0) - 96 : 0);
-    m = /^[A-Za-z\d]+\.(\d+)([a-z]?)$/.exec(id);
-    return m ? +m[1] * 10 + (m[2] ? m[2].charCodeAt(0) - 96 : 0) : 0;
-  };
-  _jazzLadder = JAZZ_STAGE_IDS.map(sid => {
-    const note = JAZZ_STAGE_NOTES[sid] || {};
-    const subs = (byStage[sid] || []).sort((a, b) => ord(a) - ord(b));
-    return Object.assign({id: String(sid), key: sid, subs}, note, jazzStageRich(sid));
+  const order = jazzV3().order;
+  _jazzLadder = JAZZ_V3_ORDER.map(sid => {
+    const subs = (order[sid] || []).filter(id => book[id]);
+    return Object.assign({id: String(sid), key: sid, subs}, jazzV3Stage(sid), jazzStageRich(sid));
   }).filter(s => s.subs.length);
   return _jazzLadder;
 }
@@ -273,6 +286,8 @@ const jazzSubOf = exId => { for(const s of jazzStages()) if(s.subs.includes(exId
 const JAZZ_INTERVALS = ['minor2nd','major2nd','minor3rd','major3rd','perfect4th','tritone',
   'perfect5th','minor6th','major6th','minor7th','major7th','octave'];
 function jazzScoreXml(ex, key, opts){
+  if(ex && !ex.gen && (ex.xml || ex.v3gen) && typeof jazzV3ScoreXml === 'function')
+    return jazzV3ScoreXml(ex, key, opts);
   if(!ex || !ex.gen) return null;
   const G = typeof JazzExerciseGenerator !== 'undefined' ? JazzExerciseGenerator : null;
   if(!G || typeof G[ex.gen] !== 'function') return null;
@@ -287,6 +302,17 @@ function jazzScoreXml(ex, key, opts){
      because there are eleven of them and there will be twelve. */
   const gs = typeof jazzGrandStaff === 'function' ? jazzGrandStaff : x => x;
   const result = G[ex.gen].apply(G, args);
+  /* the document's notation, where it shows something the generator does
+     not, as a second tab beside it */
+  if(ex.v3tab && typeof jazzV3TabXml === 'function'){
+    const extra = jazzV3TabXml(ex, key, o);
+    if(extra){
+      const first = result && typeof result === 'object' && Array.isArray(result.documents)
+        ? result.documents.map(d => ({...d, mxl: gs(d.mxl)}))
+        : [{subtitle: 'As the room writes it', mxl: gs(result)}];
+      return {title: ex.name, documents: first.concat([{subtitle: ex.v3tab.title || 'As v3 writes it', mxl: extra}])};
+    }
+  }
   /* Multi-example generators return {title, documents:[{subtitle,mxl}]}.
      Pass each mxl through the grand-staff pass independently. */
   if(result && typeof result === 'object' && Array.isArray(result.documents)){
@@ -306,10 +332,13 @@ function jazzPickOther(list, now){
   const from = other.length ? other : list;
   return from[Math.floor(Math.random() * from.length)];
 }
-/* whether an exercise has any notation — some are text-only */
-const jazzHasScore = ex => !!(ex && ex.gen && ex.generatorType !== 'instruction_only');
-/* whether an exercise returns multiple examples */
-const jazzIsMultiExample = ex => !!(ex && ex.multiExample);
+/* whether an exercise has any notation — some are text-only. Since v3 a
+   score can also be the document's own MusicXML, or one written from its
+   [Score] line by the v3 builders. */
+const jazzHasScore = ex => !!(ex && ((ex.gen && ex.generatorType !== 'instruction_only')
+  || ex.xml || ex.v3gen));
+/* whether an exercise returns multiple examples — its own, or a v3 tab */
+const jazzIsMultiExample = ex => !!(ex && (ex.multiExample || (ex.v3tab && ex.gen) || ex.v3multi));
 
 /* ---------- what is yours ---------- */
 const JAZZ_QUALITY = [['rough','Rough'], ['shaky','Shaky'], ['improving','Improving'],
@@ -317,6 +346,9 @@ const JAZZ_QUALITY = [['rough','Rough'], ['shaky','Shaky'], ['improving','Improv
 function jazzState(){
   S.jazz = S.jazz && typeof S.jazz === 'object' ? S.jazz : {};
   const j = S.jazz;
+  /* once: the stage records move from the old rungs to the v3 stages */
+  try { if(typeof jazzV3Migrate === 'function' && jazzV3Migrate(j) && typeof saveNow === 'function') saveNow(); }
+  catch(e){ console.warn('the v3 migration did not run', e); }
   j.progress = j.progress && typeof j.progress === 'object' ? j.progress : {};
   j.flashes = Array.isArray(j.flashes) ? j.flashes : [];
   j.settings = j.settings && typeof j.settings === 'object' ? j.settings : {};
@@ -355,9 +387,23 @@ function jazzRecord(id, make){
 }
 /* how many of the twelve are yours, for one exercise and for a whole stage */
 const jazzKeysGot = id => JAZZ_KEY_NAMES.filter(k => jazzRecord(id).keys[k]).length;
+/* A theory page or a listening assignment from the v3 document is one
+   thing to have done, not twelve keys of it: "the tritone in B flat" is a
+   question, "deceptive resolutions in B flat" is not. So those count one,
+   marked when read and understood, and everything else counts twelve. */
+const jazzIsSingle = id => !!(jazzExercise(id) || {}).single;
+const jazzExUnits = id => jazzIsSingle(id) ? 1 : 12;
+const jazzExGot = id => jazzIsSingle(id) ? (jazzRecord(id).done ? 1 : 0) : jazzKeysGot(id);
+function jazzSetDone(id, on){
+  const r = jazzRecord(id, true);
+  on ? r.done = today() : delete r.done;
+  r.lastAt = today();
+  saveNow();
+  return !!r.done;
+}
 function jazzStageGot(stage){
   const ids = (stage && stage.subs) || [];
-  return {done: sum(ids.map(jazzKeysGot)), of: ids.length * 12};
+  return {done: sum(ids.map(jazzExGot)), of: sum(ids.map(jazzExUnits))};
 }
 /* Whether you have earned a stage: the one before it is finished in all
    twelve keys. A roadmap is worth having because it says what not to do
@@ -381,9 +427,14 @@ function jazzStageReached(stage){
   return got.of > 0 && got.done >= got.of;
 }
 const jazzStageOpen = stage => !jazzGated() || jazzStageReached(stage);
-/* where you actually are: the first stage you have earned and not finished */
-const jazzNowStage = () => jazzStages().find(s => jazzStageReached(s) && jazzStageGot(s).done < jazzStageGot(s).of)
-  || jazzStages()[jazzStages().length - 1];
+/* where you actually are: the first stage you have earned and not finished.
+   The main line only — the dual-tasking track and the Voice Track run
+   beside it, and an unfinished side track is not where you are. */
+const jazzNowStage = () => {
+  const main = jazzStages().filter(s => !s.track);
+  return main.find(s => jazzStageReached(s) && jazzStageGot(s).done < jazzStageGot(s).of)
+    || main[main.length - 1] || jazzStages()[0];
+};
 
 function jazzSetKey(id, key, got){
   const r = jazzRecord(id, true);

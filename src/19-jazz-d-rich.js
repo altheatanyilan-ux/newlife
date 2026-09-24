@@ -1080,7 +1080,9 @@ function jazzMergeEnrichment(book){
     const ex = book[id];
     if(!ex || typeof ex !== 'object') return;
     const own = JAZZ_EX_RICH[id] || {};
-    const st = JAZZ_STAGE_RICH[ex.stage] || {};
+    /* the stage the exercise is on now — a v3 stage, whose record merges
+       the old rungs it absorbed */
+    const st = jazzStageRich(ex.stage);
     ex.listeningAssignments = (own.listeningAssignments || st.listeningAssignments || []).slice();
     ex.listeningFromStage = !own.listeningAssignments;
     ex.commonMistakes = (own.commonMistakes || st.commonMistakes || []).slice();
@@ -1099,8 +1101,60 @@ function jazzMergeEnrichment(book){
   });
   return book;
 }
-/* what a stage carries, for the roadmap */
-const jazzStageRich = sid => JAZZ_STAGE_RICH[sid] || {};
+/* what a stage carries, for the roadmap.
+
+   A v3 stage is several old rungs at once (Stage 2 is the old 2, 3 and 4),
+   so its record is theirs merged: the hardest of their difficulties, all
+   of their mistakes and their records without repeats, their histories
+   one after another — and the document's own time estimate first, with
+   theirs kept beneath it as the detail. The document's Section 5
+   repertoire ladder joins the listening, marked as the ladder's. */
+const _jazzRichV3 = {};
+function jazzV3LadderListening(sid){
+  const n = typeof JAZZ_V3_STAGE_META === 'object' && JAZZ_V3_STAGE_META[sid]
+    ? String(JAZZ_V3_STAGE_META[sid].n) : null;
+  if(n == null || typeof JAZZ_V3_DOC !== 'object') return [];
+  return (JAZZ_V3_DOC.ladder || []).filter(r => r[0] === n).map(r => {
+    const title = String(r[1]);
+    const transcribe = /^Transcribe:/i.test(title);
+    const track = title.replace(/^Transcribe:\s*/i, '').replace(/[\u201c\u201d"]/g, '')
+      .replace(/\s+(solo|intro)$/i, '').trim();
+    const yr = /\((\d{4})\)/.exec(r[3] || '');
+    return {artist: r[2], track, album: String(r[3] || '').replace(/\s*\(\d{4}\)/, ''),
+      year: yr ? +yr[1] : null, listenFor: (transcribe ? 'Transcribe the solo. ' : '') + r[4],
+      ladder: true, transcribe, ladderTitle: title};
+  });
+}
+function jazzStageRich(sid){
+  const key = String(sid);
+  if(_jazzRichV3[key]) return _jazzRichV3[key];
+  const meta = typeof JAZZ_V3_STAGE_META === 'object' ? JAZZ_V3_STAGE_META[key] : null;
+  if(!meta) return JAZZ_STAGE_RICH[key] || {};
+  const olds = (meta.from || []).map(o => JAZZ_STAGE_RICH[o]).filter(Boolean);
+  const out = {};
+  const hardest = olds.map(o => o.expectedDifficulty).filter(Boolean)
+    .sort((a, b) => jazzDifficultyRank(b) - jazzDifficultyRank(a))[0];
+  if(hardest) out.expectedDifficulty = hardest;
+  const hist = olds.map(o => o.historicalContext).filter(Boolean);
+  if(hist.length) out.historicalContext = hist.join('\n\n');
+  const row = typeof JAZZ_V3_DOC === 'object'
+    ? (JAZZ_V3_DOC.outcomes || []).find(r => r[0] === String(meta.n)) : null;
+  const times = olds.map(o => o.typicalTimeToMaster).filter(Boolean);
+  if(row || times.length)
+    out.typicalTimeToMaster = [row ? `${row[4].replace(/^~/, 'About ')} in the v3 plan, at two hours a day.` : '']
+      .concat(times).filter(Boolean).join('\n\n');
+  const mistakes = [];
+  olds.forEach(o => (o.commonMistakes || []).forEach(m => { if(!mistakes.includes(m)) mistakes.push(m); }));
+  if(mistakes.length) out.commonMistakes = mistakes;
+  const listening = [], seen = {};
+  const add = a => { const k = `${a.artist}|${a.track}`.toLowerCase();
+    if(seen[k]) return; seen[k] = true; listening.push(a); };
+  jazzV3LadderListening(key).forEach(add);
+  olds.forEach(o => (o.listeningAssignments || []).forEach(add));
+  if(listening.length) out.listeningAssignments = listening;
+  _jazzRichV3[key] = out;
+  return out;
+}
 const jazzDifficultyRank = d => { const at = JAZZ_DIFFICULTY.indexOf(String(d || ''));
   return at < 0 ? 0 : at + 1; };
 

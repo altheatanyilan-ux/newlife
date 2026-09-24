@@ -42,7 +42,14 @@ const JAZZ_BOOKS = {
      down and mental practice — the research named the author and the
      chapters, not the title, and this is the identification */
   'Peckham': 'The Contemporary Singer',
-  'Design Doc': 'Jazz Practice Studio — design notes'
+  'Design Doc': 'Jazz Practice Studio — design notes',
+  /* the sources Curriculum v3 adds to the room's shelf */
+  'Dobbins': 'Jazz Arranging and Composing: A Linear Approach',
+  'Barry Harris': 'Barry Harris workshops',
+  'Gemini Research': 'Pedagogical Roadmap for Classical-to-Jazz Transition',
+  'Gordon': 'Music Learning Theory',
+  'Werner': 'Effortless Mastery',
+  'Curriculum v3': 'Jazz Studio — Complete Curriculum v3, Master Build Document'
 };
 
 /* [book, chapter, pages, what to look for when you get there] */
