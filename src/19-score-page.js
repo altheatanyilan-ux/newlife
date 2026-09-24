@@ -298,6 +298,7 @@ function scoreViewerHTML(x){
       <button class="btn sm" id="scRead" title="the score and nothing else">⛶ read</button>
       <button class="btn sm primary" id="scNewSec">＋ a section</button>
     </div>
+    <div class="sc-bar sc-playrow" id="scPlayRow">${scorePlayBarHTML()}</div>
     ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>
       <div class="sc-bar sc-bar2">${scoreLayerPickHTML(x)}
         <span class="grow"></span>${scoreXposeHTML(x)}</div>` : ''}
@@ -422,6 +423,7 @@ function scoreReadStripHTML(x){
     ${secs.length ? `<select class="sel sm" id="scSecJump"><option value="">go to…</option>${secs.map(sv =>
       `<option value="${esc(sv.id)}">${esc(sv.name)} · ${sv.startMeasure}</option>`).join('')}</select>` : ''}
     <span class="grow"></span>
+    ${scorePlayBarHTML({compact: true})}
     ${scoreMetroHTML(x)}
     <span class="mono faint" id="scWake"></span>
   </div>`;
@@ -657,6 +659,7 @@ async function scorePaint(x){
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
     scorePageSay();
+    scorePlayBind(x);
     saveNow();
   } catch(e){
     if(say) say.textContent = `That score could not be drawn — ${e.message}`;
@@ -1098,7 +1101,34 @@ async function scoreRedraw(x){
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
     scorePageSay();
+    scorePlayBind(x);
   } catch(e){ console.warn('score redraw failed', e); }
+}
+/* ---------- hearing it ----------
+   The bar under the toolbar (and its small copy on the reading strip) plays
+   what is drawn: in the key it has been moved to, only the bars of the
+   section in focus, turning the page when the music does. The tempo, loop and
+   which hands are heard are kept with the piece. */
+function scorePlayCfg(x){
+  return {
+    xml: () => scoreXmlFor(x),
+    osmd: () => { const v = scoreView(); return v && v.scoreId === x.id ? v.osmd : null; },
+    host: document.getElementById('scStage'), svgRoot: document.getElementById('scCanvas'),
+    range: () => { const u = scoreUi(); const f = u.focus ? scoreSection(x, u.focus) : null;
+      return f ? [f.startMeasure, f.endMeasure] : null; },
+    onPage: p => { const v = scoreView(); if(!v || !v.page || v.at === p) return;
+      showScorePage(p); scoreOverlayPaint(x); scoreLayersPaint(x); scorePageSay(); },
+    store: {get: () => x.playback || {}, set: v => { x.playback = v; saveNow(); }},
+    swing: false};
+}
+function scorePlayBind(x){
+  if(typeof scorePlayAttach !== 'function') return;
+  $$('#scPlayRow .plx-bar, #scStrip .plx-bar').forEach(bar => {
+    try {
+      if(bar._plx && bar._plxFor === x.id) bar._plx.redrawn();
+      else { scorePlayAttach(bar, scorePlayCfg(x)); bar._plxFor = x.id; }
+    } catch(e){ console.warn('the player could not attach', e); }
+  });
 }
 /* and a repaint of the words, for everything else */
 function scoreSidePaint(x){

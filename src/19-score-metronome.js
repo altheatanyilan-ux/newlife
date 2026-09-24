@@ -1,8 +1,9 @@
 /* ============================================================
    THE METRONOME.
 
-   It is here because the room shows you a score and cannot play it. A
-   metronome is the one thing that turns reading into practising: it is what
+   The room can play a score to you now (19-score-play.js), but hearing it
+   is not practising it. A metronome is the one thing that turns reading into
+   practising: it is what
    makes "slowly" mean a number rather than a feeling, and what catches the
    fact that you speed up in the easy bar and slow down in the hard one, which
    is the single most common thing wrong with an amateur performance and the

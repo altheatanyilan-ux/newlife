@@ -192,6 +192,9 @@ function scoreDefaults(x){
      piece this month — singing it down a third, reading it up a tone — and it
      should still be there tomorrow. The file itself is never touched. */
   x.transpose = clamp(Math.round(+x.transpose || 0), -12, 12);
+  /* How you last had it played to you: the tempo, the loop, the count-in,
+     which hands you were hearing (19-score-play.js). */
+  x.playback = x.playback && typeof x.playback === 'object' ? x.playback : {};
   /* Chord symbols you have written over the room's reading. Keyed by bar and
      beat, so they stay put through a transposition, a re-engraving or a
      change of how many bars go on a line. An empty string is "say nothing

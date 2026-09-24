@@ -9642,5 +9642,35 @@ html.ja-running{overflow:hidden}
 .jzj-tags span{font-size:.6rem;border:1px solid var(--line);border-radius:7px;padding:0 5px;color:var(--muted)}
 .jzj-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.74rem}
 .jzj-warn{color:var(--danger,#a8523f)}
+
+/* ---------- playback: ▶ on every score ---------- */
+.plx-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;font-size:.8rem}
+.plx-bar[hidden],.plx-bar [hidden]{display:none !important}
+.sc-playrow .plx-bar{margin:0;width:100%}
+.sc-playrow:has(.plx-bar[hidden]){display:none}
+.sc-playrow{border-top:none;padding:6px 0}
+.plx-bar .plx-go{min-width:6.4em}
+.plx-bar.playing .plx-go{background:var(--page-accent,var(--accent));border-color:var(--page-accent,var(--accent))}
+.plx-where{font-size:.7rem;color:var(--muted);min-width:7.5em}
+.plx-tempo{display:flex;align-items:center;gap:6px;flex:1 1 180px;max-width:320px}
+.plx-tempo input{flex:1;min-width:80px}
+.plx-tempo b{font-size:.74rem;min-width:2.4em;text-align:right}
+.plx-opts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-basis:100%;padding:6px 0 2px;border-top:1px dashed var(--line)}
+.plx-opts[hidden]{display:none}
+.plx-opts .tbtn.on,.plx-mutes .tbtn.on{border-color:var(--page-accent,var(--accent));color:var(--text);background:color-mix(in srgb,var(--page-accent,var(--accent)) 12%,transparent)}
+.plx-from{display:flex;align-items:center;gap:4px;font-size:.7rem}
+.plx-from .inp{width:4.2em}
+.plx-mutes{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.plx-mutes .mono{font-size:.68rem}
+.plx-bar.compact{margin:0;flex-wrap:nowrap}
+.plx-bar.compact .plx-tempo{flex:0 1 150px}
+/* the bar being played, and the playhead running through it */
+.plx-hl{position:absolute;z-index:1;pointer-events:none;border-radius:6px;
+  background:color-mix(in srgb,var(--page-accent,#3d6fd1) 11%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--page-accent,#3d6fd1) 38%,transparent);transition:left .08s linear,top .12s ease,width .08s linear}
+.plx-hl[hidden]{display:none}
+.plx-head{position:absolute;top:2px;bottom:2px;width:2px;border-radius:2px;background:var(--page-accent,#3d6fd1);opacity:.85}
+@media (max-width:640px){.plx-tempo{flex-basis:100%;max-width:none}.plx-where{min-width:0}}
+@media print{.plx-bar,.plx-hl{display:none !important}}
 </style>
 </head>

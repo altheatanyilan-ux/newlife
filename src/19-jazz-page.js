@@ -53,12 +53,27 @@ async function jazzEngrave(box, xml){
     await osmd.load(xml);
     osmd.zoom = 1.05;
     osmd.render();
+    jazzPlayBarFor(box, xml, osmd);
     return osmd;
   } catch(e){
     console.warn('the jazz engraver could not draw that', e);
     box.innerHTML = `<div class="jz-noscore">That could not be drawn — ${esc(e.message)}</div>`;
     return null;
   }
+}
+
+/* ▶ over every score the room draws — the exercise in whatever key it is
+   in, each example of a multi-example page, a flashcard's answer — played by
+   the same player as the score room's. Jazz is swung, and a practice tempo
+   rather than a performance one is where a page that marks none starts. */
+const jazzPlayStore = {get: () => jazzState().playback || {},
+  set: v => { jazzState().playback = v; saveNow(); }};
+function jazzPlayBarFor(box, xml, osmd){
+  if(!box || typeof scorePlayBarBefore !== 'function') return null;
+  try {
+    return scorePlayBarBefore(box.closest('.jz-stage-box') || box,
+      {xml: () => xml, osmd: () => osmd, host: box, swing: true, defaultBpm: 80, store: jazzPlayStore});
+  } catch(e){ console.warn('the player could not attach', e); return null; }
 }
 
 /* ---------- the route ---------- */

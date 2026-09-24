@@ -1,8 +1,8 @@
 /* smoke195 — Score Practice.
 
    A practice companion rather than a notation editor, and the distinction is
-   the whole design. It does not teach you the piece, play it, or let you
-   change a note. It engraves the notation you bring and keeps what you have
+   the whole design. It does not teach you the piece or let you change a note
+   (it will play it to you — smoke225 holds that claim). It engraves the notation you bring and keeps what you have
    written on it, because a sentence about bar 60 belongs at bar 60: in a
    practice diary it is something you read in three weeks, on the page it is
    something you cannot miss the next time you play it.

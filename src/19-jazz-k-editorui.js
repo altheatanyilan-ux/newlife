@@ -374,6 +374,11 @@ async function jzeDraw(root){
     await _jzeOsmd.load(xml);
     _jzeOsmd.zoom = 1.0;
     _jzeOsmd.render();
+    /* hear what you have written, as you write it */
+    const osmdNow = _jzeOsmd;
+    try { if(typeof scorePlayBarBefore === 'function')
+      scorePlayBarBefore(box.closest('.jze-stage') || box, {xml: () => xml, osmd: () => osmdNow, host: box,
+        swing: true, defaultBpm: 80, store: jazzPlayStore}); } catch(e){ console.warn('the player could not attach', e); }
   } catch(e){
     console.warn('the editor could not draw that', e);
     box.innerHTML = `<div class="jz-noscore">That could not be drawn — ${esc(e.message)}</div>`;
