@@ -18,11 +18,12 @@
    is still used for is WHERE: the bar being played is lit on the engraving
    and a playhead runs through it, from the engraver's own layout.
 
-   THE PIANO IS SYNTHESISED. Nothing is downloaded, so it works offline and
-   costs nothing to open. It is a struck-string sound rather than the Jazz
-   Studio's comping electric piano: a bright attack that darkens as it
-   decays, low notes ringing longer than high ones, a quick fade when the
-   key comes up, and a little room around it.
+   THE PIANO IS A REAL GRAND. Every note is the Salamander Grand Piano, a
+   recorded Yamaha C5 (19-grand-piano.js), carried inside the page so it
+   works offline, with a little room around it. For the moment before its
+   recordings are decoded — once, when a room with music opens — a
+   synthesised struck string stands in: a bright attack that darkens as it
+   decays, low notes ringing longer than high ones.
    ============================================================ */
 
 const PLX_STEP = {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11};
@@ -431,6 +432,10 @@ function plxOut(ctx, volume){
 /* A struck string. held: how long it rings (the pedal can make that longer
    than the note); the key coming up fades it in a tenth of a second. */
 function plxPiano(ctx, dest, midi, t, dur, vel, held){
+  if(typeof grandPianoNote === 'function'){
+    if(grandPianoNote(ctx, dest, midi, t, dur, vel, held, 0.55)) return;
+    grandPianoMissed();
+  }
   const f = plxHz(midi);
   if(f < 20 || f > 12000) return;
   const v = Math.max(0.03, Math.min(1, vel || PLX_DEFAULT_VEL));
@@ -639,6 +644,7 @@ function scorePlayer(tl, opts){
 async function scorePlayRender(xml, seconds, opts){
   const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   if(!OAC) return null;
+  if(typeof grandPianoLoad === 'function' && !(opts && opts.synth)) await grandPianoLoad();
   const tl = musicXmlTimeline(xml);
   const ctx = new OAC(1, Math.floor(44100 * (seconds || 3)), 44100);
   const p = scorePlayer(tl, opts);
@@ -729,6 +735,7 @@ function scorePlayBarHTML(opts){
       <label class="mono plx-from">from bar <input class="inp sm mono" type="number" min="0" data-plxfrom placeholder="1"></label>
       <button class="tbtn" data-plxwritten title="the tempo the score marks">as marked</button>
       <span class="plx-mutes" data-plxmutes></span>
+      ${typeof grandPianoCreditHTML === 'function' ? grandPianoCreditHTML() : ''}
     </div>`}
   </div>`;
 }
@@ -736,6 +743,7 @@ function scorePlayBarHTML(opts){
 function scorePlayAttach(bar, cfg){
   if(!bar) return null;
   const store = cfg.store || {get: () => ({}), set(){}};
+  if(typeof grandPianoWarm === 'function') grandPianoWarm();
   const saved = Object.assign({bpm: null, loop: false, countIn: false, click: false,
     swing: cfg.swing ? 0.64 : 0, follow: true, muted: []}, store.get() || {});
   let tl = null, tlXml = null, player = null, geo = null, geoKey = '', geoOsmd = null, raf = 0, lastPerf = -1, fromBar = null;
@@ -863,6 +871,13 @@ function scorePlayAttach(bar, cfg){
       if(player){ player.stop(); player = null; } clearHl(); goSay();
       const t = tl; if(t) where(-1); if(_plxNow === ctl && !fromOutside) _plxNow = null; },
     play(fromQ){
+      /* the first press in a session: the piano's recordings are decoded
+         first (a moment), so what starts is the piano and not its stand-in */
+      if(typeof grandPianoSettled === 'function' && !grandPianoSettled()){
+        const w = $b('[data-plxwhere]'); if(w) w.textContent = 'tuning the piano…';
+        grandPianoLoad().then(() => { if(bar.isConnected) ctl.play(fromQ); });
+        return;
+      }
       let t;
       try { t = timeline(); } catch(e){ toast(e.message || 'That score could not be read for playing.'); return; }
       if(!t || !t.playable){ toast('There are no notes in this to play.'); return; }

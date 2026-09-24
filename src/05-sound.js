@@ -10,7 +10,9 @@
             All pitches come from A major pentatonic, so no
             two sounds can land badly against each other.
    Layer 2: an opt-in atmosphere — noise beds, or a slow
-            generative piano that never repeats itself.
+            generative piano that never repeats itself (played
+            on the recorded grand of 19-grand-piano.js, which is
+            in the page: still nothing downloaded).
    The AudioContext is created lazily inside the first user
    gesture (pointerdown / keydown) and reused for everything.
    ============================================================ */
@@ -229,6 +231,9 @@ const SoundManager = (() => {
       const root = ROOTS[chord];
       const play1 = (deg, oct, at, gain, dur) => {
         const t = ctx.currentTime + at; const f = noteHz(root, deg, oct);
+        /* the slow piano is the recorded grand (19-grand-piano.js), played softly */
+        if(kind === 'piano' && typeof grandPianoNote === 'function'
+          && grandPianoNote(ctx, bed, Math.round(69 + 12 * Math.log2(f / 440)), t, dur, Math.min(0.5, 0.12 + gain * 6), dur, 0.9)) return;
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.type = kind === 'musicbox' ? 'triangle' : 'sine'; o.frequency.setValueAtTime(f, t);
         g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(gain, t + (kind==='musicbox'?.006:.03)); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
@@ -255,6 +260,11 @@ const SoundManager = (() => {
   }
   async function startAmbient(){
     if(!ensureCtx() || ambient || ambientKind === 'off') return;
+    if(ambientKind === 'piano' && typeof grandPianoLoad === 'function'){
+      await grandPianoLoad();
+      /* changed or switched off while the piano was being tuned */
+      if(ambient || ambientKind === 'off') return;
+    }
     if(ambientKind === 'piano' || ambientKind === 'musicbox'){ startMusic(ambientKind); return; }
     const source = await makeNoiseNode(); if(ambient){ try{ source.disconnect(); }catch(e){} return; }
     const nodes = [source]; const gain = ctx.createGain();

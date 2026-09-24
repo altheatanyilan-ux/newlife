@@ -36,6 +36,7 @@ function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:
 
 routes.score = function(root, params){
   scoreState();
+  if(typeof grandPianoWarm === 'function') grandPianoWarm();
   const ui = scoreUi();
   const want = params && params[0] ? params[0] : null;
   if(want && scoreById(want)) ui.id = want;

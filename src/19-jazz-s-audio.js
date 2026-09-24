@@ -8,8 +8,10 @@
    slowly, loop, compare and export (4B). All of it is Web Audio, all of
    it synthesised here; nothing is downloaded.
 
-   THE BAND is three voices: a soft electric-piano chord, a plucked bass,
-   and a brushed kit (ride, hi-hat on two and four). The play-along reads
+   THE BAND is three voices: a grand piano (the recorded Salamander grand,
+   19-grand-piano.js), a plucked bass, and a brushed kit (ride, hi-hat on
+   two and four). Every other note the studio plays — a chord or a voicing
+   heard, a key pressed, the drone — is that grand too. The play-along reads
    a chart — a tune from the database, or a progression — and plays it:
    a walking bass, the piano comping a Charleston, the kit keeping time.
    Each voice can be muted or soloed, which is Section 4C's "solo track
@@ -82,7 +84,25 @@ function jazzCompVoicing(spec, near){
 }
 
 /* ---------- the voices ---------- */
+/* the band's piano: the grand, or until its notes are decoded, a soft
+   synthesised chord in its place */
 function jzVoicePiano(ctx, dest, midi, t, dur, vel){
+  if(typeof grandPianoNote === 'function'){
+    if(grandPianoNote(ctx, dest, midi, t, dur, vel, null, 0.72)) return;
+    grandPianoMissed();
+  }
+  jzVoiceSynthPiano(ctx, dest, midi, t, dur, vel);
+}
+/* any note heard on its own — a chord, a voicing, a key pressed — is the
+   grand, low notes included; the stand-ins keep the old split */
+function jzVoiceKeys(ctx, dest, midi, t, dur, vel){
+  if(typeof grandPianoNote === 'function'){
+    if(grandPianoNote(ctx, dest, midi, t, dur, vel, null, 0.75)) return;
+    grandPianoMissed();
+  }
+  (midi < 48 ? jzVoiceBass : jzVoiceSynthPiano)(ctx, dest, midi, t, dur, vel);
+}
+function jzVoiceSynthPiano(ctx, dest, midi, t, dur, vel){
   const o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), f = ctx.createBiquadFilter();
   o1.type = 'triangle'; o2.type = 'sine';
   o1.frequency.value = jzMidiHz(midi); o2.frequency.value = jzMidiHz(midi) * 2;
@@ -303,6 +323,19 @@ function jazzMetronome(o){
 function jazzDrone(rootPc){
   const ctx = jazzAudioCtx(); if(!ctx) return {stop(){}};
   ctx.resume && ctx.resume();
+  /* on the grand: the fifth struck softly and struck again before it dies,
+     so it is held the way a pianist holds it, with the pedal down */
+  if(typeof grandPianoReady === 'function' && grandPianoReady()){
+    const g = ctx.createGain(); g.gain.value = 0.9; g.connect(ctx.destination);
+    const root = 36 + (((rootPc || 0) % 12) + 12) % 12;
+    const strike = () => { const t = ctx.currentTime + 0.03;
+      [root, root + 7, root + 12].forEach((m, k) => grandPianoNote(ctx, g, m, t + k * 0.012, 6, k === 2 ? 0.3 : 0.4, 6.5, 0.6)); };
+    strike();
+    const timer = setInterval(strike, 4200);
+    return {stop(){ clearInterval(timer); const t = ctx.currentTime;
+      g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.setTargetAtTime(0.0001, t, 0.2);
+      setTimeout(() => { try { g.disconnect(); } catch(e){} }, 2500); }};
+  }
   const g = ctx.createGain(); g.gain.value = 0.0001; g.connect(ctx.destination);
   g.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + 0.8);
   const root = 36 + (((rootPc || 0) % 12) + 12) % 12;
@@ -318,15 +351,25 @@ function jazzPlayChord(sym, arpeggiate){
   const spec = jazzChordSpec(sym); const ctx = jazzAudioCtx(); if(!spec || !ctx) return;
   ctx.resume && ctx.resume();
   const g = ctx.createGain(); g.gain.value = 0.9; g.connect(ctx.destination);
-  const t = ctx.currentTime + 0.03;
-  jzVoiceBass(ctx, g, 36 + ((spec.bassPc != null ? spec.bassPc : spec.pc) % 12), t, 1.8, 0.6);
-  jazzCompVoicing(spec, 60).forEach((m, k) => jzVoicePiano(ctx, g, m, t + (arpeggiate ? k * 0.12 : 0), 2.2, 0.55));
+  jzWhenPiano(() => {
+    const t = ctx.currentTime + 0.03;
+    jzVoiceKeys(ctx, g, 36 + ((spec.bassPc != null ? spec.bassPc : spec.pc) % 12), t, 2.2, 0.55);
+    jazzCompVoicing(spec, 60).forEach((m, k) => jzVoiceKeys(ctx, g, m, t + (arpeggiate ? k * 0.12 : 0), 2.2, 0.55));
+  });
+}
+/* the first note of a session waits the moment it takes to decode the grand,
+   so what is heard is the piano and not its stand-in */
+function jzWhenPiano(fn){
+  if(typeof grandPianoSettled !== 'function' || grandPianoSettled()) return fn();
+  grandPianoLoad().then(fn);
 }
 function jazzPlayMidis(midis, arpeggiate){
   const ctx = jazzAudioCtx(); if(!ctx) return; ctx.resume && ctx.resume();
   const g = ctx.createGain(); g.gain.value = 0.9; g.connect(ctx.destination);
-  const t = ctx.currentTime + 0.03;
-  midis.forEach((m, k) => (m < 48 ? jzVoiceBass : jzVoicePiano)(ctx, g, m, t + (arpeggiate ? k * 0.12 : 0), 1.8, 0.55));
+  jzWhenPiano(() => {
+    const t = ctx.currentTime + 0.03;
+    midis.forEach((m, k) => jzVoiceKeys(ctx, g, m, t + (arpeggiate ? k * 0.12 : 0), 1.8, 0.55));
+  });
 }
 
 /* ---------- the microphone ---------- */

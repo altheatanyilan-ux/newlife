@@ -79,6 +79,7 @@ function jazzPlayBarFor(box, xml, osmd){
 /* ---------- the route ---------- */
 routes.jazz = function(root, params){
   jazzState();
+  if(typeof grandPianoWarm === 'function') grandPianoWarm();
   const ui = jazzUi();
   const want = params && params[0] ? params[0] : null;
   if(want === 'cards'){

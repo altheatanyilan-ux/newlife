@@ -184,6 +184,8 @@ A field you are not editing is not a box. At rest, an input is its own text on t
 
 The tarot card meanings are normalised from Mark McElroy's *A Guide to Tarot Meanings* by way of the [corpora project](https://github.com/dariusk/corpora); everything written at length around them is this house's own. The card pictures are Pamela Colman Smith's illustrations for the deck published by Rider in 1909, in the colours they were printed in; they are in the public domain, published in 1909 with Smith dead since 1951. The scans come from the [@cometpisces/tarot-kit-images](https://www.npmjs.com/package/@cometpisces/tarot-kit-images) package, and `tools/build-tarot-art.py` cuts them down from twenty-one megabytes to the size they are actually drawn at here. The hexagrams follow the King Wen order with the Judgment and Image in the usual English renderings.
 
+Every piano the house plays — a score played back, the Jazz Studio's play-along, chords, voicings and scales heard, the drone, the ambient slow piano — is the [Salamander Grand Piano V3](https://archive.org/details/SalamanderGrandPianoV3), a Yamaha C5 sampled by Alexander Holm and released under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The thirty notes in `vendor/salamander/` are the subset the [Tone.js](https://github.com/Tonejs/audio) project hosts, unchanged; `tools/fetch-grand-piano.sh` fetches them again and `build.js` embeds them in `index.html`, so the piano works offline.
+
 ## Keyboard
 
 - `N` new entry (browsers reserve `⌘N` / `Ctrl+N` for a new window, so the app uses the bare key when you are not typing)

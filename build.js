@@ -149,6 +149,28 @@ if(osmd){
   out = at > -1 ? out.slice(0, at) + tag + out.slice(at) : out + tag;
 }
 
+/* The grand piano: thirty recorded notes of the Salamander Grand Piano V3
+   (vendor/salamander, CC BY 3.0 — see its LICENSE.md), in the same kind of
+   payload as the engraver: text the browser stores and never parses, turned
+   into sound the first time a room with music in it asks for it. */
+let piano = null;
+const pianoDir = path.join(__dirname, 'vendor', 'salamander');
+if(fs.existsSync(pianoDir)){
+  const files = fs.readdirSync(pianoDir).filter(f => /\.mp3$/i.test(f)).sort();
+  if(files.length){
+    piano = {};
+    files.forEach(f => { piano[f.replace(/\.mp3$/i, '')] = fs.readFileSync(path.join(pianoDir, f)).toString('base64'); });
+  }
+}
+let pianoBytes = 0;
+if(piano){
+  const body = JSON.stringify(piano);
+  pianoBytes = body.length;
+  const tag = `<script type="text/plain" id="grandPianoSrc">${body}<\/script>\n`;
+  const at = out.lastIndexOf('</body>');
+  out = at > -1 ? out.slice(0, at) + tag + out.slice(at) : out + tag;
+}
+
 fs.writeFileSync(path.join(__dirname, 'index.html'), out);
 
 /* The service worker holds a copy of index.html for offline use, and the only
@@ -172,4 +194,5 @@ function stampServiceWorker(){
 const build = stampServiceWorker();
 console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}`
   + ` — score engraver: ${osmd ? `OSMD (${(osmd.length/1024).toFixed(0)} KB, parsed on first use)` : 'not installed'}`
+  + ` — grand piano: ${piano ? `${Object.keys(piano).length} samples (${(pianoBytes/1024).toFixed(0)} KB)` : 'not fetched (sh tools/fetch-grand-piano.sh)'}`
   + `${build ? ` — build ${build}` : ''}`);
