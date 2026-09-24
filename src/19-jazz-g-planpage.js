@@ -226,6 +226,7 @@ function jazzProgressHTML(){
       <span><b>${streak.now}</b> day streak, best ${streak.best}</span>
       <span><b>${sessions.length}</b> sessions, ${avg} min on average</span>
     </div>
+    ${typeof jazzPracticePlayHTML === 'function' ? jazzPracticePlayHTML() : ''}
     <div class="sc" style="margin-top:18px">The last six weeks</div>
     <div class="jz-weeks">${weeks.map(w => `<div class="jz-week">
       <span class="mono jz-wk">${esc(fmtDate(w.from, 'short'))}</span>
@@ -240,7 +241,7 @@ function jazzProgressHTML(){
     <div class="sc" style="margin-top:18px">Sessions</div>
     ${sessions.length ? sessions.slice(0, 12).map(s => `<div class="jz-hsess">
       <div class="row between"><span class="sc">${esc(fmtDate(s.day, 'med'))}</span>
-        <span class="mono">${s.minutes} min${s.paceStatus ? ' · ' + esc(s.paceStatus.replace('_', ' ')) : ''}</span></div>
+        <span class="mono">${s.minutes} min${s.mode === 'play' ? ' · play time' : ''}${s.paceStatus ? ' · ' + esc(s.paceStatus.replace('_', ' ')) : ''}</span></div>
       ${s.activities.map(a => `<div class="jz-log"><span>${jazzPartIcon(a.category)} ${esc(a.name)}</span>
         <span class="mono faint">${a.minutes}m${a.keys.length ? ' · ' + a.keys.map(jazzPretty).join(' ') : ''}</span></div>`).join('')}
       ${s.notes ? `<p class="jz-lognote">${esc(s.notes)}</p>` : ''}
@@ -294,15 +295,16 @@ function bindJazzPlan(root){
     const plan = stage && jazzTodaysPlan(stage.id);
     const block = plan && plan.required[+b.dataset.jzdo];
     if(!block) return;
-    if(!jazzSessionOpen()) jazzStartSession(stage.id);
+    /* Section 4G: "The Space" comes before a session, however it is begun */
+    if(!jazzSessionOpen()){ openJazzSpace(() => { jazzStartSession(stage.id); openJazzActivity(block); }); return; }
     openJazzActivity(block);
   });
   $$('[data-jzundo]', root).forEach(b => b.onclick = () => {
     jazzSessionDrop(b.dataset.jzundo); sound('click'); rerender(); });
 
   const start = root.querySelector('#jzSessStart');
-  if(start) start.onclick = () => {
-    jazzStartSession(jazzActiveStage().id); sound('success'); navigate('#/jazz/session'); };
+  if(start) start.onclick = () => openJazzSpace(() => {
+    jazzStartSession(jazzActiveStage().id); sound('success'); navigate('#/jazz/session'); });
   const open = root.querySelector('#jzSessOpen');
   if(open) open.onclick = () => navigate('#/jazz/session');
 
@@ -403,6 +405,11 @@ function openJazzSessionEnd(){
       for ${clocked}. Whichever is truer.</p>
     <label class="pd-q"><span class="k">minutes</span>
       <input class="inp mono" type="number" min="0" max="900" id="jeMins" value="${ticked || clocked}"></label>
+    <div class="pd-q" style="margin-top:10px"><span class="k">what kind of time was it</span>
+      <div class="row" style="gap:6px;flex-wrap:wrap">
+        <button class="btn sm primary" data-jemode="practice" title="analytical, slow, repetitive">practice time</button>
+        <button class="btn sm ghost" data-jemode="play" title="fearless, unedited, consequence-free">play time</button></div>
+      <p class="faint" style="font-size:.72rem;margin:4px 0 0">Werner keeps them apart: practice is analytical, slow and repetitive; play is fearless and unedited.</p></div>
     <div class="pd-q" style="margin-top:10px"><span class="k">how did it feel</span>
       <div class="row" style="gap:6px;flex-wrap:wrap">${
         [['frustrated','\u{1f625} frustrated'], ['okay','\u{1f610} okay'],
@@ -412,7 +419,11 @@ function openJazzSessionEnd(){
       <textarea class="inp" rows="3" id="jeNote" placeholder="The join between G flat and E is the thing to work on tomorrow."></textarea></label>
     <div class="row" style="justify-content:flex-end;margin-top:14px">
       <button class="btn primary" id="jeSave">Write it down</button></div>`, 'narrow');
-  let feeling = null;
+  let feeling = null, mode = 'practice';
+  m.querySelectorAll('[data-jemode]').forEach(b => b.onclick = ev => {
+    ev.preventDefault(); mode = b.dataset.jemode;
+    m.querySelectorAll('[data-jemode]').forEach(x => { x.classList.toggle('primary', x === b); x.classList.toggle('ghost', x !== b); });
+  });
   m.querySelectorAll('[data-jef]').forEach(b => b.onclick = ev => {
     ev.preventDefault();
     feeling = b.dataset.jef;
@@ -421,7 +432,7 @@ function openJazzSessionEnd(){
   });
   m.querySelector('#jeSave').onclick = () => {
     const out = jazzFinishSession({minutes: +m.querySelector('#jeMins').value || 0,
-      feeling, notes: m.querySelector('#jeNote').value});
+      feeling, mode, notes: m.querySelector('#jeNote').value});
     m.remove(); sound('success');
     const p = jazzPaceOf(out.stageId);
     toast(`${out.minutes} minutes written down. ${jazzPaceSaid(out.stageId)}`, 7000);

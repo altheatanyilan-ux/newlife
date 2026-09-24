@@ -898,7 +898,7 @@ function jazzImprovListHTML(){
     <span class="ji-ti">
       <b>${esc(e.title)}</b>
       ${e.subtitle ? `<span class="faint"> — ${esc(e.subtitle)}</span>` : ''}
-      <span class="ji-meta faint">${esc(e.source)} · ${esc(e.stageAlignment)}</span>
+      <span class="ji-meta faint">${esc(e.source)}, ${esc(e.sourceUnit)} · ${esc(jazzV3SourceStageLabel(e))}</span>
     </span>
     <span class="ji-type mono">${esc(e.exerciseType)}</span>
   </button>`;
@@ -1019,7 +1019,7 @@ function jazzImprovDetailHTML(id){
   <div class="ji-detail">
     <h1 class="serif">${esc(e.title)}</h1>
     ${e.subtitle ? `<p class="jl-meta">${esc(e.subtitle)}</p>` : ''}
-    <p class="jl-src mono faint">${esc(e.source)}, ${esc(e.sourceUnit)}, ${esc(e.sourcePages)} · ${esc(e.stageAlignment)}</p>
+    <p class="jl-src mono faint">${esc(e.source)}, ${esc(e.sourceUnit)}, ${esc(e.sourcePages)} · ${esc(jazzV3SourceStageLabel(e))}</p>
     <div class="jl-section ji-setup">
       <span class="jl-sh">Setup</span>
       <div class="ji-setupgrid">

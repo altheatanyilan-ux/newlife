@@ -797,6 +797,8 @@ function jazzFinishSession(fields){
   s.minutes = Math.max(0, byHand || ticked || clocked);
   s.feeling = ['frustrated','okay','good','great'].includes(f.feeling) ? f.feeling : null;
   s.notes = String(f.notes || '').trim();
+  /* Section 4G: practice time and play time, told apart */
+  s.mode = f.mode === 'play' ? 'play' : 'practice';
   const p = jazzPaceOf(s.stageId);
   s.paceStatus = p.status;
   j.sessions.unshift(s);

@@ -194,3 +194,16 @@ function bindJazzAbout(root){
     navigate('#/jazz');
   });
 }
+
+/* ---------- the libraries' stage labels ----------
+   The Listening and Improvisation libraries were written with "Stage N"
+   meaning Siskind's unit N. Under v3 a unit belongs to the stage Module 2
+   of Section 7 sends it to, so that is the stage they are labelled with. */
+function jazzV3SourceStage(source, unit){
+  const b = /Book\s*(\d)/.exec(source || ''), u = /Unit\s*(\d+)/.exec(unit || '');
+  return b && u ? jazzV3UnitStage(b[1], u[1]) : null;
+}
+function jazzV3SourceStageLabel(e){
+  const s = e && jazzV3SourceStage(e.source, e.sourceUnit);
+  return s ? `Stage ${s === 'P0' ? 0 : s}` : ((e && e.stageAlignment) || '');
+}

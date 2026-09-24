@@ -32,6 +32,7 @@ function jazzFlashHTML(){
   return `<div class="row between" style="align-items:baseline">
       <h1 class="serif" style="margin:0">Flashcards</h1>
       <button class="btn sm ghost" id="jzFback">← the roadmap</button></div>
+    ${typeof jazzCardTabsHTML === 'function' ? jazzCardTabsHTML('keys') : ''}
     <p class="page-blurb">Cold, in a key you did not choose. It is the only way to find out
       which of the twelve you actually have.</p>
     <div class="jz-setup">
@@ -64,6 +65,7 @@ function bindJazzFlash(root){
   if(ui.flash && ui.flash.cards && ui.flash.cards.length){ bindJazzCard(root); return; }
   const back = root.querySelector('#jzFback');
   if(back) back.onclick = () => navigate('#/jazz');
+  $$('[data-jzgo]', root).forEach(b => b.onclick = () => navigate(b.dataset.jzgo));
   $$('[data-jzsyl]', root).forEach(c => c.onchange = () => {
     const id = c.dataset.jzsyl, at = st.syllabus.indexOf(id);
     c.checked ? (at < 0 && st.syllabus.push(id)) : (at >= 0 && st.syllabus.splice(at, 1));

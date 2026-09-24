@@ -66,7 +66,12 @@ routes.jazz = function(root, params){
   jazzState();
   const ui = jazzUi();
   const want = params && params[0] ? params[0] : null;
-  if(want === 'cards'){ root.innerHTML = `<div class="page jz-page">${jazzFlashHTML()}</div>`;
+  if(want === 'cards'){
+    /* Section 4A's three lead-sheet modes sit beside the twelve-key deck */
+    const mode = params && params[1];
+    if(mode && /^[ABC]$/.test(mode)){ root.innerHTML = `<div class="page jz-page">${jazzLeadCardsHTML(mode)}</div>`;
+      bindJazzLeadCards(root, mode); return; }
+    root.innerHTML = `<div class="page jz-page">${jazzFlashHTML()}</div>`;
     bindJazzFlash(root); return; }
   /* the practice room: what to do today, what you are doing, and where it
      has got you. Three addresses rather than three tabs, so the browser's

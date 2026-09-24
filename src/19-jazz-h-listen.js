@@ -803,7 +803,7 @@ function jazzListenListHTML(){
     const done = count >= t.minimumListens;
     const pct = Math.min(100, Math.round(count / t.minimumListens * 100));
     return `<button class="jl-row${done ? ' jl-done' : ''}" data-jlid="${esc(t.id)}">
-      <span class="jl-num mono faint">${t.id}</span>
+      <span class="jl-num mono faint">${t.id}<br>${esc(jazzV3SourceStageLabel(t))}</span>
       <span class="jl-ti">
         <b>“${esc(t.trackTitle)}”</b>
         <span class="faint"> — ${esc(t.artist)}</span>
@@ -845,6 +845,26 @@ function jazzListenListHTML(){
     ).join('')}</div>
   </div>`;
 
+  /* Curriculum v3, Section 5: the repertoire ladder, stage by stage, counted
+     the same way as every other listen, so a play here is a play in the
+     stage's own listening rotation too */
+  const ladderStages = jazzStages().filter(s => typeof jazzV3LadderListening === 'function' && jazzV3LadderListening(s.id).length);
+  const ladderSection = ladderStages.length ? `<div class="jl-book jl-ladder">
+    <h3 class="jl-bookname">The Repertoire Ladder — Curriculum v3, Section 5</h3>
+    <p class="jl-sub">A recording or two for each stage, in the order of the stages. The ones marked
+      “transcribe” are to be written out as well as listened to.</p>
+    ${ladderStages.map(s => `<div class="jl-lstage"><span class="sc">Stage ${esc(String(s.n))} — ${esc(s.name)}</span>
+      <div class="jl-rows">${jazzV3LadderListening(s.id).map((a, i) => {
+        const count = jazzListens(a), pct = Math.min(100, Math.round(count / JAZZ_LISTEN_TARGET * 100));
+        return `<div class="jl-row jl-lrow${count >= JAZZ_LISTEN_TARGET ? ' jl-done' : ''}">
+          <span class="jl-num mono faint">${a.transcribe ? 'transcribe' : 'listen'}</span>
+          <span class="jl-ti"><b>${esc(a.ladderTitle)}</b><span class="faint"> — ${esc(a.artist)}</span>
+            <span class="jl-album faint">${esc(a.album)}${a.year ? ` · ${a.year}` : ''} · ${esc(a.listenFor)}</span></span>
+          <span class="jl-bar"><span class="jl-bfill" style="width:${pct}%"></span></span>
+          <span class="jl-count mono"><button class="tbtn" data-jlladder="${esc(String(s.id))}" data-i="${i}" title="one more listen">+1</button> ${count}/${JAZZ_LISTEN_TARGET}</span>
+        </div>`; }).join('')}</div></div>`).join('')}
+  </div>` : '';
+
   return `<div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
     <div>
       <h1 class="serif">Listening Library</h1>
@@ -856,6 +876,7 @@ function jazzListenListHTML(){
     <p>“The recorded history of the music is the only true teacher.” — Siskind</p>
     <p>“The answers to all your questions are in your living room.” — Levine</p>
   </div>
+  ${ladderSection}
   ${books.map(bookSection).join('')}
   ${compingSection}
   ${lvlSection}`;
@@ -894,7 +915,7 @@ function jazzListenDetailHTML(id){
   <div class="jl-detail">
     <h1 class="serif">“${esc(t.trackTitle)}”</h1>
     <p class="jl-meta">${esc(t.artist)} — <i>${esc(t.album)}</i>${t.year ? ` (${t.year})` : ''}</p>
-    <p class="jl-src mono faint">${esc(t.source)}, ${esc(t.sourceUnit)}${t.sourcePages ? `, ${esc(t.sourcePages)}` : ''} · ${esc(t.stageAlignment)}</p>
+    <p class="jl-src mono faint">${esc(t.source)}, ${esc(t.sourceUnit)}${t.sourcePages ? `, ${esc(t.sourcePages)}` : ''} · ${esc(jazzV3SourceStageLabel(t))}</p>
     <div class="jl-counter${done ? ' jl-done' : ''}">
       <div class="jl-cbar"><span class="jl-cbfill" style="width:${pct}%"></span></div>
       <div class="jl-crow">
@@ -936,6 +957,15 @@ function bindJazzListen(root){
       else navigate('#/jazz');
     };
   }
+  root.querySelectorAll('[data-jlladder]').forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const a = jazzV3LadderListening(b.dataset.jlladder)[+b.dataset.i];
+    if(!a) return;
+    const n = jazzMarkListened(a, '');
+    sound('click');
+    if(n === JAZZ_LISTEN_TARGET) toast('Twenty.', 4000);
+    rerender();
+  });
   root.querySelectorAll('[data-jlid]').forEach(b => {
     b.onclick = () => {
       jazzListenState().detailId = b.dataset.jlid;

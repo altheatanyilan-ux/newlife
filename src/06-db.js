@@ -64,6 +64,11 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
      changed, and a Blob through JSON is an empty object. These rows are
      written and read directly. */
   jaAudio:        'id',
+  /* Recordings from the Jazz Studio — the drone takes, the sing-then-play
+     pairs, the self-transcription sessions and the COREA originals and
+     copies (Curriculum v3, Section 4B). Blobs, for the same reason as the
+     row above: written and read directly, never through the state. */
+  jazzAudio:      'id',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -175,7 +180,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(14).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings
+db.version(15).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -328,7 +333,7 @@ function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) r
    cleared and replaced by them. That is not a gap in the backup so much as an
    honest statement of what a text file can hold; the recordings stay where
    they are, and a restore does not silently delete them. */
-const BINARY_STORES = ['jaAudio'];
+const BINARY_STORES = ['jaAudio', 'jazzAudio'];
 const textTables = () => db.tables.filter(t => !BINARY_STORES.includes(t.name));
 async function readAllStores(){ const rows = {}; for(const t of textTables()) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){
