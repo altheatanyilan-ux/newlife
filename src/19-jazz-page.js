@@ -233,6 +233,7 @@ function jazzRoadHTML(){
       <button class="tbtn" id="jzAllTips">\u{1f3c6} Practice tips</button>
       <button class="tbtn" data-jzgo="#/jazz/about">ℹ️ About v3</button>
     </div>
+    ${jazzTrackToggleHTML()}
     <div class="jz-view-tabs" role="tablist">
       <button class="jz-view-tab${!isVoice ? ' on' : ''}" data-jzview="piano" role="tab"
         aria-selected="${!isVoice}">Piano</button>
@@ -251,6 +252,16 @@ function jazzStageHTML(s, here){
   const ahead = open && !jazzStageReached(s);
   const pct = got.of ? Math.round(got.done / got.of * 100) : 0;
   const num = s.n === 'DT' ? 'DT' : s.n;
+  /* the fast track shows the essential exercises and hides (not removes)
+     the rest; the stage you are on lists its essentials first */
+  const fast = jazzTrack() === 'fast-track' && JAZZ_TIER_MAIN.includes(String(s.id));
+  const fp = jazzFastProgress(s.id);
+  const showAll = !!(jazzUi().showAll || {})[s.id];
+  const current = String((jazzActiveStage() || {}).id) === String(s.id);
+  const sortMode = ((jazzState().settings.stageSort || {})[s.id]) || (current ? 'tier' : 'doc');
+  let rowIds = fast && !showAll ? s.subs.filter(id => jazzTierOf(id) === 'fast-track') : s.subs.slice();
+  if(sortMode === 'tier') rowIds = jazzTierSorted(rowIds);
+  const hidden = s.subs.length - rowIds.length;
   return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}${
     collapsed ? ' collapsed' : ''}${s.track ? ' jz-track' : ''}" data-jzstage="${esc(s.id)}">
     <header class="jz-shead" data-jztoggle="${esc(s.id)}"
@@ -260,20 +271,25 @@ function jazzStageHTML(s, here){
         ${s.subtitle ? `<span class="jz-ssub">${esc(s.subtitle)}</span>` : ''}
         <span class="faint">${esc(s.blurb)}</span></span>
       ${jazzDifficultyHTML(s.expectedDifficulty)}
-      <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
-        s.outcome ? `<em class="jz-weeks" title="how long the v3 plan gives this stage">${esc(s.outcome.time)}</em>` : ''}${
+      <span class="mono jz-scount">${open ? (fast ? `${fp.done}/${fp.of} essential` : `${got.done}/${got.of}`) : '\u{1f512}'}${
+        s.outcome ? `<em class="jz-weeks" title="how long the v3 plan gives this stage">${esc(fast ? jazzHalfTime(s.outcome.time) : s.outcome.time)}</em>` : ''}${
         ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}
         <span class="jz-toggle-arrow" aria-hidden="true">${collapsed ? '▶' : '▼'}</span></span>
     </header>
     <div class="jz-sbar"><i style="width:${pct}%"></i></div>
     ${open && !collapsed ? `${jazzV3GoldenHTML(s)}
-      <div class="jz-subs">${s.subs.map(id => {
+      <div class="jz-subsbar mono">${fast ? `<span>Fast track · ${fp.done} of ${fp.of} fast-track exercises mastered</span>
+          <button class="tbtn" data-jzshowall="${esc(s.id)}">${showAll ? 'only the essentials' : hidden ? `show all (${hidden} more)` : ''}</button>` : ''}
+        <span class="grow"></span>
+        <span class="jz-sortpick">${[['tier', 'by tier'], ['doc', 'curriculum order']].map(([k, l]) =>
+          `<button class="tbtn${sortMode === k ? ' on' : ''}" data-jzsort="${esc(s.id)}" data-v="${k}">${l}</button>`).join('')}</span></div>
+      <div class="jz-subs">${rowIds.map(id => {
       const ex = jazzExercise(id); if(!ex) return '';
       const single = jazzIsSingle(id);
       const r = jazzRecord(id);
       return `<button class="jz-sub${ex.isV3 ? ' jz-subv3' : ''}" data-jzopen="${esc(id)}">
         <span class="jz-subn mono">${esc(jazzV3Label(ex))}</span>
-        <span class="jz-subt">${jazzV3TypePill(ex, true)} ${esc(ex.name)}${
+        <span class="jz-subt">${jazzV3TypePill(ex, true)} ${jazzTierBadgeHTML(id, true)} ${esc(ex.name)}${
           jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
           jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
             esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}${
@@ -335,6 +351,25 @@ function bindJazzRoad(root){
     sound('click');
     rerender();
   });
+  $$('[data-jzshowall]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const u = jazzUi(); u.showAll = u.showAll || {}; u.showAll[b.dataset.jzshowall] = !u.showAll[b.dataset.jzshowall]; rerender(); });
+  $$('[data-jzsort]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const st = jazzState().settings; st.stageSort = st.stageSort || {}; st.stageSort[b.dataset.jzsort] = b.dataset.v;
+    saveNow(); rerender(); });
+}
+/* "~6 weeks" on the fast track */
+const jazzHalfTime = t => String(t || '').replace(/(\d+)\s*weeks?/, (m, n) => `${Math.max(1, Math.round(+n / 2))} weeks on the fast track`);
+/* Section 3A: the track, at the top of the roadmap and the plan */
+function jazzTrackToggleHTML(){
+  const t = jazzTrack();
+  return `<div class="jz-trackpick" role="tablist" aria-label="Which path">
+    <button class="${t === 'full' ? 'on' : ''}" data-jztrack="full" role="tab" aria-selected="${t === 'full'}">Full Curriculum</button>
+    <button class="${t === 'fast-track' ? 'on' : ''}" data-jztrack="fast-track" role="tab" aria-selected="${t === 'fast-track'}">Fast Track</button>
+    <span class="mono faint">${t === 'fast-track' ? 'the essential exercises only, in about half the time — the rest is hidden, not removed'
+      : 'every exercise: core and enrichment'}</span></div>`;
+}
+function bindJazzTrackToggle(root){
+  $$('[data-jztrack]', root).forEach(b => b.onclick = () => { jazzSetTrack(b.dataset.jztrack); sound('click'); rerender(); });
 }
 
 /* ---------- one exercise ---------- */
@@ -353,6 +388,12 @@ function jazzExerciseHTML(id){
       <button class="btn sm ghost" id="jzBack">← the roadmap</button>
       <span class="mono faint">${at ? `${esc(jazzV3Label(ex))} · Stage ${esc(String(at.stage.n))} — ${esc(at.stage.name)}` : ''}</span></div>
     <h1 class="serif" style="margin-top:8px">${esc(ex.name)} ${jazzV3TypePill(ex)}</h1>
+    <div class="jz-tierrow">${jazzTierBadgeHTML(id)}
+      <label class="mono faint">tier <select class="sel sm" id="jzTierSet">${JAZZ_TIERS.map(t =>
+        `<option value="${t.id}" ${jazzTierOf(id) === t.id ? 'selected' : ''}>${t.badge} ${esc(t.label.toLowerCase())}</option>`).join('')}</select></label>
+      ${jazzTierOverrides()[id] ? '<button class="tbtn" id="jzTierReset">back to the rule</button>' : ''}
+      ${jazzSubsectionOf(id) ? `<span class="mono faint">subsection ${esc(jazzSubsectionOf(id))}</span>` : ''}</div>
+    ${jazzSequenceBarHTML(id)}
     <div class="jz-cols">
       <div class="jz-main">
         ${jazzV3PanelHTML(ex)}
@@ -493,6 +534,11 @@ function jazzChecklistHTML(id){
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
+  const tierSel = root.querySelector('#jzTierSet');
+  if(tierSel) tierSel.onchange = () => { jazzSetTier(id, tierSel.value); sound('click'); rerender(); };
+  const tierReset = root.querySelector('#jzTierReset');
+  if(tierReset) tierReset.onclick = () => { jazzSetTier(id, null); sound('click'); rerender(); };
+  bindJazzSequence(root, id);
   try { if(typeof bindJazzMaterial === 'function') bindJazzMaterial(root, id); } catch(e){}
   /* What this copy draws: the score you have edited if there is one, and
      what the generator writes if there is not. One override, not three. */

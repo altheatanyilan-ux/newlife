@@ -341,8 +341,11 @@ const jazzHasScore = ex => !!(ex && ((ex.gen && ex.generatorType !== 'instructio
 const jazzIsMultiExample = ex => !!(ex && (ex.multiExample || (ex.v3tab && ex.gen) || ex.v3multi));
 
 /* ---------- what is yours ---------- */
-const JAZZ_QUALITY = [['rough','Rough'], ['shaky','Shaky'], ['improving','Improving'],
-  ['solid','Solid'], ['automatic','Automatic']];
+/* how it went, which is also how comfortable it is (1–5): the ids are what
+   every old sitting was rated with, so only the words have changed */
+const JAZZ_QUALITY = [['rough','1 · Can’t play it yet'], ['shaky','2 · Slow and hesitant'],
+  ['improving','3 · Moderate tempo, some mistakes'], ['solid','4 · Comfortable at practice tempo'],
+  ['automatic','5 · Performance-ready']];
 function jazzState(){
   S.jazz = S.jazz && typeof S.jazz === 'object' ? S.jazz : {};
   const j = S.jazz;

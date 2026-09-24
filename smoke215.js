@@ -84,7 +84,8 @@ const near = (n,a,b,tol=1) => Math.abs(a-b)<=tol ? ok(n) : no(n, `${a} vs ${b}`)
     return out;
   });
   is('no stage without a template', temps.gaps, []);
-  is('  and all thirteen have one', temps.rows.length, 13);
+  /* the thirteen stages, the DT track and the six voice levels */
+  is('  and all twenty have one', temps.rows.length, 20);
   is('  every category is one of Siskind’s four',
     temps.rows.filter(r => r.bad.length).map(r => r.id), []);
   is('  every stage listens', temps.rows.filter(r => !r.listening).map(r => r.id), []);
@@ -99,7 +100,7 @@ const near = (n,a,b,tol=1) => Math.abs(a-b)<=tol ? ok(n) : no(n, `${a} vs ${b}`)
     ['relaxed', 'standard', 'intensive'].forEach(id => {
       jazzPlanState().stages = {};
       const r = jazzStartStage('2', id);
-      out[id] = {hours: r.targetHours, days: r.targetDays,
+      out[id] = {hours: r.targetHours, days: r.targetDays, benchmark: jazzPlanTemplate('2').hours,
         minutes: jazzPaceMinutes(id, '2'),
         plan: jazzTodaysPlan('2').totalMinutes};
     });
@@ -107,7 +108,8 @@ const near = (n,a,b,tol=1) => Math.abs(a-b)<=tol ? ok(n) : no(n, `${a} vs ${b}`)
     return out;
   });
   is('the hours are the same whichever pace you choose',
-    [paces.relaxed.hours, paces.standard.hours, paces.intensive.hours], [30, 30, 30]);
+    [paces.relaxed.hours, paces.standard.hours, paces.intensive.hours],
+    [paces.standard.benchmark, paces.standard.benchmark, paces.standard.benchmark]);
   yes('  and the days are not',
     paces.relaxed.days > paces.standard.days && paces.standard.days > paces.intensive.days,
     JSON.stringify([paces.relaxed.days, paces.standard.days, paces.intensive.days]));
@@ -325,14 +327,21 @@ const near = (n,a,b,tol=1) => Math.abs(a-b)<=tol ? ok(n) : no(n, `${a} vs ${b}`)
     document.querySelector('[data-jzpace="standard"]').click();
     await new Promise(r => setTimeout(r, 1200));
     location.hash = '#/jazz/plan'; rerender(); await new Promise(r => setTimeout(r, 1300));
-    const onPlan = {blocks: document.querySelectorAll('.jz-block').length,
-      listen: !!document.querySelector('.jz-block.listen'),
-      keys: !!document.querySelector('.jz-bkeys'),
-      start: !!document.querySelector('#jzSessStart'),
+    /* the day's plan: its rows, the listening (a row of its own on the full
+       curriculum), the keys named for today, and Start Practice — which
+       offers The Space first, then opens the first row */
+    const onPlan = {blocks: document.querySelectorAll('.jzd-row').length,
+      listen: !!document.querySelector('.jzd-row[data-slot="enrichment"], .jz-block.listen'),
+      keys: [...document.querySelectorAll('.jzd-focus')].some(n => /Keys of/.test(n.textContent)),
+      start: !!document.querySelector('#jzPlanStart'),
       said: !!document.querySelector('.jz-pacesaid')};
-    document.querySelector('#jzSessStart').click();
+    document.querySelector('#jzPlanStart').click();
+    await new Promise(r => setTimeout(r, 500));
+    const skip = document.querySelector('#jsSkip'); if(skip) skip.click();
     await new Promise(r => setTimeout(r, 1300));
-    const inSession = {rows: document.querySelectorAll('.jz-srow').length,
+    const opened = location.hash;
+    location.hash = '#/jazz/session'; rerender(); await new Promise(r => setTimeout(r, 1300));
+    const inSession = {rows: document.querySelectorAll('.jz-srow').length, opened,
       clock: !!document.querySelector('#jzSessClock'),
       end: !!document.querySelector('#jzSessEnd')};
     location.hash = '#/jazz/progress'; rerender(); await new Promise(r => setTimeout(r, 1300));
@@ -344,11 +353,14 @@ const near = (n,a,b,tol=1) => Math.abs(a-b)<=tol ? ok(n) : no(n, `${a} vs ${b}`)
     return {before, onPlan, inSession, onProgress};
   });
   is('a stage that has not started offers three paces', page.before.paces, 3);
-  yes('the plan page draws its blocks', page.onPlan.blocks >= 5, `${page.onPlan.blocks}`);
+  /* the stage started here is Stage 0, whose day is half an hour: three
+     rows, the least a balanced day can have (harmony, rhythm, improvising) */
+  yes('the plan page draws its rows, three to seven of them', page.onPlan.blocks >= 3 && page.onPlan.blocks <= 7, `${page.onPlan.blocks}`);
+  yes('  and Start Practice opens the first of them', /^#\/jazz\/./.test(page.inSession.opened || ''), page.inSession.opened);
   yes('  including the listening', page.onPlan.listen === true);
   yes('  and the keys for today', page.onPlan.keys === true);
   yes('  with the pace said in a sentence', page.onPlan.said === true);
-  yes('the session page lists what to tick off', page.inSession.rows >= 4, `${page.inSession.rows}`);
+  yes('the session page lists what to tick off', page.inSession.rows >= 3, `${page.inSession.rows}`);
   yes('  and runs a clock', page.inSession.clock === true);
   is('the progress page shows the five criteria', page.onProgress.ready, 5);
   is('  six weeks of hours', page.onProgress.weeks, 6);

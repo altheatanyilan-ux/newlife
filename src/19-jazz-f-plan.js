@@ -240,8 +240,10 @@ const JAZZ_PLAN_TEMPLATES = {
     parts: [
       ['fundamentals', 15, [['The level you are on',
         'Level 1 root over shells; Level 2 melody over basic voicings; Level 3 scat over full voicings; Level 4 lyrics over a real accompaniment.', 15, 2, 1]]],
-      ['tunes', 30, [['A tune, singing and playing',
-        'The whole form, without stopping. If singing makes the comping fall apart, go back one level.', 30, 0, 0]]],
+      ['tunes', 20, [['A tune, singing and playing',
+        'The whole form, without stopping. If singing makes the comping fall apart, go back one level.', 20, 0, 0]]],
+      ['rote', 10, [['Hands alone, voice alone',
+        'The accompaniment on its own until it runs without attention, then the melody sung on its own over a recording of it.', 10, 2, 1]]],
       ['listening', 15, [['Shirley Horn or Diana Krall',
         'One track, listening only to where the piano plays while the voice sings, and where it waits.', 15, 0, 0]]]]},
 
@@ -280,7 +282,49 @@ const JAZZ_PLAN_TEMPLATES = {
       ['tunes', 50, [['Write something',
         'An original tune, arranged for a combo. Four bars played before writing any more; the rest follows.', 50, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        '“The Peacocks” and “Isfahan”, twenty times each.', 20, 0, 0]]]]}
+        '“The Peacocks” and “Isfahan”, twenty times each.', 20, 0, 0]]]]},
+
+  /* The voice track. The document gives these levels no times of their own
+     (they run beside the piano stages), so each is a half-hour or
+     forty-five-minute day for as many weeks as its material needs: V1's
+     syllables in four, the chapters of patterns and bass lines in six, the
+     bebop lines, the ensemble work and the arranging in eight. */
+  'V1': {hours: 14, days: 28, daily: 30, source: 'Stoloff, Scat!, Chapter 1 — the syllables and the warm-up',
+    parts: [
+      ['fundamentals', 10, [['The vocal warm-up', 'Breath, lip trills, then the syllable warm-up at ♩=96, a little faster each day.', 10, 0, 1]]],
+      ['rote', 10, [['Syllables to rhythm', 'The four rhythm studies on dah, dit, doo and dwee, straight then swung.', 5, 0, 1],
+        ['One syllable pattern in three keys', 'Sung against a drone, so the pitch is somewhere to land.', 5, 3, 1]]],
+      ['listening', 10, [['Ella, and whose syllables are whose', 'One scat chorus: write down the syllables you hear, not the notes.', 10, 0, 0]]]]},
+  'V2': {hours: 21, days: 42, daily: 30, source: 'Stoloff, Scat!, Chapter 2 — diatonic and chord-scale patterns',
+    parts: [
+      ['fundamentals', 10, [['A pattern in the day’s keys', 'One diatonic pattern, up the scale and down, in three keys.', 10, 3, 1]]],
+      ['rote', 10, [['Over a ii-V', 'The pattern over Dm7–G7, landing on the third of the next chord.', 5, 3, 1],
+        ['Triplet patterns', 'The same pattern in triplets — the swing lives between the two.', 5, 3, 1]]],
+      ['listening', 10, [['Scat, transcribed by ear', 'Four bars of a scat chorus sung back until it matches.', 10, 0, 0]]]]},
+  'V3': {hours: 21, days: 42, daily: 30, source: 'Stoloff, Scat!, the bass-line chapter',
+    parts: [
+      ['fundamentals', 10, [['The walking line alone', 'Roots on one, chord tones between, on a blues in one key.', 10, 2, 1]]],
+      ['rote', 10, [['Bass, then melody, then both', 'Four bars of bass line, four of melody, then alternate bar by bar.', 5, 2, 1],
+        ['In another key', 'The same line moved to a second key without writing it out.', 5, 2, 1]]],
+      ['listening', 10, [['One voice, two lines', 'Follow only the low notes, then only the tune.', 10, 0, 0]]]]},
+  'V4': {hours: 28, days: 56, daily: 30, source: 'Weir, Fearless Vocal Improvisation — the bebop phrases',
+    parts: [
+      ['fundamentals', 10, [['A bebop line, in time', 'One line from the book, sung to the landing note, slowly.', 10, 3, 1]]],
+      ['rote', 10, [['Through the keys', 'The same line in three more keys, transposed by ear.', 5, 3, 1],
+        ['Inside a tune', 'Use the line once in a chorus of a standard, then vary its approach.', 5, 0, 1]]],
+      ['listening', 10, [['Bebop singers', 'Ella, Anita O’Day, Jon Hendricks — one line sung back.', 10, 0, 0]]]]},
+  'V5': {hours: 32, days: 42, daily: 45, source: 'Curriculum v3, Voice Track V5 — ensemble singing and extended techniques',
+    parts: [
+      ['fundamentals', 10, [['Tuning a chord', 'Sing the third of a held chord and tune it low, then the fifth pure.', 10, 0, 1]]],
+      ['rote', 20, [['Your part in the chord', 'One part of a close-harmony arrangement, against the others recorded.', 10, 0, 1],
+        ['An extended technique', 'Vocal percussion or overtone singing, five minutes, recorded.', 10, 0, 1]]],
+      ['listening', 15, [['Vocal groups', 'Lambert, Hendricks & Ross or Take 6: one track, following one voice.', 15, 0, 0]]]]},
+  'V6': {hours: 42, days: 56, daily: 45, source: 'Curriculum v3, Voice Track V6 — vocal arranging; Dobbins',
+    parts: [
+      ['fundamentals', 10, [['Voicing for voices', 'Spread a piano voicing into four singable parts, each with its own melody.', 10, 0, 1]]],
+      ['rote', 20, [['Eight bars arranged', 'Eight bars of a standard for four voices, voice-led by step.', 15, 0, 1],
+        ['Check the ranges', 'Sing every part yourself, softly; rewrite anything that strains.', 5, 0, 1]]],
+      ['listening', 15, [['Arrangers for voices', 'The Manhattan Transfer or Take 6: where the harmony opens and where it goes to unison.', 15, 0, 0]]]]}
 };
 const jazzPlanTemplate = sid => JAZZ_PLAN_TEMPLATES[sid] || JAZZ_PLAN_TEMPLATES[String(sid)] || null;
 
@@ -401,8 +445,10 @@ function jazzPaceOf(sid){
   const r = jazzStageRecord(sid);
   const t = jazzPlanTemplate(sid) || {hours: 30, days: 14};
   const hours = jazzStageMinutes(sid) / 60;
-  const targetHours = r.targetHours || t.hours;
-  const targetDays = r.targetDays || t.days;
+  /* the fast track is the essential exercises only, in about half the time */
+  const fastF = typeof jazzTrack === 'function' && jazzTrack() === 'fast-track' ? 0.5 : 1;
+  const targetHours = Math.round((r.targetHours || t.hours) * fastF * 10) / 10;
+  const targetDays = Math.max(1, Math.round((r.targetDays || t.days) * fastF));
   const started = r.startDate || null;
   const day = started ? Math.max(1, daysBetweenDays(started, today()) + 1) : 0;
   /* Two different numbers, and conflating them is how a tracker tells
@@ -591,8 +637,15 @@ function jazzTodaysPlan(sid){
   const factor = templateMinutes ? want / templateMinutes : 1;
   const mins = m => Math.max(5, Math.round(m * factor / 5) * 5);
 
+  /* The exercises themselves come from the day's plan (19-jazz-w-dayplan.js):
+     four to six, rotated, balanced, in the keys the rotation has reached.
+     The template stays as the stage's benchmark — its hours and its days. */
+  const day0 = typeof jazzDayPlan === 'function' && String(jazzActiveStage().id) === String(stage.id) ? jazzDayPlan() : null;
   const required = [];
-  t.parts.forEach(part => {
+  if(day0) day0.exercises.forEach(r => required.push({category: JAZZ_SLOT_PART[r.slot] || 'fundamentals',
+    name: r.title, description: r.todayFocus, minutes: r.estimatedMinutes, keys: r.keys || [],
+    exercises: r.synthetic ? [] : [r.exerciseId], why: r.reason, row: r}));
+  else t.parts.forEach(part => {
     const [category, , activities] = part;
     activities.forEach(a => {
       const [name, description, minutes, keyCount, pickCount] = a;
@@ -647,7 +700,10 @@ function jazzTodaysPlan(sid){
      and the next part tomorrow. So the short sessions rotate rather than
      shrink, and only the two-hour and longer ones keep all four. */
   const budget = jazzSessionBudget();
-  const shaped = jazzShapePlan(required, budget, day);
+  /* the day's plan already fits the budget; only the old template shape needs shaping */
+  const shaped = day0 ? {blocks: required, name: (JAZZ_BUDGETS.find(b => b.id === budget) || {}).name || '',
+      note: 'Four to six exercises, chosen for today — focus is worth more than volume.', dropped: []}
+    : jazzShapePlan(required, budget, day);
 
   /* and what the last self-analysis said to work on, which is a better
      focus prompt than anything that could be invented here */
@@ -655,8 +711,8 @@ function jazzTodaysPlan(sid){
   const focus = analysis && analysis.improvementGoals && analysis.improvementGoals.length
     ? analysis.improvementGoals[(day - 1) % analysis.improvementGoals.length] : null;
 
-  return {stage, day, pace: p, paceName: pace.name,
-    totalMinutes: sum(shaped.blocks.map(r => r.minutes)),
+  return {stage, day, pace: p, paceName: pace.name, dayPlan: day0,
+    totalMinutes: day0 ? day0.totalEstimatedMinutes : sum(shaped.blocks.map(r => r.minutes)),
     set: jazzDescentForDay(day).name,
     required: shaped.blocks, bonus, track,
     budget, budgetName: shaped.name, budgetNote: shaped.note,
@@ -682,8 +738,12 @@ function jazzSessionBudget(){
   const st = jazzState().settings;
   return JAZZ_BUDGETS.find(b => b.id === st.budget) ? st.budget : '120';
 }
+/* whether a length was chosen for the day, or the stage's pace decides it */
+const jazzBudgetChosen = () => !!JAZZ_BUDGETS.find(b => b.id === jazzState().settings.budget);
 function jazzSetSessionBudget(id){
-  jazzState().settings.budget = JAZZ_BUDGETS.find(b => b.id === id) ? id : '120';
+  const st = jazzState().settings;
+  if(id === 'pace') delete st.budget;
+  else st.budget = JAZZ_BUDGETS.find(b => b.id === id) ? id : '120';
   saveNow();
 }
 /* Which parts survive the budget, and at what length. The rotation is by

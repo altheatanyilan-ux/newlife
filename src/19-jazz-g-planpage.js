@@ -70,7 +70,18 @@ function jazzPlanHTML(){
     ${jazzTipOfDayHTML()}
     ${jazzStageHeadHTML(stage)}
     ${typeof jazzCurrentUnitSummaryHTML === 'function' ? jazzCurrentUnitSummaryHTML() : ''}
-    ${!started ? '' : !plan ? '<div class="empty">This stage has no plan template yet.</div>' : `
+    ${!started ? '' : plan && plan.dayPlan ? `${jazzDayPlanHTML(plan)}
+    <details class="jzd-more"><summary class="mono">if there is time</summary>
+      ${plan.focus ? `<div class="jz-focus"><span class="sc">Focus, from your last self-analysis</span>
+        <p class="serif">${esc(plan.focus)}</p></div>` : ''}
+      ${plan.track && !plan.dayPlan.exercises.some(r => r.listening) ? jazzListenBlockHTML(plan) : ''}
+      ${(plan.material || []).length ? `<div class="jz-matdue"><span class="sc">From this stage’s unit assignments</span>
+        ${plan.material.map(m => `<a class="jz-matdue-row" href="#/jazz/${esc(m.id)}"><span class="jz-matdue-name">${esc(m.name)}</span>
+          <span class="mono jz-matdue-meta">${m.keys ? `${m.keys}/12 keys` : 'not started'}</span></a>`).join('')}</div>` : ''}
+      ${plan.bonus.map(b => `<div class="jz-block bonus"><div class="jz-bhead"><span class="jz-bi">⭐</span>
+        <b>${esc(b.name)}</b><span class="mono jz-bmin">${b.minutes} min</span></div>
+        <p class="jz-bwhat">${esc(b.description)}</p><p class="jz-bwhy mono">${esc(b.why)}</p></div>`).join('')}
+    </details>` : !plan ? '<div class="empty">This stage has no plan template yet.</div>' : `
     <div class="jz-plan">
       <div class="row between" style="align-items:baseline">
         <span class="sc">Meeting the benchmark</span>
@@ -302,6 +313,12 @@ function bindJazzPlan(root){
   $$('[data-jzundo]', root).forEach(b => b.onclick = () => {
     jazzSessionDrop(b.dataset.jzundo); sound('click'); rerender(); });
 
+  bindJazzTrackToggle(root);
+  $$('[data-jzswap]', root).forEach(b => b.onclick = () => {
+    if(jazzSwapPlanRow(+b.dataset.jzswap)){ sound('click'); rerender(); }
+    else toast('Nothing else of the same tier and kind on this stage today.'); });
+  const pstart = root.querySelector('#jzPlanStart');
+  if(pstart) pstart.onclick = () => jazzStartPlanSequence();
   const start = root.querySelector('#jzSessStart');
   if(start) start.onclick = () => openJazzSpace(() => {
     jazzStartSession(jazzActiveStage().id); sound('success'); navigate('#/jazz/session'); });
@@ -354,7 +371,7 @@ function openJazzActivity(block){
     <div class="row" style="gap:10px;margin-top:10px">
       <label class="pd-q" style="flex:1"><span class="k">minutes</span>
         <input class="inp mono" type="number" min="0" max="600" id="jaMins" value="${b.minutes || 15}"></label>
-      <label class="pd-q" style="flex:1"><span class="k">how it went</span>
+      <label class="pd-q" style="flex:1"><span class="k">how comfortable (1–5)</span>
         <select class="sel" id="jaQ">${JAZZ_QUALITY.map(q =>
           `<option value="${q[0]}" ${q[0] === 'improving' ? 'selected' : ''}>${q[1]}</option>`).join('')}</select></label>
     </div>

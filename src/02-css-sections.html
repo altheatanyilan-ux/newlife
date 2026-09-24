@@ -9531,5 +9531,57 @@ html.ja-running{overflow:hidden}
 .jl-lrow .jl-count{display:flex;gap:4px;align-items:center;justify-content:flex-end}
 .jl-ladder .jl-row{grid-template-columns:5rem 1fr 80px 5.4rem}
 @media (max-width:520px){.jl-ladder .jl-row{grid-template-columns:3.5rem 1fr 40px 4.6rem}}
+
+/* ---- Jazz: tiers, the track, and the day's plan ---- */
+.jz-tier{display:inline-flex;align-items:center;gap:3px;font-size:.58rem;letter-spacing:.06em;border:1px solid var(--line);border-radius:8px;padding:0 6px;vertical-align:middle;white-space:nowrap}
+.jz-tier b{font-weight:600;color:var(--muted)}
+.jz-tier i{font-style:normal;color:var(--muted)}
+.jz-tier-fast-track{border-color:color-mix(in srgb,#c2453a 45%,var(--line))}
+.jz-tier-core{border-color:color-mix(in srgb,#3f6fb5 45%,var(--line))}
+.jz-subt .jz-tier{font-size:.52rem;padding:0 4px}
+.jz-tierrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:-4px 0 10px;font-size:.72rem}
+.jz-trackpick{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:6px 0 12px}
+.jz-trackpick button{border:1px solid var(--line);background:var(--card);padding:5px 14px;font-size:.8rem;cursor:pointer;color:var(--text)}
+.jz-trackpick button:first-child{border-radius:18px 0 0 18px}
+.jz-trackpick button:nth-child(2){border-radius:0 18px 18px 0;margin-left:-5px}
+.jz-trackpick button.on{background:var(--page-accent);border-color:var(--page-accent);color:#fff}
+.jz-trackpick .mono{font-size:.66rem;margin-left:8px}
+.jz-subsbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.66rem;color:var(--muted);margin:6px 0 4px}
+.jz-sortpick{display:inline-flex;gap:2px}
+.jz-sortpick .tbtn.on{color:var(--page-accent);border-color:var(--page-accent)}
+.jzd{display:flex;flex-direction:column;gap:10px}
+.jzd-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.jzd-title{margin:2px 0 0;font-size:1.35rem}
+.jzd-total{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+.jzd-total b{font-size:2.4rem;font-weight:500}
+.jzd-total .mono{font-size:.62rem;color:var(--muted)}
+.jzd-side{border:1px dashed var(--line);border-radius:12px;padding:8px 12px;font-size:.84rem}
+.jzd-side p{margin:4px 0}
+.jzd-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:jzd}
+.jzd-row{counter-increment:jzd;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card)}
+.jzd-rtop{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.jzd-rtitle{font-weight:500;color:inherit}
+.jzd-type{font-size:.56rem;border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--muted)}
+.jzd-focus{margin:4px 0 0;font-size:.86rem}
+.jzd-why{margin:2px 0 0;font-size:.66rem;color:var(--muted)}
+.jzd-rside{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.jzd-min{font-size:.8rem}
+.jzd-ready{border:1px solid var(--page-accent);border-radius:12px;padding:10px 12px;background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.jzd-ready p{margin:4px 0 8px;font-size:.84rem}
+.jzd-cycle{border-left:3px solid var(--page-accent);padding:4px 12px;font-size:.84rem}
+.jzd-cycle.extend{border-left-color:#c98a2e}
+.jzd-cycle p{margin:4px 0}
+.jzd-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;font-size:.78rem}
+.jzd-sum div{display:flex;flex-direction:column;gap:2px}
+.jzd-sum a{color:inherit}
+.jzd-prog{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:8px;border-top:1px solid var(--line);padding-top:10px;margin-top:6px;font-size:.66rem}
+.jzd-prog div{display:flex;flex-direction:column;gap:1px}
+.jzd-prog span{color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-size:.56rem}
+.jzd-prog b{font-family:var(--serif);font-size:1.4rem;font-weight:500}
+.jzd-prog em{font-style:normal;color:var(--muted)}
+.jzd-seq{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:1px solid var(--page-accent);border-radius:12px;padding:6px 10px;margin:0 0 12px;font-size:.74rem}
+.jzd-more{margin-top:12px}
+.jzd-more summary{cursor:pointer;color:var(--muted);font-size:.72rem}
+@media (max-width:560px){.jzd-row{grid-template-columns:1fr}.jzd-rside{flex-direction:row;align-items:center;justify-content:flex-start}}
 </style>
 </head>

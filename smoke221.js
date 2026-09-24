@@ -87,7 +87,7 @@ out.rec=await p.evaluate(()=>({n:jazzRecordings().length, items:document.querySe
 /* The Space, then a session, ended as play time */
 await go('#/jazz/plan');
 const bud=await p.$('[data-jzstart][data-jzpace="standard"]') || await p.$('[data-jzstart]'); if(bud){ await bud.click(); await p.waitForTimeout(500); }
-const st=await p.$('#jzSessStart'); if(st){ await st.click(); await p.waitForTimeout(300); }
+const st=await p.$('#jzPlanStart'); if(st){ await st.click(); await p.waitForTimeout(300); }
 out.space=await p.evaluate(()=>!!document.querySelector('#jsGo'));
 await p.click('#jsSkip'); await p.waitForTimeout(600);
 out.sessHash=await p.evaluate(()=>location.hash+' open='+!!jazzSessionOpen());
@@ -115,7 +115,7 @@ yes('the play-along runs and follows the bars', out.play.running && out.play.now
 yes('  and the band makes a sound in swing, bossa and waltz', out.peak.every(v=>v>0.05), out.peak);
 yes('a recording is kept and played back', out.rec.n===1 && out.rec.items===1 && out.rec.audio, out.rec);
 yes('The Space comes before a session', out.space);
-yes('  and the session starts after it', /session open=true/.test(out.sessHash), out.sessHash);
+yes('  and the session starts after it, on the plan\'s first exercise', /^#\/jazz\/.+ open=true/.test(out.sessHash), out.sessHash);
 yes('play time is told apart from practice time', out.mode.mode==='play' && out.mode.pp.play===25 && out.progress, out.mode);
 yes('the repertoire ladder counts a listen', out.ladder===1, out.ladder);
 yes('no page errors', !errs.length, errs.join(' | '));

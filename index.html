@@ -10200,6 +10200,58 @@ html.ja-running{overflow:hidden}
 .jl-lrow .jl-count{display:flex;gap:4px;align-items:center;justify-content:flex-end}
 .jl-ladder .jl-row{grid-template-columns:5rem 1fr 80px 5.4rem}
 @media (max-width:520px){.jl-ladder .jl-row{grid-template-columns:3.5rem 1fr 40px 4.6rem}}
+
+/* ---- Jazz: tiers, the track, and the day's plan ---- */
+.jz-tier{display:inline-flex;align-items:center;gap:3px;font-size:.58rem;letter-spacing:.06em;border:1px solid var(--line);border-radius:8px;padding:0 6px;vertical-align:middle;white-space:nowrap}
+.jz-tier b{font-weight:600;color:var(--muted)}
+.jz-tier i{font-style:normal;color:var(--muted)}
+.jz-tier-fast-track{border-color:color-mix(in srgb,#c2453a 45%,var(--line))}
+.jz-tier-core{border-color:color-mix(in srgb,#3f6fb5 45%,var(--line))}
+.jz-subt .jz-tier{font-size:.52rem;padding:0 4px}
+.jz-tierrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:-4px 0 10px;font-size:.72rem}
+.jz-trackpick{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:6px 0 12px}
+.jz-trackpick button{border:1px solid var(--line);background:var(--card);padding:5px 14px;font-size:.8rem;cursor:pointer;color:var(--text)}
+.jz-trackpick button:first-child{border-radius:18px 0 0 18px}
+.jz-trackpick button:nth-child(2){border-radius:0 18px 18px 0;margin-left:-5px}
+.jz-trackpick button.on{background:var(--page-accent);border-color:var(--page-accent);color:#fff}
+.jz-trackpick .mono{font-size:.66rem;margin-left:8px}
+.jz-subsbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.66rem;color:var(--muted);margin:6px 0 4px}
+.jz-sortpick{display:inline-flex;gap:2px}
+.jz-sortpick .tbtn.on{color:var(--page-accent);border-color:var(--page-accent)}
+.jzd{display:flex;flex-direction:column;gap:10px}
+.jzd-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.jzd-title{margin:2px 0 0;font-size:1.35rem}
+.jzd-total{display:flex;flex-direction:column;align-items:flex-end;line-height:1}
+.jzd-total b{font-size:2.4rem;font-weight:500}
+.jzd-total .mono{font-size:.62rem;color:var(--muted)}
+.jzd-side{border:1px dashed var(--line);border-radius:12px;padding:8px 12px;font-size:.84rem}
+.jzd-side p{margin:4px 0}
+.jzd-rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:jzd}
+.jzd-row{counter-increment:jzd;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--card)}
+.jzd-rtop{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.jzd-rtitle{font-weight:500;color:inherit}
+.jzd-type{font-size:.56rem;border:1px solid var(--line);border-radius:6px;padding:0 5px;color:var(--muted)}
+.jzd-focus{margin:4px 0 0;font-size:.86rem}
+.jzd-why{margin:2px 0 0;font-size:.66rem;color:var(--muted)}
+.jzd-rside{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.jzd-min{font-size:.8rem}
+.jzd-ready{border:1px solid var(--page-accent);border-radius:12px;padding:10px 12px;background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.jzd-ready p{margin:4px 0 8px;font-size:.84rem}
+.jzd-cycle{border-left:3px solid var(--page-accent);padding:4px 12px;font-size:.84rem}
+.jzd-cycle.extend{border-left-color:#c98a2e}
+.jzd-cycle p{margin:4px 0}
+.jzd-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;font-size:.78rem}
+.jzd-sum div{display:flex;flex-direction:column;gap:2px}
+.jzd-sum a{color:inherit}
+.jzd-prog{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:8px;border-top:1px solid var(--line);padding-top:10px;margin-top:6px;font-size:.66rem}
+.jzd-prog div{display:flex;flex-direction:column;gap:1px}
+.jzd-prog span{color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-size:.56rem}
+.jzd-prog b{font-family:var(--serif);font-size:1.4rem;font-weight:500}
+.jzd-prog em{font-style:normal;color:var(--muted)}
+.jzd-seq{display:flex;gap:8px;align-items:center;flex-wrap:wrap;border:1px solid var(--page-accent);border-radius:12px;padding:6px 10px;margin:0 0 12px;font-size:.74rem}
+.jzd-more{margin-top:12px}
+.jzd-more summary{cursor:pointer;color:var(--muted);font-size:.72rem}
+@media (max-width:560px){.jzd-row{grid-template-columns:1fr}.jzd-rside{flex-direction:row;align-items:center;justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -61606,8 +61658,11 @@ const jazzHasScore = ex => !!(ex && ((ex.gen && ex.generatorType !== 'instructio
 const jazzIsMultiExample = ex => !!(ex && (ex.multiExample || (ex.v3tab && ex.gen) || ex.v3multi));
 
 /* ---------- what is yours ---------- */
-const JAZZ_QUALITY = [['rough','Rough'], ['shaky','Shaky'], ['improving','Improving'],
-  ['solid','Solid'], ['automatic','Automatic']];
+/* how it went, which is also how comfortable it is (1–5): the ids are what
+   every old sitting was rated with, so only the words have changed */
+const JAZZ_QUALITY = [['rough','1 · Can’t play it yet'], ['shaky','2 · Slow and hesitant'],
+  ['improving','3 · Moderate tempo, some mistakes'], ['solid','4 · Comfortable at practice tempo'],
+  ['automatic','5 · Performance-ready']];
 function jazzState(){
   S.jazz = S.jazz && typeof S.jazz === 'object' ? S.jazz : {};
   const j = S.jazz;
@@ -62376,8 +62431,10 @@ const JAZZ_PLAN_TEMPLATES = {
     parts: [
       ['fundamentals', 15, [['The level you are on',
         'Level 1 root over shells; Level 2 melody over basic voicings; Level 3 scat over full voicings; Level 4 lyrics over a real accompaniment.', 15, 2, 1]]],
-      ['tunes', 30, [['A tune, singing and playing',
-        'The whole form, without stopping. If singing makes the comping fall apart, go back one level.', 30, 0, 0]]],
+      ['tunes', 20, [['A tune, singing and playing',
+        'The whole form, without stopping. If singing makes the comping fall apart, go back one level.', 20, 0, 0]]],
+      ['rote', 10, [['Hands alone, voice alone',
+        'The accompaniment on its own until it runs without attention, then the melody sung on its own over a recording of it.', 10, 2, 1]]],
       ['listening', 15, [['Shirley Horn or Diana Krall',
         'One track, listening only to where the piano plays while the voice sings, and where it waits.', 15, 0, 0]]]]},
 
@@ -62416,7 +62473,49 @@ const JAZZ_PLAN_TEMPLATES = {
       ['tunes', 50, [['Write something',
         'An original tune, arranged for a combo. Four bars played before writing any more; the rest follows.', 50, 0, 0]]],
       ['listening', 20, [['Guided listening',
-        '“The Peacocks” and “Isfahan”, twenty times each.', 20, 0, 0]]]]}
+        '“The Peacocks” and “Isfahan”, twenty times each.', 20, 0, 0]]]]},
+
+  /* The voice track. The document gives these levels no times of their own
+     (they run beside the piano stages), so each is a half-hour or
+     forty-five-minute day for as many weeks as its material needs: V1's
+     syllables in four, the chapters of patterns and bass lines in six, the
+     bebop lines, the ensemble work and the arranging in eight. */
+  'V1': {hours: 14, days: 28, daily: 30, source: 'Stoloff, Scat!, Chapter 1 — the syllables and the warm-up',
+    parts: [
+      ['fundamentals', 10, [['The vocal warm-up', 'Breath, lip trills, then the syllable warm-up at ♩=96, a little faster each day.', 10, 0, 1]]],
+      ['rote', 10, [['Syllables to rhythm', 'The four rhythm studies on dah, dit, doo and dwee, straight then swung.', 5, 0, 1],
+        ['One syllable pattern in three keys', 'Sung against a drone, so the pitch is somewhere to land.', 5, 3, 1]]],
+      ['listening', 10, [['Ella, and whose syllables are whose', 'One scat chorus: write down the syllables you hear, not the notes.', 10, 0, 0]]]]},
+  'V2': {hours: 21, days: 42, daily: 30, source: 'Stoloff, Scat!, Chapter 2 — diatonic and chord-scale patterns',
+    parts: [
+      ['fundamentals', 10, [['A pattern in the day’s keys', 'One diatonic pattern, up the scale and down, in three keys.', 10, 3, 1]]],
+      ['rote', 10, [['Over a ii-V', 'The pattern over Dm7–G7, landing on the third of the next chord.', 5, 3, 1],
+        ['Triplet patterns', 'The same pattern in triplets — the swing lives between the two.', 5, 3, 1]]],
+      ['listening', 10, [['Scat, transcribed by ear', 'Four bars of a scat chorus sung back until it matches.', 10, 0, 0]]]]},
+  'V3': {hours: 21, days: 42, daily: 30, source: 'Stoloff, Scat!, the bass-line chapter',
+    parts: [
+      ['fundamentals', 10, [['The walking line alone', 'Roots on one, chord tones between, on a blues in one key.', 10, 2, 1]]],
+      ['rote', 10, [['Bass, then melody, then both', 'Four bars of bass line, four of melody, then alternate bar by bar.', 5, 2, 1],
+        ['In another key', 'The same line moved to a second key without writing it out.', 5, 2, 1]]],
+      ['listening', 10, [['One voice, two lines', 'Follow only the low notes, then only the tune.', 10, 0, 0]]]]},
+  'V4': {hours: 28, days: 56, daily: 30, source: 'Weir, Fearless Vocal Improvisation — the bebop phrases',
+    parts: [
+      ['fundamentals', 10, [['A bebop line, in time', 'One line from the book, sung to the landing note, slowly.', 10, 3, 1]]],
+      ['rote', 10, [['Through the keys', 'The same line in three more keys, transposed by ear.', 5, 3, 1],
+        ['Inside a tune', 'Use the line once in a chorus of a standard, then vary its approach.', 5, 0, 1]]],
+      ['listening', 10, [['Bebop singers', 'Ella, Anita O’Day, Jon Hendricks — one line sung back.', 10, 0, 0]]]]},
+  'V5': {hours: 32, days: 42, daily: 45, source: 'Curriculum v3, Voice Track V5 — ensemble singing and extended techniques',
+    parts: [
+      ['fundamentals', 10, [['Tuning a chord', 'Sing the third of a held chord and tune it low, then the fifth pure.', 10, 0, 1]]],
+      ['rote', 20, [['Your part in the chord', 'One part of a close-harmony arrangement, against the others recorded.', 10, 0, 1],
+        ['An extended technique', 'Vocal percussion or overtone singing, five minutes, recorded.', 10, 0, 1]]],
+      ['listening', 15, [['Vocal groups', 'Lambert, Hendricks & Ross or Take 6: one track, following one voice.', 15, 0, 0]]]]},
+  'V6': {hours: 42, days: 56, daily: 45, source: 'Curriculum v3, Voice Track V6 — vocal arranging; Dobbins',
+    parts: [
+      ['fundamentals', 10, [['Voicing for voices', 'Spread a piano voicing into four singable parts, each with its own melody.', 10, 0, 1]]],
+      ['rote', 20, [['Eight bars arranged', 'Eight bars of a standard for four voices, voice-led by step.', 15, 0, 1],
+        ['Check the ranges', 'Sing every part yourself, softly; rewrite anything that strains.', 5, 0, 1]]],
+      ['listening', 15, [['Arrangers for voices', 'The Manhattan Transfer or Take 6: where the harmony opens and where it goes to unison.', 15, 0, 0]]]]}
 };
 const jazzPlanTemplate = sid => JAZZ_PLAN_TEMPLATES[sid] || JAZZ_PLAN_TEMPLATES[String(sid)] || null;
 
@@ -62537,8 +62636,10 @@ function jazzPaceOf(sid){
   const r = jazzStageRecord(sid);
   const t = jazzPlanTemplate(sid) || {hours: 30, days: 14};
   const hours = jazzStageMinutes(sid) / 60;
-  const targetHours = r.targetHours || t.hours;
-  const targetDays = r.targetDays || t.days;
+  /* the fast track is the essential exercises only, in about half the time */
+  const fastF = typeof jazzTrack === 'function' && jazzTrack() === 'fast-track' ? 0.5 : 1;
+  const targetHours = Math.round((r.targetHours || t.hours) * fastF * 10) / 10;
+  const targetDays = Math.max(1, Math.round((r.targetDays || t.days) * fastF));
   const started = r.startDate || null;
   const day = started ? Math.max(1, daysBetweenDays(started, today()) + 1) : 0;
   /* Two different numbers, and conflating them is how a tracker tells
@@ -62727,8 +62828,15 @@ function jazzTodaysPlan(sid){
   const factor = templateMinutes ? want / templateMinutes : 1;
   const mins = m => Math.max(5, Math.round(m * factor / 5) * 5);
 
+  /* The exercises themselves come from the day's plan (19-jazz-w-dayplan.js):
+     four to six, rotated, balanced, in the keys the rotation has reached.
+     The template stays as the stage's benchmark — its hours and its days. */
+  const day0 = typeof jazzDayPlan === 'function' && String(jazzActiveStage().id) === String(stage.id) ? jazzDayPlan() : null;
   const required = [];
-  t.parts.forEach(part => {
+  if(day0) day0.exercises.forEach(r => required.push({category: JAZZ_SLOT_PART[r.slot] || 'fundamentals',
+    name: r.title, description: r.todayFocus, minutes: r.estimatedMinutes, keys: r.keys || [],
+    exercises: r.synthetic ? [] : [r.exerciseId], why: r.reason, row: r}));
+  else t.parts.forEach(part => {
     const [category, , activities] = part;
     activities.forEach(a => {
       const [name, description, minutes, keyCount, pickCount] = a;
@@ -62783,7 +62891,10 @@ function jazzTodaysPlan(sid){
      and the next part tomorrow. So the short sessions rotate rather than
      shrink, and only the two-hour and longer ones keep all four. */
   const budget = jazzSessionBudget();
-  const shaped = jazzShapePlan(required, budget, day);
+  /* the day's plan already fits the budget; only the old template shape needs shaping */
+  const shaped = day0 ? {blocks: required, name: (JAZZ_BUDGETS.find(b => b.id === budget) || {}).name || '',
+      note: 'Four to six exercises, chosen for today — focus is worth more than volume.', dropped: []}
+    : jazzShapePlan(required, budget, day);
 
   /* and what the last self-analysis said to work on, which is a better
      focus prompt than anything that could be invented here */
@@ -62791,8 +62902,8 @@ function jazzTodaysPlan(sid){
   const focus = analysis && analysis.improvementGoals && analysis.improvementGoals.length
     ? analysis.improvementGoals[(day - 1) % analysis.improvementGoals.length] : null;
 
-  return {stage, day, pace: p, paceName: pace.name,
-    totalMinutes: sum(shaped.blocks.map(r => r.minutes)),
+  return {stage, day, pace: p, paceName: pace.name, dayPlan: day0,
+    totalMinutes: day0 ? day0.totalEstimatedMinutes : sum(shaped.blocks.map(r => r.minutes)),
     set: jazzDescentForDay(day).name,
     required: shaped.blocks, bonus, track,
     budget, budgetName: shaped.name, budgetNote: shaped.note,
@@ -62818,8 +62929,12 @@ function jazzSessionBudget(){
   const st = jazzState().settings;
   return JAZZ_BUDGETS.find(b => b.id === st.budget) ? st.budget : '120';
 }
+/* whether a length was chosen for the day, or the stage's pace decides it */
+const jazzBudgetChosen = () => !!JAZZ_BUDGETS.find(b => b.id === jazzState().settings.budget);
 function jazzSetSessionBudget(id){
-  jazzState().settings.budget = JAZZ_BUDGETS.find(b => b.id === id) ? id : '120';
+  const st = jazzState().settings;
+  if(id === 'pace') delete st.budget;
+  else st.budget = JAZZ_BUDGETS.find(b => b.id === id) ? id : '120';
   saveNow();
 }
 /* Which parts survive the budget, and at what length. The rotation is by
@@ -63085,7 +63200,18 @@ function jazzPlanHTML(){
     ${jazzTipOfDayHTML()}
     ${jazzStageHeadHTML(stage)}
     ${typeof jazzCurrentUnitSummaryHTML === 'function' ? jazzCurrentUnitSummaryHTML() : ''}
-    ${!started ? '' : !plan ? '<div class="empty">This stage has no plan template yet.</div>' : `
+    ${!started ? '' : plan && plan.dayPlan ? `${jazzDayPlanHTML(plan)}
+    <details class="jzd-more"><summary class="mono">if there is time</summary>
+      ${plan.focus ? `<div class="jz-focus"><span class="sc">Focus, from your last self-analysis</span>
+        <p class="serif">${esc(plan.focus)}</p></div>` : ''}
+      ${plan.track && !plan.dayPlan.exercises.some(r => r.listening) ? jazzListenBlockHTML(plan) : ''}
+      ${(plan.material || []).length ? `<div class="jz-matdue"><span class="sc">From this stage’s unit assignments</span>
+        ${plan.material.map(m => `<a class="jz-matdue-row" href="#/jazz/${esc(m.id)}"><span class="jz-matdue-name">${esc(m.name)}</span>
+          <span class="mono jz-matdue-meta">${m.keys ? `${m.keys}/12 keys` : 'not started'}</span></a>`).join('')}</div>` : ''}
+      ${plan.bonus.map(b => `<div class="jz-block bonus"><div class="jz-bhead"><span class="jz-bi">⭐</span>
+        <b>${esc(b.name)}</b><span class="mono jz-bmin">${b.minutes} min</span></div>
+        <p class="jz-bwhat">${esc(b.description)}</p><p class="jz-bwhy mono">${esc(b.why)}</p></div>`).join('')}
+    </details>` : !plan ? '<div class="empty">This stage has no plan template yet.</div>' : `
     <div class="jz-plan">
       <div class="row between" style="align-items:baseline">
         <span class="sc">Meeting the benchmark</span>
@@ -63317,6 +63443,12 @@ function bindJazzPlan(root){
   $$('[data-jzundo]', root).forEach(b => b.onclick = () => {
     jazzSessionDrop(b.dataset.jzundo); sound('click'); rerender(); });
 
+  bindJazzTrackToggle(root);
+  $$('[data-jzswap]', root).forEach(b => b.onclick = () => {
+    if(jazzSwapPlanRow(+b.dataset.jzswap)){ sound('click'); rerender(); }
+    else toast('Nothing else of the same tier and kind on this stage today.'); });
+  const pstart = root.querySelector('#jzPlanStart');
+  if(pstart) pstart.onclick = () => jazzStartPlanSequence();
   const start = root.querySelector('#jzSessStart');
   if(start) start.onclick = () => openJazzSpace(() => {
     jazzStartSession(jazzActiveStage().id); sound('success'); navigate('#/jazz/session'); });
@@ -63369,7 +63501,7 @@ function openJazzActivity(block){
     <div class="row" style="gap:10px;margin-top:10px">
       <label class="pd-q" style="flex:1"><span class="k">minutes</span>
         <input class="inp mono" type="number" min="0" max="600" id="jaMins" value="${b.minutes || 15}"></label>
-      <label class="pd-q" style="flex:1"><span class="k">how it went</span>
+      <label class="pd-q" style="flex:1"><span class="k">how comfortable (1–5)</span>
         <select class="sel" id="jaQ">${JAZZ_QUALITY.map(q =>
           `<option value="${q[0]}" ${q[0] === 'improving' ? 'selected' : ''}>${q[1]}</option>`).join('')}</select></label>
     </div>
@@ -75262,6 +75394,7 @@ function jazzRoadHTML(){
       <button class="tbtn" id="jzAllTips">\u{1f3c6} Practice tips</button>
       <button class="tbtn" data-jzgo="#/jazz/about">ℹ️ About v3</button>
     </div>
+    ${jazzTrackToggleHTML()}
     <div class="jz-view-tabs" role="tablist">
       <button class="jz-view-tab${!isVoice ? ' on' : ''}" data-jzview="piano" role="tab"
         aria-selected="${!isVoice}">Piano</button>
@@ -75280,6 +75413,16 @@ function jazzStageHTML(s, here){
   const ahead = open && !jazzStageReached(s);
   const pct = got.of ? Math.round(got.done / got.of * 100) : 0;
   const num = s.n === 'DT' ? 'DT' : s.n;
+  /* the fast track shows the essential exercises and hides (not removes)
+     the rest; the stage you are on lists its essentials first */
+  const fast = jazzTrack() === 'fast-track' && JAZZ_TIER_MAIN.includes(String(s.id));
+  const fp = jazzFastProgress(s.id);
+  const showAll = !!(jazzUi().showAll || {})[s.id];
+  const current = String((jazzActiveStage() || {}).id) === String(s.id);
+  const sortMode = ((jazzState().settings.stageSort || {})[s.id]) || (current ? 'tier' : 'doc');
+  let rowIds = fast && !showAll ? s.subs.filter(id => jazzTierOf(id) === 'fast-track') : s.subs.slice();
+  if(sortMode === 'tier') rowIds = jazzTierSorted(rowIds);
+  const hidden = s.subs.length - rowIds.length;
   return `<section class="jz-stage${open ? '' : ' shut'}${here ? ' here' : ''}${
     collapsed ? ' collapsed' : ''}${s.track ? ' jz-track' : ''}" data-jzstage="${esc(s.id)}">
     <header class="jz-shead" data-jztoggle="${esc(s.id)}"
@@ -75289,20 +75432,25 @@ function jazzStageHTML(s, here){
         ${s.subtitle ? `<span class="jz-ssub">${esc(s.subtitle)}</span>` : ''}
         <span class="faint">${esc(s.blurb)}</span></span>
       ${jazzDifficultyHTML(s.expectedDifficulty)}
-      <span class="mono jz-scount">${open ? `${got.done}/${got.of}` : '\u{1f512}'}${
-        s.outcome ? `<em class="jz-weeks" title="how long the v3 plan gives this stage">${esc(s.outcome.time)}</em>` : ''}${
+      <span class="mono jz-scount">${open ? (fast ? `${fp.done}/${fp.of} essential` : `${got.done}/${got.of}`) : '\u{1f512}'}${
+        s.outcome ? `<em class="jz-weeks" title="how long the v3 plan gives this stage">${esc(fast ? jazzHalfTime(s.outcome.time) : s.outcome.time)}</em>` : ''}${
         ahead ? '<em class="jz-ahead" title="the stage before this one is not finished">ahead</em>' : ''}
         <span class="jz-toggle-arrow" aria-hidden="true">${collapsed ? '▶' : '▼'}</span></span>
     </header>
     <div class="jz-sbar"><i style="width:${pct}%"></i></div>
     ${open && !collapsed ? `${jazzV3GoldenHTML(s)}
-      <div class="jz-subs">${s.subs.map(id => {
+      <div class="jz-subsbar mono">${fast ? `<span>Fast track · ${fp.done} of ${fp.of} fast-track exercises mastered</span>
+          <button class="tbtn" data-jzshowall="${esc(s.id)}">${showAll ? 'only the essentials' : hidden ? `show all (${hidden} more)` : ''}</button>` : ''}
+        <span class="grow"></span>
+        <span class="jz-sortpick">${[['tier', 'by tier'], ['doc', 'curriculum order']].map(([k, l]) =>
+          `<button class="tbtn${sortMode === k ? ' on' : ''}" data-jzsort="${esc(s.id)}" data-v="${k}">${l}</button>`).join('')}</span></div>
+      <div class="jz-subs">${rowIds.map(id => {
       const ex = jazzExercise(id); if(!ex) return '';
       const single = jazzIsSingle(id);
       const r = jazzRecord(id);
       return `<button class="jz-sub${ex.isV3 ? ' jz-subv3' : ''}" data-jzopen="${esc(id)}">
         <span class="jz-subn mono">${esc(jazzV3Label(ex))}</span>
-        <span class="jz-subt">${jazzV3TypePill(ex, true)} ${esc(ex.name)}${
+        <span class="jz-subt">${jazzV3TypePill(ex, true)} ${jazzTierBadgeHTML(id, true)} ${esc(ex.name)}${
           jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
           jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
             esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}${
@@ -75364,6 +75512,25 @@ function bindJazzRoad(root){
     sound('click');
     rerender();
   });
+  $$('[data-jzshowall]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const u = jazzUi(); u.showAll = u.showAll || {}; u.showAll[b.dataset.jzshowall] = !u.showAll[b.dataset.jzshowall]; rerender(); });
+  $$('[data-jzsort]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const st = jazzState().settings; st.stageSort = st.stageSort || {}; st.stageSort[b.dataset.jzsort] = b.dataset.v;
+    saveNow(); rerender(); });
+}
+/* "~6 weeks" on the fast track */
+const jazzHalfTime = t => String(t || '').replace(/(\d+)\s*weeks?/, (m, n) => `${Math.max(1, Math.round(+n / 2))} weeks on the fast track`);
+/* Section 3A: the track, at the top of the roadmap and the plan */
+function jazzTrackToggleHTML(){
+  const t = jazzTrack();
+  return `<div class="jz-trackpick" role="tablist" aria-label="Which path">
+    <button class="${t === 'full' ? 'on' : ''}" data-jztrack="full" role="tab" aria-selected="${t === 'full'}">Full Curriculum</button>
+    <button class="${t === 'fast-track' ? 'on' : ''}" data-jztrack="fast-track" role="tab" aria-selected="${t === 'fast-track'}">Fast Track</button>
+    <span class="mono faint">${t === 'fast-track' ? 'the essential exercises only, in about half the time — the rest is hidden, not removed'
+      : 'every exercise: core and enrichment'}</span></div>`;
+}
+function bindJazzTrackToggle(root){
+  $$('[data-jztrack]', root).forEach(b => b.onclick = () => { jazzSetTrack(b.dataset.jztrack); sound('click'); rerender(); });
 }
 
 /* ---------- one exercise ---------- */
@@ -75382,6 +75549,12 @@ function jazzExerciseHTML(id){
       <button class="btn sm ghost" id="jzBack">← the roadmap</button>
       <span class="mono faint">${at ? `${esc(jazzV3Label(ex))} · Stage ${esc(String(at.stage.n))} — ${esc(at.stage.name)}` : ''}</span></div>
     <h1 class="serif" style="margin-top:8px">${esc(ex.name)} ${jazzV3TypePill(ex)}</h1>
+    <div class="jz-tierrow">${jazzTierBadgeHTML(id)}
+      <label class="mono faint">tier <select class="sel sm" id="jzTierSet">${JAZZ_TIERS.map(t =>
+        `<option value="${t.id}" ${jazzTierOf(id) === t.id ? 'selected' : ''}>${t.badge} ${esc(t.label.toLowerCase())}</option>`).join('')}</select></label>
+      ${jazzTierOverrides()[id] ? '<button class="tbtn" id="jzTierReset">back to the rule</button>' : ''}
+      ${jazzSubsectionOf(id) ? `<span class="mono faint">subsection ${esc(jazzSubsectionOf(id))}</span>` : ''}</div>
+    ${jazzSequenceBarHTML(id)}
     <div class="jz-cols">
       <div class="jz-main">
         ${jazzV3PanelHTML(ex)}
@@ -75522,6 +75695,11 @@ function jazzChecklistHTML(id){
 function bindJazzExercise(root, id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
+  const tierSel = root.querySelector('#jzTierSet');
+  if(tierSel) tierSel.onchange = () => { jazzSetTier(id, tierSel.value); sound('click'); rerender(); };
+  const tierReset = root.querySelector('#jzTierReset');
+  if(tierReset) tierReset.onclick = () => { jazzSetTier(id, null); sound('click'); rerender(); };
+  bindJazzSequence(root, id);
   try { if(typeof bindJazzMaterial === 'function') bindJazzMaterial(root, id); } catch(e){}
   /* What this copy draws: the score you have edited if there is one, and
      what the generator writes if there is not. One override, not three. */
@@ -78333,6 +78511,711 @@ function jzlDrawC(host){
   };
   const off = jzlListen(() => {});
   off(() => { if(band){ band.stop(); band = null; } });
+}
+/* ============================================================
+   THE THREE TIERS — core, enrichment, and the fast track through them.
+
+   Every exercise is one of three things:
+
+     core         the Siskind curriculum's own numbered exercises, its
+                  coordination exercises (the .9xx numbers) and its first
+                  improvising (IMP-B1-*), and Stage 0's foundations.
+     enrichment   what the other books and the v3 document added — Levine,
+                  Berklee, Mantooth, Dobbins, Stoloff, Weir, Peckham and the
+                  document's own entries — and every worksheet, listening
+                  assignment, song-form analysis and "write it in these keys".
+     fast-track   the eight to ten core exercises per stage a student must
+                  have to be ready for the next one: the first playable
+                  exercise of each subsection (where each new idea arrives),
+                  at least one coordination exercise and at least one
+                  improvising one, never a worksheet, a listening or a page
+                  of pure theory.
+
+   Where a main-line stage has fewer than eight playable core exercises
+   (Stage 4 is mostly Levine, Stage 5 has no Siskind at all, Stage 11 is
+   mostly Berklee), its own playable exercises are promoted to core in the
+   document's order, the room's originals first, until it has eight — so
+   the fast track never has a hole in it.
+
+   Every tier can be corrected: JAZZ_TIER_OVERRIDES for a correction that
+   ships, S.jazz.tierOverrides for one of your own.
+   ============================================================ */
+
+const JAZZ_TIERS = [
+  {id: 'fast-track', badge: '🔴', label: 'ESSENTIAL', said: 'Must-do: the minimum path to the next stage'},
+  {id: 'core', badge: '🔵', label: 'CORE', said: 'Recommended: the curriculum itself'},
+  {id: 'enrichment', badge: '⚪', label: 'ENRICHMENT', said: 'Optional: the other books, worksheets and listening'}];
+const jazzTierInfo = t => JAZZ_TIERS.find(x => x.id === t) || JAZZ_TIERS[2];
+/* the brief's type names, from the v3 tags */
+const JAZZ_TIER_TYPE = {NOTATION: 'NOTATION', DRILL: 'DRILL', THEORY: 'THEORY', IMPROV: 'CREATIVE',
+  LISTEN: 'LISTENING', WORKSHEET: 'WORKSHEET'};
+const JAZZ_TIER_MINUTES = {NOTATION: 18, DRILL: 12, THEORY: 10, LISTENING: 8, CREATIVE: 10, WORKSHEET: 18};
+const JAZZ_TIER_ENRICH_BOOKS = ['Levine', 'Mantooth', 'Berklee Harmony', 'Dobbins', 'Stoloff', 'Weir',
+  'Peckham', 'Gemini Research', 'Curriculum v3', 'Barry Harris'];
+const JAZZ_TIER_MAIN = ['P0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+const JAZZ_FAST_MIN = 8, JAZZ_FAST_MAX = 10;
+
+/* corrections that ship with the room, id → tier. Empty until one is needed:
+   the rules below are the whole of the classification. */
+const JAZZ_TIER_OVERRIDES = {};
+
+const jazzIsCoordination = ex => !!ex && /\.9\d\d/.test(ex.id) && ex.type === 'DRILL';
+const jazzIsCreative = ex => !!ex && (ex.type === 'IMPROV' || /^IMP-/.test(ex.id));
+/* something you do at the piano: a score, a drill or improvising — a theory
+   page with a score to play is not "purely theoretical" */
+const jazzIsPlayable = ex => !!ex && (['NOTATION', 'DRILL', 'IMPROV'].includes(ex.type)
+  || (ex.type === 'THEORY' && jazzHasScore(ex)));
+const JAZZ_TIER_ENRICH_NAME = /song[- ]form|form analysis|analy[sz]e the form|written analysis|write (it |them |each |the )?.*in (all|the specified|specified|\d+) keys/i;
+
+/* the rule, before the top-up and the overrides */
+function jazzTierBase(ex){
+  if(!ex) return 'enrichment';
+  const book = (ex.ref && ex.ref.book) || '';
+  if(ex.type === 'WORKSHEET' || ex.type === 'LISTEN') return 'enrichment';
+  if(JAZZ_TIER_ENRICH_NAME.test(ex.name || '')) return 'enrichment';
+  if(ex.isV3) return 'enrichment';
+  if(/^Siskind/.test(book) || /^IMP-/.test(ex.id) || /\.9\d\d/.test(ex.id) || book === 'Design Doc') return 'core';
+  return 'enrichment';
+}
+
+/* ---------- subsections ----------
+   The layout has no letters, so they are read from what the material is: a
+   new subsection starts where its kind changes — the old stage its number
+   comes from (2.x, 3.x, 4.x), the coordination exercises, the first
+   improvising, the worksheets. Named 2A, 2B… in the document's order. */
+function jazzTierFamily(ex){
+  if(!ex) return null;
+  if(/^IMP-/.test(ex.id) || ex.type === 'IMPROV') return 'improv';
+  if(ex.type === 'WORKSHEET') return 'worksheet';
+  if(ex.type === 'LISTEN') return 'listen';
+  if(jazzIsCoordination(ex)) return 'coord';
+  const label = (ex.v3 && ex.v3.label) || ex.id;
+  const m = /^(P0|V\d|DT|BH|\d+[A-D]?)[.\-]/.exec(String(label));
+  return m ? m[1] : null;
+}
+let _jazzTierCache = null;
+const jazzTierReset = () => { _jazzTierCache = null; };
+function jazzTierTable(){
+  if(_jazzTierCache && _jazzTierCache.book === _jazzBook) return _jazzTierCache;
+  const stages = jazzStages();
+  const tier = {}, subsection = {}, subsOf = {};
+  stages.forEach(s => {
+    const n = s.id === 'P0' ? '0' : /^\d+$/.test(String(s.id)) ? String(s.id) : String(s.id) + '-';
+    let letter = -1, fam = undefined;
+    const groups = [];
+    s.subs.forEach(id => {
+      const ex = jazzExercise(id); if(!ex) return;
+      const f = jazzTierFamily(ex);
+      if(letter < 0 || (f !== null && f !== fam)){ letter++; fam = f === null ? fam : f; groups.push([]); }
+      subsection[id] = n + String.fromCharCode(65 + Math.min(letter, 25));
+      groups[groups.length - 1].push(id);
+      tier[id] = jazzTierBase(ex);
+    });
+    subsOf[s.id] = groups;
+  });
+  /* the top-up: a main-line stage short of playable core borrows its own
+     playable exercises, originals first, in the document's order */
+  JAZZ_TIER_MAIN.forEach(sid => {
+    const s = stages.find(x => String(x.id) === sid); if(!s) return;
+    const playable = s.subs.filter(id => jazzIsPlayable(jazzExercise(id)));
+    let have = playable.filter(id => tier[id] === 'core').length;
+    const promote = playable.filter(id => tier[id] !== 'core' && !jazzExercise(id).isV3)
+      .concat(playable.filter(id => tier[id] !== 'core' && jazzExercise(id).isV3));
+    for(const id of promote){ if(have >= JAZZ_FAST_MIN) break; tier[id] = 'core'; have++; }
+  });
+  /* the shipped corrections, before the fast track is chosen from core */
+  Object.keys(JAZZ_TIER_OVERRIDES).forEach(id => { if(tier[id]) tier[id] = JAZZ_TIER_OVERRIDES[id]; });
+  /* the fast track, per main-line stage */
+  JAZZ_TIER_MAIN.forEach(sid => {
+    const s = stages.find(x => String(x.id) === sid); if(!s) return;
+    const core = s.subs.filter(id => tier[id] === 'core' || tier[id] === 'fast-track');
+    const ok = core.filter(id => jazzIsPlayable(jazzExercise(id)));
+    const pick = [];
+    const take = id => { if(id && !pick.includes(id)) pick.push(id); };
+    take(ok.find(id => jazzIsCoordination(jazzExercise(id))));
+    take(ok.find(id => jazzIsCreative(jazzExercise(id))));
+    (subsOf[s.id] || []).forEach(g => take(g.find(id => ok.includes(id))));
+    ok.forEach(id => { if(pick.length < JAZZ_FAST_MIN) take(id); });
+    /* in the document's order, and no more than ten — the leads keep their
+       place over the fill, and the two guarantees are never dropped */
+    const must = pick.slice(0, 2);
+    const kept = ok.filter(id => pick.includes(id));
+    while(kept.length > JAZZ_FAST_MAX){
+      const drop = kept.slice().reverse().find(id => !must.includes(id));
+      kept.splice(kept.indexOf(drop), 1);
+    }
+    kept.forEach(id => { tier[id] = 'fast-track'; });
+  });
+  _jazzTierCache = {book: _jazzBook, tier, subsection, subsOf};
+  return _jazzTierCache;
+}
+function jazzTierOverrides(){
+  const j = jazzState();
+  j.tierOverrides = j.tierOverrides && typeof j.tierOverrides === 'object' ? j.tierOverrides : {};
+  return j.tierOverrides;
+}
+/** the tier an exercise is on, yours if you have set one */
+function jazzTierOf(id){
+  const mine = jazzTierOverrides()[id];
+  if(mine && JAZZ_TIERS.some(t => t.id === mine)) return mine;
+  return jazzTierTable().tier[id] || 'enrichment';
+}
+function jazzSetTier(id, tier){
+  const o = jazzTierOverrides();
+  if(!tier || tier === jazzTierTable().tier[id]) delete o[id]; else o[id] = tier;
+  saveNow();
+}
+const jazzTierIsCore = t => t === 'core' || t === 'fast-track';
+const jazzSubsectionOf = id => jazzTierTable().subsection[id] || null;
+
+/* ---------- the data model the brief asks for ---------- */
+function jazzTierSource(ex){
+  const r = ex.ref || {};
+  const book = r.book || '';
+  const ch = String(r.chapter || '');
+  const unit = /Unit\s*(\d+)/i.exec(ch), chap = /(?:Chapter|Ch\.?)\s*(\d+)/i.exec(ch);
+  const sis = /^Siskind Book (\d)/.exec(book);
+  if(sis) return `siskind-b${sis[1]}${unit ? '-u' + unit[1] : ''}`;
+  const slug = book.toLowerCase().replace(/ harmony$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'room';
+  return slug + (chap ? '-ch' + chap[1] : unit ? '-u' + unit[1] : '');
+}
+function jazzExerciseRecord(ex){
+  if(typeof ex === 'string') ex = jazzExercise(ex);
+  if(!ex) return null;
+  const type = JAZZ_TIER_TYPE[ex.type] || 'NOTATION';
+  const keysRequired = jazzIsSingle(ex.id) || !jazzHasScore(ex) && ['THEORY', 'LISTENING', 'WORKSHEET'].includes(type) ? 0 : 12;
+  const T = jazzTierTable();
+  const sub = T.subsection[ex.id] || null;
+  /* what comes first: the core before it in its subsection, else the end of
+     the one before it */
+  const stage = jazzStage(ex.stage);
+  const order = stage ? stage.subs : [];
+  const at = order.indexOf(ex.id);
+  const coreBefore = order.slice(0, Math.max(0, at)).filter(id => jazzTierIsCore(jazzTierOf(id)));
+  const sameSub = coreBefore.filter(id => T.subsection[id] === sub);
+  /* the first core of a stage stands on the previous stage's essentials */
+  const mainAt = JAZZ_TIER_MAIN.indexOf(String(ex.stage));
+  const prevStage = mainAt > 0 ? jazzStage(JAZZ_TIER_MAIN[mainAt - 1]) : null;
+  const prevFast = prevStage ? prevStage.subs.filter(id => jazzTierOf(id) === 'fast-track') : [];
+  const prerequisiteIds = (sameSub.length ? sameSub : coreBefore.length ? coreBefore : prevFast).slice(-2);
+  return {
+    id: ex.id,
+    stageId: ex.stage === 'P0' ? 0 : /^\d+$/.test(String(ex.stage)) ? +ex.stage : String(ex.stage),
+    subsection: sub,
+    title: ex.name,
+    type,
+    tier: jazzTierOf(ex.id),
+    source: jazzTierSource(ex),
+    isOriginalCurriculum: !ex.isV3,
+    keysRequired,
+    estimatedMinutes: type === 'NOTATION' && !keysRequired ? 15 : JAZZ_TIER_MINUTES[type] || 15,
+    prerequisiteIds,
+    description: (ex.v3 && ex.v3.description) || ex.why || String(ex.theory || '').split(/\n+/)[0] || '',
+    practiceTips: ex.tip || ex.practiceStrategy || ''};
+}
+
+/**
+ * The brief's classifier: an array of exercises (records or ids) back with
+ * `tier` filled in from the rules, the top-up and the overrides.
+ */
+function classifyExercises(exercises){
+  return (exercises || []).map(e => {
+    const id = typeof e === 'string' ? e : e && e.id;
+    if(!id || !jazzExercise(id)) return typeof e === 'object' ? Object.assign({}, e, {tier: 'enrichment'}) : null;
+    return Object.assign({}, typeof e === 'object' ? e : jazzExerciseRecord(id), {tier: jazzTierOf(id)});
+  }).filter(Boolean);
+}
+/**
+ * A stage's exercises of one tier, in the curriculum's order. 'core'
+ * includes the fast-track ones, which are core by definition.
+ */
+function getExercisesByTier(stageId, tier){
+  const sid = String(stageId) === '0' ? 'P0' : String(stageId);
+  const s = jazzStage(sid);
+  if(!s) return [];
+  return s.subs.filter(id => { const t = jazzTierOf(id);
+    return tier === 'core' ? jazzTierIsCore(t) : t === tier; }).map(jazzExerciseRecord);
+}
+/* a stage's exercises in the order the brief asks the list to show:
+   fast-track, then core, then enrichment, the curriculum's order within each */
+function jazzTierSorted(ids){
+  const rank = {'fast-track': 0, core: 1, enrichment: 2};
+  return ids.map((id, i) => [id, i]).sort((a, b) =>
+    (rank[jazzTierOf(a[0])] - rank[jazzTierOf(b[0])]) || (a[1] - b[1])).map(x => x[0]);
+}
+
+/* ---------- the track ----------
+   Full curriculum, or the fast track: only the essential exercises, the
+   stage in about half the time. Switching hides nothing permanently. */
+const jazzTrack = () => jazzState().settings.track === 'fast-track' ? 'fast-track' : 'full';
+function jazzSetTrack(t){ jazzState().settings.track = t === 'fast-track' ? 'fast-track' : 'full'; saveNow(); }
+/* mastered: every key marked (or, for a single-mark item, done) */
+const jazzMastered = id => jazzExGot(id) >= jazzExUnits(id);
+function jazzFastProgress(sid){
+  const s = jazzStage(sid); if(!s) return {done: 0, of: 0};
+  const ids = s.subs.filter(id => jazzTierOf(id) === 'fast-track');
+  return {done: ids.filter(jazzMastered).length, of: ids.length, ids};
+}
+function jazzCoreProgress(sid){
+  const s = jazzStage(sid); if(!s) return {done: 0, of: 0};
+  const ids = s.subs.filter(id => jazzTierIsCore(jazzTierOf(id)));
+  return {done: ids.filter(jazzMastered).length, of: ids.length, ids};
+}
+/* the badge */
+function jazzTierBadgeHTML(id, compact){
+  const t = jazzTierInfo(jazzTierOf(id));
+  const mine = !!jazzTierOverrides()[id];
+  return `<span class="jz-tier jz-tier-${t.id}" title="${esc(t.said)}${mine ? ' — set by you' : ''}">${t.badge}${
+    compact ? '' : ' '}<b>${esc(t.label)}</b>${mine ? '<i>✎</i>' : ''}</span>`;
+}
+/* ============================================================
+   THE DAY'S PLAN — four to six things, not the whole stage.
+
+   A stage has twenty to forty exercises and a day has two hours. Showing
+   all of them is showing none: the student picks the ones they like. So
+   the day is chosen here, by rules a teacher would use:
+
+     rotation     nothing two days running; a core exercise comes round
+                  every two or three days; the less comfortable it is, the
+                  sooner it comes back.
+     keys         three or four keys a session, round the cycle of fourths
+                  (C F B♭ E♭ A♭ D♭ G♭ B E A D G), the ones not yet marked
+                  first, so all twelve come round in three or four days.
+     balance      one harmony or voicing exercise, one coordination or
+                  rhythm exercise, one improvising — and, on the full
+                  curriculum, one thing from the enrichment (a record to
+                  hear, a worksheet, a page to read). A warm-up and a
+                  cool-down tune either side.
+     time         within the minutes you have: three or four exercises in
+                  an hour, five or six in two, never more than seven.
+     readiness    when every core exercise is in all twelve keys and
+                  comfortable (4 of 5), it asks whether you are ready for
+                  the next stage. It never moves you on by itself.
+     two weeks    Siskind writes each unit for about fourteen days, so the
+                  stage runs in fourteen-day cycles: on day ten, if the core
+                  is not near done, it says to give the stage another cycle;
+                  on day fourteen, it says what is yours and what is not.
+
+   generateDailyPlan is pure — the same state and date give the same plan —
+   so it can be tested with made-up students. The room stores the plan it
+   made today, so a swap stays swapped and a re-render does not reshuffle.
+   ============================================================ */
+
+const JAZZ_CIRCLE = ['C', 'F', 'Bb', 'Eb', 'Ab', 'Db', 'Gb', 'B', 'E', 'A', 'D', 'G'];
+/* the five levels of comfort are the five levels a sitting was always rated
+   on; only the words changed, so every old rating keeps its meaning */
+const JAZZ_COMFORT = {rough: 1, shaky: 2, improving: 3, solid: 4, automatic: 5};
+const JAZZ_COMFORT_SAID = ['', 'Can’t play it yet', 'Slow and hesitant', 'Moderate tempo, some mistakes',
+  'Comfortable at practice tempo', 'Performance-ready'];
+const JAZZ_PLAN_WARMUP = 5, JAZZ_PLAN_COOLDOWN = 7;
+
+/* the latest rating on an exercise, as 1–5 */
+function jazzComfortOf(id){
+  const r = jazzRecord(id);
+  const q = ((r.logs || []).find(l => l && l.quality) || {}).quality;
+  return q ? JAZZ_COMFORT[q] || null : null;
+}
+
+/* ---------- the student, as the brief describes them ---------- */
+function jazzStudentState(date){
+  const d = date || today();
+  const stage = jazzActiveStage();
+  const sid = stage ? String(stage.id) : 'P0';
+  const rec = jazzStageRecord(sid);
+  /* the day's length: the one you chose, or the stage's pace — a longer
+     day when behind, the option of a shorter one when ahead */
+  const budget = JAZZ_BUDGETS.find(b => b.id === jazzSessionBudget()) || JAZZ_BUDGETS[2];
+  const pace = typeof jazzPaceOf === 'function' && rec.startDate ? jazzPaceOf(sid) : null;
+  const paceDay = Math.round(jazzPaceMinutes(rec.pace, sid)
+    * (pace && pace.status === 'behind' ? 1.25 : pace && pace.status === 'ahead' ? 0.75 : 1));
+  /* the last seven days: what was practised, and for how long */
+  const since = addDays(d, -7);
+  const days = {};
+  const add = (day, id, mins) => { if(!day || day < since || day > d) return;
+    const x = days[day] = days[day] || {date: day, exerciseIds: [], minutesPracticed: 0};
+    if(id && !x.exerciseIds.includes(id)) x.exerciseIds.push(id);
+    x.minutesPracticed += +mins || 0; };
+  const sessions = jazzSessions().concat(jazzSessionOpen() ? [jazzSessionOpen()] : []);
+  sessions.forEach(s => { (s.activities || []).forEach(a => add(s.day, a.exerciseId, a.minutes));
+    if(!(s.activities || []).length) add(s.day, null, s.minutes); });
+  const times = {};
+  const progress = {};
+  (stage ? stage.subs : []).forEach(id => {
+    const r = jazzRecord(id);
+    (r.logs || []).forEach(l => { add(l.day, id, l.fromSession ? 0 : l.minutes); });
+    const practisedDays = new Set((r.logs || []).map(l => l.day));
+    sessions.forEach(s => (s.activities || []).forEach(a => { if(a.exerciseId === id) practisedDays.add(s.day); }));
+    times[id] = practisedDays.size;
+    const lastSess = sessions.filter(s => (s.activities || []).some(a => a.exerciseId === id)).map(s => s.day).sort().pop();
+    const last = [r.lastAt, lastSess].filter(Boolean).sort().pop() || null;
+    progress[id] = {completedKeys: jazzExGot(id), totalKeys: jazzExUnits(id), lastPracticed: last,
+      comfortLevel: jazzComfortOf(id), keys: JAZZ_KEY_NAMES.filter(k => r.keys[k]), timesPractised: times[id]};
+  });
+  const track = typeof jazzTodaysTrack === 'function' && stage ? jazzTodaysTrack(stage) : null;
+  return {currentStageId: sid === 'P0' ? 0 : /^\d+$/.test(sid) ? +sid : sid,
+    trackMode: jazzTrack(),
+    exerciseProgress: progress,
+    stageStartDate: rec.startDate || null,
+    dailyMinutesTarget: jazzBudgetChosen() ? budget.minutes : paceDay,
+    practiceHistory: Object.values(days).sort((a, b) => b.date.localeCompare(a.date)),
+    listening: track ? {track, plays: jazzListens(track), target: JAZZ_LISTEN_TARGET} : null};
+}
+
+/* ---------- the pieces ---------- */
+/* a small, stable wobble so equal scores do not always fall the same way */
+function jzpHash(s){ let h = 2166136261; for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0) / 4294967296; }
+const jzpSlotOf = r => {
+  const ex = jazzExercise(r.id);
+  if(jazzIsCoordination(ex)) return 'coordination';
+  if(jazzIsCreative(ex)) return 'creative';
+  if(jazzIsPlayable(ex)) return 'harmonic';
+  return 'enrichment';
+};
+const JAZZ_SLOT_PART = {harmonic: 'fundamentals', coordination: 'rote', creative: 'tunes', enrichment: 'listening'};
+/* keys for one exercise today: round the circle from where its rotation has
+   got to, the unmarked ones first */
+function jazzPlanKeys(p, n){
+  const got = (p && p.keys) || [];
+  const offset = (((p && p.timesPractised) || 0) * n) % 12;
+  const ring = JAZZ_CIRCLE.slice(offset).concat(JAZZ_CIRCLE.slice(0, offset));
+  const open = ring.filter(k => !got.includes(k));
+  const pickFrom = open.length >= n ? open : open.concat(ring.filter(k => got.includes(k)));
+  return pickFrom.slice(0, n);
+}
+function jzpKeysSaid(keys, p){
+  const names = keys.map(jazzPretty);
+  const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}` : names[0];
+  const got = (p && p.keys) || [];
+  const fresh = keys.filter(k => !got.includes(k)).length;
+  const why = !got.length && ['C', 'F', 'Bb', 'Eb'].includes(keys[0]) ? 'beginner-friendly keys first'
+    : fresh === keys.length ? `the ${keys.length === 3 ? 'three' : 'four'} you haven't marked yet`
+    : fresh ? `${fresh} new, ${keys.length - fresh} to keep warm` : 'review — all twelve are marked';
+  return `Keys of ${list} (${why})`;
+}
+
+/**
+ * The day's plan, from the brief's studentState.
+ * @param {object} state  see jazzStudentState
+ * @param {{date?:string}} opts
+ */
+function generateDailyPlan(state, opts){
+  const date = (opts && opts.date) || today();
+  const sid = String(state.currentStageId) === '0' ? 'P0' : String(state.currentStageId);
+  const stage = jazzStage(sid);
+  if(!stage) return null;
+  const fast = state.trackMode === 'fast-track';
+  const target = Math.max(20, +state.dailyMinutesTarget || 120);
+  const prog = state.exerciseProgress || {};
+  const hist = state.practiceHistory || [];
+  const yesterday = addDays(date, -1);
+  const yIds = new Set((hist.find(h => h.date === yesterday) || {}).exerciseIds || []);
+  const P = id => prog[id] || {completedKeys: 0, totalKeys: jazzExUnits(id), lastPracticed: null, comfortLevel: null, keys: [], timesPractised: 0};
+  const since = id => { const l = P(id).lastPracticed; return l ? Math.max(0, daysBetweenDays(l, date)) : null; };
+  const mastered = id => P(id).totalKeys && P(id).completedKeys >= P(id).totalKeys && (P(id).comfortLevel || 0) >= 4;
+  const tierW = {'fast-track': 1.4, core: 1.2, enrichment: 0.8};
+
+  /* the pool: the stage, on the chosen track */
+  const all = stage.subs.map(jazzExerciseRecord).filter(Boolean);
+  const pool = all.filter(r => fast ? r.tier === 'fast-track' : true);
+  const due = r => {
+    const ds = since(r.id);
+    const c = P(r.id).comfortLevel || 2;
+    const fresh = ds == null ? 3 : 0;
+    const wait = ds == null ? 0 : Math.min(ds, 14);
+    const rotation = ds != null && ds >= 2 ? 1.5 : 1;          /* a core exercise every two or three days */
+    return ((wait + fresh + 1) * (6 - c) * (tierW[r.tier] || 1) * rotation * (mastered(r.id) ? 0.3 : 1))
+      + jzpHash(r.id + date) * 0.5;
+  };
+  const ranked = pool.filter(r => !yIds.has(r.id)).sort((a, b) => due(b) - due(a));
+  const rankedAll = pool.slice().sort((a, b) => due(b) - due(a));
+  const chosen = [];
+  const has = id => chosen.some(c => c.id === id);
+  const first = (list, test) => list.find(r => test(r) && !has(r.id));
+
+  /* ---- the slots ---- */
+  const harm = first(ranked, r => jzpSlotOf(r) === 'harmonic') || first(rankedAll, r => jzpSlotOf(r) === 'harmonic');
+  if(harm) chosen.push(Object.assign({slot: 'harmonic'}, harm));
+  let coord = first(ranked, r => jzpSlotOf(r) === 'coordination');
+  let coordFrom = null;
+  if(!coord){
+    /* none on this stage (or on this track): the nearest earlier stage's */
+    const at = JAZZ_TIER_MAIN.indexOf(sid);
+    for(let i = at - 1; i >= 0 && !coord; i--){
+      const s = jazzStage(JAZZ_TIER_MAIN[i]); if(!s) continue;
+      const c = s.subs.map(jazzExerciseRecord).filter(r => r && jzpSlotOf(r) === 'coordination' && !yIds.has(r.id))
+        .sort((a, b) => (since(b.id) ?? 99) - (since(a.id) ?? 99))[0];
+      if(c){ coord = c; coordFrom = s; }
+    }
+  }
+  if(coord) chosen.push(Object.assign({slot: 'coordination', borrowedFrom: coordFrom ? coordFrom.id : null}, coord));
+  else chosen.push({slot: 'coordination', synthetic: true, id: `rhythm-${sid}`, title: 'Swing eighths against the click',
+    type: 'DRILL', tier: 'core', estimatedMinutes: 10, keysRequired: 0});
+  const crea = first(ranked, r => jzpSlotOf(r) === 'creative') || first(rankedAll, r => jzpSlotOf(r) === 'creative');
+  if(crea) chosen.push(Object.assign({slot: 'creative'}, crea));
+  else chosen.push({slot: 'creative', synthetic: true, id: `improv-${sid}`, title: 'Free improvisation over today’s tune',
+    type: 'CREATIVE', tier: 'core', estimatedMinutes: 10, keysRequired: 0});
+  if(!fast){
+    const lis = state.listening;
+    if(lis && lis.track && lis.plays < lis.target)
+      chosen.push({slot: 'enrichment', synthetic: true, listening: true, id: `listening-${sid}`,
+        title: `Listening: ${lis.track.track} — ${lis.track.artist}`, type: 'LISTENING', tier: 'enrichment',
+        estimatedMinutes: 8, keysRequired: 0, track: lis.track, plays: lis.plays, target: lis.target});
+    else {
+      const en = first(ranked, r => r.tier === 'enrichment' && ['LISTENING', 'WORKSHEET', 'THEORY'].includes(r.type));
+      if(en) chosen.push(Object.assign({slot: 'enrichment'}, en));
+    }
+  }
+  /* ---- how many, in the time there is ---- */
+  const most = Math.min(7, target <= 45 ? 3 : target <= 60 ? 4 : target <= 90 ? 5 : target <= 150 ? 6 : 7);
+  const least = target <= 60 ? 3 : target <= 90 ? 4 : 5;
+  const room = target - JAZZ_PLAN_WARMUP - JAZZ_PLAN_COOLDOWN;
+  const minsOf = r => r.estimatedMinutes || 10;
+  while(chosen.length < most){
+    const more = first(ranked, r => jzpSlotOf(r) === 'harmonic') || first(ranked, r => fast || r.tier !== 'enrichment');
+    if(!more) break;
+    if(sum(chosen.map(minsOf)) + minsOf(more) > room && chosen.length >= least) break;
+    chosen.push(Object.assign({slot: jzpSlotOf(more)}, more));
+  }
+  /* too long for the time: the enrichment goes first, then the extra harmony */
+  while(chosen.length > 3 && sum(chosen.map(minsOf)) > room){
+    const at = chosen.map(c => c.slot).lastIndexOf('enrichment') >= 0 ? chosen.map(c => c.slot).lastIndexOf('enrichment')
+      : chosen.length - 1;
+    chosen.splice(at, 1);
+  }
+  /* the minutes: scaled to fill the time without passing it, in fives */
+  const base = sum(chosen.map(minsOf));
+  const cap = target >= 150 ? 40 : 30;
+  const scale = base ? Math.min(2.5, Math.max(0.4, room / base)) : 1;
+  let rows = chosen.map(c => Object.assign({}, c, {minutes: Math.max(5, Math.min(cap, Math.floor(minsOf(c) * scale / 5) * 5))}));
+  while(sum(rows.map(r => r.minutes)) > room && rows.some(r => r.minutes > 5)){
+    const big = rows.reduce((a, b) => b.minutes > a.minutes ? b : a); big.minutes -= 5; }
+  /* what is left of the time goes, five minutes at a time, to the harmony
+     first — so a three-hour day is three hours, not two and a bit */
+  const order = rows.slice().sort((a, b) => (a.slot === 'harmonic' ? 0 : a.slot === 'creative' ? 1 : 2) - (b.slot === 'harmonic' ? 0 : b.slot === 'creative' ? 1 : 2));
+  for(let guard = 0; guard < 80 && room - sum(rows.map(r => r.minutes)) >= 5; guard++){
+    const r = order.find(x => x.minutes < cap && x.minutes <= Math.min(...order.filter(y => y.minutes < cap).map(y => y.minutes)));
+    if(!r) break; r.minutes += 5; }
+
+  /* ---- keys, focus and the reason ---- */
+  const harmRow = rows.find(r => r.slot === 'harmonic');
+  rows = rows.map(r => {
+    const p = P(r.id);
+    const n = r.minutes >= 18 ? 4 : 3;
+    let keys = [];
+    if(r.keysRequired) keys = r.slot === 'coordination' && harmRow && harmRow.keys ? harmRow.keys.slice() : jazzPlanKeys(p, n);
+    r.keys = keys;
+    if(r === harmRow) harmRow.keys = keys;
+    const ds = since(r.id), left = (p.totalKeys || 12) - (p.completedKeys || 0), c = p.comfortLevel;
+    let focus, reason;
+    if(r.slot === 'coordination'){
+      focus = keys.length ? `Same keys as today's ${harmRow ? harmRow.title : 'harmony'}: ${keys.map(jazzPretty).join(', ')}`
+        : r.synthetic ? 'Five minutes: swing eighths on one note, the metronome on 2 and 4, then the same with the left hand on 1 and 3' : 'At a tempo you can keep';
+      reason = r.synthetic ? `Stage ${sid === 'P0' ? 0 : sid} has no coordination exercise yet — a rhythm drill stands in`
+        : r.borrowedFrom ? `No coordination exercise on this ${fast ? 'track' : 'stage'} — from Stage ${r.borrowedFrom}`
+        : 'Coordination exercise paired with today’s harmonic work';
+    } else if(r.slot === 'creative'){
+      focus = r.synthetic ? '5 minutes free improvisation over the cool-down tune’s changes — record it' : '5 minutes free improvisation, then once more with one idea kept from the first';
+      reason = 'Daily creative exercise — keeps improvisation muscles active';
+    } else if(r.listening){
+      focus = r.track.listenFor || 'Listen once for the form, once for the piano.';
+      reason = `Ear training paired with current stage harmony (${r.plays} of ${r.target} listens)`;
+    } else {
+      focus = keys.length ? jzpKeysSaid(keys, p) : r.type === 'LISTENING' ? 'Listen through twice: once for the form, once for the piano'
+        : r.type === 'WORKSHEET' ? 'Write it out, then play what you wrote' : 'Read it, then find it at the piano in one key';
+      reason = ds == null ? 'Newly introduced — start with comfortable keys'
+        : r.keysRequired && left > 0 && left <= 4 ? `${left} key${left === 1 ? '' : 's'} remaining — prioritizing completion`
+        : c && c <= 2 ? `Low comfort (${c}/5) — here more often`
+        : ds >= 3 ? `Not practised for ${ds} days`
+        : r.slot === 'enrichment' ? 'Something beyond the core, for a full-curriculum day' : 'Due in the rotation';
+    }
+    return {exerciseId: r.id, title: r.title, type: r.type, tier: r.tier, estimatedMinutes: r.minutes,
+      todayFocus: focus, reason, slot: r.slot, keys, synthetic: !!r.synthetic,
+      borrowedFrom: r.borrowedFrom || null, listening: !!r.listening, track: r.track || null};
+  });
+
+  /* ---- either side ---- */
+  const wk = (harmRow && harmRow.keys && harmRow.keys.length ? harmRow.keys : ['C', 'F', 'Bb']).map(jazzPretty);
+  const dayInStage = state.stageStartDate ? Math.max(1, daysBetweenDays(state.stageStartDate, date) + 1) : 1;
+  const tunes = typeof jazzTunesForStage === 'function' ? jazzTunesForStage(sid) : [];
+  const rank = {beginner: 0, intermediate: 1, advanced: 2};
+  const sorted = tunes.slice().sort((a, b) => ((a.role === 'primary' ? 0 : 1) - (b.role === 'primary' ? 0 : 1))
+    || ((rank[(a.row.tune || {}).difficulty] ?? 1) - (rank[(b.row.tune || {}).difficulty] ?? 1)));
+  const tune = sorted.length ? sorted[(dayInStage - 1) % Math.min(sorted.length, 5)] : null;
+  const n = sid === 'P0' ? 0 : sid;
+  const warmUp = {description: `${JAZZ_PLAN_WARMUP} minutes: Play major scales in today's practice keys (${wk.join(', ')}). Focus on even tone and relaxed hands.`,
+    estimatedMinutes: JAZZ_PLAN_WARMUP};
+  const coolDown = {description: tune
+      ? `Play through one Real Book tune at sight-reading tempo. Today's suggestion: '${tune.row.title}' (Stage ${n} ${tune.role} tune, ${(tune.row.tune || {}).difficulty || 'unrated'} difficulty).`
+      : 'Play through one tune you know at sight-reading tempo.',
+    estimatedMinutes: JAZZ_PLAN_COOLDOWN, tuneId: tune ? tune.row.id : null};
+
+  /* ---- ready, and the fourteen days ---- */
+  const coreIds = all.filter(r => fast ? r.tier === 'fast-track' : jazzTierIsCore(r.tier)).map(r => r.id);
+  const ready = coreIds.length > 0 && coreIds.every(mastered);
+  const mainAt = JAZZ_TIER_MAIN.indexOf(sid);
+  const next = mainAt >= 0 && mainAt < JAZZ_TIER_MAIN.length - 1 ? JAZZ_TIER_MAIN[mainAt + 1] : null;
+  const completion = coreIds.length ? sum(coreIds.map(id => Math.min(1, (P(id).completedKeys || 0) / (P(id).totalKeys || 12)))) / coreIds.length : 0;
+  const cycleDay = ((dayInStage - 1) % 14) + 1, cycleNo = Math.floor((dayInStage - 1) / 14) + 1;
+  let cycle = {day: cycleDay, of: 14, number: cycleNo, dayInStage, completion: Math.round(completion * 100), note: null};
+  if(cycleDay >= 10 && cycleDay < 14 && completion < 0.7)
+    cycle.note = {kind: 'extend', said: `Day ${cycleDay} of this two-week cycle, and the core is ${cycle.completion}% there. Give the stage another cycle rather than moving on.`};
+  if(cycleDay === 14)
+    cycle.note = {kind: 'summary', said: `Two weeks in this cycle. Here is what is yours and what needs more work.`,
+      mastered: coreIds.filter(mastered), needsWork: coreIds.filter(id => !mastered(id))};
+  return {date, stageId: state.currentStageId, trackMode: fast ? 'fast-track' : 'full',
+    totalEstimatedMinutes: sum(rows.map(r => r.estimatedMinutes)) + JAZZ_PLAN_WARMUP + JAZZ_PLAN_COOLDOWN,
+    exercises: rows, warmUp, coolDown,
+    readyForNext: ready && next ? {stageId: next, said: `Ready for Stage ${next}?`} : null,
+    cycle};
+}
+
+/* ---------- today's plan, kept ---------- */
+function jazzDayPlan(force){
+  const j = jazzState();
+  const st = jazzStudentState();
+  const key = [today(), String(st.currentStageId), st.trackMode, st.dailyMinutesTarget].join('|');
+  if(!force && j.dayPlan && j.dayPlan.key === key && j.dayPlan.plan) return j.dayPlan.plan;
+  const plan = generateDailyPlan(st, {date: today()});
+  j.dayPlan = {key, plan};
+  saveNow();
+  return plan;
+}
+/* another exercise of the same tier and the same kind, in place of this one */
+function jazzSwapPlanRow(i){
+  const j = jazzState();
+  const plan = jazzDayPlan();
+  const row = plan && plan.exercises[i];
+  if(!row || row.synthetic) return false;
+  const st = jazzStudentState();
+  const stage = jazzStage(String(st.currentStageId) === '0' ? 'P0' : String(st.currentStageId));
+  const inPlan = new Set(plan.exercises.map(r => r.exerciseId));
+  const swaps = (j.dayPlan.swapped = j.dayPlan.swapped || []);
+  const cand = stage.subs.map(jazzExerciseRecord).filter(r => r && !inPlan.has(r.id) && !swaps.includes(r.id)
+    && r.tier === row.tier && jzpSlotOf(r) === row.slot && (st.trackMode !== 'fast-track' || r.tier === 'fast-track'));
+  if(!cand.length) return false;
+  const p = st.exerciseProgress;
+  const lastOf = id => (p[id] && p[id].lastPracticed) || '0000';
+  const pick = cand.sort((a, b) => lastOf(a.id).localeCompare(lastOf(b.id)))[0];
+  swaps.push(row.exerciseId);
+  const keys = pick.keysRequired ? jazzPlanKeys(p[pick.id], row.estimatedMinutes >= 18 ? 4 : 3) : [];
+  plan.exercises[i] = Object.assign({}, row, {exerciseId: pick.id, title: pick.title, type: pick.type, keys,
+    todayFocus: keys.length ? jzpKeysSaid(keys, p[pick.id]) : row.todayFocus, reason: 'Swapped in for today'});
+  saveNow();
+  return true;
+}
+/* where the plan's rows go when opened */
+const jazzPlanRowHref = r => r.synthetic
+  ? (r.listening ? '#/jazz/listen' : r.slot === 'creative' ? `#/jazz/playalong/${(jazzDayPlan().coolDown || {}).tuneId || ''}` : '#/jazz/playalong')
+  : `#/jazz/${r.exerciseId}`;
+
+/* ---------- Start Practice: the plan's rows, one after another ----------
+   The session remembers the order, and every page on it carries a bar that
+   says where you are and moves you on. */
+function jazzStartPlanSequence(){
+  const plan = jazzDayPlan();
+  if(!plan) return;
+  openJazzSpace(() => {
+    const s = jazzStartSession(jazzActiveStage().id);
+    s.sequence = plan.exercises.map(r => ({id: r.exerciseId, title: r.title, href: jazzPlanRowHref(r), synthetic: r.synthetic}));
+    saveNow(); sound('success');
+    navigate(s.sequence[0] ? s.sequence[0].href : '#/jazz/session');
+  });
+}
+function jazzSequenceBarHTML(id){
+  const s = typeof jazzSessionOpen === 'function' ? jazzSessionOpen() : null;
+  const seq = s && s.sequence;
+  if(!seq || !seq.length) return '';
+  const at = seq.findIndex(x => x.id === id);
+  if(at < 0) return '';
+  const prev = seq[at - 1], next = seq[at + 1];
+  return `<div class="jzd-seq">
+    <span class="mono">Today’s plan · ${at + 1} of ${seq.length}</span>
+    <span class="grow"></span>
+    ${prev ? `<button class="tbtn" data-jzseq="${esc(prev.href)}">← ${esc(prev.title)}</button>` : ''}
+    <button class="tbtn" data-jzseqdo="${at}">+ did this</button>
+    ${next ? `<button class="btn sm primary" data-jzseq="${esc(next.href)}">next: ${esc(next.title)} →</button>`
+      : '<button class="btn sm primary" data-jzseq="#/jazz/session">finish — the session →</button>'}</div>`;
+}
+function bindJazzSequence(root){
+  $$('[data-jzseq]', root).forEach(b => b.onclick = () => navigate(b.dataset.jzseq));
+  $$('[data-jzseqdo]', root).forEach(b => b.onclick = () => {
+    const stage = jazzActiveStage();
+    const plan = stage && jazzTodaysPlan(stage.id);
+    const block = plan && plan.required[+b.dataset.jzseqdo];
+    if(block) openJazzActivity(block);
+  });
+}
+
+/* ---------- the plan card (Section 3C) and the summary under it (3D) ---------- */
+function jazzTierBadgeFor(tier){
+  const t = jazzTierInfo(tier);
+  return `<span class="jz-tier jz-tier-${t.id}" title="${esc(t.said)}">${t.badge}<b>${esc(t.label)}</b></span>`;
+}
+function jazzDayPlanHTML(plan){
+  const dp = plan.dayPlan;
+  const stage = plan.stage;
+  const n = stage.id === 'P0' ? 0 : stage.id;
+  const open = jazzSessionOpen();
+  const cyc = dp.cycle;
+  return `<div class="jz-plan jzd">
+    <div class="jzd-head">
+      <div><span class="sc">Day ${cyc.dayInStage} of Stage ${esc(String(n))}</span>
+        <h2 class="serif jzd-title">${esc(stage.name)}</h2></div>
+      <div class="jzd-total"><b class="serif">${dp.totalEstimatedMinutes}</b><span class="mono">minutes today</span></div></div>
+    ${jazzTrackToggleHTML()}
+    <div class="jz-budget">
+      <span class="sc">Time today</span>
+      <div class="jz-budget-picks"><button class="jz-budget-pick${jazzBudgetChosen() ? '' : ' on'}" data-jzbudget="pace">your pace</button>${JAZZ_BUDGETS.map(b =>
+        `<button class="jz-budget-pick${jazzBudgetChosen() && b.id === plan.budget ? ' on' : ''}" data-jzbudget="${esc(b.id)}">${b.minutes >= 180 ? '3 hr +'
+          : b.minutes >= 120 ? '2 hr' : b.minutes >= 60 ? '1 hr' : '30 min'}</button>`).join('')}</div>
+      <p class="jz-budget-note">${dp.exercises.length} exercises, chosen for today — focus is worth more than volume.${
+        jazzBudgetChosen() ? '' : ` The length is your ${esc(plan.paceName.toLowerCase())} pace for this stage.`}</p></div>
+    ${dp.readyForNext ? `<div class="jzd-ready"><b class="serif">${esc(dp.readyForNext.said)}</b>
+      <p>Every ${dp.trackMode === 'fast-track' ? 'essential' : 'core'} exercise of this stage is in all twelve keys and comfortable. Nothing moves until you say so.</p>
+      <button class="btn sm primary" data-jzfinish="${esc(String(stage.id))}">Finish this stage</button></div>` : ''}
+    ${cyc.note ? `<div class="jzd-cycle ${esc(cyc.note.kind)}"><span class="sc">Cycle ${cyc.number} · day ${cyc.day} of 14</span>
+      <p>${esc(cyc.note.said)}</p>
+      ${cyc.note.kind === 'summary' ? `<div class="jzd-sum"><div><span class="mono">yours</span>${(cyc.note.mastered.length ? cyc.note.mastered : ['—']).map(id =>
+        `<a href="#/jazz/${esc(id)}">${esc((jazzExercise(id) || {}).name || id)}</a>`).join('')}</div>
+        <div><span class="mono">needs more work</span>${(cyc.note.needsWork.length ? cyc.note.needsWork : ['—']).map(id =>
+        `<a href="#/jazz/${esc(id)}">${esc((jazzExercise(id) || {}).name || id)}</a>`).join('')}</div></div>` : ''}</div>` : ''}
+    <div class="jzd-side"><span class="sc">Warm-up · ${dp.warmUp.estimatedMinutes} min</span><p>${esc(dp.warmUp.description)}</p></div>
+    <ol class="jzd-rows">${dp.exercises.map((r, i) => `<li class="jzd-row" data-slot="${esc(r.slot)}">
+      <div class="jzd-rmain">
+        <div class="jzd-rtop"><a class="jzd-rtitle" href="${esc(jazzPlanRowHref(r))}">${esc(r.title)}</a>
+          <span class="jzd-type mono">${esc(r.type)}</span>${jazzTierBadgeFor(r.tier)}</div>
+        <p class="jzd-focus">${esc(r.todayFocus)}</p>
+        <p class="jzd-why mono">${esc(r.reason)}</p>
+        ${r.listening ? `<div class="row" style="gap:6px;margin-top:4px"><button class="tbtn" data-jzlisten="1">+ listened once</button></div>` : ''}
+      </div>
+      <div class="jzd-rside"><span class="mono jzd-min">${r.estimatedMinutes} min</span>
+        ${r.synthetic ? '' : `<button class="tbtn" data-jzswap="${i}" title="another exercise of the same tier and kind">⇄ swap</button>`}
+        <button class="tbtn jz-tick" data-jzdo="${i}">+ did this</button></div></li>`).join('')}</ol>
+    <div class="jzd-side"><span class="sc">Cool-down · ${dp.coolDown.estimatedMinutes} min</span><p>${esc(dp.coolDown.description)}</p>
+      ${dp.coolDown.tuneId ? `<a class="tbtn" href="#/jazz/tune/${esc(dp.coolDown.tuneId)}">open the chart</a>` : ''}</div>
+    <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap">
+      ${open ? `<button class="btn primary" id="jzSessOpen">⏱ The session is running — open it</button>`
+        : `<button class="btn primary" id="jzPlanStart">▶ Start Practice</button>`}
+      <button class="btn sm ghost" id="jzProgGo">\u{1f4ca} Where I am</button></div>
+    ${jazzDayProgressHTML(stage, dp)}
+  </div>`;
+}
+/* 3D: where the stage has got to */
+function jazzDayProgressHTML(stage, dp){
+  const core = jazzCoreProgress(stage.id), fast = jazzFastProgress(stage.id);
+  const pc = (a, b) => b ? Math.round(a / b * 100) : 0;
+  /* a key is yours on this stage when every core twelve-key exercise you
+     have started has it */
+  const started = core.ids.filter(id => !jazzIsSingle(id) && (jazzKeysGot(id) > 0 || (jazzRecord(id).logs || []).length));
+  const keys = started.length ? JAZZ_CIRCLE.filter(k => started.every(id => jazzRecord(id).keys[k])) : [];
+  const weeks = stage.outcome ? +((/(\d+)/.exec(stage.outcome.time) || [])[1] || 0) : 0;
+  const fastOn = jazzTrack() === 'fast-track';
+  const stageDays = weeks ? Math.round(weeks * 7 * (fastOn ? 0.5 : 1)) : 0;
+  return `<div class="jzd-prog mono">
+    <div><span>Stage Progress</span><b>${pc(core.done, core.of)}%</b><em>of core exercises mastered (${core.done}/${core.of} across all keys)</em></div>
+    <div><span>Fast-Track Progress</span><b>${pc(fast.done, fast.of)}%</b><em>(${fast.done}/${fast.of} essential exercises mastered)</em></div>
+    <div><span>Days in Stage</span><b>${dp.cycle.dayInStage}</b><em>of ~14 in this cycle${stageDays ? ` · the stage is ~${stageDays} days${fastOn ? ' on the fast track' : ''}` : ''}</em></div>
+    <div><span>Keys Mastered This Stage</span><b>${keys.length}/12</b><em>${keys.length ? esc(keys.map(jazzPretty).join(', ')) : 'none yet'}</em></div></div>`;
 }
 /* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
