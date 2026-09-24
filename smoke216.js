@@ -244,7 +244,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     e.extra.urls = [{url:'https://example.org/geb', label:'', kind:'werk'},
                     {label:'', url:'', kind:'work'},
                     {label:'only a name', url:'', kind:'notes'}];
-    saveNow();
+    /* waited for: a reload that lands while the write is still in the air
+       takes the write with it, and the claim below would be about timing */
+    return saveNow();
   });
   await p.reload(); await p.waitForTimeout(2200);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
@@ -265,7 +267,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n9b. and a work that predates the field entirely');
   await p.evaluate(() => {
     const e = S.entries.find(x => x.type === 'media' && x.title.startsWith('Gödel'));
-    delete e.extra.urls; saveNow();
+    delete e.extra.urls; return saveNow();
   });
   await p.reload(); await p.waitForTimeout(2200);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
