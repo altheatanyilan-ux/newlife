@@ -108,13 +108,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       if(!JAZZ_DIFFICULTY.includes(s.expectedDifficulty)) gap.push(s.id + ': difficulty ' + s.expectedDifficulty);
       rungs.push(jazzDifficultyRank(s.expectedDifficulty));
     });
-    return {n: jazzStages().length, gap, rungs};
+    return {n: jazzStages().length, gap, rungs, ids: jazzStages().map(s => String(s.id))};
   });
-  is('all thirteen rungs of the ladder', stages.n, 13);
+  /* thirteen stages, the DT track after Stage 9, and the six voice levels */
+  is('all thirteen rungs of the ladder, and its two tracks', stages.n, 20);
   is('  and none of them is missing anything', stages.gap, []);
   /* the ladder should get harder, not wander */
-  yes('  and the difficulty never goes backwards',
-    stages.rungs.every((v, i) => i === 0 || v >= stages.rungs[i - 1]), JSON.stringify(stages.rungs));
+  /* the main line (with DT, which runs beside Stage 9 onward) gets harder;
+     the voice track is its own ladder, starting again from the beginning */
+  const main = stages.rungs.filter((v, i) => !/^V/.test(stages.ids[i]));
+  const voice = stages.rungs.filter((v, i) => /^V/.test(stages.ids[i]));
+  const rising = r => r.every((v, i) => i === 0 || v >= r[i - 1]);
+  yes('  and the difficulty never goes backwards, on the piano or on the voice',
+    rising(main) && rising(voice), JSON.stringify({main, voice}));
 
   console.log('\n3. a checklist nobody wrote says so');
   const derived = await p.evaluate(() => {
@@ -168,8 +174,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       wall: txt.includes('hit their first real wall'),
       brubeck: txt.includes('Take Five')};
   });
-  is('every stage wears its difficulty', road.badges, 13);
-  is('  and says how long it honestly takes', road.howLong, 13);
+  /* the piano tab: thirteen stages and the DT track */
+  is('every stage wears its difficulty', road.badges, 14);
+  is('  and says how long it honestly takes', road.howLong, 14);
   yes('  and cites its records', road.records >= 20, `${road.records}`);
   yes('  and lists what goes wrong', road.mistakes >= 25, `${road.mistakes}`);
   yes('the history is on the page', road.guido === true);

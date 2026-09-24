@@ -331,8 +331,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       unmarked: Object.keys(book).filter(id => !book[id].acc)};
   });
   is('every exercise in the book carries a mark', acc.unmarked, []);
-  is('  and only the three the brief names are used', acc.kinds,
-    ['approximate', 'needs_manual_verification', 'verified']);
+  /* the brief's three, and the two Curriculum v3 added: the document's own
+     notation shipped as written, and notation built from its [Score] words */
+  is('  and only the brief\'s three and v3\'s two are used', acc.kinds,
+    ['approximate', 'doc_example', 'from_description', 'needs_manual_verification', 'verified']);
+  is('  each of which the page can explain', await p.evaluate(() =>
+    ['approximate', 'doc_example', 'from_description', 'needs_manual_verification', 'verified']
+      .filter(k => !(JAZZ_ACCURACY[k] && JAZZ_ACCURACY[k].short))), []);
   is('licks 1 and 2 are approximate, 3 and 10 are unverified',
     acc.licks, ['approximate', 'approximate', 'needs_manual_verification', 'needs_manual_verification']);
   is('the minor formula the book prints is verified; the two it describes are not',

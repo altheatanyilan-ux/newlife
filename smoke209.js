@@ -57,26 +57,31 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const ids = ladder.flatMap(s => s.subs);
     const G = JazzExerciseGenerator;
     return {stages: ladder.map(s => s.id), n: ids.length,
+      pianoN: ladder.filter(s => !/^V/.test(String(s.id))).flatMap(s => s.subs).length,
       /* the seam: every generator the catalogue names by string */
       missing: ids.map(jazzExercise).filter(e => e.gen && typeof G[e.gen] !== 'function')
         .map(e => `${e.id}:${e.gen}`),
       noScore: ids.map(jazzExercise).filter(e => !jazzHasScore(e)).map(e => e.id),
+      /* since Curriculum v3, what has nothing to draw is what the document
+         says is not notation: theory, drills, improvising, listening,
+         worksheets. A NOTATION entry with nothing to draw would be a gap. */
+      notationUndrawn: ids.map(jazzExercise).filter(e => !jazzHasScore(e) && e.type === 'NOTATION').map(e => e.id),
       sourced: ids.map(jazzExercise).filter(e => e.source).length,
-      why: ids.map(jazzExercise).filter(e => e.why).length,
+      /* the room's own exercises carry a why; the document's entries carry
+         its description, which is the same thing said by the document */
+      why: ids.map(jazzExercise).filter(e => e.why || (e.v3 && (e.v3.description || e.v3.theory))).length,
       dupes: ids.length - new Set(ids).size};
   });
-  is('the ladder runs from the intervals to odd time',
-    book.stages, ['P0','1','2','3','4','5','6','7','8','9','10','11','12']);
+  is('the ladder runs from the intervals to where the studying stops, with its two tracks',
+    book.stages, ['P0','1','2','3','4','5','6','7','8','9','DT','10','11','12','V1','V2','V3','V4','V5','V6']);
   yes('  with seventy-odd exercises on it', book.n >= 70, String(book.n));
   is('  and none of them twice', book.dupes, 0);
   /* the seam, stated as a claim rather than hoped for */
   is('every generator the book names is one this copy has', book.missing, []);
-  is('  and every exercise says why it is there', book.why, book.n - book.noScore.length + book.noScore.length);
+  is('  and every exercise says why it is there', book.why, book.n);
   yes('  and which page of the book it came from',
     book.sourced >= book.n - 2, `${book.sourced} of ${book.n}`);
-  /* three of them are projects rather than things to read */
-  yes('  the handful with nothing to draw are known', book.noScore.length <= 4,
-    JSON.stringify(book.noScore));
+  is('  and what has nothing to draw is never something the document calls notation', book.notationUndrawn, []);
 
   console.log('\n2. every exercise, in every key, comes out as notation');
   const written = await p.evaluate(() => {
@@ -86,10 +91,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     for(const id of ids){
       const ex = jazzExercise(id);
       for(const key of JAZZ_KEY_NAMES){
-        let xml = null;
-        try { xml = jazzScoreXml(ex, key, {interval:'major3rd'}); }
+        let res = null;
+        try { res = jazzScoreXml(ex, key, {interval:'major3rd'}); }
         catch(e){ threw.push([id, key, e.message]); continue; }
         n++;
+        /* an exercise with more than one example, or the document's version
+           beside the room's, comes back as several documents: each is checked */
+        const xml = res && res.documents ? res.documents.map(d => d.mxl).join('\n') : res;
         if(!xml || !/<score-partwise/.test(xml) || !/<note[ >]/.test(xml)){ empty.push([id, key]); continue; }
         /* a note nobody could read: more than a double sharp or double flat */
         for(const m of xml.matchAll(/<alter>(-?\d+)<\/alter>/g))
@@ -126,7 +134,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const pairs = [];
     ids.forEach(id => JAZZ_KEY_NAMES.forEach(key => pairs.push([id, key])));
     for(const [id, key] of pairs){
-      const xml = jazzScoreXml(jazzExercise(id), key, {interval:'major3rd'});
+      const res = jazzScoreXml(jazzExercise(id), key, {interval:'major3rd'});
+      const xml = res && res.documents ? res.documents[0].mxl : res;
       try {
         const o = new lib.OpenSheetMusicDisplay(box, {autoResize:false, backend:'svg',
           drawTitle:false, drawComposer:false, drawCredits:false, drawPartNames:false,
@@ -177,18 +186,23 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await new Promise(r => setTimeout(r, 1200));
     const st = [...document.querySelectorAll('[data-jzstage]')];
     return {n: st.length, open: st.filter(s => !s.classList.contains('shut')).map(s => s.dataset.jzstage),
-      rungs: document.querySelectorAll('[data-jzopen]').length,
-      pips: document.querySelectorAll('.jz-keys > i').length,
+      rungs: document.querySelectorAll('button.jz-sub[data-jzopen]').length,
+      /* twelve pips for a twelve-key exercise, one mark for a single-mark one */
+      pips: document.querySelectorAll('.jz-keys:not(.jz-one) > i').length,
+      twelves: [...document.querySelectorAll('button.jz-sub[data-jzopen]')].filter(b => !jazzIsSingle(b.dataset.jzopen)).length,
       here: (st.find(s => s.classList.contains('here')) || {dataset:{}}).dataset.jzstage,
       ahead: document.querySelectorAll('.jz-ahead').length};
   });
-  is('every stage is on the page', road.n, 13);
+  /* the piano tab: thirteen stages and the DT track after Stage 9; the
+     voice levels are on their own tab */
+  const piano = book.stages.filter(s => !/^V/.test(s));
+  is('every stage is on the page', road.n, piano.length);
   /* Locking stages was the first design and it was wrong for this room: a
      shelf you cannot look at is a shelf you cannot decide about. Everything
      opens; the ladder is advice. */
-  is('  and all of them are open to look at', road.open.length, 13);
-  is('  so every exercise in the book can be reached', road.rungs, book.n);
-  is('  each showing twelve pips, one per key', road.pips, road.rungs * 12);
+  is('  and all of them are open to look at', road.open.length, piano.length);
+  is('  so every exercise on them can be reached', road.rungs, book.pianoN);
+  is('  each twelve-key one showing twelve pips, one per key', road.pips, road.twelves * 12);
   yes('  with the stage you are actually on marked', road.here === 'P0', road.here);
   yes('    and the ones you have run ahead to saying so', road.ahead >= 12, String(road.ahead));
   /* and the discipline of one-at-a-time is there for anybody who wants it */
@@ -203,7 +217,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       .filter(s => !s.classList.contains('shut')).length};
   });
   is('  and it can be made a lock, if that is what you want', gated.open, ['P0']);
-  is('    and unlocked again', gated.back, 13);
+  is('    and unlocked again', gated.back, piano.length);
 
   console.log('\n5. one exercise, its key, and its distance');
   const open = await p.evaluate(async () => {

@@ -420,15 +420,15 @@ function jazzExerciseHTML(id){
         ${typeof IMPROVISATION_LIBRARY === 'object' && (IMPROVISATION_LIBRARY.guidedImprovisation || []).some(e => e.id === id)
           ? `<button class="tbtn" data-jzgo="#/jazz/improv/${esc(id)}">the full guide in the Improvisation room \u2192</button>` : ''}
         ${ex.doubt ? `<div class="jz-note"><span class="sc">About these notes</span><p class="faint">${esc(ex.doubt)}</p></div>` : ''}
-        ${ex.whenToUse ? `<div class="jz-note"><span class="sc">When you would use it</span>
+        ${ex.whenToUse ? `<div class="jz-note"><span class="sc">When you would use it${jazzDerivedTag(ex, 'whenToUse')}</span>
           <p class="serif">${esc(ex.whenToUse)}</p></div>` : ''}
-        ${ex.practiceStrategy ? `<div class="jz-note"><span class="sc">How to practise it</span>
+        ${ex.practiceStrategy ? `<div class="jz-note"><span class="sc">How to practise it${jazzDerivedTag(ex, 'practiceStrategy')}</span>
           <p>${esc(ex.practiceStrategy)}</p></div>` : ''}
         ${jazzMistakesHTML(ex.commonMistakes, ex.mistakesFromStage)}
         ${jazzListeningHTML(ex.listeningAssignments, ex.listeningFromStage)}
-        ${(ex.connections || []).length ? `<div class="jz-note jz-conns"><span class="sc">What it joins onto</span>
+        ${(ex.connections || []).length ? `<div class="jz-note jz-conns"><span class="sc">What it joins onto${jazzDerivedTag(ex, 'connections')}</span>
           <ul>${ex.connections.map(c => `<li>${esc(c)}</li>`).join('')}</ul></div>` : ''}
-        ${ex.creativeChallenge ? `<div class="jz-note jz-challenge"><span class="sc">Something to make with it</span>
+        ${ex.creativeChallenge ? `<div class="jz-note jz-challenge"><span class="sc">Something to make with it${jazzDerivedTag(ex, 'creativeChallenge')}</span>
           <p class="serif">${esc(ex.creativeChallenge)}</p></div>` : ''}
         ${ex.source ? `<p class="jz-src mono">${esc(ex.source)}</p>` : ''}
         ${at ? `<div class="jz-werner"><span class="jz-wi">\u{1f9d8}</span>
@@ -644,3 +644,7 @@ function openJazzHistory(){
     </div>`).join('') : '<div class="empty">Nothing logged yet.</div>'}`, 'wide');
   return m;
 }
+
+/* a practice field nobody wrote for this exercise says so, beside its heading */
+const jazzDerivedTag = (ex, k) => (ex.enrichDerived || []).includes(k)
+  ? ' <em class="jz-inherit" title="No source gives this for this exercise. It is written from the exercise\u2019s type, its place on the ladder and its stage\u2019s goal.">derived</em>' : '';

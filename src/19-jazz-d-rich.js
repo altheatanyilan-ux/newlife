@@ -257,6 +257,176 @@ const JAZZ_STAGE_RICH = {
    Keyed by the id the book gives. Anything left out of an entry falls back
    to its stage; a masteryChecklist left out is derived rather than absent,
    and says so. */
+/* ---------- the stages the old ladder had no record for ----------
+   The old rungs 7A–7D (now v3 Stages 6–9) were added after the stage
+   records were written, and Curriculum v3 brought four stages with no old
+   rung behind them at all (Stage 5, the DT track, V5 and V6). Their records
+   are written here to the same standard as the rest: the history is the
+   history, the records are real records, and a timestamp is only given
+   where it is known. */
+const JAZZ_STAGE_RICH_LATE = {
+  '7A': {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'Six weeks for the first eight-bar transcription and the comping rhythms. The ear it builds keeps growing for as long as you keep transcribing — every solo after the first goes faster.',
+    historicalContext: 'Jazz was learned from records before it was ever taught from books. Bix Beiderbecke learned from the Original Dixieland Jazz Band’s discs; Charlie Parker took Count Basie records into the Ozarks in the summer of 1937 and came back having learned Lester Young’s solos note for note. Siskind’s COREA process formalises what they did: choose a short idea, play it over a static progression, then relentlessly and elegantly through tunes until it is yours.',
+    commonMistakes: ['Writing before singing. If you cannot sing the phrase with the record, you have not heard it yet — pencil comes last.',
+      'Starting with a solo that is too long or too fast. Eight bars of Chet Baker teach more than a chorus of Coltrane you never finish.',
+      'Comping the same rhythm in every bar. Advanced comping is mostly rhythm: vary where the chord lands, and leave space.'],
+    listeningAssignments: [
+      {artist:'Chet Baker', track:'But Not for Me', album:'Chet Baker Sings', year:1954, label:'Pacific Jazz', timestamp:null,
+       listenFor:'The document’s milestone is a Chet Baker solo. His trumpet chorus here is melodic, mid-register and unhurried — the right first transcription.'},
+      {artist:'Miles Davis', track:'Bye Bye Blackbird', album:'’Round About Midnight', year:1956, label:'Columbia', timestamp:null,
+       listenFor:'Red Garland’s comping: short, syncopated, never on every beat, always answering the soloist. This is the comping the stage is building.'}]},
+  '7B': {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'Six weeks. The minor ii-V-i voicings come in two or three; the guidetone lines and scale patterns take the rest, and hearing where a minor tune is going takes longer than playing it.',
+    historicalContext: 'Minor-key standards are a large part of the repertoire — “Beautiful Love” (Victor Young, 1931), “Autumn Leaves”, “Blue Bossa” — and the minor ii-V-i is harder than the major one because the half-diminished ii and the altered V have no simple diatonic scale in common. The line cliché, one voice descending chromatically over a held minor chord, is the sound of “My Funny Valentine” and a great deal of film music since.',
+    commonMistakes: ['Playing the major ii-V-I’s natural ninth on the minor ii. The ii is half-diminished: its fifth is flat, and so is the ninth of the V it leads to.',
+      'Guidetone lines that leap. The point of a guidetone line is that the third and seventh move by step or hold — if it jumps, you have picked the wrong tone.',
+      'Treating the minor i as Dorian every time. Many minor tunes want the melodic minor’s major seventh on the tonic.'],
+    listeningAssignments: [
+      {artist:'Bill Evans Trio', track:'Beautiful Love', album:'Explorations', year:1961, label:'Riverside', timestamp:null,
+       listenFor:'The document’s milestone tune. Hear the half-diminished ii, the altered V, and how Evans voices the minor i with its major seventh.'},
+      {artist:'Joe Henderson', track:'Blue Bossa', album:'Page One', year:1963, label:'Blue Note', timestamp:null,
+       listenFor:'Kenny Dorham’s tune: a minor ii-V-i in C minor and one in D♭ major. Two kinds of cadence side by side.'},
+      {artist:'Miles Davis', track:'My Funny Valentine', album:'Cookin’', year:1956, label:'Prestige', timestamp:null,
+       listenFor:'The opening line cliché — C minor with its seventh sliding down a semitone at a time underneath the melody.'}]},
+  '7C': {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Six weeks for rhythm changes at a medium tempo, with an intro and an ending you can call. Fast rhythm changes and Barry Harris’s sixth-diminished system keep going for years.',
+    historicalContext: 'Gershwin’s “I Got Rhythm” (1930) gave jazz its second form. The bebop players wrote dozens of new tunes over its chords — Ellington’s “Cotton Tail” (1940), Parker and Gillespie’s “Anthropology”, Sonny Rollins’s “Oleo” — and a jam session still calls rhythm changes more than anything but the blues. Barry Harris (1929–2021), the Detroit pianist, taught his sixth-diminished approach in New York workshops for decades; it is the bebop pianist’s way of moving through exactly this harmony.',
+    commonMistakes: ['Playing the bridge as four bars of one scale each. D7–G7–C7–F7 is a chain of dominants: aim the line at the third of the next chord.',
+      'Losing the A section’s I–vi–ii–V at tempo. Simplify to the tonic and the turnaround’s last chord before adding every change back.',
+      'An intro in the wrong key or of the wrong length. The band has to know where bar one of the head is.'],
+    listeningAssignments: [
+      {artist:'Miles Davis', track:'Oleo', album:'Bags’ Groove', year:1954, label:'Prestige', timestamp:null,
+       listenFor:'Sonny Rollins’s rhythm-changes head, with the piano laying out on the A sections — listen to how clearly the bass and horns still state the form.'},
+      {artist:'Duke Ellington and His Orchestra', track:'Cotton Tail', album:'Never No Lament: The Blanton–Webster Band', year:1940, label:'Victor', timestamp:null,
+       listenFor:'Rhythm changes from the swing era, with Ben Webster’s tenor solo. The form was a jam-session standard before bebop took it over.'}]},
+  '7D': {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'Eight weeks, the longest of the middle stages, because solo piano asks for bass, comping and melody at once. A thirty-minute set of ballads is a real milestone, not a formality.',
+    historicalContext: 'Solo jazz piano runs from the Harlem stride players — James P. Johnson, Fats Waller — through Art Tatum, whose 1933 “Tea for Two” set a standard nobody has passed, to Bill Evans’s solo albums and the lounge pianists who kept the repertoire alive in every hotel bar. Ballad playing is its own discipline: rubato over a pulse you can still feel, and phrasing behind the beat the way Billie Holiday and Frank Sinatra sang.',
+    commonMistakes: ['A left hand that is too low and too busy. Walking tenths and shells are enough; the bass register muddies fast without a bassist.',
+      'Rubato with no pulse under it. Stretch the time and give it back — the listener should still know where the bar is.',
+      'Playing a ballad too fast. If it feels slow enough, it is probably still too fast.'],
+    listeningAssignments: [
+      {artist:'Bill Evans', track:'Here’s That Rainy Day', album:'Alone', year:1968, label:'Verve', timestamp:null,
+       listenFor:'Solo ballad piano: the left hand carrying bass and harmony, the right singing the melody, the time elastic but never lost.'},
+      {artist:'Art Tatum', track:'Tea for Two', album:'Tea for Two (78 rpm)', year:1933, label:'Brunswick', timestamp:null,
+       listenFor:'Stride and runs at once. Not a model to copy — a picture of what one pair of hands can hold.'}]},
+};
+const JAZZ_V3_STAGE_RICH = {
+  '5': {
+    expectedDifficulty: 'challenging',
+    typicalTimeToMaster: 'About four weeks in the v3 plan. Slash chords and diminished passing chords come quickly once seen; hearing an extended dominant chain as one long arc takes longer.',
+    historicalContext: 'The devices of this stage are how the great standards move underneath their melodies. Coleman Hawkins’s 1939 “Body and Soul” made its passing diminished chords and chromatic motion famous; Victor Young’s “Stella by Starlight” is almost entirely deceptive resolutions; and “Sweet Georgia Brown” opens with a chain of dominants, each resolving to the next. Slash chords came into jazz from gospel and from the modal records of the 1960s.',
+    commonMistakes: ['Reading a slash chord as its upper triad and forgetting the bass. The bass note is the point of the symbol.',
+      'Voicing a passing diminished chord as a static colour. It exists to move a half step, and should be voiced so one voice does.',
+      'Resolving every dominant in a chain. The chain works because each resolution is also the next dominant.'],
+    listeningAssignments: [
+      {artist:'Coleman Hawkins', track:'Body and Soul', album:'Body and Soul (78 rpm)', year:1939, label:'Bluebird', timestamp:null,
+       listenFor:'The document’s milestone tune. Hear the passing diminished chords and the chromatic moves under Hawkins’s line.'},
+      {artist:'Miles Davis', track:'Stella by Starlight', album:'1958 Miles', year:1958, label:'Columbia', timestamp:null,
+       listenFor:'Chord after chord that does not go where the ear expects — the deceptive resolution as a whole song.'},
+      {artist:'Thelonious Monk', track:'Bright Mississippi', album:'Monk’s Dream', year:1963, label:'Columbia', timestamp:null,
+       listenFor:'Written on the changes of “Sweet Georgia Brown”: a chain of dominants, each four bars long, each resolving to the next.'}]},
+  'DT': {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'It runs beside the piano Stages 9 to 12 and has no separate time of its own in the document. Expect the first song to take weeks; the split attention gets easier with every one.',
+    historicalContext: 'Singing at the piano is its own tradition: Nat King Cole, whose trio records of the 1940s were as much about the piano as the voice; Shirley Horn, who could hold a ballad slower than anyone and accompany herself perfectly; Blossom Dearie; Diana Krall. The skill is dual-tasking — the hands on autopilot so the voice can phrase freely.',
+    commonMistakes: ['Comping on the same beats the voice sings on. The piano fills between the phrases, not under them.',
+      'Block chords on every beat because the voice needs support. The voice needs space; a bass note and a shell will do.',
+      'Letting the time sag at the end of a sung phrase. The hands keep time even when the voice stops.'],
+    listeningAssignments: [
+      {artist:'Shirley Horn', track:'Here’s to Life', album:'Here’s to Life', year:1992, label:'Verve', timestamp:null,
+       listenFor:'The document names Shirley Horn. Hear how little the piano does while the voice sings, and how much it says in between.'},
+      {artist:'Nat King Cole Trio', track:'(Get Your Kicks on) Route 66', album:'Route 66 (78 rpm)', year:1946, label:'Capitol', timestamp:null,
+       listenFor:'Voice and piano from the same person, each leaving the other room. The piano solo is the same hands without the voice.'},
+      {artist:'Diana Krall', track:'Peel Me a Grape', album:'Love Scenes', year:1997, label:'Impulse!', timestamp:null,
+       listenFor:'The document’s other model: sparse left hand, the voice right on the beat, the piano answering each line.'}]},
+  'V5': {
+    expectedDifficulty: 'advanced',
+    typicalTimeToMaster: 'It runs beside the later piano stages; the document gives no separate time. Blend and tuning in a small group take weeks of singing together, not practice alone.',
+    historicalContext: 'Jazz vocal groups grew out of vocalese — Eddie Jefferson and King Pleasure putting words to recorded solos in the early 1950s — and reached their height with Lambert, Hendricks & Ross, whose Sing a Song of Basie (1957) sang an entire big band’s arrangements. The Manhattan Transfer and Take 6 carried it forward. Extended techniques — overtone singing, vocal percussion, the one-voice band of Bobby McFerrin — widened what a voice can do in the music.',
+    commonMistakes: ['Tuning thirds to the piano. Close harmony sings its thirds slightly lower and its fifths pure; listen to the chord, not the keyboard.',
+      'Mismatched vowels. Blend is mostly vowels — everyone on the same “ah” before anyone worries about pitch.',
+      'Listening only to your own part. Sing your line while hearing the chord it belongs to.'],
+    listeningAssignments: [
+      {artist:'Lambert, Hendricks & Ross', track:'Cloudburst', album:'The Hottest New Group in Jazz', year:1959, label:'Columbia', timestamp:null,
+       listenFor:'Vocalese at full speed: three voices singing lines written for horns, and Jon Hendricks’s scat chorus.'},
+      {artist:'Take 6', track:'Spread Love', album:'Take 6', year:1988, label:'Reprise', timestamp:null,
+       listenFor:'Six-part close harmony a cappella, with one voice taking the bass line — the whole band in voices.'}]},
+  'V6': {
+    expectedDifficulty: 'professional',
+    typicalTimeToMaster: 'It runs beside the last piano stages; the document gives no separate time. The first arrangement for four voices takes weeks; writing fluently for voices is a career.',
+    historicalContext: 'Vocal arranging in jazz is Gene Puerling’s art above anyone’s — the Hi-Lo’s in the 1950s, the Singers Unlimited from 1971 — with harmonies as dense as any big band’s. The Manhattan Transfer’s “Birdland” (1979), Weather Report’s tune with Jon Hendricks’s words, won a Grammy for its vocal arrangement. Dobbins’s Jazz Arranging and Composing gives the same voicing principles to arrangers of every kind.',
+    commonMistakes: ['Writing piano voicings for voices. Four singers cannot hold a cluster a pianist grabs without thinking; spread it and give each line a melody.',
+      'Every part moving at once. Voice leading for singers means common tones held and one voice moving.',
+      'Writing out of range. Keep each part where it can be sung softly as well as loudly.'],
+    listeningAssignments: [
+      {artist:'The Manhattan Transfer', track:'Birdland', album:'Extensions', year:1979, label:'Atlantic', timestamp:null,
+       listenFor:'A band tune arranged for four voices: which lines stay in unison, and where the harmony opens up.'},
+      {artist:'Take 6', track:'Spread Love', album:'Take 6', year:1988, label:'Reprise', timestamp:null,
+       listenFor:'Listen to the inner voices: common tones held, one voice moving at a time — voice leading you can hear.'}]},
+};
+
+/* the two voice stages whose records had no recordings to hear */
+JAZZ_STAGE_RICH.V2.listeningAssignments = [
+  {artist:'Ella Fitzgerald', track:'Lady Be Good', album:'Lady Be Good (78 rpm)', year:1947, label:'Decca', timestamp:null,
+   listenFor:'Scat built from the same material as these patterns: scale runs, arpeggios and repeated rhythmic cells, every one landing on the harmony.'}];
+JAZZ_STAGE_RICH.V3.listeningAssignments = [
+  {artist:'Bobby McFerrin', track:'Blackbird', album:'The Voice', year:1984, label:'Elektra', timestamp:null,
+   listenFor:'One voice carrying the bass line and the melody at once. Follow only the low notes first, then only the tune, then both.'}];
+
+/* ---------- what a teacher would add, when no source does ----------
+   The authored layer covers the exercises the room began with. The Siskind
+   unit material and the v3 document's entries arrived without it, so for
+   those the four practice fields are derived from what the exercise really
+   is — its type, its place on the ladder, its stage's goal and the stage's
+   records — and every derived field is listed in ex.enrichDerived, which
+   the page prints beside it. A field nobody wrote says so, exactly as a
+   checklist nobody wrote does. */
+const JAZZ_DERIVED_PRACTICE = {
+  NOTATION: 'Slowly, hands separately first, then together, with the metronome on 2 and 4. Three or four keys a day round the cycle of fourths, so all twelve come round in a few days; a key is done when it is clean at a slow tempo from memory.',
+  DRILL: 'Five to ten minutes a day, not an hour once a week. Slow enough to be right every time, then five beats per minute faster after three clean minutes in a row.',
+  IMPROV: 'Set a timer for five minutes and play without stopping. Record it, listen back once, and choose one thing to keep for tomorrow — not ten to fix.',
+  LISTEN: 'Once through for the form, once for the one instrument that matters here, then sing along with it before you try it at the piano.',
+  WORKSHEET: 'Write it out by hand, then play what you wrote and check it by ear. A worksheet that never reaches the keyboard has only been half done.',
+  THEORY: 'Read it, find it at the piano in one key, then find it in a tune from this stage. Understanding is done when you can hear it, not when you can say it.'};
+const JAZZ_DERIVED_CHALLENGE = {
+  NOTATION: n => `Take ${n} into a tune: pick one from this stage's list, find the bars where this sound belongs, and play them with it — then record a chorus.`,
+  DRILL: n => `Turn ${n} into a two-bar idea you could play at a jam session, and play it in four keys without stopping.`,
+  IMPROV: n => `Record three one-minute takes of ${n}, each with one rule (only three notes; only off-beats; only the top of the range), and keep the best.`,
+  LISTEN: n => `After ${n}, sing the phrase you remember best, find it at the piano, and use it once in your next improvisation.`,
+  WORKSHEET: n => `Write one more example for ${n} of your own, in a key the worksheet did not use, and play it.`,
+  THEORY: n => `Find ${n} in a Real Book tune from this stage, mark the bars, and play them with the idea in mind.`};
+const jazzLcFirst = t => String(t || '').replace(/^Can /, 'can ').replace(/^Is /, 'are ');
+function jazzDerivedEnrichment(ex, order){
+  const type = ex.type || 'NOTATION';
+  const meta = typeof JAZZ_V3_STAGE_META === 'object' ? JAZZ_V3_STAGE_META[ex.stage] : null;
+  const n = meta ? String(meta.n) : String(ex.stage);
+  const row = typeof JAZZ_V3_DOC === 'object' ? (JAZZ_V3_DOC.outcomes || []).find(r => r[0] === n) : null;
+  const title = row ? row[1] : ((typeof JAZZ_V3_DOC === 'object' && JAZZ_V3_DOC.overview[n]) || {}).title || '';
+  const out = {};
+  out.whenToUse = row
+    ? `In Stage ${n === 'P0' ? 0 : n}, ${title}: by its end you ${jazzLcFirst(row[2])}. This is one of the steps there, and it is for the moment a tune on the stage's list asks for it — the milestone is to ${row[3].charAt(0).toLowerCase() + row[3].slice(1)}.`
+    : `On the ${title || 'this'} track, alongside the piano stages it runs beside. Use it whenever the music you are singing or playing on those stages asks for it.`;
+  const ids = (order && order[ex.stage]) || [];
+  const at = ids.indexOf(ex.id);
+  const name = id => { const e = jazzBookRaw && jazzBookRaw[id]; return e ? `${e.name} (${id})` : id; };
+  const conns = [];
+  if(at > 0) conns.push(`It follows ${name(ids[at - 1])} on the ladder, and assumes it.`);
+  if(at >= 0 && at < ids.length - 1) conns.push(`It leads into ${name(ids[at + 1])}.`);
+  const lad = typeof JAZZ_V3_DOC === 'object' ? (JAZZ_V3_DOC.ladder || []).filter(r => r[0] === n) : [];
+  if(lad.length) conns.push(`It is heard on the stage's repertoire ladder: ${String(lad[0][1]).replace(/^Transcribe:\s*/i, '')} — ${lad[0][2]}, ${lad[0][3]}.`);
+  out.connections = conns.length ? conns : [`It belongs with the rest of Stage ${n}${title ? ', ' + title : ''}.`];
+  out.practiceStrategy = JAZZ_DERIVED_PRACTICE[type] || JAZZ_DERIVED_PRACTICE.NOTATION;
+  out.creativeChallenge = (JAZZ_DERIVED_CHALLENGE[type] || JAZZ_DERIVED_CHALLENGE.NOTATION)(ex.name);
+  return out;
+}
+let jazzBookRaw = null;
+
 const JAZZ_EX_RICH = {
 
   /* ===== P0 — intervals ===== */
@@ -1076,6 +1246,9 @@ function jazzDerivedChecklist(ex){
    it belongs to the stage rather than to the exercise. */
 function jazzMergeEnrichment(book){
   if(!book) return book;
+  jazzBookRaw = book;
+  let order = null;
+  try { order = typeof jazzV3 === 'function' ? jazzV3(book).order : null; } catch(e){ order = null; }
   Object.keys(book).forEach(id => {
     const ex = book[id];
     if(!ex || typeof ex !== 'object') return;
@@ -1091,6 +1264,13 @@ function jazzMergeEnrichment(book){
     ex.connections = (own.connections || []).slice();
     ex.practiceStrategy = own.practiceStrategy || '';
     ex.creativeChallenge = own.creativeChallenge || null;
+    ex.enrichDerived = [];
+    if(!ex.whenToUse || !ex.connections.length || !ex.practiceStrategy || !ex.creativeChallenge){
+      const d = jazzDerivedEnrichment(ex, order);
+      ['whenToUse', 'connections', 'practiceStrategy', 'creativeChallenge'].forEach(k => {
+        const has = Array.isArray(ex[k]) ? ex[k].length : ex[k];
+        if(!has){ ex[k] = d[k]; ex.enrichDerived.push(k); } });
+    }
     if(own.masteryChecklist && own.masteryChecklist.length){
       ex.masteryChecklist = own.masteryChecklist.slice();
       ex.checklistDerived = false;
@@ -1130,7 +1310,8 @@ function jazzStageRich(sid){
   if(_jazzRichV3[key]) return _jazzRichV3[key];
   const meta = typeof JAZZ_V3_STAGE_META === 'object' ? JAZZ_V3_STAGE_META[key] : null;
   if(!meta) return JAZZ_STAGE_RICH[key] || {};
-  const olds = (meta.from || []).map(o => JAZZ_STAGE_RICH[o]).filter(Boolean);
+  const olds = [JAZZ_V3_STAGE_RICH[key]].concat((meta.from || []).map(o => JAZZ_STAGE_RICH[o] || JAZZ_STAGE_RICH_LATE[o]))
+    .filter(Boolean);
   const out = {};
   const hardest = olds.map(o => o.expectedDifficulty).filter(Boolean)
     .sort((a, b) => jazzDifficultyRank(b) - jazzDifficultyRank(a))[0];

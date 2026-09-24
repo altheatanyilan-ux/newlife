@@ -68,8 +68,19 @@ const JAZZ_TIP_TAGS = {
   form:              ['comping', 'improvisation', 'rhythm'],
   bass_line:         ['comping'],
   non_mxl:           ['rhythm'],
+  improv:            ['improvisation', 'licks'],
+  rhythm:            ['rhythm', 'comping'],
+  rhythm_only:       ['rhythm'],
+  /* written practice, listening and transcription: the tips that apply to
+     every kind of work, and the ones about improvising from what you hear */
+  instruction_only:  ['improvisation'],
+  /* the v3 document's own entries are tagged by what the document says they
+     are (jazzTipTags below); this is the fallback for a tag it does not use */
+  v3:                ['voicings'],
 };
-const jazzTipTags = ex => (ex && JAZZ_TIP_TAGS[ex.kind]) || [];
+const JAZZ_TIP_TYPE_TAGS = {NOTATION: ['voicings', 'comping'], DRILL: ['rhythm', 'scales'],
+  IMPROV: ['improvisation', 'licks'], LISTEN: ['improvisation'], WORKSHEET: ['voicings'], THEORY: ['voicings']};
+const jazzTipTags = ex => !ex ? [] : (ex.kind === 'v3' && JAZZ_TIP_TYPE_TAGS[ex.type]) || JAZZ_TIP_TAGS[ex.kind] || [];
 
 const UNIVERSAL_PRACTICE_TIPS = [
   {id:'UPT-01', icon:'🎯',

@@ -594,8 +594,11 @@ function jazzV3ScoreXml(ex, key, opts){
   if(ex.xml) return jv3Lead(jazzTransposeXml(ex.xml, ex.home || 'C', key));
   return null;
 }
-/* the document's own slash-notation charts are lead sheets too */
-const jv3Lead = x => /<notehead>slash<\/notehead>/.test(x || '') && !/<staves>/.test(x || '') ? x : jv3Gs(x);
+/* the document's own slash-notation charts are lead sheets too: one staff,
+   and marked as one on purpose, so nothing downstream mistakes it for a
+   piano score that lost its bass clef */
+const jv3Lead = x => /<notehead>slash<\/notehead>/.test(x || '') && !/<staves>/.test(x || '')
+  ? (/jz-single-staff/.test(x) ? x : x.replace(/(<score-partwise[^>]*>)/, '$1<!-- jz-single-staff: lead sheet -->')) : jv3Gs(x);
 /* the document's version, drawn beside the room's generator */
 function jazzV3TabXml(ex, key, opts){
   const t = ex && ex.v3tab;

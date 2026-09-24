@@ -118,6 +118,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
               `${c.getAttribute('number')}:${c.querySelector('sign').textContent}${c.querySelector('line').textContent}`);
             if(clefs.join(',') !== '1:G2,2:F4') out.noClefs.push(`${tag} → ${clefs.join(',')}`);
             if(T.staves(xml).noStaff) out.noStaff.push(tag);
+          } else if(twoPartGrand && /<staves>2<\/staves>/.test(xml)){
+            /* the marker also sits on a grand staff already written as one part with two
+               staves (the score editor's output, the v3 builders): the same claims apply */
+            const clefs = [...d.querySelectorAll('clef')].slice(0, 2).map(c =>
+              `${c.getAttribute('number')}:${c.querySelector('sign').textContent}${c.querySelector('line').textContent}`);
+            if(clefs.join(',') !== '1:G2,2:F4') out.noClefs.push(`${tag} → ${clefs.join(',')}`);
+            if(T.staves(xml).noStaff) out.noStaff.push(tag);
           } else if(twoPartGrand){
             /* two-part format: must have ≥2 parts, first with G clef, second with F clef */
             const parts = [...d.querySelectorAll('part')];

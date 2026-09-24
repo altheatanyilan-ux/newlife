@@ -162,8 +162,9 @@ function bindJazzCard(root){
      whatever the exercise page happened to be left on */
   /* the answer shows YOUR notes: a correction you made and then graded
      yourself against the uncorrected version would be worse than useless */
-  const drawn = (k) => { const x = jazzScoreXml(ex, k, {interval: card.interval});
-    return x ? jazzApplyFixes(x, card.exerciseId, k) : x; };
+  const drawn = (k) => { const x = jazzScoreFor(card.exerciseId, ex, k, {interval: card.interval});
+    /* an exercise with several examples answers with its first */
+    return x && x.documents ? (x.documents[0] || {}).mxl : x; };
   if(f.shown && ex){ const xml = drawn(card.key);
     if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml);
     /* a card about moving between two keys has to show both of them, or the

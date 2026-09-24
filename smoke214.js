@@ -83,9 +83,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* Siskind is the spine, but the ladder grew rungs that are not his: Levine
      for the chord-scales at 6A, Mantooth and Berklee for the advanced
      voicings at 13 and 15, Stoloff and Weir for the vocal stages. Each is a
-     real book this room sends you to. */
+     real book this room sends you to. Curriculum v3 added three sources of
+     its own: the document itself (for what it writes with no book behind
+     it), Dobbins's Jazz Arranging, and the research notes it cites by name. */
   is('and the books named are the ones this curriculum comes out of',
-    refs.books, ['Berklee Harmony', 'Design Doc', 'Levine', 'Mantooth',
+    refs.books, ['Berklee Harmony', 'Curriculum v3', 'Design Doc', 'Dobbins', 'Gemini Research', 'Levine', 'Mantooth',
       'Siskind Book 1', 'Siskind Book 2', 'Siskind Book 3', 'Stoloff', 'Weir']);
 
   /* The part that a number-to-number mapping would have got wrong. */
