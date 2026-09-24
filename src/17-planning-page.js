@@ -277,12 +277,13 @@ function planMilestoneStripHTML(sel){
             prog.total ? ` · ${prog.left} of ${prog.total} still to do` : ' · nothing under it yet'} — ${
             on ? 'press to show everything again' : 'press to see only its work'}${m.note ? ' · ' + esc(m.note) : ''}">
           <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
-          <!-- How much is still between you and the date. A count of what is
-               left rather than a done-over-total, because that is the thing
-               being asked; the full tally is in the tooltip. -->
+          <!-- How much is still between you and the date, over how much there
+               ever was. The first number is the question; the second is what
+               makes it mean something, since two left out of three is nearly
+               finished and two out of twenty is barely begun. -->
           ${prog.total ? (prog.left
-            ? `<span class="pl-mscount mono${late ? ' late' : ''}">${prog.left} left</span>`
-            : `<span class="pl-mscount mono clear">✓ all done</span>`) : ''}
+            ? `<span class="pl-mscount mono${late ? ' late' : ''}">${prog.left}/${prog.total} left</span>`
+            : `<span class="pl-mscount mono clear">✓ all ${prog.total} done</span>`) : ''}
           ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}
           <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`; }).join('')}
     </div>
@@ -328,7 +329,7 @@ function openPlanMilestoneManager(sel){
         <span class="mono faint ms-mwhen">${m.date ? esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date)) : '—'}</span>
         <span class="mono faint ms-mprog" title="${prog.total
           ? prog.left + ' of ' + prog.total + ' still to do' : 'nothing points at it yet'}">${
-          prog.total ? (prog.left ? `${prog.left} left` : '✓') : '—'}</span>
+          prog.total ? (prog.left ? `${prog.left}/${prog.total} left` : '✓') : '—'}</span>
         <span class="mono faint ms-mlist">${esc(list.name)}</span>
         <button class="btn sm ghost" data-msopen="${esc(m.id)}" title="open it on its own">open</button>
         <button class="del-x inline" data-msdrop="${esc(m.id)}" title="remove this date">×</button>
