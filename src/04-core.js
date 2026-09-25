@@ -454,7 +454,8 @@ function renderRoute(){
      panels and modals, which have no scroll to wait for. */
   try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
         Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton();
-        if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
+        if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit();
+        if(typeof paintRemindFloat === 'function') paintRemindFloat(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -501,7 +502,8 @@ function rerender(){
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
     Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main);
-    if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
+    if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit();
+    if(typeof paintRemindFloat === 'function') paintRemindFloat(); }
   catch(err){ console.error('page trimmings failed', err); }
   holdScroll(y);
 }

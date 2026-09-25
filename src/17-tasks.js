@@ -26,6 +26,11 @@ function projectTaskRefs(){
   return out;
 }
 function allTaskRefs(){ return [...(S.tasks||[]).map(taskRef), ...projectTaskRefs()]; }
+/* A thing to buy or a thing to be reminded of, written straight onto the
+   shopping list or the reminders, is kept aside from the tasks: it has its own
+   place, and a day's work is not "milk" or "the dentist rings at three". A task
+   from a real list that is also on one of them is still a task. */
+const taskIsAside = t => !!t && (t.shop || t.remind) && (t.listId || 'inbox') === 'inbox';
 function findTaskRef(id){ return allTaskRefs().find(r => r.id === id); }
 /* Alphabetical was a stand-in for an order nobody had chosen. Now that a row
    can be dragged up and down, the chosen order is the order — done work still
@@ -49,10 +54,10 @@ function taskDatesOn(t, day){
 }
 const taskOnDay = (t, day) => !!taskDatesOn(t, day);
 function tasksForDay(day){
-  const own = allTaskRefs().filter(r => taskOnDay(r.task, day));
+  const own = allTaskRefs().filter(r => taskOnDay(r.task, day) && !taskIsAside(r.task));
   const seen = new Set(own.map(r => r.id));
   const finished = allTaskRefs().filter(r =>
-    !seen.has(r.id) && r.done && (r.task.doneAt || '') === day)
+    !seen.has(r.id) && r.done && (r.task.doneAt || '') === day && !taskIsAside(r.task))
     .map(r => Object.assign({}, r, {elsewhere: true}));
   return own.concat(finished)
     .sort((a,b)=> (a.done?1:0)-(b.done?1:0) || taskOrder(a) - taskOrder(b) || a.text.localeCompare(b.text));
@@ -71,8 +76,8 @@ function reorderTaskInDay(day, dragId, targetId, before){
   saveNow();
   return true;
 }
-function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done).sort((a,b)=> a.day.localeCompare(b.day)); }
-function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.doDay && !r.done); }
+function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done && !taskIsAside(r.task)).sort((a,b)=> a.day.localeCompare(b.day)); }
+function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.doDay && !r.done && !taskIsAside(r.task)); }
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
 function setTaskDoDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.doDay = day || ''; saveNow(); }
 function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;

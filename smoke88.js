@@ -43,8 +43,11 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
 
      And then two: All went, because a list of every task in the house is the
      one view that never answers a question, and it was standing between the
-     search and the lists. */
-  ok('the sidebar carries one dated row and Completed', seed.smart === 2, 'saw ' + seed.smart);
+     search and the lists.
+
+     And three again: All came back by request, as "All tasks" — every open
+     task whatever list it is in (smoke234). */
+  ok('the sidebar carries one dated row, All tasks and Completed', seed.smart === 3, 'saw ' + seed.smart);
   ok('and the dated row offers all three spans',
      await page.evaluate(() => [...document.querySelectorAll('[data-plspan]')].map(b => b.dataset.plspan).join(',') === 'today,tomorrow,next7'));
   ok('habits is not among them', await page.evaluate(() => !document.querySelector('[data-plsel="smart:habits"]')));

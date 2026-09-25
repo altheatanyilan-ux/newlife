@@ -55,7 +55,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     const v = await pickAndRead(r);
     /* the one dated row is the exception, and it is an exception with a reason:
        a day is asking what is there, not what to touch first */
-    const isDate = r.startsWith('smart:') && ['today','tomorrow','next7'].includes(r.slice(6));
+    /* All tasks too, which came back by request as a list of every open task
+       grouped by its list — a thing to read down, not four boxes (smoke234) */
+    const isDate = r.startsWith('smart:') && ['today','tomorrow','next7','all'].includes(r.slice(6));
     if(isDate){ if(v !== 'list') dated.push(`${r}→${v}`); }
     else if(v !== 'eisenhower') wrong.push(`${r}→${v}`);
   }

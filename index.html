@@ -8876,7 +8876,7 @@ html[data-theme="light"] .wk-sleep{
 .pl-top{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin:0 0 10px}
 /* The add is the widest thing on the line because it is the thing you use
    most, and because what you type into it is a sentence. */
-.pl-top .pl-add{flex:2 1 300px;min-width:200px;margin:0;position:relative}
+.pl-top .pl-add{flex:2 1 220px;min-width:200px;margin:0;position:relative}
 .pl-top .pl-add-input{width:100%;padding:7px 11px;font-size:.82rem}
 /* the parse floats over the page rather than shoving the header down a line
    with every keystroke */
@@ -8884,15 +8884,15 @@ html[data-theme="light"] .wk-sleep{
 /* solid, because it is floating over the page now rather than sitting in it */
 .pl-top .pl-add .qp-preview{margin-top:4px;background:var(--surface-2);
   border:1px solid var(--line-2);box-shadow:var(--surface-shadow)}
-.pl-inbox,.pl-shopbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;
+.pl-inbox,.pl-shopbtn,.pl-remindbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;
   padding:7px 11px;border:1px solid var(--line-2);border-radius:8px;
   background:var(--surface-2);color:var(--muted);font-size:.82rem;cursor:pointer;
   transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
-.pl-inbox:hover,.pl-shopbtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
-.pl-inbox.on,.pl-shopbtn.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
+.pl-inbox:hover,.pl-shopbtn:hover,.pl-remindbtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
+.pl-inbox.on,.pl-shopbtn.on,.pl-remindbtn.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
   color:var(--text);border-color:color-mix(in srgb,var(--page-accent) 40%,transparent)}
 .pl-inbox.over{background:color-mix(in srgb,var(--page-accent) 26%,transparent);color:var(--text)}
-.pl-inbox .pl-n,.pl-shopbtn .pl-n{opacity:.7}
+.pl-inbox .pl-n,.pl-shopbtn .pl-n,.pl-remindbtn .pl-n{opacity:.7}
 /* ---------- the shopping list ---------- */
 .pshop{display:flex;flex-direction:column;gap:10px;max-width:640px}
 .pshop-add{display:flex;gap:8px;align-items:center}
@@ -8920,7 +8920,7 @@ html[data-theme="light"] .wk-sleep{
   0%{background:color-mix(in srgb,var(--page-accent) 40%,transparent);
      border-color:var(--page-accent);color:var(--text)}
   100%{}}
-.pl-top .pl-search{flex:1 1 180px;min-width:150px;max-width:340px;
+.pl-top .pl-search{flex:1 1 150px;min-width:150px;max-width:340px;
   padding:7px 11px;font-size:.82rem}
 /* both columns start at the same line */
 .plan-shell{align-items:start}
@@ -10568,6 +10568,92 @@ html.page-focus main{margin-left:0;padding-top:40px;padding-bottom:56px}
 /* the notes are as long as they need to be */
 .tf-area{min-height:64px;resize:vertical;line-height:1.5;font-family:inherit;overflow:hidden}
 .fl-did,.fl-bnote{white-space:pre-wrap}
+
+/* the top line keeps to one line: where the column is narrow the shopping
+   list and the reminders say themselves with their mark and their count */
+.pl-header{container-type:inline-size}
+@container (max-width: 860px){ .pl-shopbtn .pl-tl,.pl-remindbtn .pl-tl{display:none} }
+/* ============================================================
+   REMINDERS (17-planning-reminders.js)
+   ============================================================ */
+.prem{display:flex;flex-direction:column;gap:12px;max-width:720px}
+.prem-add{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.prem-add #premIn{width:100%;padding:9px 12px;font-size:.9rem}
+.prem-opts{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.prem-f{display:flex;flex-direction:column;gap:3px}
+.prem-f .k{font-size:.6rem;color:var(--faint);letter-spacing:.06em}
+.prem-f .inp,.prem-f .sel{padding:6px 9px;font-size:.8rem;width:auto}
+.prem-group{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.prem-now{border-color:color-mix(in srgb,var(--gold,#d4a44c) 55%,var(--line))}
+.prem-gh{display:flex;align-items:baseline;gap:9px;padding:8px 11px;font-size:.74rem;border-bottom:1px solid var(--line)}
+.prem-row{display:flex;align-items:center;gap:9px;padding:8px 11px;border-top:1px solid var(--line);flex-wrap:wrap}
+.prem-gh + .prem-row{border-top:none}
+.prem-t{flex:1;min-width:140px;text-align:left;background:none;border:none;padding:0;color:var(--text);font:inherit;font-size:.9rem;cursor:pointer}
+.prem-t:hover{text-decoration:underline;text-underline-offset:3px}
+.prem-row.done .prem-t{color:var(--muted);text-decoration:line-through}
+.prem-when{font-size:.7rem;color:var(--muted)}
+.prem-row.st-now .prem-when,.prem-row.st-late .prem-when{color:var(--terra);font-weight:600}
+.prem-from{font-size:.64rem}
+.prem-hint{margin:2px 0 0}
+.prem-empty{padding:18px 12px}
+
+/* on Today, above both halves of the day */
+.t-remind{margin:6px 0 16px;padding:12px 14px;border-radius:12px;
+  border:1px solid color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--line));
+  background:linear-gradient(135deg,color-mix(in srgb,var(--gold,#d4a44c) 13%,var(--surface)),var(--surface) 70%)}
+.t-remind.ringing{border-color:color-mix(in srgb,var(--terra) 60%,var(--line));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--terra) 12%,transparent)}
+.t-remind-h{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.t-remind-list{display:flex;flex-direction:column;gap:6px}
+.t-rem{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.t-rem-t{flex:1;min-width:150px;text-align:left;background:none;border:none;padding:0;cursor:pointer;
+  font-family:var(--serif);font-size:1.08rem;color:var(--text)}
+.t-rem-when{font-size:.72rem;color:var(--muted)}
+.t-rem.st-now .t-rem-when,.t-rem.st-late .t-rem-when{color:var(--terra);font-weight:600}
+.t-rem.st-soon .t-rem-t{font-size:.98rem;color:var(--muted)}
+
+/* over every other page: one line at the top of the page area */
+.rem-float{position:fixed;top:12px;left:calc(var(--sidebar) + (100vw - var(--sidebar)) / 2);transform:translateX(-50%);z-index:92;
+  max-width:min(480px,calc(100vw - var(--sidebar) - 460px));min-width:min(300px,calc(100vw - 32px))}
+.rem-float[hidden]{display:none}
+.rem-float[data-mode="min"]{min-width:0}
+.rf-strip,.rf-card{border-radius:12px;border:1px solid color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--line));
+  background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 6px 22px rgba(0,0,0,.16)}
+.rf-strip{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;height:36px}
+.rf-strip .rf-row{flex:1;min-width:0}
+.rf-bell{font-size:.9rem}
+.rf-card{padding:6px 8px 7px;display:flex;flex-direction:column;gap:3px}
+.rem-float.ringing .rf-strip,.rem-float.ringing .rf-card{border-color:color-mix(in srgb,var(--terra) 65%,var(--line));animation:rfRing 2.4s ease-in-out 3}
+@keyframes rfRing{0%,100%{box-shadow:0 6px 22px rgba(0,0,0,.16)}50%{box-shadow:0 6px 22px rgba(0,0,0,.16),0 0 0 6px color-mix(in srgb,var(--terra) 18%,transparent)}}
+@media (prefers-reduced-motion:reduce){.rem-float.ringing .rf-strip,.rem-float.ringing .rf-card{animation:none}}
+.rf-h{display:flex;align-items:center;gap:6px;padding:0 2px}
+.rf-hb{background:none;border:none;padding:2px 0;cursor:pointer;font-size:.64rem;color:var(--faint)}
+.rf-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:0 5px}
+.rf-n{flex:0 0 auto;border:1px solid var(--line-2);background:none;border-radius:999px;padding:1px 7px;font-size:.66rem;color:var(--muted);cursor:pointer}
+.rf-row{display:flex;align-items:center;gap:8px;min-width:0}
+.rf-check{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-2);background:none;
+  color:var(--faint);cursor:pointer;font-size:.72rem;line-height:1;display:grid;place-items:center}
+.rf-check:hover{color:var(--sage);border-color:var(--sage)}
+.rf-t{flex:1;min-width:0;text-align:left;background:none;border:none;padding:2px 0;cursor:pointer;color:var(--text);
+  font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rf-when{flex:0 0 auto;font-size:.64rem;color:var(--muted)}
+.rf-row.st-now .rf-when,.rf-row.st-late .rf-when{color:var(--terra);font-weight:600}
+.rf-more{align-self:flex-end;background:none;border:none;color:var(--muted);font-size:.7rem;cursor:pointer}
+.rf-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--line));background:var(--surface);
+  color:var(--text);font-size:.78rem;box-shadow:0 3px 12px rgba(0,0,0,.14)}
+.rem-float.ringing .rf-pill{border-color:var(--terra)}
+/* in focus mode the page has the whole width, and the corner has the way out */
+html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
+@media (max-width:900px){
+  /* a phone: above the clock, the time pill and the + at the foot */
+  .rem-float,html.page-focus .rem-float{top:auto;bottom:138px;left:12px;right:12px;transform:none;max-width:none;min-width:0}
+  html.page-focus .rem-float{bottom:16px}
+  .rem-float[data-mode="min"]{left:auto;right:12px}
+  .rf-card{max-height:50vh;overflow:auto}
+}
+.pd-remlead{padding:2px 20px 2px 6px;font-size:.74rem;width:auto;margin-left:4px}
 </style>
 
 </head>
@@ -11287,7 +11373,8 @@ function renderRoute(){
      panels and modals, which have no scroll to wait for. */
   try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
         Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton();
-        if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
+        if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit();
+        if(typeof paintRemindFloat === 'function') paintRemindFloat(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -11334,7 +11421,8 @@ function rerender(){
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
     Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main);
-    if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
+    if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit();
+    if(typeof paintRemindFloat === 'function') paintRemindFloat(); }
   catch(err){ console.error('page trimmings failed', err); }
   holdScroll(y);
 }
@@ -18290,7 +18378,7 @@ routes.today = function(root){
      moves the day you mean to do it and leaves the deadline where it is — a
      thing that was owed on Monday is still late, and saying otherwise would
      quietly lose the fact you most need. */
-  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, T)
+  const carried = allTaskRefs().filter(r => !r.done && !taskIsAside(r.task) && !taskOnDay(r.task, T)
     && ((r.day && r.day < T) || (r.doDay && r.doDay < T)));
   const doneN = rows.filter(r=>r.done).length;
   const ready = lettersOpeningNow();
@@ -18432,6 +18520,11 @@ routes.today = function(root){
            unasked one. -->
       <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button>${dreamEdgeHTML(T)}</p>
     </header>
+
+    <!-- Reminders whose day has come or is coming: above both halves of the
+         day, because a thing to remember is not a matter of which half you
+         are looking at. -->
+    ${typeof remindTodayHTML === 'function' ? remindTodayHTML() : ''}
 
     <!-- Which half of the day, and where in it — one line. They were two
          sticky rows at two different tops, which meant the page carried two
@@ -18801,6 +18894,7 @@ routes.today = function(root){
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.doDay = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);
+  if(typeof bindRemindToday === 'function') bindRemindToday(root);
 
   /* letters & decisions */
   bindSealedLetters(root);
@@ -41071,7 +41165,7 @@ const PLAN_SMART_VIEWS = [
   {id:'today',    icon:'◉', name:'Today',       hint:'due today, and anything late'},
   {id:'tomorrow', icon:'◐', name:'Tomorrow',    hint:'what the next day already holds'},
   {id:'next7',    icon:'◇', name:'Next 7 days', hint:'the week in front of you'},
-  {id:'all',      icon:'≡', name:'All',         hint:'every task, every list'},
+  {id:'all',      icon:'≡', name:'All tasks',   hint:'every open task, whatever list it is in'},
   {id:'done',     icon:'✓', name:'Completed',   hint:'the last thirty days of finished work'},
 ];
 /* the three spans the one dated row can be set to */
@@ -41171,6 +41265,11 @@ function planTaskDefaults(t){
      into a matrix, so it stays out of the Inbox and the dated views. A task
      in a real list can be flagged too — it stays in its list as well. */
   t.shop = !!t.shop;
+  /* something to be reminded of, at a time. It lives behind the 🔔 button
+     (17-planning-reminders.js), and from so many days before its day it is on
+     Today and floating over every other page until it is ticked. */
+  t.remind = !!t.remind;
+  t.remindLead = [0, 1, 2, 3, 7].includes(+t.remindLead) ? +t.remindLead : 1;
   t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
   if(t.order == null) t.order = Date.now();
   return t;
@@ -41290,19 +41389,25 @@ function planOnWithin(t, from, to){
 const planOnDay = (t, day) => t.day === day || t.doDay === day;
 const planHasDate = t => !!(t.day || t.doDay);
 
+/* A thing written straight onto the shopping list or the reminders is only
+   ever that (taskIsAside, 17-tasks.js), and has no place in the dated views or
+   among the tasks. A task from a real list that is also on one of them is
+   still a task. */
 function planSmartFilter(id){
-  const T = today(), all = planOwnTasks().filter(t => !t.shop);
+  const T = today(), all = planOwnTasks().filter(t => !taskIsAside(t));
   if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
   if(id === 'today')    return all.filter(t => !t.done && planHasDate(t)
     && ((t.day && t.day <= T) || (t.doDay && t.doDay <= T)));
   if(id === 'tomorrow') return all.filter(t => !t.done && planOnDay(t, addDays(T, 1)));
   if(id === 'next7')    return all.filter(t => !t.done && planOnWithin(t, T, addDays(T, 7)));
+  /* every open task, whatever list it is in; the finished ones have their
+     own place at the foot of the sidebar */
   if(id === 'all')      return all.filter(t => !t.done);
   if(id === 'done')     return all.filter(t => t.done && (t.doneAt || '') >= addDays(T, -30));
   return all;
 }
 function planSmartCount(id){ return planSmartFilter(id).length; }
-function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id && !(id === 'inbox' && t.shop)).length; }
+function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id && !taskIsAside(t)).length; }
 function planFolderCount(id){
   const ids = new Set(planLists().filter(l => l.folderId === id).map(l => l.id));
   return planOwnTasks().filter(t => !t.done && ids.has(t.listId)).length;
@@ -41380,9 +41485,10 @@ function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags
 function planSelectionTasks(sel){
   if(!sel) return [];
   if(sel.kind === 'smart') return planSmartFilter(sel.id);
-  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && !(sel.id === 'inbox' && t.shop)
+  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && !taskIsAside(t)
     && (!t.done || planState().prefs.showCompleted));
   if(sel.kind === 'shop')  return planShopItems();
+  if(sel.kind === 'remind') return planRemindItems();
   /* A folder holds lists, and its tasks are every task in any of them — the
      thing you actually want when a folder is a project or a client. */
   if(sel.kind === 'folder'){
@@ -41407,6 +41513,7 @@ function planSelectionTitle(sel){
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
   if(sel.kind === 'shop') return 'Shopping list';
+  if(sel.kind === 'remind') return 'Reminders';
   return 'Tasks';
 }
 /* One filter shape, one evaluator. The live filter at the top of the sidebar
@@ -41693,6 +41800,12 @@ function planDetailHTML(t){
            top line), and stays in its own list as well -->
       <label class="pd-q pd-shop"><span class="k">to buy</span>
         <span class="pd-shopchk"><input type="checkbox" id="pdShop" ${t.shop ? 'checked' : ''}> 🛒 on the shopping list</span></label>
+      <!-- to be reminded of: on the reminders (the 🔔 button), and from so many
+           days before its day at the top of Today and over every page -->
+      <label class="pd-q pd-shop"><span class="k">remind me</span>
+        <span class="pd-shopchk"><input type="checkbox" id="pdRemind" ${t.remind ? 'checked' : ''}> 🔔 show it from
+          <select class="sel pd-remlead" id="pdRemLead" ${t.remind ? '' : 'disabled'}>${(typeof REMIND_LEADS !== 'undefined' ? REMIND_LEADS : [[1, '1 day before']]).map(([v, n]) =>
+            `<option value="${v}" ${+t.remindLead === v ? 'selected' : ''}>${n}</option>`).join('')}</select></span></label>
       <!-- Which part of a life this is, in the time tracker's own words. An
            hour sat with this task is filed under whatever is chosen here, so
            the week's report says "the bar's accounts" rather than "Tasks" —
@@ -41816,6 +41929,13 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  const rem = p.querySelector('#pdRemind'), remLead = p.querySelector('#pdRemLead');
+  if(rem) rem.onchange = function(){ planSetRemind(t, this.checked); if(remLead) remLead.disabled = !this.checked;
+    const dayIn = p.querySelector('#pdDay'); if(dayIn && t.day && !dayIn.value) dayIn.value = t.day;
+    rerenderPlanBody();
+    if(typeof toast === 'function') toast(this.checked
+      ? `On the reminders — ${esc(remindWhen(t))}.` : 'Off the reminders.'); };
+  if(remLead) remLead.onchange = function(){ t.remindLead = +this.value; touch(); rerenderPlanBody(); };
   const shop = p.querySelector('#pdShop');
   if(shop) shop.onchange = function(){ t.shop = this.checked; touch(); rerenderPlanBody();
     if(typeof toast === 'function') toast(this.checked ? 'On the shopping list.' : 'Off the shopping list.'); };
@@ -41954,14 +42074,17 @@ function rerenderPlanBody(){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
   const v = planView();
   const special = sel.kind === 'smart' && sel.id === 'stats';
-  const shop = sel.kind === 'shop';
+  const shop = sel.kind === 'shop', remind = sel.kind === 'remind';
   body.innerHTML = special ? planStatsHTML()
     : shop ? planShopHTML(tasks)
+    : remind ? planRemindHTML(tasks)
     : v === 'calendar' ? planCalendarHTML(tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
   bindPlanning(main, sel, tasks);
   if(shop) bindPlanShop(main);
+  if(remind) bindPlanRemind(main);
+  if(typeof paintRemindFloat === 'function') paintRemindFloat();
   /* the top line's 🛒 count follows whatever the panel just changed */
   if(typeof planShopBadge === 'function') planShopBadge();
   if(keep && !$('#panel')) document.body.appendChild(keep);
@@ -42042,11 +42165,7 @@ function planSkillFocusHours(skillId){
    ============================================================ */
 
 function planSel(){ return S._planSel = planFixSel(S._planSel || {kind:'smart', id:'today'}); }
-/* "All" no longer has a row in the sidebar, so a remembered selection on it
-   would leave nothing lit and no way back to it. Send it to the dated view,
-   which is what the top of the sidebar now opens with. */
 function planFixSel(sel){
-  if(sel.kind === 'smart' && sel.id === 'all') return {kind:'smart', id: planSpan()};
   /* There are two ways to name the Inbox — the smart view and the list that
      actually holds the tasks — and they answer almost but not quite the same
      way. The list is the real one: it has sections, a view of its own, and it
@@ -42075,8 +42194,10 @@ function planSetSel(kind, id){
      are not asking "what should I touch first" — the answer to that is the
      order they are already in. They are asking "what is there", and the matrix
      sorts a day into four boxes when what you wanted was the day. */
+  /* All tasks too: every open task, grouped by the list it lives in, is a
+     thing to read down, not four boxes. */
   const l = kind === 'list' ? planList(id) : null;
-  S._planView = (kind === 'smart' && PLAN_SPANS.includes(id)) ? 'list'
+  S._planView = (kind === 'smart' && (PLAN_SPANS.includes(id) || id === 'all')) ? 'list'
     : (l?.defaultView || PLAN_VIEW_DEFAULT);
   saveNow(); rerender();
 }
@@ -42087,7 +42208,7 @@ function planView(){
      exactly the case where the saved preference would otherwise decide, and
      the saved preference is a memory of some other list. */
   const sel = typeof planSel === 'function' ? planSel() : null;
-  if(!S._planView && sel && sel.kind === 'smart' && PLAN_SPANS.includes(sel.id)) return 'list';
+  if(!S._planView && sel && sel.kind === 'smart' && (PLAN_SPANS.includes(sel.id) || sel.id === 'all')) return 'list';
   const v = S._planView || planState().prefs.view || PLAN_VIEW_DEFAULT;
   /* Board and Timeline are gone. A list that still remembers one of them —
      or a saved preference from before — must not leave the workspace blank. */
@@ -42111,12 +42232,9 @@ function planSidebarHTML(){
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
-      <!-- "All" is gone: a list of every task in the house is the one view
-           that never answers a question, and it was standing between the
-           search and the lists. The search has gone too, up onto the line the
-           new-task button is on, where the two things you do before you have
-           chosen a list sit together — so the lists now start at the top of
-           this column, level with the content beside them. -->
+      <!-- The search is up on the line the new-task button is on, where the
+           two things you do before you have chosen a list sit together — so
+           the lists start near the top of this column. -->
       <div class="pl-group">
         <!-- one dated row, with the span chosen on it: the same question over
              three lengths of time, not three separate places -->
@@ -42130,6 +42248,12 @@ function planSidebarHTML(){
               ${PLAN_SPANS.map(id => { const w = PLAN_SMART_VIEWS.find(x => x.id === id);
                 return `<button class="pl-span${sp === id ? ' on' : ''}" data-plspan="${id}" title="${esc(w.hint)}">${esc(w.name)}</button>`; }).join('')}
             </div></div>`; })()}
+        <!-- every open task in the house, whatever list it lives in, grouped by
+             that list; finished work is at the foot of the sidebar -->
+        ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'all');
+          return `<button class="pl-item pl-all${on('smart', 'all')}" data-plsel="smart:all" title="${esc(v.hint)}">
+            <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+            <span class="pl-n mono">${planSmartCount('all') || ''}</span></button>`; })()}
       </div>
 
       <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
@@ -42478,7 +42602,7 @@ function planHeaderHTML(sel){
   if(f.completion && f.completion !== 'any') chips.push(`<span class="pf-chip on" data-pfclear="completion">${f.completion === 'active' ? 'not done' : 'done'}<i>×</i></span>`);
   if(f.hasSubtasks === true || f.hasSubtasks === false) chips.push(`<span class="pf-chip on" data-pfclear="hasSubtasks">${f.hasSubtasks ? 'has steps' : 'no steps'}<i>×</i></span>`);
   if(f.search) chips.push(`<span class="pf-chip on" data-pfclear="search">“${esc(f.search)}”<i>×</i></span>`);
-  const special = (sel.kind === 'smart' && sel.id === 'stats') || sel.kind === 'shop';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || sel.kind === 'shop' || sel.kind === 'remind';
   return `<div class="pl-header">
     <!-- Writing a task down and looking for one are the two things you do
          before you have decided what you are looking at, so they share the top
@@ -42505,7 +42629,14 @@ function planHeaderHTML(sel){
       <!-- the shopping list: its own button, never one of the lists -->
       ${(() => { const n = typeof planShopCount === 'function' ? planShopCount() : 0;
         return `<button class="pl-shopbtn${sel.kind === 'shop' ? ' on' : ''}" data-plsel="shop:list"
-          title="everything that needs buying${n ? ` · ${n} to buy` : ''}"><span aria-hidden="true">🛒</span>Shopping list
+          title="everything that needs buying${n ? ` · ${n} to buy` : ''}"><span aria-hidden="true">🛒</span><span class="pl-tl">Shopping list</span>
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
+      <!-- the reminders: their own button too, and the count is the ones
+           showing now — on Today and over every page -->
+      ${(() => { const all = typeof planRemindItems === 'function' ? planRemindItems() : [];
+        const n = all.filter(remindActive).length;
+        return `<button class="pl-remindbtn${sel.kind === 'remind' ? ' on' : ''}" data-plsel="remind:list"
+          title="things to be reminded of, at a time${n ? ` · ${n} showing now` : all.length ? ` · ${all.length} coming up` : ''}"><span aria-hidden="true">🔔</span><span class="pl-tl">Reminders</span>
           ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…"
         value="${esc(S._planQ || '')}">
@@ -42520,7 +42651,7 @@ function planHeaderHTML(sel){
         ${PLAN_SORTS.map(([k, n]) => `<option value="${k}" ${p.prefs.sort === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
       <div class="pf-chips">
         ${chips.join('')}
-        <button class="pf-chip${p.prefs.showCompleted ? ' on' : ''}" id="plShowDone">done</button>
+        ${sel.kind === 'smart' && sel.id === 'all' ? '' : `<button class="pf-chip${p.prefs.showCompleted ? ' on' : ''}" id="plShowDone">done</button>`}
       </div>
       <span class="pl-count mono" id="plCount"></span>
     </div>`}
@@ -42549,6 +42680,7 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
       ${t.shop ? '<span class="pt-shop" title="on the shopping list">🛒</span>' : ''}
+      ${t.remind ? '<span class="pt-shop" title="on the reminders">🔔</span>' : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
       <!-- The day you meant to sit down with it, shown when it is not the day
            it is owed. A row whose only date is a do date used to show no date
@@ -42564,8 +42696,11 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
 /* ---------- list view ---------- */
 function planGroupTasks(tasks, sel){
   const p = planState(), T = today();
+  /* All tasks is every list at once, so it is grouped by list — which is the
+     one thing its rows cannot otherwise tell you at a glance */
   const mode = p.prefs.group === 'auto'
-    ? (sel.kind === 'smart' && ['today','next7','all','tomorrow'].includes(sel.id) ? 'date' : 'section')
+    ? (sel.kind === 'smart' && sel.id === 'all' ? 'list'
+      : sel.kind === 'smart' && ['today','next7','tomorrow'].includes(sel.id) ? 'date' : 'section')
     : p.prefs.group;
   if(mode === 'date'){
     const g = new Map();
@@ -42635,6 +42770,7 @@ function planEmptyLine(sel){
     if(sel.id === 'today')  return 'Nothing due today. A day with no obligations is either very good or very avoidant.';
     if(sel.id === 'done')   return 'Nothing finished in the last month. That is either rest or drift — you know which.';
     if(sel.id === 'next7')  return 'The week ahead is empty. Either it is genuinely clear, or it has not been thought about yet.';
+    if(sel.id === 'all')    return 'Nothing open anywhere. Every list is clear.';
   }
   if(sel.kind === 'tag') return 'Nothing carries this tag right now.';
   return 'This list is waiting for its first task.';
@@ -42698,9 +42834,10 @@ routes.planning = function(root, params){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
 
   const v = planView();
-  const shop = sel.kind === 'shop';
-  const special = (sel.kind === 'smart' && sel.id === 'stats') || shop;
+  const shop = sel.kind === 'shop', remind = sel.kind === 'remind';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || shop || remind;
   const body = shop ? planShopHTML(tasks)
+    : remind ? planRemindHTML(tasks)
     : special
     ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
@@ -42735,6 +42872,7 @@ routes.planning = function(root, params){
   bindPlanRooms(root);
   bindPlanning(root, sel, tasks);
   if(shop) bindPlanShop(root);
+  if(remind) bindPlanRemind(root);
   bindPlanMilestones(root, sel);
 };
 ROUTE_ALIASES.plan = 'planning';
@@ -42912,7 +43050,8 @@ function planDueReminders(){
     .map(r => ({r, t: planTaskById(r.taskId)})).filter(x => x.t && !x.t.done);
 }
 function planReminderBannerHTML(){
-  const due = planDueReminders(); if(!due.length) return '';
+  /* a reminder from the 🔔 Reminders has its own place on every page already */
+  const due = planDueReminders().filter(x => !x.t.remind); if(!due.length) return '';
   return `<div class="pl-remind" id="plRemind">
     <span class="mono">${due.length === 1 ? 'a reminder' : due.length + ' reminders'}</span>
     <div class="pl-remlist">${due.slice(0, 4).map(({r, t}) => `<button class="pl-rem" data-plremgo="${t.id}" data-plremid="${r.id}">
@@ -42964,6 +43103,321 @@ function planOfferReflection(t){
       links:{projects:(t.links.projects || []).slice(), skills:(t.links.skills || []).slice(),
         stages:[], substages:[], threads:[], values:[], people:[]}});
   }});
+}
+/* ============================================================
+   PLANNING — the reminders.
+
+   Things to be reminded of, each at a day and (if it matters) a time, behind
+   their own 🔔 button on Planning's top line, beside the shopping list and
+   for the same reason: "the dentist rings at three" is not work to be sorted
+   into a list, so it is not one of the lists.
+
+   A reminder is a task with `remind` set, which buys it everything a task
+   already has — the panel to edit it in, the day and the time, a repeat, the
+   browser's own notification at the time when that has been allowed. Written
+   here, it is only ever a reminder and stays out of the Inbox and the dated
+   views. Any task can be one as well, from its panel: it stays in its list.
+
+   What makes it a reminder is where it shows. From so many days before its
+   day — "show it from", one day by default — it is at the top of Today and it
+   floats over every other page, so it is seen without going to look for it.
+   At its time it rings once, and it stays until it is ticked.
+   ============================================================ */
+
+const REMIND_LEADS = [[0, 'on the day'], [1, '1 day before'], [2, '2 days before'], [3, '3 days before'], [7, 'a week before']];
+
+const planRemindAll = () => planOwnTasks().filter(t => t.remind);
+/* the open ones, soonest first */
+function planRemindItems(){
+  return planRemindAll().filter(t => !t.done)
+    .sort((a, b) => remindMoment(a) - remindMoment(b) || (a.order || 0) - (b.order || 0));
+}
+const planRemindDone = () => planRemindAll().filter(t => t.done)
+  .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+
+/* the moment it is for: its day at its time, or the start of its day */
+function remindMoment(t){
+  const d = new Date(`${t.day || today()}T${t.dueTime || '00:00'}:00`);
+  return isNaN(d) ? new Date() : d;
+}
+const remindShowFrom = t => addDays(t.day || today(), -(+t.remindLead || 0));
+/* on Today and floating: from the day it shows from until it is ticked */
+const remindActive = t => !!t && t.remind && !t.done && remindShowFrom(t) <= today();
+function remindsActive(){ return planRemindItems().filter(remindActive); }
+/* late: a day gone by · now: its time has come today · today: later today ·
+   soon: a day still to come */
+function remindState(t){
+  const T = today(), d = t.day || T;
+  if(d < T) return 'late';
+  if(d > T) return 'soon';
+  if(!t.dueTime) return 'now';
+  return Date.now() >= remindMoment(t).getTime() ? 'now' : 'today';
+}
+const _remClock = hm => { if(!hm) return ''; let [h, m] = hm.split(':').map(Number);
+  const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12; return `${h}:${String(m).padStart(2, '0')}${ap}`; };
+/* how it reads beside the reminder: when, in the words you would use */
+function remindWhen(t){
+  const T = today(), d = t.day || T, at = t.dueTime ? _remClock(t.dueTime) : '';
+  const st = remindState(t);
+  if(st === 'late') return `since ${fmtDate(d, 'short')}${at ? ' · ' + at : ''}`;
+  if(st === 'now') return at ? `now · ${at}` : 'today';
+  if(st === 'today') return `today · ${at}`;
+  const n = daysBetween(T, d);
+  const day = n === 1 ? 'tomorrow' : n < 7 ? `${fmtDate(d, 'short')} · in ${n} days` : fmtDate(d, 'short');
+  return at ? `${day} · ${at}` : day;
+}
+
+/* ---------- making, changing, ticking ---------- */
+function planAddReminder({text, day, time, lead} = {}){
+  let words = String(text || '').trim(); if(!words) return null;
+  day = day || today(); time = time || '';
+  /* "call the dentist friday 3pm" says its own day and time */
+  if(typeof parseQuickTask === 'function'){
+    const q = parseQuickTask(words);
+    if(q.day || q.dueTime){ words = q.text || words; if(q.day) day = q.day; if(q.dueTime) time = q.dueTime; }
+  }
+  const t = newPlanTask(words, '', {listId: 'inbox', remind: true});
+  t.day = day; t.dueTime = time; t.remindLead = [0, 1, 2, 3, 7].includes(+lead) ? +lead : 1;
+  t.order = Date.now();
+  /* the browser's notification at the time, where it has been allowed */
+  t.reminders = [{type: 'at_time'}];
+  S.tasks = S.tasks || []; S.tasks.push(t);
+  if(typeof planSyncReminders === 'function') planSyncReminders(t);
+  saveNow();
+  return t;
+}
+/* a task from a real list, put on the reminders from its panel */
+function planSetRemind(t, on){
+  t.remind = !!on;
+  if(on){
+    if(!t.day) t.day = today();
+    t.reminders = Array.isArray(t.reminders) ? t.reminders : [];
+    if(!t.reminders.some(r => r.type === 'at_time')) t.reminders.push({type: 'at_time'});
+  }
+  t.remindRang = null; t.updatedAt = new Date().toISOString();
+  if(typeof planSyncReminders === 'function') planSyncReminders(t);
+  saveNow();
+  return t.remind;
+}
+/* "in an hour": an hour from now, or from its time if that is still ahead */
+function remindSnooze(t, mins = 60){
+  const at = new Date(Math.max(Date.now(), remindMoment(t).getTime()) + mins * 60000);
+  t.day = isoDay(at);
+  t.dueTime = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+  t.remindRang = null; t.updatedAt = new Date().toISOString();
+  if(typeof planSyncReminders === 'function') planSyncReminders(t);
+  saveNow();
+}
+function remindTick(t){
+  const was = t.done;
+  planSetDone(t, !was);
+  return !was;
+}
+/* × on a reminder: written here, it goes; a task from a real list only comes
+   off the reminders */
+function remindRemove(t){
+  if(t.listId !== 'inbox'){ planSetRemind(t, false); return 'off'; }
+  S.tasks = S.tasks.filter(x => x.id !== t.id);
+  if(typeof planSyncReminders === 'function') planSyncReminders(Object.assign({}, t, {day: ''}));
+  saveNow();
+  return 'gone';
+}
+function openReminders(){
+  S._planRoom = 'tasks';
+  if(typeof planSetSel === 'function') planSetSel('remind', 'list'); else S._planSel = {kind: 'remind', id: 'list'};
+  if(parseHash().name === 'planning') rerender(); else navigate('#/planning');
+}
+
+/* ---------- on Planning: the Reminders view ---------- */
+function planRemindRowHTML(t){
+  const st = t.done ? 'done' : remindState(t), on = !t.done && remindActive(t);
+  return `<div class="prem-row st-${st}${t.done ? ' done' : ''}" data-premrow="${esc(t.id)}">
+    <button class="pt-box${t.done ? ' on' : ''}" data-premdone="${esc(t.id)}" role="checkbox" aria-checked="${!!t.done}"
+      aria-label="${t.done ? 'not done after all' : 'done'}: ${esc(t.text)}"><svg viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+    <button class="prem-t" data-premopen="${esc(t.id)}" title="open it — change the words, the day, the time">${esc(t.text)}</button>
+    ${t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}" title="also in this list">${esc(planListName(t.listId))}</span>` : ''}
+    <span class="prem-when mono">${esc(t.done ? fmtDate(t.day || today(), 'short') : remindWhen(t))}</span>
+    ${!t.done && !on ? `<span class="prem-from mono faint" title="it shows on Today and over every page from then">shows ${
+      esc(remindShowFrom(t) === addDays(today(), 1) ? 'tomorrow' : fmtDate(remindShowFrom(t), 'short'))}</span>` : ''}
+    ${!t.done && (st === 'now' || st === 'late') ? `<button class="tbtn" data-premsnooze="${esc(t.id)}" title="remind me again in an hour">in an hour</button>` : ''}
+    <button class="del-x inline" data-premdel="${esc(t.id)}" aria-label="take ${esc(t.text)} off the reminders">×</button>
+  </div>`;
+}
+function planRemindHTML(items){
+  const T = today();
+  const showing = items.filter(remindActive), later = items.filter(t => !remindActive(t));
+  const done = planRemindDone().slice(0, 12);
+  const lead = S._premLead != null ? S._premLead : 1;
+  return `<div class="prem">
+    <div class="prem-add">
+      <input class="inp" id="premIn" autocomplete="off" aria-label="what to be reminded of"
+        placeholder="what to remember — “call the dentist friday 3pm” sets the day and time too">
+      <div class="prem-opts">
+        <label class="prem-f"><span class="k mono">day</span><input class="inp" type="date" id="premDay" value="${T}"></label>
+        <label class="prem-f"><span class="k mono">time</span><input class="inp" type="time" id="premTime"></label>
+        <label class="prem-f"><span class="k mono">show it from</span><select class="sel" id="premLead">${REMIND_LEADS.map(([v, n]) =>
+          `<option value="${v}" ${+lead === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <button class="btn sm primary" id="premAdd">Add</button>
+      </div>
+    </div>
+    ${showing.length ? `<div class="prem-group prem-now"><div class="prem-gh"><span class="sc">Showing now</span>
+      <span class="mono faint">on Today, and over every other page</span></div>${showing.map(planRemindRowHTML).join('')}</div>` : ''}
+    ${later.length ? `<div class="prem-group"><div class="prem-gh"><span class="sc">Coming up</span>
+      <span class="mono faint">${later.length}</span></div>${later.map(planRemindRowHTML).join('')}</div>` : ''}
+    ${!items.length ? `<div class="empty sm prem-empty">Nothing to be reminded of. Write it here with its day and time, and it will find you.</div>` : ''}
+    ${done.length ? `<div class="prem-group prem-done"><div class="prem-gh"><span class="sc">Done</span>
+      <span class="mono faint">${done.length}</span><span class="grow"></span>
+      <button class="tbtn" id="premClear" title="throw the ticked reminders away">clear</button></div>${done.map(planRemindRowHTML).join('')}</div>` : ''}
+    <p class="faint sm prem-hint">From the day you choose, a reminder is at the top of Today and floats over every other page until you tick it.
+      Any task can be one too: open it and tick “remind me”.
+      ${'Notification' in window && Notification.permission === 'default'
+        ? '<button class="tbtn" id="premNotify">let the browser notify me at the time as well</button>' : ''}</p>
+  </div>`;
+}
+function bindPlanRemind(root){
+  const box = root.querySelector('.prem'); if(!box) return;
+  const input = box.querySelector('#premIn');
+  const add = () => {
+    const lead = +box.querySelector('#premLead').value;
+    const t = planAddReminder({text: input.value, day: box.querySelector('#premDay').value,
+      time: box.querySelector('#premTime').value, lead});
+    if(!t){ input.focus(); return; }
+    S._premLead = lead; S._premFocus = true;
+    sound('click');
+    toast(`Reminder set — ${esc(remindWhen(t))}${remindActive(t) ? '' : `, showing from ${esc(fmtDate(remindShowFrom(t), 'short'))}`}.`);
+    rerender(); paintRemindFloat();
+  };
+  box.querySelector('#premAdd').onclick = add;
+  input.onkeydown = ev => { if(ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); add(); } };
+  if(S._premFocus){ S._premFocus = false; setTimeout(() => input.focus(), 0); }
+  bindRemindRows(box, () => { rerender(); paintRemindFloat(); });
+  const clear = box.querySelector('#premClear');
+  if(clear) clear.onclick = () => {
+    const gone = planRemindDone();
+    gone.filter(t => t.listId !== 'inbox').forEach(t => { t.remind = false; });
+    const ids = new Set(gone.filter(t => t.listId === 'inbox').map(t => t.id));
+    S.tasks = S.tasks.filter(t => !ids.has(t.id));
+    saveNow(); sound('click'); rerender(); };
+  const ask = box.querySelector('#premNotify');
+  if(ask) ask.onclick = () => { try { Notification.requestPermission().then(() => rerender()); } catch(e){} };
+}
+/* the same four things wherever a reminder is drawn: tick, open, later, × */
+function bindRemindRows(box, redraw){
+  $$('[data-premdone]', box).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const t = planTaskById(b.dataset.premdone); if(!t) return;
+    sound(remindTick(t) ? 'success' : 'click'); redraw(); });
+  $$('[data-premopen]', box).forEach(b => b.onclick = () => openPlanTask(b.dataset.premopen));
+  $$('[data-premsnooze]', box).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const t = planTaskById(b.dataset.premsnooze); if(!t) return;
+    remindSnooze(t); sound('click'); toast(`Again at ${esc(_remClock(t.dueTime))}.`); redraw(); });
+  $$('[data-premdel]', box).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const t = planTaskById(b.dataset.premdel); if(!t) return;
+    remindRemove(t); sound('click'); redraw(); });
+}
+
+/* ---------- on Today: at the top, where it cannot be missed ---------- */
+function remindTodayHTML(){
+  const list = remindsActive();
+  if(!list.length) return '';
+  const now = list.filter(t => ['now', 'late'].includes(remindState(t))).length;
+  return `<section class="t-remind rv${now ? ' ringing' : ''}" id="t-remind" aria-label="reminders">
+    <div class="t-remind-h"><span class="sc" style="margin:0">🔔 Remember</span>
+      <span class="mono faint">${now ? `${now} now` : ''}${now && list.length > now ? ' · ' : ''}${list.length > now ? `${list.length - now} coming` : ''}</span>
+      <span class="grow"></span><button class="tbtn" data-remall>all reminders →</button></div>
+    <div class="t-remind-list">${list.map(t => `<div class="t-rem st-${remindState(t)}" data-remrow="${esc(t.id)}">
+      <button class="task-check" data-premdone="${esc(t.id)}" role="checkbox" aria-checked="false" title="done — it stops reminding you"></button>
+      <button class="t-rem-t" data-premopen="${esc(t.id)}">${esc(t.text)}</button>
+      <span class="t-rem-when mono">${esc(remindWhen(t))}</span>
+      ${['now', 'late'].includes(remindState(t)) ? `<button class="tbtn" data-premsnooze="${esc(t.id)}">in an hour</button>` : ''}
+    </div>`).join('')}</div>
+  </section>`;
+}
+function bindRemindToday(root){
+  const box = root.querySelector('#t-remind'); if(!box) return;
+  bindRemindRows(box, () => { rerender(); paintRemindFloat(); });
+  const all = box.querySelector('[data-remall]'); if(all) all.onclick = openReminders;
+}
+
+/* ---------- over every other page ----------
+   Hung once at boot, outside #main, so a redraw cannot take it away. It is
+   not over Today, which has the same reminders at its top already. In focus
+   mode it keeps to the ones whose day has come, and folded away it is a bell
+   with a number — until one of them rings, which opens it again. */
+function remindFloatList(){
+  let list = remindsActive();
+  const focus = document.documentElement.classList.contains('page-focus')
+    || document.documentElement.classList.contains('sc-reading');
+  if(focus) list = list.filter(t => (t.day || today()) <= today());
+  return list;
+}
+/* Three sizes: one line — the most pressing reminder, and how many more —
+   which is what it is unless asked otherwise; the whole list, opened from that
+   line; and a bell with a number, folded away. A reminder ringing brings a
+   folded one back to its line. */
+function paintRemindFloat(){
+  const box = document.getElementById('remFloat'); if(!box) return;
+  if(!S || !S.planning){ box.hidden = true; return; }
+  const list = remindFloatList();
+  /* Today has them at its top, and the Reminders view is them */
+  const here = !!document.querySelector('#main .today-page, #main .prem');
+  if(!list.length || here){ box.hidden = true; box.innerHTML = ''; return; }
+  box.hidden = false;
+  const mode = ['min', 'open'].includes(S._remFloatMode) ? S._remFloatMode : 'strip';
+  const ringing = list.some(t => ['now', 'late'].includes(remindState(t)));
+  box.classList.toggle('ringing', ringing);
+  box.dataset.mode = mode;
+  const first = list[0], more = list.length - 1;
+  const row = t => `<div class="rf-row st-${remindState(t)}">
+      <button class="rf-check" data-premdone="${esc(t.id)}" title="done — it stops reminding you" aria-label="done: ${esc(t.text)}">✓</button>
+      <button class="rf-t" data-premopen="${esc(t.id)}" title="open it">${esc(t.text)}</button>
+      <span class="rf-when mono">${esc(remindWhen(t))}</span></div>`;
+  box.innerHTML = mode === 'min'
+    ? `<button class="rf-pill" id="rfOpen" title="${list.length} reminder${list.length === 1 ? '' : 's'}" aria-label="show the reminders">🔔 <b>${list.length}</b></button>`
+    : mode === 'strip'
+    ? `<div class="rf-strip" role="region" aria-label="reminders"><span class="rf-bell" aria-hidden="true">🔔</span>
+        ${row(first)}
+        ${more ? `<button class="rf-n mono" id="rfExpand" title="all ${list.length} of them">+${more}</button>` : ''}
+        <button class="rf-x" id="rfMin" title="fold it away" aria-label="fold the reminders away">–</button></div>`
+    : `<div class="rf-card" role="region" aria-label="reminders">
+        <div class="rf-h"><button class="rf-hb mono" id="rfFold" title="back to one line">🔔 remember · ${list.length}</button><span class="grow"></span>
+          <button class="rf-x" id="rfMin" title="fold it away" aria-label="fold the reminders away">–</button></div>
+        ${list.slice(0, 6).map(row).join('')}
+        ${list.length > 6 ? `<button class="rf-more" id="rfAll">${list.length - 6} more →</button>`
+          : `<button class="rf-more" id="rfAll">all reminders →</button>`}
+      </div>`;
+  const redraw = () => { paintRemindFloat(); if(parseHash().name === 'planning' || document.getElementById('t-remind')) rerender(); };
+  bindRemindRows(box, redraw);
+  const set = m => () => { S._remFloatMode = m; paintRemindFloat(); };
+  [['#rfOpen', 'strip'], ['#rfMin', 'min'], ['#rfExpand', 'open'], ['#rfFold', 'strip']].forEach(([q, m]) => {
+    const b = box.querySelector(q); if(b) b.onclick = set(m); });
+  const all = box.querySelector('#rfAll'); if(all) all.onclick = openReminders;
+}
+/* At its time a reminder rings, once: a chime, a word at the foot of the
+   screen, and the floating card opened again if it had been folded away. */
+function remindCheckRing(){
+  if(!S || !S.planning) return;
+  let rang = null;
+  remindsActive().forEach(t => {
+    if(remindState(t) !== 'now' || !t.dueTime || t.remindRang) return;
+    t.remindRang = new Date().toISOString(); rang = t;
+  });
+  if(rang){
+    saveNow(); sound('chime'); if(S._remFloatMode === 'min') S._remFloatMode = 'strip';
+    toast(`🔔 ${esc(rang.text)}`, 9000);
+    const a = document.activeElement;
+    const typing = a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);
+    if(!typing && (document.getElementById('t-remind') || parseHash().name === 'today')) rerender();
+  }
+  paintRemindFloat();
+}
+function mountRemindFloat(){
+  if(document.getElementById('remFloat')) return;
+  const box = el('<div id="remFloat" class="rem-float" hidden aria-live="polite"></div>');
+  document.body.appendChild(box);
+  paintRemindFloat();
+  setInterval(remindCheckRing, 20000);
+  setTimeout(remindCheckRing, 1500);
 }
 /* ============================================================
    PLANNING — the shopping list.
@@ -43902,6 +44356,11 @@ function projectTaskRefs(){
   return out;
 }
 function allTaskRefs(){ return [...(S.tasks||[]).map(taskRef), ...projectTaskRefs()]; }
+/* A thing to buy or a thing to be reminded of, written straight onto the
+   shopping list or the reminders, is kept aside from the tasks: it has its own
+   place, and a day's work is not "milk" or "the dentist rings at three". A task
+   from a real list that is also on one of them is still a task. */
+const taskIsAside = t => !!t && (t.shop || t.remind) && (t.listId || 'inbox') === 'inbox';
 function findTaskRef(id){ return allTaskRefs().find(r => r.id === id); }
 /* Alphabetical was a stand-in for an order nobody had chosen. Now that a row
    can be dragged up and down, the chosen order is the order — done work still
@@ -43925,10 +44384,10 @@ function taskDatesOn(t, day){
 }
 const taskOnDay = (t, day) => !!taskDatesOn(t, day);
 function tasksForDay(day){
-  const own = allTaskRefs().filter(r => taskOnDay(r.task, day));
+  const own = allTaskRefs().filter(r => taskOnDay(r.task, day) && !taskIsAside(r.task));
   const seen = new Set(own.map(r => r.id));
   const finished = allTaskRefs().filter(r =>
-    !seen.has(r.id) && r.done && (r.task.doneAt || '') === day)
+    !seen.has(r.id) && r.done && (r.task.doneAt || '') === day && !taskIsAside(r.task))
     .map(r => Object.assign({}, r, {elsewhere: true}));
   return own.concat(finished)
     .sort((a,b)=> (a.done?1:0)-(b.done?1:0) || taskOrder(a) - taskOrder(b) || a.text.localeCompare(b.text));
@@ -43947,8 +44406,8 @@ function reorderTaskInDay(day, dragId, targetId, before){
   saveNow();
   return true;
 }
-function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done).sort((a,b)=> a.day.localeCompare(b.day)); }
-function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.doDay && !r.done); }
+function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done && !taskIsAside(r.task)).sort((a,b)=> a.day.localeCompare(b.day)); }
+function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.doDay && !r.done && !taskIsAside(r.task)); }
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
 function setTaskDoDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.doDay = day || ''; saveNow(); }
 function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
@@ -44545,6 +45004,7 @@ const EntryActions = {
   quickNote:      (pre={}) => openEntryModal({type:'reflection', allowedTypes:['reflection'], heading:'Quick note', ...pre}),
   unfinished:     ()       => openMemoryDump(),
   taskReminder:   ()       => openReminderModal(),
+  reminder:       ()       => openRemindModal(),
   dailyIntention: ()       => focusIntention(),
   journalEntry:   (pre={}) => openEntryModal({type: pre.journalType || S._journal || 'reflection', allowedTypes: journalTypes(), heading:'New journal entry', links: pre.links}),
   memory:         (pre={}) => openEntryModal({type:'memory', allowedTypes:['memory','artifact','letter'], heading:'New memory', links: pre.links}),
@@ -44598,7 +45058,7 @@ function runContextAdd(cfg){
 /* ---------- Tier 2: universal FAB speed dial (separate path) ---------- */
 const SPEED_DIAL = [
   {zone:'Planning', icon:'▤', label:'Task',                run: ()=>EntryActions.planTask()},
-  {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
+  {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()], ['Reminder', ()=>EntryActions.reminder()]]},
   {zone:'Today',    icon:'⋯', label:'Unfinished thought — dump it now',  run: ()=>EntryActions.unfinished()},
   {zone:'Commonplace Book', icon:'📓', label:'Journal entry',  run: ()=>EntryActions.journalEntry()},
   {zone:'Timeline', icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},
@@ -44637,6 +45097,26 @@ function focusIntention(){
 function openReminderModal(){
   const m = openModal(`<h2>Task reminder</h2><p class="muted" style="margin-top:-8px">A small thing to surface on Today. Not a task manager — a nudge.</p><div class="stack"><input class="inp serif-lg" id="rmText" placeholder="What needs doing?"><div class="field"><label>Surface on</label><input class="inp" type="date" id="rmDate" value="${today()}"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="rmSave">Set reminder</button></div></div>`, 'narrow');
   const fin = () => { const t = m.querySelector('#rmText').value.trim(); if(!t) return; S.reminders = S.reminders || []; S.reminders.push({id:uid(), text:t, date:m.querySelector('#rmDate').value || today(), done:false, createdAt:today()}); saveNow(); m.remove(); sound('success'); toast('Reminder set.'); if(currentRoute === 'today') rerender(); };
+  m.querySelector('#rmSave').onclick = fin; m.querySelector('#rmText').onkeydown = e => { if(e.key === 'Enter') fin(); }; setTimeout(() => m.querySelector('#rmText').focus(), 50);
+}
+/* A reminder from anywhere — the same thing the 🔔 Reminders on Planning makes:
+   a day, a time if it has one, and from when it should be in front of you. */
+function openRemindModal(){
+  const m = openModal(`<h2>Reminder</h2><p class="muted" style="margin-top:-8px">From the day you choose it is at the top of Today and floats over every page until you tick it.</p>
+    <div class="stack"><input class="inp serif-lg" id="rmText" placeholder="What to remember — “call the dentist friday 3pm” works too">
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field"><label>Day</label><input class="inp" type="date" id="rmDate" value="${today()}"></div>
+        <div class="field"><label>Time</label><input class="inp" type="time" id="rmTime"></div>
+        <div class="field"><label>Show it from</label><select class="sel" id="rmLead">${REMIND_LEADS.map(([v, n]) =>
+          `<option value="${v}" ${v === 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></div></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="rmSave">Set reminder</button></div></div>`, 'narrow');
+  const fin = () => {
+    const t = planAddReminder({text: m.querySelector('#rmText').value, day: m.querySelector('#rmDate').value,
+      time: m.querySelector('#rmTime').value, lead: +m.querySelector('#rmLead').value});
+    if(!t) return;
+    m.remove(); sound('success'); toast(`Reminder set — ${esc(remindWhen(t))}.`);
+    if(currentRoute === 'today' || currentRoute === 'planning') rerender();
+    paintRemindFloat(); };
   m.querySelector('#rmSave').onclick = fin; m.querySelector('#rmText').onkeydown = e => { if(e.key === 'Enter') fin(); }; setTimeout(() => m.querySelector('#rmText').focus(), 50);
 }
 function newValueDialog(){
@@ -93182,6 +93662,7 @@ async function initInner(){
      never rebuilt: a redraw of #main cannot stop it or eat a half-typed note. */
   try { mountFocusDock(); } catch(e){ console.warn('the clock could not be hung', e); }
   try { mountTimeDock(); } catch(e){ console.warn('the time pill could not be hung', e); }
+  try { mountRemindFloat(); } catch(e){ console.warn('the reminders could not be hung', e); }
   try { MicroFX.start(); } catch(e){ console.warn('pointer layer skipped', e); }
   try { AmbientFX.start(); } catch(e){ console.warn('ambient layer skipped', e); }
   try { ScrollFX.parallax(); PolishFX.start(); } catch(e){ console.warn('polish layer skipped', e); }

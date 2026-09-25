@@ -25,7 +25,8 @@ function planDueReminders(){
     .map(r => ({r, t: planTaskById(r.taskId)})).filter(x => x.t && !x.t.done);
 }
 function planReminderBannerHTML(){
-  const due = planDueReminders(); if(!due.length) return '';
+  /* a reminder from the 🔔 Reminders has its own place on every page already */
+  const due = planDueReminders().filter(x => !x.t.remind); if(!due.length) return '';
   return `<div class="pl-remind" id="plRemind">
     <span class="mono">${due.length === 1 ? 'a reminder' : due.length + ' reminders'}</span>
     <div class="pl-remlist">${due.slice(0, 4).map(({r, t}) => `<button class="pl-rem" data-plremgo="${t.id}" data-plremid="${r.id}">

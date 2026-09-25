@@ -59,6 +59,12 @@ function planDetailHTML(t){
            top line), and stays in its own list as well -->
       <label class="pd-q pd-shop"><span class="k">to buy</span>
         <span class="pd-shopchk"><input type="checkbox" id="pdShop" ${t.shop ? 'checked' : ''}> 🛒 on the shopping list</span></label>
+      <!-- to be reminded of: on the reminders (the 🔔 button), and from so many
+           days before its day at the top of Today and over every page -->
+      <label class="pd-q pd-shop"><span class="k">remind me</span>
+        <span class="pd-shopchk"><input type="checkbox" id="pdRemind" ${t.remind ? 'checked' : ''}> 🔔 show it from
+          <select class="sel pd-remlead" id="pdRemLead" ${t.remind ? '' : 'disabled'}>${(typeof REMIND_LEADS !== 'undefined' ? REMIND_LEADS : [[1, '1 day before']]).map(([v, n]) =>
+            `<option value="${v}" ${+t.remindLead === v ? 'selected' : ''}>${n}</option>`).join('')}</select></span></label>
       <!-- Which part of a life this is, in the time tracker's own words. An
            hour sat with this task is filed under whatever is chosen here, so
            the week's report says "the bar's accounts" rather than "Tasks" —
@@ -182,6 +188,13 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  const rem = p.querySelector('#pdRemind'), remLead = p.querySelector('#pdRemLead');
+  if(rem) rem.onchange = function(){ planSetRemind(t, this.checked); if(remLead) remLead.disabled = !this.checked;
+    const dayIn = p.querySelector('#pdDay'); if(dayIn && t.day && !dayIn.value) dayIn.value = t.day;
+    rerenderPlanBody();
+    if(typeof toast === 'function') toast(this.checked
+      ? `On the reminders — ${esc(remindWhen(t))}.` : 'Off the reminders.'); };
+  if(remLead) remLead.onchange = function(){ t.remindLead = +this.value; touch(); rerenderPlanBody(); };
   const shop = p.querySelector('#pdShop');
   if(shop) shop.onchange = function(){ t.shop = this.checked; touch(); rerenderPlanBody();
     if(typeof toast === 'function') toast(this.checked ? 'On the shopping list.' : 'Off the shopping list.'); };
@@ -320,14 +333,17 @@ function rerenderPlanBody(){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
   const v = planView();
   const special = sel.kind === 'smart' && sel.id === 'stats';
-  const shop = sel.kind === 'shop';
+  const shop = sel.kind === 'shop', remind = sel.kind === 'remind';
   body.innerHTML = special ? planStatsHTML()
     : shop ? planShopHTML(tasks)
+    : remind ? planRemindHTML(tasks)
     : v === 'calendar' ? planCalendarHTML(tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
   bindPlanning(main, sel, tasks);
   if(shop) bindPlanShop(main);
+  if(remind) bindPlanRemind(main);
+  if(typeof paintRemindFloat === 'function') paintRemindFloat();
   /* the top line's 🛒 count follows whatever the panel just changed */
   if(typeof planShopBadge === 'function') planShopBadge();
   if(keep && !$('#panel')) document.body.appendChild(keep);

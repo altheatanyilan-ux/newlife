@@ -8207,7 +8207,7 @@ html[data-theme="light"] .wk-sleep{
 .pl-top{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin:0 0 10px}
 /* The add is the widest thing on the line because it is the thing you use
    most, and because what you type into it is a sentence. */
-.pl-top .pl-add{flex:2 1 300px;min-width:200px;margin:0;position:relative}
+.pl-top .pl-add{flex:2 1 220px;min-width:200px;margin:0;position:relative}
 .pl-top .pl-add-input{width:100%;padding:7px 11px;font-size:.82rem}
 /* the parse floats over the page rather than shoving the header down a line
    with every keystroke */
@@ -8215,15 +8215,15 @@ html[data-theme="light"] .wk-sleep{
 /* solid, because it is floating over the page now rather than sitting in it */
 .pl-top .pl-add .qp-preview{margin-top:4px;background:var(--surface-2);
   border:1px solid var(--line-2);box-shadow:var(--surface-shadow)}
-.pl-inbox,.pl-shopbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;
+.pl-inbox,.pl-shopbtn,.pl-remindbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;
   padding:7px 11px;border:1px solid var(--line-2);border-radius:8px;
   background:var(--surface-2);color:var(--muted);font-size:.82rem;cursor:pointer;
   transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
-.pl-inbox:hover,.pl-shopbtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
-.pl-inbox.on,.pl-shopbtn.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
+.pl-inbox:hover,.pl-shopbtn:hover,.pl-remindbtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
+.pl-inbox.on,.pl-shopbtn.on,.pl-remindbtn.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
   color:var(--text);border-color:color-mix(in srgb,var(--page-accent) 40%,transparent)}
 .pl-inbox.over{background:color-mix(in srgb,var(--page-accent) 26%,transparent);color:var(--text)}
-.pl-inbox .pl-n,.pl-shopbtn .pl-n{opacity:.7}
+.pl-inbox .pl-n,.pl-shopbtn .pl-n,.pl-remindbtn .pl-n{opacity:.7}
 /* ---------- the shopping list ---------- */
 .pshop{display:flex;flex-direction:column;gap:10px;max-width:640px}
 .pshop-add{display:flex;gap:8px;align-items:center}
@@ -8251,7 +8251,7 @@ html[data-theme="light"] .wk-sleep{
   0%{background:color-mix(in srgb,var(--page-accent) 40%,transparent);
      border-color:var(--page-accent);color:var(--text)}
   100%{}}
-.pl-top .pl-search{flex:1 1 180px;min-width:150px;max-width:340px;
+.pl-top .pl-search{flex:1 1 150px;min-width:150px;max-width:340px;
   padding:7px 11px;font-size:.82rem}
 /* both columns start at the same line */
 .plan-shell{align-items:start}
@@ -9899,6 +9899,92 @@ html.page-focus main{margin-left:0;padding-top:40px;padding-bottom:56px}
 /* the notes are as long as they need to be */
 .tf-area{min-height:64px;resize:vertical;line-height:1.5;font-family:inherit;overflow:hidden}
 .fl-did,.fl-bnote{white-space:pre-wrap}
+
+/* the top line keeps to one line: where the column is narrow the shopping
+   list and the reminders say themselves with their mark and their count */
+.pl-header{container-type:inline-size}
+@container (max-width: 860px){ .pl-shopbtn .pl-tl,.pl-remindbtn .pl-tl{display:none} }
+/* ============================================================
+   REMINDERS (17-planning-reminders.js)
+   ============================================================ */
+.prem{display:flex;flex-direction:column;gap:12px;max-width:720px}
+.prem-add{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.prem-add #premIn{width:100%;padding:9px 12px;font-size:.9rem}
+.prem-opts{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.prem-f{display:flex;flex-direction:column;gap:3px}
+.prem-f .k{font-size:.6rem;color:var(--faint);letter-spacing:.06em}
+.prem-f .inp,.prem-f .sel{padding:6px 9px;font-size:.8rem;width:auto}
+.prem-group{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.prem-now{border-color:color-mix(in srgb,var(--gold,#d4a44c) 55%,var(--line))}
+.prem-gh{display:flex;align-items:baseline;gap:9px;padding:8px 11px;font-size:.74rem;border-bottom:1px solid var(--line)}
+.prem-row{display:flex;align-items:center;gap:9px;padding:8px 11px;border-top:1px solid var(--line);flex-wrap:wrap}
+.prem-gh + .prem-row{border-top:none}
+.prem-t{flex:1;min-width:140px;text-align:left;background:none;border:none;padding:0;color:var(--text);font:inherit;font-size:.9rem;cursor:pointer}
+.prem-t:hover{text-decoration:underline;text-underline-offset:3px}
+.prem-row.done .prem-t{color:var(--muted);text-decoration:line-through}
+.prem-when{font-size:.7rem;color:var(--muted)}
+.prem-row.st-now .prem-when,.prem-row.st-late .prem-when{color:var(--terra);font-weight:600}
+.prem-from{font-size:.64rem}
+.prem-hint{margin:2px 0 0}
+.prem-empty{padding:18px 12px}
+
+/* on Today, above both halves of the day */
+.t-remind{margin:6px 0 16px;padding:12px 14px;border-radius:12px;
+  border:1px solid color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--line));
+  background:linear-gradient(135deg,color-mix(in srgb,var(--gold,#d4a44c) 13%,var(--surface)),var(--surface) 70%)}
+.t-remind.ringing{border-color:color-mix(in srgb,var(--terra) 60%,var(--line));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--terra) 12%,transparent)}
+.t-remind-h{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
+.t-remind-list{display:flex;flex-direction:column;gap:6px}
+.t-rem{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.t-rem-t{flex:1;min-width:150px;text-align:left;background:none;border:none;padding:0;cursor:pointer;
+  font-family:var(--serif);font-size:1.08rem;color:var(--text)}
+.t-rem-when{font-size:.72rem;color:var(--muted)}
+.t-rem.st-now .t-rem-when,.t-rem.st-late .t-rem-when{color:var(--terra);font-weight:600}
+.t-rem.st-soon .t-rem-t{font-size:.98rem;color:var(--muted)}
+
+/* over every other page: one line at the top of the page area */
+.rem-float{position:fixed;top:12px;left:calc(var(--sidebar) + (100vw - var(--sidebar)) / 2);transform:translateX(-50%);z-index:92;
+  max-width:min(480px,calc(100vw - var(--sidebar) - 460px));min-width:min(300px,calc(100vw - 32px))}
+.rem-float[hidden]{display:none}
+.rem-float[data-mode="min"]{min-width:0}
+.rf-strip,.rf-card{border-radius:12px;border:1px solid color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--line));
+  background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 6px 22px rgba(0,0,0,.16)}
+.rf-strip{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 10px;height:36px}
+.rf-strip .rf-row{flex:1;min-width:0}
+.rf-bell{font-size:.9rem}
+.rf-card{padding:6px 8px 7px;display:flex;flex-direction:column;gap:3px}
+.rem-float.ringing .rf-strip,.rem-float.ringing .rf-card{border-color:color-mix(in srgb,var(--terra) 65%,var(--line));animation:rfRing 2.4s ease-in-out 3}
+@keyframes rfRing{0%,100%{box-shadow:0 6px 22px rgba(0,0,0,.16)}50%{box-shadow:0 6px 22px rgba(0,0,0,.16),0 0 0 6px color-mix(in srgb,var(--terra) 18%,transparent)}}
+@media (prefers-reduced-motion:reduce){.rem-float.ringing .rf-strip,.rem-float.ringing .rf-card{animation:none}}
+.rf-h{display:flex;align-items:center;gap:6px;padding:0 2px}
+.rf-hb{background:none;border:none;padding:2px 0;cursor:pointer;font-size:.64rem;color:var(--faint)}
+.rf-x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:0 5px}
+.rf-n{flex:0 0 auto;border:1px solid var(--line-2);background:none;border-radius:999px;padding:1px 7px;font-size:.66rem;color:var(--muted);cursor:pointer}
+.rf-row{display:flex;align-items:center;gap:8px;min-width:0}
+.rf-check{flex:0 0 auto;width:22px;height:22px;border-radius:50%;border:1px solid var(--line-2);background:none;
+  color:var(--faint);cursor:pointer;font-size:.72rem;line-height:1;display:grid;place-items:center}
+.rf-check:hover{color:var(--sage);border-color:var(--sage)}
+.rf-t{flex:1;min-width:0;text-align:left;background:none;border:none;padding:2px 0;cursor:pointer;color:var(--text);
+  font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rf-when{flex:0 0 auto;font-size:.64rem;color:var(--muted)}
+.rf-row.st-now .rf-when,.rf-row.st-late .rf-when{color:var(--terra);font-weight:600}
+.rf-more{align-self:flex-end;background:none;border:none;color:var(--muted);font-size:.7rem;cursor:pointer}
+.rf-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;cursor:pointer;
+  border:1px solid color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--line));background:var(--surface);
+  color:var(--text);font-size:.78rem;box-shadow:0 3px 12px rgba(0,0,0,.14)}
+.rem-float.ringing .rf-pill{border-color:var(--terra)}
+/* in focus mode the page has the whole width, and the corner has the way out */
+html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
+@media (max-width:900px){
+  /* a phone: above the clock, the time pill and the + at the foot */
+  .rem-float,html.page-focus .rem-float{top:auto;bottom:138px;left:12px;right:12px;transform:none;max-width:none;min-width:0}
+  html.page-focus .rem-float{bottom:16px}
+  .rem-float[data-mode="min"]{left:auto;right:12px}
+  .rf-card{max-height:50vh;overflow:auto}
+}
+.pd-remlead{padding:2px 20px 2px 6px;font-size:.74rem;width:auto;margin-left:4px}
 </style>
 
 </head>

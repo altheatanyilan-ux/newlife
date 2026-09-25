@@ -20,6 +20,7 @@ const EntryActions = {
   quickNote:      (pre={}) => openEntryModal({type:'reflection', allowedTypes:['reflection'], heading:'Quick note', ...pre}),
   unfinished:     ()       => openMemoryDump(),
   taskReminder:   ()       => openReminderModal(),
+  reminder:       ()       => openRemindModal(),
   dailyIntention: ()       => focusIntention(),
   journalEntry:   (pre={}) => openEntryModal({type: pre.journalType || S._journal || 'reflection', allowedTypes: journalTypes(), heading:'New journal entry', links: pre.links}),
   memory:         (pre={}) => openEntryModal({type:'memory', allowedTypes:['memory','artifact','letter'], heading:'New memory', links: pre.links}),
@@ -73,7 +74,7 @@ function runContextAdd(cfg){
 /* ---------- Tier 2: universal FAB speed dial (separate path) ---------- */
 const SPEED_DIAL = [
   {zone:'Planning', icon:'▤', label:'Task',                run: ()=>EntryActions.planTask()},
-  {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()]]},
+  {zone:'Today',    icon:'📅', label:'Today — Quick note / Task', actions:[['Quick note', ()=>EntryActions.quickNote()], ['Task', ()=>EntryActions.taskReminder()], ['Reminder', ()=>EntryActions.reminder()]]},
   {zone:'Today',    icon:'⋯', label:'Unfinished thought — dump it now',  run: ()=>EntryActions.unfinished()},
   {zone:'Commonplace Book', icon:'📓', label:'Journal entry',  run: ()=>EntryActions.journalEntry()},
   {zone:'Timeline', icon:'💭', label:'Memory',               run: ()=>EntryActions.memory()},
@@ -112,6 +113,26 @@ function focusIntention(){
 function openReminderModal(){
   const m = openModal(`<h2>Task reminder</h2><p class="muted" style="margin-top:-8px">A small thing to surface on Today. Not a task manager — a nudge.</p><div class="stack"><input class="inp serif-lg" id="rmText" placeholder="What needs doing?"><div class="field"><label>Surface on</label><input class="inp" type="date" id="rmDate" value="${today()}"></div><div class="row" style="justify-content:flex-end"><button class="btn primary" id="rmSave">Set reminder</button></div></div>`, 'narrow');
   const fin = () => { const t = m.querySelector('#rmText').value.trim(); if(!t) return; S.reminders = S.reminders || []; S.reminders.push({id:uid(), text:t, date:m.querySelector('#rmDate').value || today(), done:false, createdAt:today()}); saveNow(); m.remove(); sound('success'); toast('Reminder set.'); if(currentRoute === 'today') rerender(); };
+  m.querySelector('#rmSave').onclick = fin; m.querySelector('#rmText').onkeydown = e => { if(e.key === 'Enter') fin(); }; setTimeout(() => m.querySelector('#rmText').focus(), 50);
+}
+/* A reminder from anywhere — the same thing the 🔔 Reminders on Planning makes:
+   a day, a time if it has one, and from when it should be in front of you. */
+function openRemindModal(){
+  const m = openModal(`<h2>Reminder</h2><p class="muted" style="margin-top:-8px">From the day you choose it is at the top of Today and floats over every page until you tick it.</p>
+    <div class="stack"><input class="inp serif-lg" id="rmText" placeholder="What to remember — “call the dentist friday 3pm” works too">
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <div class="field"><label>Day</label><input class="inp" type="date" id="rmDate" value="${today()}"></div>
+        <div class="field"><label>Time</label><input class="inp" type="time" id="rmTime"></div>
+        <div class="field"><label>Show it from</label><select class="sel" id="rmLead">${REMIND_LEADS.map(([v, n]) =>
+          `<option value="${v}" ${v === 1 ? 'selected' : ''}>${n}</option>`).join('')}</select></div></div>
+      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="rmSave">Set reminder</button></div></div>`, 'narrow');
+  const fin = () => {
+    const t = planAddReminder({text: m.querySelector('#rmText').value, day: m.querySelector('#rmDate').value,
+      time: m.querySelector('#rmTime').value, lead: +m.querySelector('#rmLead').value});
+    if(!t) return;
+    m.remove(); sound('success'); toast(`Reminder set — ${esc(remindWhen(t))}.`);
+    if(currentRoute === 'today' || currentRoute === 'planning') rerender();
+    paintRemindFloat(); };
   m.querySelector('#rmSave').onclick = fin; m.querySelector('#rmText').onkeydown = e => { if(e.key === 'Enter') fin(); }; setTimeout(() => m.querySelector('#rmText').focus(), 50);
 }
 function newValueDialog(){

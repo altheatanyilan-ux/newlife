@@ -43,7 +43,7 @@ const PLAN_SMART_VIEWS = [
   {id:'today',    icon:'◉', name:'Today',       hint:'due today, and anything late'},
   {id:'tomorrow', icon:'◐', name:'Tomorrow',    hint:'what the next day already holds'},
   {id:'next7',    icon:'◇', name:'Next 7 days', hint:'the week in front of you'},
-  {id:'all',      icon:'≡', name:'All',         hint:'every task, every list'},
+  {id:'all',      icon:'≡', name:'All tasks',   hint:'every open task, whatever list it is in'},
   {id:'done',     icon:'✓', name:'Completed',   hint:'the last thirty days of finished work'},
 ];
 /* the three spans the one dated row can be set to */
@@ -143,6 +143,11 @@ function planTaskDefaults(t){
      into a matrix, so it stays out of the Inbox and the dated views. A task
      in a real list can be flagged too — it stays in its list as well. */
   t.shop = !!t.shop;
+  /* something to be reminded of, at a time. It lives behind the 🔔 button
+     (17-planning-reminders.js), and from so many days before its day it is on
+     Today and floating over every other page until it is ticked. */
+  t.remind = !!t.remind;
+  t.remindLead = [0, 1, 2, 3, 7].includes(+t.remindLead) ? +t.remindLead : 1;
   t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
   if(t.order == null) t.order = Date.now();
   return t;
@@ -262,19 +267,25 @@ function planOnWithin(t, from, to){
 const planOnDay = (t, day) => t.day === day || t.doDay === day;
 const planHasDate = t => !!(t.day || t.doDay);
 
+/* A thing written straight onto the shopping list or the reminders is only
+   ever that (taskIsAside, 17-tasks.js), and has no place in the dated views or
+   among the tasks. A task from a real list that is also on one of them is
+   still a task. */
 function planSmartFilter(id){
-  const T = today(), all = planOwnTasks().filter(t => !t.shop);
+  const T = today(), all = planOwnTasks().filter(t => !taskIsAside(t));
   if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
   if(id === 'today')    return all.filter(t => !t.done && planHasDate(t)
     && ((t.day && t.day <= T) || (t.doDay && t.doDay <= T)));
   if(id === 'tomorrow') return all.filter(t => !t.done && planOnDay(t, addDays(T, 1)));
   if(id === 'next7')    return all.filter(t => !t.done && planOnWithin(t, T, addDays(T, 7)));
+  /* every open task, whatever list it is in; the finished ones have their
+     own place at the foot of the sidebar */
   if(id === 'all')      return all.filter(t => !t.done);
   if(id === 'done')     return all.filter(t => t.done && (t.doneAt || '') >= addDays(T, -30));
   return all;
 }
 function planSmartCount(id){ return planSmartFilter(id).length; }
-function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id && !(id === 'inbox' && t.shop)).length; }
+function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id && !taskIsAside(t)).length; }
 function planFolderCount(id){
   const ids = new Set(planLists().filter(l => l.folderId === id).map(l => l.id));
   return planOwnTasks().filter(t => !t.done && ids.has(t.listId)).length;
@@ -352,9 +363,10 @@ function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags
 function planSelectionTasks(sel){
   if(!sel) return [];
   if(sel.kind === 'smart') return planSmartFilter(sel.id);
-  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && !(sel.id === 'inbox' && t.shop)
+  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && !taskIsAside(t)
     && (!t.done || planState().prefs.showCompleted));
   if(sel.kind === 'shop')  return planShopItems();
+  if(sel.kind === 'remind') return planRemindItems();
   /* A folder holds lists, and its tasks are every task in any of them — the
      thing you actually want when a folder is a project or a client. */
   if(sel.kind === 'folder'){
@@ -379,6 +391,7 @@ function planSelectionTitle(sel){
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
   if(sel.kind === 'shop') return 'Shopping list';
+  if(sel.kind === 'remind') return 'Reminders';
   return 'Tasks';
 }
 /* One filter shape, one evaluator. The live filter at the top of the sidebar

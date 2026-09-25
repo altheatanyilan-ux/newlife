@@ -40,10 +40,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.waitForTimeout(1500);
 
   console.log('\n1. the button');
-  const B0 = await p.evaluate(() => ({order: [...document.querySelectorAll('.pl-top > *')].map(n => n.classList.contains('pl-shopbtn') ? 'shop' : n.classList.contains('pl-inbox') ? 'inbox' : n.classList.contains('pl-add') ? 'add' : n.id === 'plSearch' ? 'search' : '?'),
+  const B0 = await p.evaluate(() => ({order: [...document.querySelectorAll('.pl-top > *')].map(n => n.classList.contains('pl-shopbtn') ? 'shop' : n.classList.contains('pl-remindbtn') ? 'remind' : n.classList.contains('pl-inbox') ? 'inbox' : n.classList.contains('pl-add') ? 'add' : n.id === 'plSearch' ? 'search' : '?'),
     text: document.querySelector('.pl-shopbtn').textContent.replace(/\s+/g, ' ').trim(),
     inSidebar: [...document.querySelectorAll('.pl-side, .pl-sidebar, aside')].some(a => /Shopping list/.test(a.textContent))}));
-  is('Planning\'s top line: the new task, the Inbox, 🛒 Shopping list, the search', B0.order, ['add', 'inbox', 'shop', 'search']);
+  is('Planning\'s top line: the new task, the Inbox, 🛒 Shopping list, (🔔 Reminders,) the search', B0.order, ['add', 'inbox', 'shop', 'remind', 'search']);
   yes('  and the shopping list is not one of the lists in the sidebar', !B0.inSidebar && /^🛒\s*Shopping list$/.test(B0.text), B0);
   await p.click('.pl-shopbtn'); await p.waitForTimeout(600);
   const V0 = await p.evaluate(() => ({title: document.querySelector('.pl-title').textContent, on: document.querySelector('.pl-shopbtn').classList.contains('on'),

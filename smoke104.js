@@ -46,15 +46,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
        things that narrow what you are already looking at belong.
 
      So the column now opens on the dated row and the lists, and ends with the
-     filter and Completed. */
+     filter and Completed.
+
+     "All" has since come back, by request, as "All tasks": every open task
+     whatever list it is in. It sits under the dated row, above the lists. */
   is('the dated row comes first, above everything', order[0], 'dated');
+  is('  then All tasks', order[1], 'all');
   /* the heading carries its own ＋ button, so match the word rather than the
      exact text content */
-  yes('  then the lists', /^head:lists/.test(order[1]), order.join(' > '));
+  yes('  then the lists', /^head:lists/.test(order[2]), order.join(' > '));
   yes('and the search is not in this column at all',
       await p.evaluate(() => !document.querySelector('.pl-side #plSearch')));
-  yes('  nor All, which answered nothing',
-      await p.evaluate(() => !document.querySelector('[data-plsel="smart:all"]')));
   is('the filter is at the foot with Completed', order[order.length - 2], 'filter');
   is('and Completed is the very last thing', order[order.length - 1], 'completed');
   yes('nothing sits below it in the sidebar', await p.evaluate(() => {

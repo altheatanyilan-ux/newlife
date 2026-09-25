@@ -19,8 +19,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const plan = async () => { await p.evaluate(() => { if(location.hash === '#/planning') rerender(); else location.hash = '#/planning'; }); await p.waitForTimeout(1500); };
   await plan();
 
-  console.log('\n1. the sidebar loses All and the focus timer, and the filter goes to the foot');
-  yes('"All" is gone', !(await p.$('[data-plsel="smart:all"]')));
+  console.log('\n1. the sidebar loses the focus timer, and the filter goes to the foot');
+  /* All came back by request, as "All tasks" (smoke234) */
+  yes('"All tasks" is in the sidebar', !!(await p.$('.pl-scroll [data-plsel="smart:all"]')));
   yes('  and so is the focus timer, which is no longer a place', !(await p.$('#plFocusBtn')));
   yes('the filter is in the foot', await p.evaluate(() => !!document.querySelector('.pl-foot #plSideFilter')));
   yes('  not at the top', await p.evaluate(() => !document.querySelector('.pl-scroll #plSideFilter')));
@@ -31,12 +32,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('the lists sit near the top', iLists - iSearch <= 3, order.join(' → '));
   yes('  with only the dated row between them', order[iSearch + 1] === 'pl-group' && order[iSearch + 2] === 'pl-head', order.join(' → '));
 
-  console.log('\n2. a remembered selection on All lands somewhere that exists');
+  console.log('\n2. a remembered selection on All tasks opens All tasks');
   await p.evaluate(() => { S._planSel = {kind:'smart', id:'all'}; rerender(); }); await p.waitForTimeout(900);
   const sel = await p.evaluate(() => planSel());
-  yes('it is not left on All', sel.id !== 'all', JSON.stringify(sel));
-  yes('  and something in the sidebar is lit',
-      await p.evaluate(() => !!document.querySelector('#plSide .pl-item.on')));
+  yes('it stays on All tasks', sel.id === 'all', JSON.stringify(sel));
+  yes('  and All tasks is the row lit in the sidebar',
+      await p.evaluate(() => !!document.querySelector('#plSide .pl-item.on[data-plsel="smart:all"]')));
 
   console.log('\n3. every task carries its estimate, wherever it is drawn');
   await p.evaluate(() => { S._planSel = {kind:'smart', id:'today'}; S._planView = 'list'; rerender(); });

@@ -4,11 +4,7 @@
    ============================================================ */
 
 function planSel(){ return S._planSel = planFixSel(S._planSel || {kind:'smart', id:'today'}); }
-/* "All" no longer has a row in the sidebar, so a remembered selection on it
-   would leave nothing lit and no way back to it. Send it to the dated view,
-   which is what the top of the sidebar now opens with. */
 function planFixSel(sel){
-  if(sel.kind === 'smart' && sel.id === 'all') return {kind:'smart', id: planSpan()};
   /* There are two ways to name the Inbox — the smart view and the list that
      actually holds the tasks — and they answer almost but not quite the same
      way. The list is the real one: it has sections, a view of its own, and it
@@ -37,8 +33,10 @@ function planSetSel(kind, id){
      are not asking "what should I touch first" — the answer to that is the
      order they are already in. They are asking "what is there", and the matrix
      sorts a day into four boxes when what you wanted was the day. */
+  /* All tasks too: every open task, grouped by the list it lives in, is a
+     thing to read down, not four boxes. */
   const l = kind === 'list' ? planList(id) : null;
-  S._planView = (kind === 'smart' && PLAN_SPANS.includes(id)) ? 'list'
+  S._planView = (kind === 'smart' && (PLAN_SPANS.includes(id) || id === 'all')) ? 'list'
     : (l?.defaultView || PLAN_VIEW_DEFAULT);
   saveNow(); rerender();
 }
@@ -49,7 +47,7 @@ function planView(){
      exactly the case where the saved preference would otherwise decide, and
      the saved preference is a memory of some other list. */
   const sel = typeof planSel === 'function' ? planSel() : null;
-  if(!S._planView && sel && sel.kind === 'smart' && PLAN_SPANS.includes(sel.id)) return 'list';
+  if(!S._planView && sel && sel.kind === 'smart' && (PLAN_SPANS.includes(sel.id) || sel.id === 'all')) return 'list';
   const v = S._planView || planState().prefs.view || PLAN_VIEW_DEFAULT;
   /* Board and Timeline are gone. A list that still remembers one of them —
      or a saved preference from before — must not leave the workspace blank. */
@@ -73,12 +71,9 @@ function planSidebarHTML(){
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
-      <!-- "All" is gone: a list of every task in the house is the one view
-           that never answers a question, and it was standing between the
-           search and the lists. The search has gone too, up onto the line the
-           new-task button is on, where the two things you do before you have
-           chosen a list sit together — so the lists now start at the top of
-           this column, level with the content beside them. -->
+      <!-- The search is up on the line the new-task button is on, where the
+           two things you do before you have chosen a list sit together — so
+           the lists start near the top of this column. -->
       <div class="pl-group">
         <!-- one dated row, with the span chosen on it: the same question over
              three lengths of time, not three separate places -->
@@ -92,6 +87,12 @@ function planSidebarHTML(){
               ${PLAN_SPANS.map(id => { const w = PLAN_SMART_VIEWS.find(x => x.id === id);
                 return `<button class="pl-span${sp === id ? ' on' : ''}" data-plspan="${id}" title="${esc(w.hint)}">${esc(w.name)}</button>`; }).join('')}
             </div></div>`; })()}
+        <!-- every open task in the house, whatever list it lives in, grouped by
+             that list; finished work is at the foot of the sidebar -->
+        ${(() => { const v = PLAN_SMART_VIEWS.find(x => x.id === 'all');
+          return `<button class="pl-item pl-all${on('smart', 'all')}" data-plsel="smart:all" title="${esc(v.hint)}">
+            <span class="pl-ico">${v.icon}</span><span class="pl-name">${esc(v.name)}</span>
+            <span class="pl-n mono">${planSmartCount('all') || ''}</span></button>`; })()}
       </div>
 
       <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
@@ -440,7 +441,7 @@ function planHeaderHTML(sel){
   if(f.completion && f.completion !== 'any') chips.push(`<span class="pf-chip on" data-pfclear="completion">${f.completion === 'active' ? 'not done' : 'done'}<i>×</i></span>`);
   if(f.hasSubtasks === true || f.hasSubtasks === false) chips.push(`<span class="pf-chip on" data-pfclear="hasSubtasks">${f.hasSubtasks ? 'has steps' : 'no steps'}<i>×</i></span>`);
   if(f.search) chips.push(`<span class="pf-chip on" data-pfclear="search">“${esc(f.search)}”<i>×</i></span>`);
-  const special = (sel.kind === 'smart' && sel.id === 'stats') || sel.kind === 'shop';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || sel.kind === 'shop' || sel.kind === 'remind';
   return `<div class="pl-header">
     <!-- Writing a task down and looking for one are the two things you do
          before you have decided what you are looking at, so they share the top
@@ -467,7 +468,14 @@ function planHeaderHTML(sel){
       <!-- the shopping list: its own button, never one of the lists -->
       ${(() => { const n = typeof planShopCount === 'function' ? planShopCount() : 0;
         return `<button class="pl-shopbtn${sel.kind === 'shop' ? ' on' : ''}" data-plsel="shop:list"
-          title="everything that needs buying${n ? ` · ${n} to buy` : ''}"><span aria-hidden="true">🛒</span>Shopping list
+          title="everything that needs buying${n ? ` · ${n} to buy` : ''}"><span aria-hidden="true">🛒</span><span class="pl-tl">Shopping list</span>
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
+      <!-- the reminders: their own button too, and the count is the ones
+           showing now — on Today and over every page -->
+      ${(() => { const all = typeof planRemindItems === 'function' ? planRemindItems() : [];
+        const n = all.filter(remindActive).length;
+        return `<button class="pl-remindbtn${sel.kind === 'remind' ? ' on' : ''}" data-plsel="remind:list"
+          title="things to be reminded of, at a time${n ? ` · ${n} showing now` : all.length ? ` · ${all.length} coming up` : ''}"><span aria-hidden="true">🔔</span><span class="pl-tl">Reminders</span>
           ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…"
         value="${esc(S._planQ || '')}">
@@ -482,7 +490,7 @@ function planHeaderHTML(sel){
         ${PLAN_SORTS.map(([k, n]) => `<option value="${k}" ${p.prefs.sort === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
       <div class="pf-chips">
         ${chips.join('')}
-        <button class="pf-chip${p.prefs.showCompleted ? ' on' : ''}" id="plShowDone">done</button>
+        ${sel.kind === 'smart' && sel.id === 'all' ? '' : `<button class="pf-chip${p.prefs.showCompleted ? ' on' : ''}" id="plShowDone">done</button>`}
       </div>
       <span class="pl-count mono" id="plCount"></span>
     </div>`}
@@ -511,6 +519,7 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
       ${t.shop ? '<span class="pt-shop" title="on the shopping list">🛒</span>' : ''}
+      ${t.remind ? '<span class="pt-shop" title="on the reminders">🔔</span>' : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
       <!-- The day you meant to sit down with it, shown when it is not the day
            it is owed. A row whose only date is a do date used to show no date
@@ -526,8 +535,11 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
 /* ---------- list view ---------- */
 function planGroupTasks(tasks, sel){
   const p = planState(), T = today();
+  /* All tasks is every list at once, so it is grouped by list — which is the
+     one thing its rows cannot otherwise tell you at a glance */
   const mode = p.prefs.group === 'auto'
-    ? (sel.kind === 'smart' && ['today','next7','all','tomorrow'].includes(sel.id) ? 'date' : 'section')
+    ? (sel.kind === 'smart' && sel.id === 'all' ? 'list'
+      : sel.kind === 'smart' && ['today','next7','tomorrow'].includes(sel.id) ? 'date' : 'section')
     : p.prefs.group;
   if(mode === 'date'){
     const g = new Map();
@@ -597,6 +609,7 @@ function planEmptyLine(sel){
     if(sel.id === 'today')  return 'Nothing due today. A day with no obligations is either very good or very avoidant.';
     if(sel.id === 'done')   return 'Nothing finished in the last month. That is either rest or drift — you know which.';
     if(sel.id === 'next7')  return 'The week ahead is empty. Either it is genuinely clear, or it has not been thought about yet.';
+    if(sel.id === 'all')    return 'Nothing open anywhere. Every list is clear.';
   }
   if(sel.kind === 'tag') return 'Nothing carries this tag right now.';
   return 'This list is waiting for its first task.';
@@ -660,9 +673,10 @@ routes.planning = function(root, params){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
 
   const v = planView();
-  const shop = sel.kind === 'shop';
-  const special = (sel.kind === 'smart' && sel.id === 'stats') || shop;
+  const shop = sel.kind === 'shop', remind = sel.kind === 'remind';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || shop || remind;
   const body = shop ? planShopHTML(tasks)
+    : remind ? planRemindHTML(tasks)
     : special
     ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
@@ -697,6 +711,7 @@ routes.planning = function(root, params){
   bindPlanRooms(root);
   bindPlanning(root, sel, tasks);
   if(shop) bindPlanShop(root);
+  if(remind) bindPlanRemind(root);
   bindPlanMilestones(root, sel);
 };
 ROUTE_ALIASES.plan = 'planning';

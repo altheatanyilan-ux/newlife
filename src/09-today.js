@@ -119,7 +119,7 @@ routes.today = function(root){
      moves the day you mean to do it and leaves the deadline where it is — a
      thing that was owed on Monday is still late, and saying otherwise would
      quietly lose the fact you most need. */
-  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, T)
+  const carried = allTaskRefs().filter(r => !r.done && !taskIsAside(r.task) && !taskOnDay(r.task, T)
     && ((r.day && r.day < T) || (r.doDay && r.doDay < T)));
   const doneN = rows.filter(r=>r.done).length;
   const ready = lettersOpeningNow();
@@ -261,6 +261,11 @@ routes.today = function(root){
            unasked one. -->
       <p class="day-edge waking">I woke up at <button class="day-edge-t" id="wokeAt">${c.wakeAt ? esc(_ft(c.wakeAt)) : '—'}</button>${dreamEdgeHTML(T)}</p>
     </header>
+
+    <!-- Reminders whose day has come or is coming: above both halves of the
+         day, because a thing to remember is not a matter of which half you
+         are looking at. -->
+    ${typeof remindTodayHTML === 'function' ? remindTodayHTML() : ''}
 
     <!-- Which half of the day, and where in it — one line. They were two
          sticky rows at two different tops, which meant the page carried two
@@ -630,6 +635,7 @@ routes.today = function(root){
   if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.doDay = T); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);
+  if(typeof bindRemindToday === 'function') bindRemindToday(root);
 
   /* letters & decisions */
   bindSealedLetters(root);
