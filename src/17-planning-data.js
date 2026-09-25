@@ -138,6 +138,11 @@ function planTaskDefaults(t){
   t.milestoneId = t.milestoneId || null;
   t.focusTime = +t.focusTime || 0;
   t.streamId  = t.streamId || null;
+  /* something to buy. It lives on the shopping list (17-planning-shop.js),
+     which is not one of the lists: a pint of milk is not work to be sorted
+     into a matrix, so it stays out of the Inbox and the dated views. A task
+     in a real list can be flagged too — it stays in its list as well. */
+  t.shop = !!t.shop;
   t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
   if(t.order == null) t.order = Date.now();
   return t;
@@ -258,7 +263,7 @@ const planOnDay = (t, day) => t.day === day || t.doDay === day;
 const planHasDate = t => !!(t.day || t.doDay);
 
 function planSmartFilter(id){
-  const T = today(), all = planOwnTasks();
+  const T = today(), all = planOwnTasks().filter(t => !t.shop);
   if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
   if(id === 'today')    return all.filter(t => !t.done && planHasDate(t)
     && ((t.day && t.day <= T) || (t.doDay && t.doDay <= T)));
@@ -269,7 +274,7 @@ function planSmartFilter(id){
   return all;
 }
 function planSmartCount(id){ return planSmartFilter(id).length; }
-function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id).length; }
+function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id && !(id === 'inbox' && t.shop)).length; }
 function planFolderCount(id){
   const ids = new Set(planLists().filter(l => l.folderId === id).map(l => l.id));
   return planOwnTasks().filter(t => !t.done && ids.has(t.listId)).length;
@@ -347,7 +352,9 @@ function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags
 function planSelectionTasks(sel){
   if(!sel) return [];
   if(sel.kind === 'smart') return planSmartFilter(sel.id);
-  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && (!t.done || planState().prefs.showCompleted));
+  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && !(sel.id === 'inbox' && t.shop)
+    && (!t.done || planState().prefs.showCompleted));
+  if(sel.kind === 'shop')  return planShopItems();
   /* A folder holds lists, and its tasks are every task in any of them — the
      thing you actually want when a folder is a project or a client. */
   if(sel.kind === 'folder'){
@@ -371,6 +378,7 @@ function planSelectionTitle(sel){
   if(sel.kind === 'folder') return (planState().folders.find(f => f.id === sel.id) || {}).name || 'Folder';
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
+  if(sel.kind === 'shop') return 'Shopping list';
   return 'Tasks';
 }
 /* One filter shape, one evaluator. The live filter at the top of the sidebar

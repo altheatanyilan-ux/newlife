@@ -8215,15 +8215,36 @@ html[data-theme="light"] .wk-sleep{
 /* solid, because it is floating over the page now rather than sitting in it */
 .pl-top .pl-add .qp-preview{margin-top:4px;background:var(--surface-2);
   border:1px solid var(--line-2);box-shadow:var(--surface-shadow)}
-.pl-inbox{display:flex;align-items:center;gap:7px;flex:0 0 auto;
+.pl-inbox,.pl-shopbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;
   padding:7px 11px;border:1px solid var(--line-2);border-radius:8px;
   background:var(--surface-2);color:var(--muted);font-size:.82rem;cursor:pointer;
   transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
-.pl-inbox:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
-.pl-inbox.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
+.pl-inbox:hover,.pl-shopbtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
+.pl-inbox.on,.pl-shopbtn.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
   color:var(--text);border-color:color-mix(in srgb,var(--page-accent) 40%,transparent)}
 .pl-inbox.over{background:color-mix(in srgb,var(--page-accent) 26%,transparent);color:var(--text)}
-.pl-inbox .pl-n{opacity:.7}
+.pl-inbox .pl-n,.pl-shopbtn .pl-n{opacity:.7}
+/* ---------- the shopping list ---------- */
+.pshop{display:flex;flex-direction:column;gap:10px;max-width:640px}
+.pshop-add{display:flex;gap:8px;align-items:center}
+.pshop-add .inp{flex:1;min-width:0;padding:8px 11px;font-size:.86rem}
+.pshop-offer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.8rem;padding:8px 11px;
+  border:1px dashed var(--line-2);border-radius:10px;background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.pshop-list,.pshop-basket{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;
+  background:var(--surface);overflow:hidden}
+.pshop-row{display:flex;align-items:center;gap:9px;padding:7px 10px;border-top:1px solid var(--line)}
+.pshop-row:first-child{border-top:none}
+.pshop-bh + .pshop-row{border-top:1px solid var(--line)}
+.pshop-t{flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;color:var(--text);
+  font:inherit;font-size:.9rem;cursor:pointer;overflow-wrap:anywhere}
+.pshop-row.done .pshop-t{color:var(--muted);text-decoration:line-through}
+.pshop-day{font-size:.68rem}
+.pshop-bh{display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:.74rem}
+.pshop-tools{display:flex;gap:8px;justify-content:flex-end}
+.pshop-hint{margin:2px 0 0}
+.pshop-empty{padding:18px 12px}
+.pt-shop{font-size:.72rem;opacity:.75}
+.pd-shopchk{display:flex;align-items:center;gap:6px;font-size:.8rem;padding:6px 0}
 /* something landed in there while you were looking elsewhere */
 .pl-inbox.landed{animation:plLanded .9s ease}
 @keyframes plLanded{

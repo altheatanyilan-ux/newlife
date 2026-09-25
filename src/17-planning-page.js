@@ -440,7 +440,7 @@ function planHeaderHTML(sel){
   if(f.completion && f.completion !== 'any') chips.push(`<span class="pf-chip on" data-pfclear="completion">${f.completion === 'active' ? 'not done' : 'done'}<i>×</i></span>`);
   if(f.hasSubtasks === true || f.hasSubtasks === false) chips.push(`<span class="pf-chip on" data-pfclear="hasSubtasks">${f.hasSubtasks ? 'has steps' : 'no steps'}<i>×</i></span>`);
   if(f.search) chips.push(`<span class="pf-chip on" data-pfclear="search">“${esc(f.search)}”<i>×</i></span>`);
-  const special = sel.kind === 'smart' && sel.id === 'stats';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || sel.kind === 'shop';
   return `<div class="pl-header">
     <!-- Writing a task down and looking for one are the two things you do
          before you have decided what you are looking at, so they share the top
@@ -463,6 +463,11 @@ function planHeaderHTML(sel){
         return `<button class="pl-inbox${sel.kind === 'list' && sel.id === 'inbox' ? ' on' : ''}"
           data-plsel="list:inbox" title="everything written down and not yet placed${n ? ` · ${n} open` : ''}">
           <span class="pl-dot" style="background:${esc(ib ? ib.color : '#a89f94')}"></span>Inbox
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
+      <!-- the shopping list: its own button, never one of the lists -->
+      ${(() => { const n = typeof planShopCount === 'function' ? planShopCount() : 0;
+        return `<button class="pl-shopbtn${sel.kind === 'shop' ? ' on' : ''}" data-plsel="shop:list"
+          title="everything that needs buying${n ? ` · ${n} to buy` : ''}"><span aria-hidden="true">🛒</span>Shopping list
           ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…"
         value="${esc(S._planQ || '')}">
@@ -505,6 +510,7 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       <!-- the length now lives on the chip beside the name, which is also the way into the timer -->
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
+      ${t.shop ? '<span class="pt-shop" title="on the shopping list">🛒</span>' : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
       <!-- The day you meant to sit down with it, shown when it is not the day
            it is owed. A row whose only date is a do date used to show no date
@@ -654,8 +660,10 @@ routes.planning = function(root, params){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
 
   const v = planView();
-  const special = sel.kind === 'smart' && sel.id === 'stats';
-  const body = special
+  const shop = sel.kind === 'shop';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || shop;
+  const body = shop ? planShopHTML(tasks)
+    : special
     ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
@@ -688,6 +696,7 @@ routes.planning = function(root, params){
   const count = $('#plCount'); if(count) count.textContent = `${tasks.filter(t => !t.done).length} open`;
   bindPlanRooms(root);
   bindPlanning(root, sel, tasks);
+  if(shop) bindPlanShop(root);
   bindPlanMilestones(root, sel);
 };
 ROUTE_ALIASES.plan = 'planning';

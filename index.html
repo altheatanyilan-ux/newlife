@@ -8884,15 +8884,36 @@ html[data-theme="light"] .wk-sleep{
 /* solid, because it is floating over the page now rather than sitting in it */
 .pl-top .pl-add .qp-preview{margin-top:4px;background:var(--surface-2);
   border:1px solid var(--line-2);box-shadow:var(--surface-shadow)}
-.pl-inbox{display:flex;align-items:center;gap:7px;flex:0 0 auto;
+.pl-inbox,.pl-shopbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;
   padding:7px 11px;border:1px solid var(--line-2);border-radius:8px;
   background:var(--surface-2);color:var(--muted);font-size:.82rem;cursor:pointer;
   transition:background .18s var(--ease),color .18s var(--ease),border-color .18s var(--ease)}
-.pl-inbox:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
-.pl-inbox.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
+.pl-inbox:hover,.pl-shopbtn:hover{color:var(--text);border-color:color-mix(in srgb,var(--text) 22%,transparent)}
+.pl-inbox.on,.pl-shopbtn.on{background:color-mix(in srgb,var(--page-accent) 15%,transparent);
   color:var(--text);border-color:color-mix(in srgb,var(--page-accent) 40%,transparent)}
 .pl-inbox.over{background:color-mix(in srgb,var(--page-accent) 26%,transparent);color:var(--text)}
-.pl-inbox .pl-n{opacity:.7}
+.pl-inbox .pl-n,.pl-shopbtn .pl-n{opacity:.7}
+/* ---------- the shopping list ---------- */
+.pshop{display:flex;flex-direction:column;gap:10px;max-width:640px}
+.pshop-add{display:flex;gap:8px;align-items:center}
+.pshop-add .inp{flex:1;min-width:0;padding:8px 11px;font-size:.86rem}
+.pshop-offer{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.8rem;padding:8px 11px;
+  border:1px dashed var(--line-2);border-radius:10px;background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.pshop-list,.pshop-basket{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;
+  background:var(--surface);overflow:hidden}
+.pshop-row{display:flex;align-items:center;gap:9px;padding:7px 10px;border-top:1px solid var(--line)}
+.pshop-row:first-child{border-top:none}
+.pshop-bh + .pshop-row{border-top:1px solid var(--line)}
+.pshop-t{flex:1;min-width:0;text-align:left;background:none;border:none;padding:0;color:var(--text);
+  font:inherit;font-size:.9rem;cursor:pointer;overflow-wrap:anywhere}
+.pshop-row.done .pshop-t{color:var(--muted);text-decoration:line-through}
+.pshop-day{font-size:.68rem}
+.pshop-bh{display:flex;align-items:center;gap:8px;padding:7px 10px;font-size:.74rem}
+.pshop-tools{display:flex;gap:8px;justify-content:flex-end}
+.pshop-hint{margin:2px 0 0}
+.pshop-empty{padding:18px 12px}
+.pt-shop{font-size:.72rem;opacity:.75}
+.pd-shopchk{display:flex;align-items:center;gap:6px;font-size:.8rem;padding:6px 0}
 /* something landed in there while you were looking elsewhere */
 .pl-inbox.landed{animation:plLanded .9s ease}
 @keyframes plLanded{
@@ -41017,6 +41038,11 @@ function planTaskDefaults(t){
   t.milestoneId = t.milestoneId || null;
   t.focusTime = +t.focusTime || 0;
   t.streamId  = t.streamId || null;
+  /* something to buy. It lives on the shopping list (17-planning-shop.js),
+     which is not one of the lists: a pint of milk is not work to be sorted
+     into a matrix, so it stays out of the Inbox and the dated views. A task
+     in a real list can be flagged too — it stays in its list as well. */
+  t.shop = !!t.shop;
   t.updatedAt = t.updatedAt || t.createdAt || new Date().toISOString();
   if(t.order == null) t.order = Date.now();
   return t;
@@ -41137,7 +41163,7 @@ const planOnDay = (t, day) => t.day === day || t.doDay === day;
 const planHasDate = t => !!(t.day || t.doDay);
 
 function planSmartFilter(id){
-  const T = today(), all = planOwnTasks();
+  const T = today(), all = planOwnTasks().filter(t => !t.shop);
   if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
   if(id === 'today')    return all.filter(t => !t.done && planHasDate(t)
     && ((t.day && t.day <= T) || (t.doDay && t.doDay <= T)));
@@ -41148,7 +41174,7 @@ function planSmartFilter(id){
   return all;
 }
 function planSmartCount(id){ return planSmartFilter(id).length; }
-function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id).length; }
+function planListCount(id){ return planOwnTasks().filter(t => !t.done && t.listId === id && !(id === 'inbox' && t.shop)).length; }
 function planFolderCount(id){
   const ids = new Set(planLists().filter(l => l.folderId === id).map(l => l.id));
   return planOwnTasks().filter(t => !t.done && ids.has(t.listId)).length;
@@ -41226,7 +41252,9 @@ function planTagCount(name){ return planOwnTasks().filter(t => !t.done && t.tags
 function planSelectionTasks(sel){
   if(!sel) return [];
   if(sel.kind === 'smart') return planSmartFilter(sel.id);
-  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && (!t.done || planState().prefs.showCompleted));
+  if(sel.kind === 'list')  return planOwnTasks().filter(t => t.listId === sel.id && !(sel.id === 'inbox' && t.shop)
+    && (!t.done || planState().prefs.showCompleted));
+  if(sel.kind === 'shop')  return planShopItems();
   /* A folder holds lists, and its tasks are every task in any of them — the
      thing you actually want when a folder is a project or a client. */
   if(sel.kind === 'folder'){
@@ -41250,6 +41278,7 @@ function planSelectionTitle(sel){
   if(sel.kind === 'folder') return (planState().folders.find(f => f.id === sel.id) || {}).name || 'Folder';
   if(sel.kind === 'tag')   return '#' + sel.id;
   if(sel.kind === 'smartlist') return (planState().smartLists.find(x => x.id === sel.id) || {}).name || 'Filter';
+  if(sel.kind === 'shop') return 'Shopping list';
   return 'Tasks';
 }
 /* One filter shape, one evaluator. The live filter at the top of the sidebar
@@ -41532,6 +41561,10 @@ function planDetailHTML(t){
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+      <!-- something to buy: it goes on the shopping list (the 🛒 button on the
+           top line), and stays in its own list as well -->
+      <label class="pd-q pd-shop"><span class="k">to buy</span>
+        <span class="pd-shopchk"><input type="checkbox" id="pdShop" ${t.shop ? 'checked' : ''}> 🛒 on the shopping list</span></label>
       <!-- Which part of a life this is, in the time tracker's own words. An
            hour sat with this task is filed under whatever is chosen here, so
            the week's report says "the bar's accounts" rather than "Tasks" —
@@ -41655,6 +41688,9 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  const shop = p.querySelector('#pdShop');
+  if(shop) shop.onchange = function(){ t.shop = this.checked; touch(); rerenderPlanBody();
+    if(typeof toast === 'function') toast(this.checked ? 'On the shopping list.' : 'Off the shopping list.'); };
   const tcat = p.querySelector('#pdTimeCat');
   if(tcat) tcat.onchange = function(){ t.timeCategory = this.value || null; touch(); };
   p.querySelector('#pdMilestone').onchange = function(){
@@ -41790,11 +41826,16 @@ function rerenderPlanBody(){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
   const v = planView();
   const special = sel.kind === 'smart' && sel.id === 'stats';
+  const shop = sel.kind === 'shop';
   body.innerHTML = special ? planStatsHTML()
+    : shop ? planShopHTML(tasks)
     : v === 'calendar' ? planCalendarHTML(tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
   bindPlanning(main, sel, tasks);
+  if(shop) bindPlanShop(main);
+  /* the top line's 🛒 count follows whatever the panel just changed */
+  if(typeof planShopBadge === 'function') planShopBadge();
   if(keep && !$('#panel')) document.body.appendChild(keep);
   window.scrollTo({top:y});
 }
@@ -42306,7 +42347,7 @@ function planHeaderHTML(sel){
   if(f.completion && f.completion !== 'any') chips.push(`<span class="pf-chip on" data-pfclear="completion">${f.completion === 'active' ? 'not done' : 'done'}<i>×</i></span>`);
   if(f.hasSubtasks === true || f.hasSubtasks === false) chips.push(`<span class="pf-chip on" data-pfclear="hasSubtasks">${f.hasSubtasks ? 'has steps' : 'no steps'}<i>×</i></span>`);
   if(f.search) chips.push(`<span class="pf-chip on" data-pfclear="search">“${esc(f.search)}”<i>×</i></span>`);
-  const special = sel.kind === 'smart' && sel.id === 'stats';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || sel.kind === 'shop';
   return `<div class="pl-header">
     <!-- Writing a task down and looking for one are the two things you do
          before you have decided what you are looking at, so they share the top
@@ -42329,6 +42370,11 @@ function planHeaderHTML(sel){
         return `<button class="pl-inbox${sel.kind === 'list' && sel.id === 'inbox' ? ' on' : ''}"
           data-plsel="list:inbox" title="everything written down and not yet placed${n ? ` · ${n} open` : ''}">
           <span class="pl-dot" style="background:${esc(ib ? ib.color : '#a89f94')}"></span>Inbox
+          ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
+      <!-- the shopping list: its own button, never one of the lists -->
+      ${(() => { const n = typeof planShopCount === 'function' ? planShopCount() : 0;
+        return `<button class="pl-shopbtn${sel.kind === 'shop' ? ' on' : ''}" data-plsel="shop:list"
+          title="everything that needs buying${n ? ` · ${n} to buy` : ''}"><span aria-hidden="true">🛒</span>Shopping list
           ${n ? `<span class="pl-n mono">${n}</span>` : ''}</button>`; })()}
       <input class="inp mono pl-search" id="plSearch" placeholder="search tasks…"
         value="${esc(S._planQ || '')}">
@@ -42371,6 +42417,7 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       <!-- the length now lives on the chip beside the name, which is also the way into the timer -->
       ${t.tags.map(x => `<span class="pt-tag" style="--c:${planTagColor(x)}">${esc(x)}</span>`).join('')}
       ${showList && t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}">${esc(planListName(t.listId))}</span>` : ''}
+      ${t.shop ? '<span class="pt-shop" title="on the shopping list">🛒</span>' : ''}
       ${showDate && t.day ? `<span class="pt-day mono${late ? ' late' : ''}">${late ? '⚠ ' : ''}${esc(fmtDate(t.day, 'short'))}${t.dueTime ? ' ' + esc(t.dueTime) : ''}</span>` : ''}
       <!-- The day you meant to sit down with it, shown when it is not the day
            it is owed. A row whose only date is a do date used to show no date
@@ -42520,8 +42567,10 @@ routes.planning = function(root, params){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
 
   const v = planView();
-  const special = sel.kind === 'smart' && sel.id === 'stats';
-  const body = special
+  const shop = sel.kind === 'shop';
+  const special = (sel.kind === 'smart' && sel.id === 'stats') || shop;
+  const body = shop ? planShopHTML(tasks)
+    : special
     ? planStatsHTML()
     : v === 'calendar'   ? planCalendarHTML(tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
@@ -42554,6 +42603,7 @@ routes.planning = function(root, params){
   const count = $('#plCount'); if(count) count.textContent = `${tasks.filter(t => !t.done).length} open`;
   bindPlanRooms(root);
   bindPlanning(root, sel, tasks);
+  if(shop) bindPlanShop(root);
   bindPlanMilestones(root, sel);
 };
 ROUTE_ALIASES.plan = 'planning';
@@ -42783,6 +42833,161 @@ function planOfferReflection(t){
       links:{projects:(t.links.projects || []).slice(), skills:(t.links.skills || []).slice(),
         stages:[], substages:[], threads:[], values:[], people:[]}});
   }});
+}
+/* ============================================================
+   PLANNING — the shopping list.
+
+   Everything that needs buying, in one place, behind its own button on the
+   top line. It is deliberately not one of the lists: a list is a place work
+   lives and gets sorted, and "milk" is not work to be prioritised in a
+   matrix or dated in a calendar. So a thing to buy is a task with `shop`
+   set, kept out of the Inbox and the dated views, and gathered here.
+
+   Two ways onto it: write it here ("milk, eggs, bread" is three things), or
+   open any task and tick "on the shopping list" — the drill bits for the
+   kitchen shelves stay in the Kitchen list as well, and say where they came
+   from here. Ticking a thing off puts it in the basket; clearing the basket
+   throws the bought things away.
+
+   A list you made before this existed, called Shopping or Groceries, is
+   offered once to be moved in — never moved behind your back.
+   ============================================================ */
+
+const planShopItems = () => planOwnTasks().filter(t => t.shop && !t.done)
+  .sort((a, b) => (a.order || 0) - (b.order || 0));
+const planShopBasket = () => planOwnTasks().filter(t => t.shop && t.done)
+  .sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+const planShopCount = () => planOwnTasks().filter(t => t.shop && !t.done).length;
+
+/* "milk, eggs; bread" or one to a line: each is a thing to buy */
+function planShopSplit(text){
+  return String(text || '').split(/[\n,;]+/).map(x => x.trim()).filter(Boolean);
+}
+function planAddShopItems(text){
+  const made = planShopSplit(text).map((item, i) => {
+    const t = newPlanTask(item, '', {listId: 'inbox', shop: true});
+    t.order = Date.now() + i;
+    return t;
+  });
+  if(!made.length) return [];
+  S.tasks = S.tasks || [];
+  S.tasks.push(...made);
+  saveNow();
+  return made;
+}
+function planSetShop(t, on){
+  t.shop = !!on; t.updatedAt = new Date().toISOString();
+  saveNow();
+  return t.shop;
+}
+/* a list from before there was a shopping list, by its name */
+const PLAN_SHOP_NAMES = /^\s*(shopping(\s+list)?|groceries|grocery(\s+list)?|to\s*buy|things\s+to\s+buy|buy)\s*$/i;
+function planShopLikeLists(){
+  return planLists().filter(l => l.id !== 'inbox' && PLAN_SHOP_NAMES.test(l.name || '')
+    && planOwnTasks().some(t => t.listId === l.id));
+}
+/* its things onto the shopping list (after what is already there, in their
+   own order), and the list itself gone (it is empty) */
+function planMoveListToShop(listId){
+  const l = planList(listId); if(!l || l.id === 'inbox') return 0;
+  const moved = planOwnTasks().filter(t => t.listId === listId)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  const base = Date.now();
+  moved.forEach((t, i) => { t.shop = true; t.listId = 'inbox'; t.sectionId = null; t.order = base + i;
+    t.updatedAt = new Date().toISOString(); });
+  const p = planState();
+  p.lists = p.lists.filter(x => x.id !== listId);
+  saveNow();
+  return moved.length;
+}
+/* the count on the top line's button, redrawn in place when only the body is */
+function planShopBadge(){
+  const btn = document.querySelector('.pl-shopbtn'); if(!btn) return;
+  const n = planShopCount(), b = btn.querySelector('.pl-n');
+  if(!n){ if(b) b.remove(); }
+  else if(b) b.textContent = n;
+  else btn.insertAdjacentHTML('beforeend', `<span class="pl-n mono">${n}</span>`);
+  btn.title = `everything that needs buying${n ? ` · ${n} to buy` : ''}`;
+}
+function planShopText(){
+  return planShopItems().map(t => `☐ ${t.text}`).join('\n');
+}
+
+function planShopHTML(items){
+  /* in the order they were written down, whatever the page's sort says */
+  items = items.slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const basket = planShopBasket();
+  const offer = planShopLikeLists()[0];
+  const row = (t, done) => `<div class="pshop-row${done ? ' done' : ''}" data-pshoprow="${esc(t.id)}">
+      <button class="pt-box${done ? ' on' : ''}" data-pshopdone="${esc(t.id)}" role="checkbox" aria-checked="${done}"
+        aria-label="${done ? 'back on the list' : 'bought'}: ${esc(t.text)}"><svg viewBox="0 0 20 20" aria-hidden="true">
+        <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
+      <button class="pshop-t" data-pshopopen="${esc(t.id)}" title="open it">${esc(t.text)}</button>
+      ${t.listId !== 'inbox' ? `<span class="pt-list" style="--c:${planListColor(t.listId)}" title="also in this list">${esc(planListName(t.listId))}</span>` : ''}
+      ${t.day ? `<span class="mono faint pshop-day" title="needed by">${esc(fmtDate(t.day, 'short'))}</span>` : ''}
+      <button class="del-x inline" data-pshopdel="${esc(t.id)}" aria-label="take ${esc(t.text)} off the list">×</button>
+    </div>`;
+  return `<div class="pshop">
+    <div class="pshop-add">
+      <input class="inp" id="pshopIn" autocomplete="off" aria-label="something to buy"
+        placeholder="something to buy — “milk, eggs, bread” adds three">
+      <button class="btn sm primary" id="pshopAdd">Add</button>
+    </div>
+    ${offer ? `<div class="pshop-offer">
+      <span>Your list <b>${esc(offer.name)}</b> looks like shopping — ${planOwnTasks().filter(t => t.listId === offer.id && !t.done).length} to buy in it.</span>
+      <button class="btn sm" data-pshopmove="${esc(offer.id)}">Move it here</button></div>` : ''}
+    ${items.length ? `<div class="pshop-list" data-ptgroup="shop">${items.map(t => row(t, false)).join('')}</div>`
+      : `<div class="empty sm pshop-empty">Nothing to buy. Write it here when you notice you are out of it.</div>`}
+    ${items.length ? `<div class="pshop-tools">
+      <button class="tbtn" id="pshopCopy" title="the list as text, to send to whoever is going">📋 copy the list</button></div>` : ''}
+    ${basket.length ? `<div class="pshop-basket">
+      <div class="pshop-bh"><span class="sc">In the basket</span><span class="mono faint">${basket.length}</span>
+        <span class="grow"></span><button class="tbtn" id="pshopClear" title="throw the bought things away">clear the basket</button></div>
+      ${basket.map(t => row(t, true)).join('')}</div>` : ''}
+    <p class="faint sm pshop-hint">Any task can go on here too: open it and tick “on the shopping list”. It stays in its own list as well.</p>
+  </div>`;
+}
+
+function bindPlanShop(root){
+  const box = root.querySelector('.pshop'); if(!box) return;
+  const input = box.querySelector('#pshopIn');
+  const add = () => {
+    const made = planAddShopItems(input.value);
+    if(!made.length){ input.focus(); return; }
+    sound('click');
+    S._pshopFocus = true;
+    rerender();
+  };
+  box.querySelector('#pshopAdd').onclick = add;
+  input.onkeydown = ev => { if(ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); add(); } };
+  /* after adding, the line is ready for the next thing */
+  if(S._pshopFocus){ S._pshopFocus = false; setTimeout(() => input.focus(), 0); }
+  $$('[data-pshopdone]', box).forEach(b => b.onclick = () => {
+    const t = planTaskById(b.dataset.pshopdone); if(!t) return;
+    planSetDone(t, !t.done); sound(t.done ? 'success' : 'click'); rerender(); });
+  $$('[data-pshopopen]', box).forEach(b => b.onclick = () => openPlanTask(b.dataset.pshopopen));
+  $$('[data-pshopdel]', box).forEach(b => b.onclick = () => {
+    const t = planTaskById(b.dataset.pshopdel); if(!t) return;
+    /* flagged from a real list, it only comes off the shopping list; written
+       here, it was only ever a thing to buy, so it goes */
+    if(t.listId !== 'inbox') planSetShop(t, false);
+    else { S.tasks = S.tasks.filter(x => x.id !== t.id); saveNow(); }
+    sound('click'); rerender(); });
+  const clear = box.querySelector('#pshopClear');
+  if(clear) clear.onclick = () => {
+    const bought = planShopBasket();
+    bought.filter(t => t.listId !== 'inbox').forEach(t => { t.shop = false; });
+    const gone = new Set(bought.filter(t => t.listId === 'inbox').map(t => t.id));
+    S.tasks = S.tasks.filter(t => !gone.has(t.id));
+    saveNow(); sound('click'); toast(`${bought.length} bought thing${bought.length === 1 ? '' : 's'} cleared.`); rerender(); };
+  const copy = box.querySelector('#pshopCopy');
+  if(copy) copy.onclick = async () => {
+    const txt = planShopText();
+    try { await navigator.clipboard.writeText(txt); toast('The list is copied.'); } catch(e){ toast(esc(txt).replace(/\n/g, '<br>'), 8000); } };
+  $$('[data-pshopmove]', box).forEach(b => b.onclick = () => {
+    const l = planList(b.dataset.pshopmove); if(!l) return;
+    const n = planMoveListToShop(l.id);
+    sound('success'); toast(`${n} thing${n === 1 ? '' : 's'} moved from “${esc(l.name)}”; the list is gone.`); rerender(); });
 }
 /* ============================================================
    PLANNING — the three tools: a timer, the habits, the numbers.

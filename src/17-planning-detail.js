@@ -55,6 +55,10 @@ function planDetailHTML(t){
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
         ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+      <!-- something to buy: it goes on the shopping list (the 🛒 button on the
+           top line), and stays in its own list as well -->
+      <label class="pd-q pd-shop"><span class="k">to buy</span>
+        <span class="pd-shopchk"><input type="checkbox" id="pdShop" ${t.shop ? 'checked' : ''}> 🛒 on the shopping list</span></label>
       <!-- Which part of a life this is, in the time tracker's own words. An
            hour sat with this task is filed under whatever is chosen here, so
            the week's report says "the bar's accounts" rather than "Tasks" —
@@ -178,6 +182,9 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdDoDay').onchange = function(){ t.doDay = this.value; touch(); rerenderPlanBody(); };
   p.querySelector('#pdStart').onchange = function(){ t.startDate = this.value; touch(); };
   p.querySelector('#pdList').onchange = function(){ t.listId = this.value; t.sectionId = null; touch(); rerenderPlanBody(); };
+  const shop = p.querySelector('#pdShop');
+  if(shop) shop.onchange = function(){ t.shop = this.checked; touch(); rerenderPlanBody();
+    if(typeof toast === 'function') toast(this.checked ? 'On the shopping list.' : 'Off the shopping list.'); };
   const tcat = p.querySelector('#pdTimeCat');
   if(tcat) tcat.onchange = function(){ t.timeCategory = this.value || null; touch(); };
   p.querySelector('#pdMilestone').onchange = function(){
@@ -313,11 +320,16 @@ function rerenderPlanBody(){
   tasks = planSortTasks(tasks, p.prefs.sort, p.prefs.sortDir);
   const v = planView();
   const special = sel.kind === 'smart' && sel.id === 'stats';
+  const shop = sel.kind === 'shop';
   body.innerHTML = special ? planStatsHTML()
+    : shop ? planShopHTML(tasks)
     : v === 'calendar' ? planCalendarHTML(tasks)
     : v === 'eisenhower' ? planMatrixHTML(tasks, sel)
     : planListViewHTML(sel, tasks);
   bindPlanning(main, sel, tasks);
+  if(shop) bindPlanShop(main);
+  /* the top line's 🛒 count follows whatever the panel just changed */
+  if(typeof planShopBadge === 'function') planShopBadge();
   if(keep && !$('#panel')) document.body.appendChild(keep);
   window.scrollTo({top:y});
 }
