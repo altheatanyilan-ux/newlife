@@ -44,7 +44,7 @@ routes.score = function(root, params){
   const want = params && params[0] ? params[0] : null;
   if(want && scoreById(want)) ui.id = want;
   const rec = ui.id ? scoreById(ui.id) : null;
-  registerPageEntry({pageName:'Score Practice', addLabel:'Add a score', defaultEntryType:'score', prefilledFields:{}, options:[
+  registerPageEntry({pageName:'Repertoire', addLabel:'Add a score', defaultEntryType:'score', prefilledFields:{}, options:[
     {icon:'📄', label:'A score', desc:'A MusicXML file, from MuseScore or anywhere.', run:()=>scorePickFile()},
     ...(rec ? [{icon:'🎯', label:'A section', desc:'A measure range worth practising on its own.', run:()=>openSectionModal(rec.id)}] : [])]});
   if(!rec){ document.documentElement.classList.remove('sc-reading'); ui.reading = false;
@@ -75,7 +75,7 @@ function scoreLibraryHTML(){
   const list = scoreState().slice().sort((a, b) =>
     (b.lastOpened || b.createdAt || '').localeCompare(a.lastOpened || a.createdAt || ''));
   const weight = scoreLibraryWeight();
-  return `<h1 class="serif">Score Practice</h1>
+  return `<h1 class="serif">Repertoire</h1>
     <p class="muted sc-lede">The notation, and what you have written on it. Bring a MusicXML file and the score is engraved here; then mark the sections, write what each one needs, and practise one of them at a time. A sentence about bar 60 belongs at bar 60 — in a practice diary it is something you read in three weeks, on the page it is something you cannot miss.</p>
     ${osmdBuiltIn() ? '' : `<div class="sc-warn">The engraver is not built into this copy, so nothing can be drawn. Everything you have written is safe; run <code>npm install</code> and build again to get the notation back.</div>`}
     <div class="sc-drop" id="scDrop" tabindex="0" role="button" aria-label="Add a score">

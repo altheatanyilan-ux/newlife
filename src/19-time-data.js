@@ -62,7 +62,7 @@ const TIME_LINKS = ['score','vision','project','person','skill','task','deck','j
    sittings arrive untagged, so the editor says which these are rather than
    refusing. */
 const TIME_FED_BY_ROOM = {
-  piano:      'the score room, when you practise a section',
+  piano:      'Repertoire, when you practise a section',
   japanese:   'the Japanese studio, during a 4/3/2 sitting',
   meditation: 'the stillness timer',
   study:      'the study deck, during a review',

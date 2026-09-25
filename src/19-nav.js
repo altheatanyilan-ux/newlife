@@ -76,7 +76,9 @@ const NAV_PAGES = {
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
-  score:    {label:'Score Practice',    short:'Score',    ico:NAV_ICONS.score,    route:'#/score'},
+  /* the room is called Repertoire; its address stays #/score so no link to
+     it, and nothing kept in it, has to change */
+  score:    {label:'Repertoire',        short:'Repertoire', ico:NAV_ICONS.score,  route:'#/score'},
   jazz:     {label:'Jazz Studio',      short:'Jazz',     ico:NAV_ICONS.jazz,     route:'#/jazz'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
   time:     {label:'Time',             short:'Time',     ico:NAV_ICONS.time,     route:'#/time'},
