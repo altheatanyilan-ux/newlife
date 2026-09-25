@@ -55,7 +55,10 @@ async function toEngine(mono, sr){
 function pickups(tl, order){
   const nominal = k => { const m = tl.measures[k] || {}; return (m.beats || 4) * 4 / (m.beatType || 4); };
   const short = order.map(k => ((tl.measures[k] || {}).len || 4) < nominal(k) - 1e-6);
-  return order.map((k, i) => short[i] && (i === 0 || short[i - 1]));
+  /* the opening upbeat is an upbeat wherever it is played: a repeat back
+     to the start plays it again before the first bar */
+  const first = Math.min.apply(null, order);
+  return order.map((k, i) => short[i] && (i === 0 || k === first || short[i - 1]));
 }
 const keyed = order => { const seen = {}; return order.map(k => { seen[k] = (seen[k] || 0) + 1; return k + '#' + seen[k]; }); };
 /* The truth, placed in the score. ASAP gives each performance's

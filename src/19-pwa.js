@@ -32,6 +32,7 @@ function registerServiceWorker(){
     let reg;
     try { reg = await navigator.serviceWorker.register('sw.js', {scope: './'}); }
     catch(e){ console.warn('offline support unavailable', e); return; }
+    if(!reg) return;   /* a browser with workers switched off resolves to nothing */
 
     /* A worker already waiting means a newer build is sitting on disk from a
        previous visit; one that arrives now means the update landed while the

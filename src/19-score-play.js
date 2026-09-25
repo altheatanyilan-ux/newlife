@@ -104,6 +104,7 @@ function musicXmlTimeline(xml){
   /* ---- pass one: every part, bar by bar, in written time ---- */
   const parts = [], raw = [];            /* raw: per part, per bar, the notes with their place in the bar */
   const barLen = new Array(nBars).fill(0), barSig = new Array(nBars).fill(null);
+  const barHeld = new Array(nBars).fill(0), barPadded = new Array(nBars).fill(false);  /* what the bar holds, if it was padded out */
   const barInfo = [...Array(nBars)].map(() => ({}));
   const tempoIn = [...Array(nBars)].map(() => []);  /* [{at, bpm}] */
   const harmIn = [...Array(nBars)].map(() => []);   /* [{at, sym}] */
@@ -274,10 +275,28 @@ function musicXmlTimeline(xml){
       const shortEdge = (k === 0 || k === nBars - 1) && maxPos > 1e-6 && maxPos < nominal - 1e-6;
       const got = bar.implicit || shortEdge ? (maxPos || nominal) : Math.max(fit, nominal);
       barLen[k] = Math.max(barLen[k], got);
+      barHeld[k] = Math.max(barHeld[k], fit);
+      if(got > fit + 1e-6) barPadded[k] = true;
     }
     parts.push(Object.assign({id: pid, name: names[pid] || pid, staves}, instr[pid] || {}));
     raw.push(perBar);
   });
+  /* A bar split in two by a repeat sign or an ending — the last beats of
+     a section, then its upbeat after the double bar — is two short bars,
+     and each lasts what it holds: padded out to a full bar, the music
+     would stop for a beat at every repeat. A short bar counts as split
+     when it touches a repeat or an ending, or when it and its neighbour
+     make one whole bar between them; a short bar anywhere else is an
+     encoding slip and stays a full bar. */
+  const nominalOf = k => { const g = barSig[k] || {beats: 4, beatType: 4}; return g.beats * 4 / g.beatType; };
+  const shortAt = k => k >= 0 && k < nBars && barHeld[k] > 1e-6 && barHeld[k] < nominalOf(k) - 1e-6;
+  for(let k = 1; k < nBars - 1; k++){
+    if(!barPadded[k] || !shortAt(k) || barLen[k] > nominalOf(k) + 1e-6) continue;
+    const I = barInfo[k], N = barInfo[k + 1] || {};
+    const byRepeat = I.back || I.fwd || I.ending || I.endingStop || N.fwd || N.ending;
+    const pairs = j => shortAt(j) && Math.abs(barHeld[k] + barHeld[j] - nominalOf(k)) < 1e-3;
+    if(byRepeat || pairs(k - 1) || pairs(k + 1)) barLen[k] = barHeld[k];
+  }
   /* each part's instrument, where this build carries one; the piano otherwise */
   const allNames = parts.map(p => p.name);
   parts.forEach(p => { p.inst = p.channel === 10 ? 'drums' : typeof instrumentFor === 'function' ? instrumentFor(p, allNames) : 'piano'; });
@@ -1266,6 +1285,9 @@ function scorePlayAttach(bar, cfg){
       if(player) player.set('loop', true);
       paintOpts(); where(-1);
       if(player && player.running){ const [aa] = rangeIdx(); ctl.play(t.perf[aa].q0); } },
+    /* a place lit from outside the player — a recording being listened to
+       (19-sync-d-page.js): q in the written timeline, still = dimmed */
+    showAt(q, still){ if(!tlSafe()) return; if(q == null){ clearHl(); where(-1); return; } paintAt(q, !!still); },
     get picking(){ return !!picking; },
     get player(){ return player; }, get timeline(){ return tl; }, get saved(){ return saved; },
     tempoPct: () => pctNow(), bpm: () => bpmNow(), scoreBpm: () => scoreBpm(),

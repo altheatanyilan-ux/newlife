@@ -526,6 +526,10 @@ function syncEngineModule(){
       const lo = band ? band.lo[i] : 0, hi = band ? band.hi[i] : S - 1;
       /* cost of each state at this frame */
       for(let s = 0; s < S; s++) cost[s] = Sm[row + beatOf[s]];
+      /* silence is not the music: a frame with nothing sounding costs every
+         place in the tune alike, so before the first note the path waits in
+         U0 rather than walking the opening bar through the room's hush */
+      if(opt.quiet && opt.quiet[i]){ const qv = opt.quiet[i]; for(let s = 0; s < S; s++) cost[s] += qv; }
       if(onsetT){
         /* attacks where the score has them; a strong attack where it has none costs a little */
         const o = i * 12; let an = 0;
@@ -713,6 +717,14 @@ function syncEngineModule(){
     let span = null;
     if(single){ span = musicSpan(feat); tempi = [60 * L / Math.max(1, span.end - span.start)]; }
     const tries = [], tplBase = tpl;
+    /* the frames where nothing sounds: well under the level the piece is
+       usually played at (the whitened energy is logarithmic, so a
+       pianissimo is still a good fraction of it; the room is not) */
+    /* only before the music starts and after it has stopped: inside, a
+       hushed passage is still the piece */
+    const quiet = single && span ? (() => { const ev = Array.from(cf.E).filter(v => v > 0), med = median(ev) || 1, q = new Float64Array(cf.n);
+      const a = Math.floor((span.sound != null ? span.sound : span.start) / cf.hop), z = Math.ceil(span.end / cf.hop);
+      for(let i = 0; i < cf.n; i++) if((i < a || i > z) && cf.E[i] < 0.06 * med) q[i] = 0.6; return q; })() : null;
     const ons = hasOnsets(tpl) && feat.oc && opts.onsetW !== 0;
     const ocC = ons ? pooledOC(feat, cf.hop, cf.n) : null;
     const runOne = (tShift, bpm, tplX) => {
@@ -723,14 +735,14 @@ function syncEngineModule(){
       const u = 0.1;
       const k = opts.coarsePen != null ? opts.coarsePen : 2.5;
       const onset = ons ? (S => Object.assign({OC: ocC, lambda: opts.onsetW != null ? opts.onsetW : 1.2, mu: 0.35}, onsetStates(tpl, S, tShift))) : null;
-      const w = warp(zCost(Sm, cf.n, L), cf.n, L, F, tpl.change, tpl.barStart, {u, pStay: 0.15 * k, pSkip: 0.3 * k, pEnterMid: 4, pExitMid: single ? 12 : 4, sectionStarts, cyclic: !single, onset});
+      const w = warp(zCost(Sm, cf.n, L), cf.n, L, F, tpl.change, tpl.barStart, {u, pStay: 0.15 * k, pSkip: 0.3 * k, pEnterMid: 4, pExitMid: single ? 12 : 4, sectionStarts, cyclic: !single, onset, quiet: opts.quietCost === 0 ? null : quiet});
       /* a tempo the beat does not support has to fit the harmony that much
          better: the further from the tracked beat, and the surer the
          tracker, the more it costs */
       const prior = (opts.tempoPrior != null ? opts.tempoPrior : 0) * beat.confidence * Math.abs(Math.log2(bpm / (beat.bpm || bpm)));
       return {tShift, bpm, F, Sm, T, u, w, total: w.total / cf.n + prior};
     };
-    progress('Finding the choruses…', 0.7);
+    progress(single ? 'Laying the score over the recording…' : 'Finding the choruses…', 0.7);
     keys.slice(0, 3).forEach(k => tries.push(runOne(k.t, tempi[0])));
     tries.sort((a, b) => a.total - b.total);
     const kbest = tries[0].tShift;
@@ -823,7 +835,7 @@ function syncEngineModule(){
       const stats = frameStats(SmF, fine.n, L);
       const chor = [], stages = [];
       pb.choruses.forEach((ch, ci) => {
-        progress(`Aligning chorus ${ci + 1} of ${nCh}…`, 0.75 + 0.2 * ci / Math.max(1, nCh));
+        progress(single ? 'Placing every bar on its notes…' : `Aligning chorus ${ci + 1} of ${nCh}…`, 0.75 + 0.2 * ci / Math.max(1, nCh));
         let t = fillLinear(Float64Array.from(ch.t));
         let hit = new Uint8Array(L);
         if(onGridCh[ci]){
@@ -1013,7 +1025,13 @@ function syncEngineModule(){
     const on = i => { let s = 0; for(let k = i; k < Math.min(n, i + win); k++) s += E[k]; return s / win > 0.08 * loud; };
     let a = 0; while(a < n && !on(a)) a++;
     let z = n - 1; while(z > a && !on(Math.max(0, z - win + 1))) z--;
-    return {start: a * hop, end: (z + 1) * hop};
+    /* the second that is loud enough starts where its first sound does,
+       not at its own edge, which can be most of a second earlier */
+    const floor = 0.06 * (median(Array.from(E).filter(v => v > 0)) || 1);
+    let b = a; while(b < Math.min(n - 1, a + win) && E[b] < floor) b++;
+    if(b >= Math.min(n - 1, a + win)) b = a;
+    /* start: the tempo's reckoning (kept as it was); sound: the first note */
+    return {start: a * hop, end: (z + 1) * hop, sound: b * hop};
   }
   function round3(x){ return Math.round(x * 1000) / 1000; }
   function frameStats(Sm, n, L){

@@ -231,6 +231,8 @@ function scoreDefaults(x){
   x.lastOpened = x.lastOpened || null;
   /* who plays what when the room plays along (19-score-ensemble.js) */
   if(typeof ensembleDefaults === 'function') ensembleDefaults(x);
+  /* the recordings synced to it (19-sync-d-page.js) */
+  if(typeof syncRecDefaults === 'function') syncRecDefaults(x);
   return x;
 }
 function scoreSectionDefaults(s, score){
@@ -323,9 +325,12 @@ function addScore(fields){
   return x;
 }
 function removeScore(id){
+  /* its recordings go with it (they were only ever copies kept for this
+     piece) — once the undo has run out, not before */
+  const keep = typeof syncDropScoreAudio === 'function' ? syncDropScoreAudio(id) : () => {};
   const gone = spliceOut(scoreState(), x => x.id === id);
   saveNow();
-  return gone;
+  return () => { keep(); gone(); };
 }
 
 /* ---------- MusicXML, compressed and not ----------

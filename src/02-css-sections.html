@@ -8597,6 +8597,37 @@ html[data-theme="dark"] .sc-nb-chart{--nb-s1:#3987e5;--nb-s2:#d95926;--nb-t:#c3c
 .sc-logsec{display:flex;align-items:center;gap:6px;font-size:.8rem}
 .sc-prints{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .sc-prints .btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+/* recordings synced to the piece (19-sync-d-page.js). The strip is one cell a
+   bar, in the order played; its colour says how sure the placing is, and the
+   legend and each cell's label say it in words too. */
+.sy-recs{--sy-sure:#7f916a;--sy-fair:#c9a96e;--sy-guess:#b0705e}
+html[data-theme="dark"] .sy-recs{--sy-sure:#9db287;--sy-fair:#d9bc84;--sy-guess:#cf8b78}
+.sy-lede{font-size:.8rem;margin:0 0 8px}
+.sy-private{display:block;margin-top:4px;font-size:.74rem;opacity:.85}
+.sy-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+.sy-job{border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px;margin-bottom:10px;background:var(--surface)}
+.sy-job.err{border-color:color-mix(in srgb,var(--sy-guess) 60%,var(--line))}
+.sy-job-n{font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sy-job-t{font-size:.72rem;margin:4px 0 6px;opacity:.85}
+.sy-prog{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.sy-prog i{display:block;height:100%;background:var(--page-accent,var(--sy-sure));transition:width .3s ease}
+.sy-list{display:flex;flex-direction:column;gap:10px}
+.sy-rec{border:1px solid var(--line);border-radius:var(--radius);padding:8px 10px;background:var(--surface)}
+.sy-rec.on{border-color:color-mix(in srgb,var(--page-accent,#3d6fd1) 55%,var(--line))}
+.sy-rec-h{display:flex;align-items:center;gap:8px;min-width:0}
+.sy-rec-n{font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.sy-facts{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.72rem;margin:4px 0 8px;opacity:.85}
+.sy-strip{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:6px}
+.sy-cell{width:9px;height:14px;padding:0;border:0;border-radius:2px;cursor:pointer;display:inline-block;flex:none}
+.sy-cell.sure{background:var(--sy-sure)}
+.sy-cell.fair{background:var(--sy-fair)}
+.sy-cell.guess{background:var(--sy-guess);opacity:.6}
+.sy-strip .sy-cell:hover,.sy-strip .sy-cell:focus-visible{outline:2px solid var(--text);outline-offset:1px}
+.sy-strip .sy-cell:disabled{cursor:default}
+.sy-legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.66rem;margin-bottom:8px}
+.sy-legend .sy-cell{width:8px;height:10px;margin-right:4px;vertical-align:-1px;cursor:default}
+.sy-missing{font-size:.74rem;margin-bottom:6px}
+.sy-rec-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 
 /* Printing. Whatever the room looks like, the printed thing is the notation:
    white paper, black notes, no furniture. Visibility rather than display, so

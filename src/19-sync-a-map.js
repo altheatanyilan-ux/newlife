@@ -57,6 +57,9 @@ function syncMapNew(o = {}){
     syncPoints: (o.syncPoints || []).map(p => Object.assign({}, p)),
     overallConfidence: o.overallConfidence == null ? 0 : o.overallConfidence,
     engineVersion: o.engineVersion || SYNC_ENGINE_VERSION,
+    /* for a score: which way the repeats were taken, as the written bars in
+       the order played (measure m of the map is written bar order[m-1]) */
+    ...(o.reading && Array.isArray(o.reading.order) ? {reading: {how: String(o.reading.how || ''), order: o.reading.order.map(k => k | 0)}} : {}),
     createdAt: o.createdAt || new Date().toISOString(),
   };
 }
@@ -446,7 +449,8 @@ function syncMapExport(maps){
         chorus: e.chorus == null ? null : e.chorus, audioStart: e.audioStart, audioEnd: e.audioEnd})),
       syncPoints: o.syncPoints.map(p => ({chorus: p.chorus, measure: p.measure, beat: p.beat, time: p.time, confidence: p.confidence,
         ...(p.interpolated ? {interpolated: true} : {})})),
-      overallConfidence: o.overallConfidence, engineVersion: o.engineVersion, createdAt: o.createdAt};
+      overallConfidence: o.overallConfidence, engineVersion: o.engineVersion, createdAt: o.createdAt,
+      ...(o.reading ? {reading: o.reading} : {})};
   });
   return JSON.stringify({kind: 'life-instrument-sync-maps', version: 1, maps: clean}, null, 1);
 }

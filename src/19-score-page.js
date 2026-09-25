@@ -578,10 +578,13 @@ function scoreSideHTML(x){
   return `<div class="sc-side-tabs">
       <button class="tbtn${ui.side !== 'notebook' ? ' on' : ''}" data-scside="marks">📝 Sections</button>
       <button class="tbtn${ui.side === 'notebook' ? ' on' : ''}" data-scside="notebook">📓 Notebook</button>
+      ${typeof syncRecordingsHTML === 'function' ? `<button class="tbtn${ui.side === 'recordings' ? ' on' : ''}" data-scside="recordings"
+        title="a recording of this piece, the score following it">🎧 Recordings${(x.recordings || []).length ? ` <span class="mono faint">${x.recordings.length}</span>` : ''}</button>` : ''}
       <span class="grow"></span>
       ${mins ? `<span class="mono faint">${fmtHM(mins)} today</span>` : ''}
     </div>
-    ${ui.side === 'notebook' ? scoreNotebookHTML(x) : scoreMarksSideHTML(x)}`;
+    ${ui.side === 'notebook' ? scoreNotebookHTML(x)
+      : ui.side === 'recordings' && typeof syncRecordingsHTML === 'function' ? syncRecordingsHTML(x) : scoreMarksSideHTML(x)}`;
 }
 function scoreMarksSideHTML(x){
   const ui = scoreUi();
@@ -1640,6 +1643,7 @@ function bindScoreSide(root, x){
     scoreSidePaint(x); scoreOverlayPaint(x);
   });
   if(typeof bindScoreSecTempo === 'function') bindScoreSecTempo(root, x);
+  if(ui.side === 'recordings' && typeof bindSyncRecordings === 'function') bindSyncRecordings(root, x);
 }
 /* Turning a page: a tap on the right third or the left third, an arrow key, or
    a swipe. Three ways because the same person uses all three — a finger while
