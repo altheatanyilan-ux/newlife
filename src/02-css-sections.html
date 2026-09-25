@@ -9643,36 +9643,56 @@ html.ja-running{overflow:hidden}
 .jzj-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:.74rem}
 .jzj-warn{color:var(--danger,#a8523f)}
 
-/* ---------- playback: ▶ on every score ---------- */
-.plx-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;font-size:.8rem}
+/* ---------- playback: the transport on every score ---------- */
+.plx-bar{display:flex;flex-direction:column;gap:6px;margin:0 0 8px;font-size:.8rem}
+.plx-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.plx-row2{padding-top:2px}
 .plx-bar[hidden],.plx-bar [hidden]{display:none !important}
 .sc-playrow .plx-bar{margin:0;width:100%}
-.sc-playrow:has(.plx-bar[hidden]){display:none}
 .sc-playrow{border-top:none;padding:6px 0}
-.plx-bar .plx-go{min-width:6.4em}
+.sc-playrow:has(.plx-bar[hidden]){display:none}
+.plx-bar .plx-go{min-width:6.6em;position:relative}
 .plx-bar.playing .plx-go{background:var(--page-accent,var(--accent));border-color:var(--page-accent,var(--accent))}
-.plx-where{font-size:.7rem;color:var(--muted);min-width:7.5em}
-.plx-tempo{display:flex;align-items:center;gap:6px;flex:1 1 180px;max-width:320px}
-.plx-tempo input{flex:1;min-width:80px}
-.plx-tempo b{font-size:.74rem;min-width:2.4em;text-align:right}
-.plx-opts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-basis:100%;padding:6px 0 2px;border-top:1px dashed var(--line)}
+/* loading: a small ring turning on the Play button; the page is never blocked */
+.plx-bar.loading .plx-go{padding-left:2.1em}
+.plx-bar.loading .plx-go::before{content:"";position:absolute;left:.7em;top:50%;width:.8em;height:.8em;margin-top:-.4em;border-radius:50%;
+  border:2px solid currentColor;border-right-color:transparent;animation:plxspin .8s linear infinite}
+@keyframes plxspin{to{transform:rotate(360deg)}}
+.plx-where{font-size:.72rem;color:var(--muted);min-width:7.5em;font-family:'IBM Plex Mono',var(--mono)}
+.plx-bpm{display:flex;align-items:center;gap:4px;font-size:.76rem}
+.plx-bpm .inp{width:4.2em;text-align:center}
+.plx-score{font-size:.68rem}
+.plx-pct{display:flex;align-items:center;gap:6px;flex:1 1 200px;max-width:340px}
+.plx-pct input{flex:1;min-width:90px}
+.plx-pct b{font-size:.72rem;min-width:3em;text-align:right}
+.plx-sel{display:flex;align-items:center;gap:4px;font-size:.7rem}
+.plx-vol{display:flex;align-items:center;gap:6px;font-size:.7rem}
+.plx-vol input{width:90px}
+.plx-opts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 2px;border-top:1px dashed var(--line)}
 .plx-opts[hidden]{display:none}
-.plx-opts .tbtn.on,.plx-mutes .tbtn.on{border-color:var(--page-accent,var(--accent));color:var(--text);background:color-mix(in srgb,var(--page-accent,var(--accent)) 12%,transparent)}
+.plx-opts .tbtn.on,.plx-mutes .tbtn.on,.plx-row .tbtn.on{border-color:var(--page-accent,var(--accent));color:var(--text);background:color-mix(in srgb,var(--page-accent,var(--accent)) 12%,transparent)}
 .plx-from{display:flex;align-items:center;gap:4px;font-size:.7rem}
 .plx-from .inp{width:4.2em}
 .plx-mutes{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .plx-mutes .mono{font-size:.68rem}
 .grand-credit{flex-basis:100%;font-size:.64rem;line-height:1.5}
 .grand-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-.plx-bar.compact{margin:0;flex-wrap:nowrap}
-.plx-bar.compact .plx-tempo{flex:0 1 150px}
-/* the bar being played, and the playhead running through it */
+.plx-bar.compact{margin:0;flex-direction:row}
+.plx-bar.compact .plx-row{flex-wrap:nowrap}
+/* the bar being played, and the playhead running through it; dimmer when paused */
 .plx-hl{position:absolute;z-index:1;pointer-events:none;border-radius:6px;
   background:color-mix(in srgb,var(--page-accent,#3d6fd1) 11%,transparent);
-  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--page-accent,#3d6fd1) 38%,transparent);transition:left .08s linear,top .12s ease,width .08s linear}
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--page-accent,#3d6fd1) 38%,transparent),0 0 14px color-mix(in srgb,var(--page-accent,#3d6fd1) 22%,transparent);
+  transition:left .08s linear,top .12s ease,width .08s linear,opacity .2s ease}
+.plx-hl.paused{opacity:.55;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--page-accent,#3d6fd1) 30%,transparent)}
 .plx-hl[hidden]{display:none}
 .plx-head{position:absolute;top:2px;bottom:2px;width:2px;border-radius:2px;background:var(--page-accent,#3d6fd1);opacity:.85}
-@media (max-width:640px){.plx-tempo{flex-basis:100%;max-width:none}.plx-where{min-width:0}}
+/* the count-in: big numerals fading in and out over the score */
+.plx-count{position:fixed;z-index:80;transform:translate(-50%,-50%);pointer-events:none;font-family:'Playfair Display',var(--serif);
+  font-size:6.5rem;line-height:1;color:var(--page-accent,var(--accent));text-shadow:0 2px 18px color-mix(in srgb,var(--bg) 70%,transparent);opacity:0}
+.plx-count.beat{animation:plxbeat .5s ease-out}
+@keyframes plxbeat{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}25%{opacity:.95;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.06)}}
+@media (max-width:640px){.plx-pct{flex-basis:100%;max-width:none}.plx-where{min-width:0}.plx-count{font-size:4.5rem}}
 @media print{.plx-bar,.plx-hl{display:none !important}}
 </style>
 </head>

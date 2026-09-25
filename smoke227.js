@@ -79,7 +79,7 @@ const piece = title => `<?xml version="1.0" encoding="UTF-8"?><score-partwise ve
   const c1 = await clicks();
   yes('  and then beat 1 of the count-in and of every bar is accented', c1.length > 6 && c1[0] === true && c1.filter(a => a).length >= 3 && c1.some(a => !a), c1);
   /* while it plays */
-  await p.click('#scPlayRow [data-plxopt="click"]');
+  await p.selectOption('#scPlayRow [data-plxclick]', 'beats');
   await p.click('#scPlayRow [data-plxgo]'); await p.waitForTimeout(1500);
   await p.click('[data-scaccent]'); await p.waitForTimeout(300);
   is('changed while the piece plays, the click that is playing hears it', await p.evaluate(() => _plxNow && _plxNow.player && _plxNow.player.opts.accent), false);

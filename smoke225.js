@@ -153,12 +153,12 @@ const PIECE = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.
   yes('the compressed file is taken in', imp && imp.title === 'Twelve Bars Heard', imp);
   await p.evaluate(id => { scoreUi().focus = null; location.hash = '#/score/' + id; }, imp.id); await p.waitForTimeout(4500);
   const S0 = await p.evaluate(() => ({bars: document.querySelectorAll('#scPlayRow .plx-bar').length,
-    where: document.querySelector('#scPlayRow [data-plxwhere]').textContent, bpm: document.querySelector('#scPlayRow [data-plxbpmv]').textContent}));
+    where: document.querySelector('#scPlayRow [data-plxwhere]').textContent, bpm: document.querySelector('#scPlayRow [data-plxbpm]').value}));
   is('the room has a play bar, which knows the piece: 12 bars at the marked ♩ = 96', [S0.bars, S0.where, S0.bpm], [1, '12 bars', '96']);
   await p.click('#scPlayRow [data-plxgo]'); await p.waitForTimeout(3300);
   const S1 = await p.evaluate(() => { const hl = document.querySelector('#scStage > .plx-hl');
     const w = document.querySelector('#scPlayRow [data-plxwhere]').textContent;
-    const n = +(/bar (\d+)/.exec(w) || [])[1];
+    const n = +(/m\. (\d+)/.exec(w) || [])[1];
     const box = n && measureBox(n);
     const st = document.getElementById('scStage');
     return {running: !!(_plxNow && _plxNow.player && _plxNow.player.running), where: w, n,
@@ -171,17 +171,18 @@ const PIECE = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.
     return b && {x: r.left + b.x + b.w / 2, y: r.top + b.y + b.h / 2}; });
   await p.mouse.click(c9.x, c9.y); await p.waitForTimeout(700);
   const S2 = await p.evaluate(() => ({where: document.querySelector('#scPlayRow [data-plxwhere]').textContent, modal: !!document.querySelector('#modals .overlay')}));
-  yes('  a press on another bar while it plays goes there, and pins nothing', /bar (9|10) /.test(S2.where) && !S2.modal, S2);
+  yes('  a press on another bar while it plays goes there, and pins nothing', /m\. (9|10) /.test(S2.where) && !S2.modal, S2);
   await p.click('#scPlayRow [data-plxgo]'); await p.waitForTimeout(300);
   is('pause, and it waits where it was', [await playing(), await p.evaluate(() => document.querySelector('#scPlayRow [data-plxgo]').textContent)], [false, '▶ Resume']);
   await p.click('#scPlayRow [data-plxstop]'); await p.waitForTimeout(200);
   await p.click('#scPlayRow [data-plxmore]'); await p.waitForTimeout(200);
-  const opts = await p.evaluate(() => [...document.querySelectorAll('#scPlayRow [data-plxopt], #scPlayRow [data-plxmute]')].map(b => b.textContent.trim()));
-  yes('the options: loop, count-in, click, swing, and each hand of the piano', ['⟳ loop', 'count-in', 'click', 'swing', 'right hand', 'left hand'].every(o => opts.includes(o)), opts);
+  const opts = await p.evaluate(() => [...document.querySelectorAll('#scPlayRow [data-plxopt], #scPlayRow [data-plxmute]')].map(b => b.textContent.trim())
+    .concat(document.querySelector('#scPlayRow [data-plxcount]') ? ['count-in'] : [], document.querySelector('#scPlayRow [data-plxclick]') ? ['click'] : []));
+  yes('the options: loop, count-in, click, swing, and each hand of the piano', ['🔁 loop', 'count-in', 'click', 'swing', 'right hand', 'left hand'].every(o => opts.includes(o)), opts);
   await p.click('#scPlayRow [data-plxmute="p:0:s:2"]'); await p.click('#scPlayRow [data-plxopt="loop"]');
   await p.evaluate(() => { const r = document.querySelector('#scPlayRow [data-plxbpm]'); r.value = 180; r.dispatchEvent(new Event('input')); r.dispatchEvent(new Event('change')); });
   const kept = await p.evaluate(() => scoreById(scoreUi().id).playback);
-  yes('  and they are kept with the piece', kept && kept.bpm === 180 && kept.loop === true && kept.muted.includes('p:0:s:2'), kept);
+  yes('  and they are kept with the piece', kept && Math.round(kept.pct * 96 / 100) === 180 && kept.loop === true && kept.muted.includes('p:0:s:2'), kept);
   /* the section in focus: only its bars */
   await p.evaluate(() => { const x = scoreById(scoreUi().id);
     x.sections = [{id: 'sec1', name: 'Middle', startMeasure: 5, endMeasure: 6, color: '#c47832', notes: ''}]; scoreUi().focus = 'sec1'; rerender(); });
@@ -190,7 +191,7 @@ const PIECE = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.
   await p.click('#scPlayRow [data-plxgo]'); await p.waitForTimeout(1400);
   const F = await p.evaluate(() => ({where: document.querySelector('#scPlayRow [data-plxwhere]').textContent,
     muted: [..._plxNow.player.opts.muted], loop: _plxNow.player.opts.loop, bpm: _plxNow.player.opts.bpm}));
-  yes('  from its first bar, looping, at the tempo set, without the left hand', /^bar [56] · [12] of 2$/.test(F.where) && F.loop && F.bpm === 180 && F.muted.includes('p:0:s:2'), F);
+  yes('  from its first bar, looping, at the tempo set, without the left hand', /^m\. [56] · [12] of 2$/.test(F.where) && F.loop && F.bpm === 180 && F.muted.includes('p:0:s:2'), F);
   await p.waitForTimeout(2600);
   yes('  and it goes round again rather than stopping', await playing());
   const m0 = await p.evaluate(() => _plxNow.timeline.events.find(e => e.staff === 1).midi);
@@ -204,7 +205,7 @@ const PIECE = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.
   console.log('\n5. the Jazz Studio\'s scores');
   await p.evaluate(() => { jazzUi().key = 'C'; location.hash = '#/jazz/2.1'; }); await p.waitForTimeout(3500);
   const G = await p.evaluate(() => { const bar = document.querySelector('.plx-bar');
-    return bar && {next: bar.nextElementSibling.className, where: bar.querySelector('[data-plxwhere]').textContent, bpm: bar.querySelector('[data-plxbpmv]').textContent}; });
+    return bar && {next: bar.nextElementSibling.className, where: bar.querySelector('[data-plxwhere]').textContent, bpm: bar.querySelector('[data-plxbpm]').value}; });
   yes('an exercise has ▶ above its score, at a practice tempo (♩ = 80)', G && /jz-stage-box/.test(G.next) && G.bpm === '80' && /\d+ bars/.test(G.where), G);
   await p.click('.plx-bar [data-plxgo]'); await p.waitForTimeout(2000);
   const G1 = await p.evaluate(() => ({running: !!(_plxNow && _plxNow.player && _plxNow.player.running),

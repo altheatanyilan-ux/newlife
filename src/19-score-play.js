@@ -79,8 +79,13 @@ function musicXmlTimeline(xml){
   if(root.nodeName !== 'score-partwise' && !timewise) throw new Error('That is not a MusicXML score.');
   /* the parts, and each part's bars as the elements holding their contents */
   const list = plxKid(root, 'part-list');
-  const names = {};
-  plxKids(list, 'score-part').forEach(sp => { names[sp.getAttribute('id')] = plxText(sp, 'part-name') || sp.getAttribute('id'); });
+  const names = {}, instr = {};
+  plxKids(list, 'score-part').forEach(sp => { const id = sp.getAttribute('id');
+    names[id] = plxText(sp, 'part-name') || id;
+    /* what it is played on: a General MIDI program, and the instrument's name */
+    const si = plxKid(sp, 'score-instrument'), mi = plxKid(sp, 'midi-instrument');
+    instr[id] = {instrumentName: si ? plxText(si, 'instrument-name') : '', program: mi ? plxNum(mi, 'midi-program', 0) : 0,
+      channel: mi ? plxNum(mi, 'midi-channel', 0) : 0}; });
   const byPart = new Map();
   if(timewise){
     plxKids(root, 'measure').forEach(m => plxKids(m, 'part').forEach(p => {
@@ -238,9 +243,12 @@ function musicXmlTimeline(xml){
       const got = bar.implicit ? (maxPos || nominal) : Math.max(maxPos, nominal);
       barLen[k] = Math.max(barLen[k], got);
     }
-    parts.push({id: pid, name: names[pid] || pid, staves});
+    parts.push(Object.assign({id: pid, name: names[pid] || pid, staves}, instr[pid] || {}));
     raw.push(perBar);
   });
+  /* each part's instrument, where this build carries one; the piano otherwise */
+  const allNames = parts.map(p => p.name);
+  parts.forEach(p => { p.inst = p.channel === 10 ? 'drums' : typeof instrumentFor === 'function' ? instrumentFor(p, allNames) : 'piano'; });
   const measures = [...Array(nBars)].map((_, k) => {
     const b0 = byPart.get(partIds[0])[k];
     const n = b0 ? parseInt(b0.number, 10) : NaN;
@@ -485,41 +493,102 @@ function plxDrum(ctx, dest, midi, t, vel){
   g.gain.setValueAtTime(0.35 * (vel || 0.6), t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
   n.connect(f); f.connect(g); g.connect(dest); n.start(t); n.stop(t + d + 0.02);
 }
+/* The count and the click: the score room metronome's wooden click (a
+   struck block — noise through a tight band-pass), the downbeat a fifth
+   higher and louder unless the accent is off. */
 function plxClick(ctx, dest, t, accent){
-  const o = ctx.createOscillator(), g = ctx.createGain();
-  o.type = 'square'; o.frequency.value = accent ? 1760 : 1320;
-  g.gain.setValueAtTime(accent ? 0.12 : 0.07, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
-  o.connect(g); g.connect(dest); o.start(t); o.stop(t + 0.05);
+  const dur = 0.035;
+  const n = ctx.createBufferSource(); n.buffer = plxNoise(ctx);
+  const band = ctx.createBiquadFilter(); band.type = 'bandpass'; band.frequency.value = accent ? 2400 : 1600; band.Q.value = 6;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(accent ? 0.55 : 0.34, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  n.connect(band); band.connect(g); g.connect(dest); n.start(t); n.stop(t + dur + 0.01);
+}
+
+/* ---------- the tempo map ----------
+   The score's own tempo marks, and on top of them what the player is told:
+   a section played at a tempo of your own (steady, or ramping from one tempo
+   to another for a rit. or an accel.), and a fermata held longer than
+   written — which is the whole ensemble slowing for the length of the held
+   note, so every part waits together. Stored as stretches in which the tempo
+   is steady or moves in a straight line, with the seconds up to the start of
+   each worked out once, so asking how long anything takes is a lookup.
+   Everything is at 100%; the tempo percentage divides the seconds. */
+function plxTempoMap(tl, o){
+  const base = tl.tempos.length ? tl.tempos : [{q: 0, bpm: PLX_DEFAULT_BPM}];
+  const markAt = q => { let b = base[0].bpm; for(const t of base){ if(t.q <= q + 1e-9) b = t.bpm; else break; } return b; };
+  const overrides = (o.overrides || []).filter(v => v && v.q1 > v.q0 && v.start > 0);
+  const hold = typeof o.fermata === 'number' && o.fermata > 1 ? o.fermata : null;
+  const fermatas = hold ? tl.events.filter(e => e.fermata && !e.chord && !e.grace && e.d > 0) : [];
+  const cuts = new Set([0, tl.length + 64]);
+  base.forEach(t => cuts.add(t.q));
+  overrides.forEach(v => { cuts.add(v.q0); cuts.add(v.q1); });
+  fermatas.forEach(e => { cuts.add(e.q); cuts.add(e.q + e.d); });
+  const xs = [...cuts].filter(x => x >= 0).sort((a, b) => a - b);
+  const bpmOf = (q, edge) => {
+    /* edge: 'start' reads the stretch that begins at q, 'end' the one that ends there */
+    const at = edge === 'end' ? q - 1e-7 : q + 1e-7;
+    let b = markAt(at);
+    const ov = overrides.find(v => at >= v.q0 && at < v.q1);
+    if(ov){ const f = (q - ov.q0) / (ov.q1 - ov.q0); b = ov.end > 0 ? ov.start + (ov.end - ov.start) * Math.max(0, Math.min(1, f)) : ov.start; }
+    if(fermatas.some(e => at >= e.q && at < e.q + e.d)) b = b / hold;
+    return b;
+  };
+  const segs = [];
+  let cum = 0;
+  for(let i = 0; i + 1 < xs.length; i++){
+    const q0 = xs[i], q1 = xs[i + 1];
+    if(q1 - q0 < 1e-9) continue;
+    const b0 = bpmOf(q0, 'start'), b1 = bpmOf(q1, 'end');
+    segs.push({q0, q1, b0, b1, t0: cum});
+    cum += Math.abs(b1 - b0) < 1e-9 ? (q1 - q0) * 60 / b0 : 60 * (q1 - q0) / (b1 - b0) * Math.log(b1 / b0);
+  }
+  const segAt = q => { let lo = 0, hi = segs.length - 1;
+    while(lo < hi){ const mid = (lo + hi + 1) >> 1; if(segs[mid].q0 <= q + 1e-12) lo = mid; else hi = mid - 1; }
+    return segs[lo]; };
+  const bpmAt = q => { const g = segAt(q); if(!g) return base[0].bpm; const f = (q - g.q0) / (g.q1 - g.q0); return g.b0 + (g.b1 - g.b0) * f; };
+  /* seconds from the top to q, at 100% */
+  const T = q => { const g = segAt(q); if(!g) return 0; const dq = q - g.q0;
+    if(Math.abs(g.b1 - g.b0) < 1e-9) return g.t0 + dq * 60 / g.b0;
+    const k = (g.b1 - g.b0) / (g.q1 - g.q0);
+    return g.t0 + 60 / k * Math.log((g.b0 + k * dq) / g.b0); };
+  /* the q at which T reaches t */
+  const Q = t => { let lo = 0, hi = segs.length - 1;
+    while(lo < hi){ const mid = (lo + hi + 1) >> 1; if(segs[mid].t0 <= t + 1e-12) lo = mid; else hi = mid - 1; }
+    const g = segs[lo]; const dt = t - g.t0;
+    if(Math.abs(g.b1 - g.b0) < 1e-9) return g.q0 + dt * g.b0 / 60;
+    const k = (g.b1 - g.b0) / (g.q1 - g.q0);
+    return g.q0 + (g.b0 * Math.exp(dt * k / 60) - g.b0) / k; };
+  return {bpmAt, T, Q, first: base[0].bpm, segs};
 }
 
 /* ---------- the player ----------
-   opts: {bpm (the tempo to take the first marked one to — later changes keep
-   their proportion), swing (0 straight, else the long eighth's share of the
-   beat, 0.62–0.7), from/to (indexes into tl.perf), loop, countIn, click,
-   muted: Set of 'p:<part>' and 'p:<part>:s:<staff>', onEnd()}.
+   opts: {bpm (the tempo to take the score's first to; every later change and
+   ramp keeps its proportion), swing (0 straight, else the long eighth's share
+   of the beat), from/to (indexes into tl.perf), loop, countIn (bars: 0, 1, 2),
+   click (false | 'beats' | 'downbeats'), accent (beat 1 of the click), chords,
+   volume (the master), volumes ({'<part>': 0–1, '<part>:<staff>': 0–1}),
+   muted (Set of 'p:<part>', 'p:<part>:s:<staff>', 'chords'), overrides
+   ([{q0, q1, start, end}] section tempos at 100%), fermata (a hold, e.g. 2, or
+   'wait'), gates (sorted quarter-note places to stop at until released),
+   onGate(q), onEnd()}.
    Quarter notes are the unit of musical time throughout. */
 function scorePlayer(tl, opts){
   const o = Object.assign({bpm: null, swing: 0, from: 0, to: tl.perf.length - 1, loop: false,
-    countIn: false, click: false, chords: false, accent: true, muted: new Set()}, opts || {});
-  let ctx = null, out = null, timer = null, running = false, paused = false;
-  let anchorT = 0, anchorQ = 0, idx = 0, clickQ = 0, endQ = 0, startQ = 0, prevT = null, prevQ = 0;
-  const base = tl.tempos[0] ? tl.tempos[0].bpm : PLX_DEFAULT_BPM;
-  const factor = () => (o.bpm ? o.bpm / base : 1);
-  const bpmAt = q => { let b = base; for(const t of tl.tempos){ if(t.q <= q + 1e-9) b = t.bpm; else break; } return b * factor(); };
-  /* seconds between two points in quarter notes, across tempo changes */
-  const secs = (qa, qb) => {
-    if(qb <= qa) return 0;
-    let s = 0, q = qa;
-    const marks = tl.tempos.filter(t => t.q > qa && t.q < qb).map(t => t.q).concat([qb]);
-    for(const m of marks){ s += (m - q) * 60 / bpmAt(q); q = m; }
-    return s;
-  };
-  const qAfter = (qa, s) => {
-    let q = qa, left = s;
-    const later = tl.tempos.filter(t => t.q > qa).map(t => t.q);
-    for(const m of later){ const need = (m - q) * 60 / bpmAt(q); if(need >= left) break; left -= need; q = m; }
-    return q + left * bpmAt(q) / 60;
-  };
+    countIn: 0, click: false, chords: false, accent: true, volume: 0.9, volumes: {}, muted: new Set(),
+    overrides: [], fermata: 2, gates: null}, opts || {});
+  if(o.countIn === true) o.countIn = 1;
+  if(o.click === true) o.click = 'beats';
+  let ctx = null, out = null, timer = null, running = false, paused = false, waiting = null;
+  let anchorT = 0, anchorQ = 0, idx = 0, clickQ = 0, endQ = 0, startQ = 0, prevT = null, prevQ = 0, gateAt = 0;
+  let ci = null;
+  let map = plxTempoMap(tl, o);
+  const factor = () => (o.bpm ? o.bpm / map.first : 1);
+  const bpmAt = q => map.bpmAt(q) * factor();
+  const secs = (qa, qb) => qb <= qa ? 0 : (map.T(qb) - map.T(qa)) / factor();
+  const qAfter = (qa, s) => map.Q(map.T(qa) + s * factor());
   const rangeQ = () => { const a = tl.perf[Math.max(0, o.from)], z = tl.perf[Math.min(tl.perf.length - 1, o.to)];
     return a && z ? [a.q0, z.q0 + z.len] : [0, tl.length]; };
   /* swing: an eighth on the beat is long, the one after it short */
@@ -533,22 +602,55 @@ function scorePlayer(tl, opts){
     if(frac < 0.01 && Math.abs(e.d - 0.5) < 0.01) return {q: e.q, d: s};
     return {q: e.q, d: e.d};
   };
- /* one beat, in quarters: a dotted quarter in 6/8, 9/8, 12/8 */
+  /* one beat, in quarters: a dotted quarter in 6/8, 9/8, 12/8 */
   const beatStep = pm => !pm ? 1 : 4 / pm.beatType * (pm.beatType === 8 && pm.beats % 3 === 0 && pm.beats > 3 ? 3 : 1);
   const heard = e => e.chord ? ((o.chords || e.auto) && !o.muted.has('chords'))
     : !o.muted.has(`p:${e.part}`) && !o.muted.has(`p:${e.part}:s:${e.staff}`);
+  /* a gain for each part (and each staff of it), so a part is turned up or
+     down while it plays without touching anything else */
+  const gains = new Map();
+  const volOf = key => { const [pi, st] = key.split(':'); const v = o.volumes || {};
+    return Math.max(0, (v[pi] == null ? 1 : +v[pi]) * (st != null && v[`${pi}:${st}`] != null ? +v[`${pi}:${st}`] : 1)); };
+  const gainFor = e => {
+    const key = e.chord ? 'chords' : `${e.part}:${e.staff}`;
+    let g = gains.get(key);
+    if(!g){ g = ctx.createGain(); g.gain.value = key === 'chords' ? 1 : volOf(key); g.connect(out.input); gains.set(key, g); }
+    return g;
+  };
+  const voice = (e, dest, t0, d, held) => {
+    if(e.perc){ plxDrum(ctx, dest, e.midi, t0, e.vel); return; }
+    const inst = e.chord ? 'piano' : ((tl.parts[e.part] || {}).inst || 'piano');
+    if(inst !== 'piano' && inst !== 'drums' && typeof instrumentNote === 'function'
+      && instrumentNote(ctx, dest, inst, e.midi, t0, d, e.vel, held, 1)) return;
+    plxPiano(ctx, dest, e.midi, t0, d, e.vel, held);
+  };
   const at = q => anchorT + secs(anchorQ, q);
+  const perfAt = q => { let lo = 0, hi = tl.perf.length - 1, best = tl.perf[0];
+    while(lo <= hi){ const mid = (lo + hi) >> 1; if(tl.perf[mid].q0 <= q + 1e-9){ best = tl.perf[mid]; lo = mid + 1; } else hi = mid - 1; }
+    return best; };
+  const nextGate = q => { if(!o.gates || !o.gates.length) return Infinity;
+    for(const g of o.gates) if(g > q + 1e-9 && g >= startQ - 1e-9 && g < endQ - 1e-9) return g; return Infinity; };
   const schedule = limit => {
     const until = limit != null ? limit : ctx.currentTime + 0.18;
-    while(running){
-      /* the loop: the end of the range is the start again */
+    while(running && !waiting){
       const nextEventQ = idx < tl.events.length ? tl.events[idx].q : Infinity;
       const nextClickQ = o.click ? clickQ : Infinity;
       const nq = Math.min(nextEventQ, nextClickQ);
+      /* a place to wait: everything before it is booked, then nothing until released */
+      if(gateAt < Infinity && nq >= gateAt - 1e-9){
+        const tg = at(gateAt);
+        if(tg > until) return;
+        waiting = {q: gateAt, t: tg};
+        const g = gateAt;
+        setTimeout(() => { if(waiting && waiting.q === g && o.onGate) o.onGate(g); }, Math.max(0, (tg - ctx.currentTime) * 1000));
+        return;
+      }
+      /* the end of the range: the start again, or the end */
       if(nq >= endQ - 1e-9){
         const tEnd = at(endQ);
         if(tEnd > until) return;
-        if(o.loop){ prevT = anchorT; prevQ = anchorQ; anchorT = tEnd; anchorQ = startQ; seek(startQ); continue; }
+        if(o.loop){ prevT = anchorT; prevQ = anchorQ; anchorT = tEnd; anchorQ = startQ; seek(startQ);
+          if(o.onLoop) setTimeout(() => o.onLoop(), Math.max(0, (tEnd - ctx.currentTime) * 1000)); continue; }
         running = false;
         const wait = Math.max(0, (tEnd - ctx.currentTime) * 1000) + 300;
         setTimeout(() => { if(!running && !paused && o.onEnd) o.onEnd(); }, wait);
@@ -559,7 +661,8 @@ function scorePlayer(tl, opts){
       if(nq === nextClickQ){
         const pm = perfAt(clickQ);
         const step = beatStep(pm);
-        plxClick(ctx, out.input, t, o.accent !== false && !!pm && Math.abs(clickQ - pm.q0) < 1e-6);
+        const down = !!pm && Math.abs(clickQ - pm.q0) < 1e-6;
+        if(o.click !== 'downbeats' || down) plxClick(ctx, out.input, t, o.accent !== false && down);
         clickQ += step;
         if(pm && clickQ > pm.q0 + pm.len - 1e-6) clickQ = pm.q0 + pm.len;
         continue;
@@ -569,15 +672,13 @@ function scorePlayer(tl, opts){
       const sw = swung(e);
       const t0 = at(sw.q) + (e.arp ? 0.03 * ((e.midi % 7) / 2) : 0) - (e.grace ? 0.07 : 0);
       if(t0 < ctx.currentTime - 0.05 && limit == null) continue;
-      const d = e.grace ? 0.07 : Math.max(0.04, secs(sw.q, sw.q + sw.d) * (e.staccato ? 0.45 : e.tenuto ? 1 : 0.94) * (e.fermata ? 1.6 : 1));
-      const held = e.held ? Math.max(d, secs(e.q, e.q + e.held)) : d;
-      if(e.perc) plxDrum(ctx, out.input, e.midi, Math.max(0, t0), e.vel);
-      else plxPiano(ctx, out.input, e.midi, Math.max(0, t0), d, e.vel, held);
+      /* a held fermata note in "wait for me" rings until it is let go */
+      const waitHold = o.fermata === 'wait' && e.fermata ? 6 : 0;
+      const d = e.grace ? 0.07 : Math.max(0.04, secs(sw.q, sw.q + sw.d) * (e.staccato ? 0.45 : e.tenuto ? 1 : 0.94));
+      const held = Math.max(d, waitHold, e.held ? secs(e.q, e.q + e.held) : 0);
+      voice(e, gainFor(e), Math.max(0, t0), waitHold ? Math.max(d, waitHold) : d, held);
     }
   };
-  const perfAt = q => { let lo = 0, hi = tl.perf.length - 1, best = tl.perf[0];
-    while(lo <= hi){ const mid = (lo + hi) >> 1; if(tl.perf[mid].q0 <= q + 1e-9){ best = tl.perf[mid]; lo = mid + 1; } else hi = mid - 1; }
-    return best; };
   const seek = q => {
     let lo = 0, hi = tl.events.length;
     while(lo < hi){ const mid = (lo + hi) >> 1; if(tl.events[mid].q < q - 1e-9) lo = mid + 1; else hi = mid; }
@@ -585,6 +686,7 @@ function scorePlayer(tl, opts){
     const pm = perfAt(q);
     const step = beatStep(pm);
     clickQ = pm ? pm.q0 + Math.ceil((q - pm.q0) / step - 1e-9) * step : q;
+    gateAt = nextGate(q - 1e-6);
   };
   const api = {
     /* ctxIn: an OfflineAudioContext, for the smoke test to hear it */
@@ -594,47 +696,64 @@ function scorePlayer(tl, opts){
       const offline = !!(OAC && ctx instanceof OAC);
       if(!offline && ctx.resume) ctx.resume();
       out = plxOut(ctx, o.volume);
+      gains.clear();
       [startQ, endQ] = rangeQ();
       const q0 = fromQ != null ? Math.max(startQ, Math.min(endQ - 0.01, fromQ)) : startQ;
       anchorT = ctx.currentTime + 0.08; anchorQ = q0;
-      if(o.countIn){
-        const pm = perfAt(q0), step = beatStep(pm), n = pm ? Math.max(1, Math.min(8, Math.round(pm.len / step))) : 4;
-        const beat = step * 60 / bpmAt(q0);
-        for(let i = 0; i < n; i++) plxClick(ctx, out.input, anchorT + i * beat, o.accent !== false && i === 0);
+      ci = null;
+      const bars = Math.max(0, Math.min(2, +o.countIn || 0));
+      if(bars){
+        const pm = perfAt(q0), step = beatStep(pm), per = pm ? Math.max(1, Math.min(12, Math.round((pm.beats * 4 / pm.beatType) / step))) : 4;
+        const n = per * bars, beat = step * 60 / bpmAt(q0);
+        for(let i = 0; i < n; i++) plxClick(ctx, out.input, anchorT + i * beat, o.accent !== false && i % per === 0);
+        ci = {t0: anchorT, beat, n, per};
         anchorT += n * beat;
       }
       seek(q0);
-      running = true; paused = false;
+      running = true; paused = false; waiting = null;
       if(offline){ schedule(ctx.length / ctx.sampleRate); running = false; return true; }
       timer = setInterval(() => { try { schedule(); } catch(e){ console.warn('playback', e); } }, 25);
       schedule();
       return true;
     },
-    stop(){ running = false; paused = false; if(timer) clearInterval(timer); timer = null; if(out) out.stop(); out = null; },
-    pause(){ if(!running) return null; const q = api.position(); paused = true; running = false;
-      if(timer) clearInterval(timer); timer = null; if(out) out.stop(); out = null; return q; },
+    stop(){ running = false; paused = false; waiting = null; if(timer) clearInterval(timer); timer = null; if(out) out.stop(); out = null; gains.clear(); },
+    pause(){ if(!running) return null; const q = api.position(); paused = true; running = false; waiting = null;
+      if(timer) clearInterval(timer); timer = null; if(out) out.stop(); out = null; gains.clear(); return q; },
     /* where the music is now, in quarter notes (before a count-in ends, where it will start) */
     position(){ if(!ctx) return startQ; const now = ctx.currentTime;
-      /* booked a moment ahead: until the loop comes round, it is still the old pass */
+      if(waiting && now >= waiting.t) return waiting.q;
       if(now < anchorT) return prevT != null && now >= prevT ? Math.min(endQ, qAfter(prevQ, now - prevT)) : anchorQ;
       const q = qAfter(anchorQ, now - anchorT);
       if(o.loop && q >= endQ){ const span = endQ - startQ; return span > 0 ? startQ + ((q - startQ) % span) : startQ; }
       return Math.min(q, endQ); },
-    /* a change heard at once: re-anchored where the music is */
+    /* waiting at a gate (a fermata held for you, a note you have not played yet) */
+    get waiting(){ return waiting ? waiting.q : null; },
+    release(){ if(!waiting || !ctx) return;
+      const q = waiting.q; waiting = null;
+      anchorQ = q; anchorT = Math.max(ctx.currentTime + 0.03, 0); prevT = null;
+      gateAt = nextGate(q);
+      if(running) schedule(); },
+    /* a change heard at once: what is already booked (a fifth of a second)
+       plays as booked; the rest is timed from here at the new setting */
     set(k, v){
-      if(k === 'bpm' || k === 'swing'){
-        /* what is already booked (a fifth of a second) plays as booked; the
-           rest is timed from here at the new setting */
-        if(running){ const q = api.position(); anchorQ = q; anchorT = Math.max(ctx.currentTime, anchorT); prevT = null; o[k] = v; }
-        else o[k] = v;
+      if(k === 'bpm' || k === 'swing' || k === 'overrides' || k === 'fermata'){
+        const q = running ? api.position() : null;
+        o[k] = v;
+        if(k === 'overrides' || k === 'fermata') map = plxTempoMap(tl, o);
+        if(running && !waiting){ anchorQ = q; anchorT = Math.max(ctx.currentTime, anchorT); prevT = null; }
         return;
       }
       if(k === 'muted'){ o.muted = v; return; }
+      if(k === 'volume'){ o.volume = v; if(out && out.input) try { out.input.gain.setTargetAtTime(v, ctx.currentTime, 0.03); } catch(e){} return; }
+      if(k === 'volumes'){ o.volumes = v || {};
+        gains.forEach((g, key) => { if(key === 'chords') return; try { g.gain.setTargetAtTime(volOf(key), ctx.currentTime, 0.03); } catch(e){} }); return; }
+      if(k === 'gates'){ o.gates = v; if(running) gateAt = nextGate(api.position() - 1e-6); return; }
       o[k] = v;
       if(k === 'from' || k === 'to'){ [startQ, endQ] = rangeQ(); }
     },
     get running(){ return running; }, get paused(){ return paused; },
-    get opts(){ return o; }, perfAt, bpmAt, secs,
+    get opts(){ return o; }, get countIn(){ return ci; }, get audioTime(){ return ctx ? ctx.currentTime : 0; },
+    perfAt, bpmAt, secs, get map(){ return map; },
     get length(){ return secs(0, tl.length); }
   };
   return api;
@@ -705,12 +824,17 @@ function plxGeometry(osmd, host, svgRoot){
   return out;
 }
 
-/* ---------- the bar with ▶ on it ----------
+/* ---------- the transport: the bar with ▶ on it ----------
    cfg: {xml() → the MusicXML being shown, osmd() → the engraving, host (the
    element the engraving is drawn in, and where the lit bar is drawn),
-   store: {get() → saved settings, set(settings)}, swing (default for this
-   room), range() → [firstBar, lastBar] as numbered, or null,
-   onPage(page) → turn to that page (a paginated room), follow (scroll along)} */
+   svgRoot (where its pages are, if not host), store: {get(), set()} for the
+   bar's own settings, swing (default for this room), defaultBpm (when the
+   score marks no tempo), range() → [firstBar, lastBar] as numbered, or null,
+   onPage(page) → turn to that page, accent: {get, set} (a room-level beat-1
+   setting), and the ensemble's hooks, all optional: mix() → {volumes, muted}
+   for the parts, overrides(tl) → section tempos, fermata() → a hold or
+   'wait', gates(tl) → places to wait, onGate(q, ctl), onLoop(ctl),
+   onStart(ctl), onStop(ctl, info)} */
 let _plxNow = null;
 function scorePlayStopAll(){ if(_plxNow){ try { _plxNow.stop(true); } catch(e){} _plxNow = null; } }
 addEventListener('hashchange', () => scorePlayStopAll());
@@ -718,17 +842,27 @@ addEventListener('hashchange', () => scorePlayStopAll());
 function scorePlayBarHTML(opts){
   const o = opts || {};
   return `<div class="plx-bar${o.compact ? ' compact' : ''}" data-plx>
-    <button class="btn sm primary plx-go" data-plxgo title="play what is on the page (space)">▶ Play</button>
-    <button class="tbtn" data-plxstop title="stop, and back to the start">■</button>
-    <span class="plx-where mono" data-plxwhere>—</span>
-    <label class="plx-tempo" title="the tempo to play it at"><span class="mono">♩ =</span>
-      <input type="range" min="20" max="300" step="1" data-plxbpm aria-label="tempo">
-      <b class="mono" data-plxbpmv></b></label>
-    ${o.compact ? '' : `<button class="tbtn" data-plxmore aria-expanded="false" title="loop, count-in, click, swing, which parts">⋯</button>
+    <div class="plx-row">
+      <button class="tbtn" data-plxrew title="back to the start (of the loop, when there is one)" aria-label="back to the start">⏮</button>
+      <button class="btn sm primary plx-go" data-plxgo title="play what is on the page (space)">▶ Play</button>
+      <button class="tbtn" data-plxstop title="stop — ▶ starts again from the bar it stopped in" aria-label="stop">⏹</button>
+      <span class="plx-where mono" data-plxwhere>—</span>
+      <label class="plx-bpm mono" title="the tempo to play it at">♩ = <input class="inp sm mono" type="number" min="10" max="400" data-plxbpm aria-label="tempo, beats a minute"></label>
+      <span class="plx-score mono faint" data-plxscore></span>
+      ${o.compact ? '' : `<button class="tbtn" data-plxmore aria-expanded="false" title="swing, accents, which parts you hear, and the rest">⋯</button>`}
+    </div>
+    ${o.compact ? '' : `<div class="plx-row plx-row2">
+      <label class="plx-pct" title="the score's tempo, slowed or sped — a ritardando stays a ritardando"><span class="mono">tempo</span>
+        <input type="range" min="25" max="150" step="1" data-plxpct aria-label="tempo as a percentage of the score's"><b class="mono" data-plxpctv>100%</b></label>
+      <label class="mono plx-sel">count-in <select class="sel sm" data-plxcount aria-label="count-in">
+        <option value="0">none</option><option value="1">1 bar</option><option value="2">2 bars</option></select></label>
+      <button class="tbtn" data-plxopt="loop" title="play it round again (L)">🔁 loop</button>
+      <button class="tbtn" data-plxpick title="tap the first bar of the loop, then the last">set loop…</button>
+      <label class="mono plx-sel">click <select class="sel sm" data-plxclick aria-label="metronome click while it plays">
+        <option value="off">off</option><option value="beats">beats</option><option value="downbeats">downbeats</option></select></label>
+      <label class="plx-vol" title="how loud"><span class="mono">volume</span><input type="range" min="0" max="100" step="1" data-plxvol aria-label="volume"></label>
+    </div>
     <div class="plx-opts" data-plxopts hidden>
-      <button class="tbtn" data-plxopt="loop" title="play it round again from the start">⟳ loop</button>
-      <button class="tbtn" data-plxopt="countIn" title="a bar of clicks before it starts">count-in</button>
-      <button class="tbtn" data-plxopt="click" title="a click on every beat while it plays">click</button>
       <button class="tbtn" data-plxaccent title="beat 1 of the click and the count-in louder and higher, or every beat the same">beat 1 accented</button>
       <button class="tbtn" data-plxopt="swing" title="long-short eighths, as jazz is played">swing</button>
       <button class="tbtn" data-plxopt="chords" title="sound the chord symbols under the notes too — bars with only a symbol always sound it" hidden>chord symbols</button>
@@ -737,6 +871,7 @@ function scorePlayBarHTML(opts){
       <button class="tbtn" data-plxwritten title="the tempo the score marks">as marked</button>
       <span class="plx-mutes" data-plxmutes></span>
       ${typeof grandPianoCreditHTML === 'function' ? grandPianoCreditHTML() : ''}
+      ${typeof instrumentsCreditHTML === 'function' ? instrumentsCreditHTML() : ''}
     </div>`}
   </div>`;
 }
@@ -745,9 +880,12 @@ function scorePlayAttach(bar, cfg){
   if(!bar) return null;
   const store = cfg.store || {get: () => ({}), set(){}};
   if(typeof grandPianoWarm === 'function') grandPianoWarm();
-  const saved = Object.assign({bpm: null, loop: false, countIn: false, click: false,
+  const saved = Object.assign({pct: null, bpm: null, loop: false, loopRange: null, countIn: 0, click: 'off', volume: 0.9,
     swing: cfg.swing ? 0.64 : 0, follow: true, muted: []}, store.get() || {});
+  if(saved.countIn === true) saved.countIn = 1;
+  if(saved.click === true) saved.click = 'beats'; else if(!saved.click) saved.click = 'off';
   let tl = null, tlXml = null, player = null, geo = null, geoKey = '', geoOsmd = null, raf = 0, lastPerf = -1, fromBar = null;
+  let picking = null, cursorQ = null, loading = false;
   /* beat 1 of the click: the room's own setting where it has one (a piece's
      metronome), this bar's otherwise */
   const accentOn = () => cfg.accent ? cfg.accent.get() !== false : saved.accent !== false;
@@ -756,21 +894,25 @@ function scorePlayAttach(bar, cfg){
     const xml = cfg.xml();
     if(!xml) return null;
     if(xml !== tlXml){ tl = musicXmlTimeline(xml); tlXml = xml; geo = null;
-      /* the numbers the engraver shows, where it has them, so "bar 12" is the
+      /* the numbers the engraver shows, where it has them, so "m. 12" is the
          bar marked 12 on the page */
       try { const sm = cfg.osmd() && cfg.osmd().Sheet && cfg.osmd().Sheet.SourceMeasures;
         if(sm && sm.length === tl.measures.length) tl.perf.forEach(p => { const n = sm[p.k] && sm[p.k].MeasureNumber; if(n != null) p.number = n; });
       } catch(e){} }
     return tl;
   };
-  const writtenBpm = () => { const t = tl || (() => { try { return timeline(); } catch(e){ return null; } })();
-    if(t && t.tempos[0].assumed && cfg.defaultBpm) return cfg.defaultBpm;
-    return t ? Math.round(t.tempos[0].bpm) : (cfg.defaultBpm || PLX_DEFAULT_BPM); };
-  const bpmNow = () => Math.round(saved.bpm || writtenBpm());
+  const tlSafe = () => { try { return timeline(); } catch(e){ return null; } };
+  /* the tempo the score is at 100%: its own mark, or what the room says when it marks none */
+  const scoreBpm = () => { const t = tl || tlSafe();
+    if(t && t.tempos[0].assumed){ const d = cfg.defaultBpm; return Math.round((typeof d === 'function' ? d() : d) || 80); }
+    return t ? Math.round(t.tempos[0].bpm) : 80; };
+  const pctNow = () => saved.pct != null ? +saved.pct : saved.bpm ? saved.bpm / scoreBpm() * 100 : 100;
+  const bpmNow = () => Math.max(10, Math.round(scoreBpm() * pctNow() / 100));
   const save = () => { try { store.set(Object.assign({}, saved)); } catch(e){} };
+  /* the bars that play: a loop you set, else the room's (a section in focus), else all */
   const rangeIdx = () => {
     const t = timeline(); if(!t) return [0, 0];
-    const r = cfg.range ? cfg.range() : null;
+    const r = saved.loopRange || (cfg.range ? cfg.range() : null);
     if(!r) return [0, t.perf.length - 1];
     const a = t.perf.findIndex(p => p.number >= r[0]);
     let z = -1; t.perf.forEach((p, i) => { if(p.number <= r[1] && i >= a) z = i; });
@@ -778,25 +920,38 @@ function scorePlayAttach(bar, cfg){
   };
   const where = (i, q) => {
     const t = tl; const el = $b('[data-plxwhere]'); if(!el || !t) return;
+    if(picking){ el.textContent = picking.a == null ? 'loop: tap its first bar' : `loop from m. ${picking.a} — tap its last`; return; }
     const [a, z] = rangeIdx();
     const pm = t.perf[i];
-    el.textContent = pm ? `bar ${pm.number} · ${i - a + 1} of ${z - a + 1}` : `${z - a + 1} bars`;
+    const whole = a === 0 && z === t.perf.length - 1;
+    el.textContent = !pm ? `${z - a + 1} bars` : whole ? `m. ${pm.number} / ${t.perf[t.perf.length - 1].number}` : `m. ${pm.number} · ${i - a + 1} of ${z - a + 1}`;
   };
   const paintTempo = () => {
-    const v = bpmNow(), r = $b('[data-plxbpm]'), b = $b('[data-plxbpmv]');
-    if(r) r.value = v; if(b) b.textContent = v;
-    const w = $b('[data-plxwritten]'); if(w){ const wb = writtenBpm(); w.disabled = !saved.bpm || saved.bpm === wb;
-      w.textContent = `as marked (${wb}${tl && tl.tempos[0].assumed ? ', none marked' : ''})`; }
+    const b = $b('[data-plxbpm]'); if(b && document.activeElement !== b) b.value = bpmNow();
+    const pct = pctNow();
+    const r = $b('[data-plxpct]'); if(r) r.value = Math.max(25, Math.min(150, Math.round(pct)));
+    const v = $b('[data-plxpctv]'); if(v) v.textContent = Math.round(pct) + '%';
+    const t = tl || tlSafe();
+    const sc = $b('[data-plxscore]'); if(sc) sc.textContent = t && t.tempos[0].assumed ? `(no tempo marked: ♩ = ${scoreBpm()})` : `(score: ${scoreBpm()})`;
+    const w = $b('[data-plxwritten]'); if(w){ w.disabled = Math.abs(pct - 100) < 0.5;
+      w.textContent = `as marked (${scoreBpm()}${t && t.tempos[0].assumed ? ', none marked' : ''})`; }
   };
+  const setPct = (pct, keep) => { saved.pct = Math.max(5, Math.min(400, pct)); saved.bpm = null;
+    if(player) player.set('bpm', bpmNow()); paintTempo(); if(!keep) save(); };
   const paintOpts = () => {
     $$('[data-plxopt]', bar).forEach(b => { const k = b.dataset.plxopt; b.classList.toggle('on', !!saved[k]); b.setAttribute('aria-pressed', saved[k] ? 'true' : 'false'); });
+    const cnt = $b('[data-plxcount]'); if(cnt) cnt.value = String(+saved.countIn || 0);
+    const clk = $b('[data-plxclick]'); if(clk) clk.value = saved.click || 'off';
+    const vol = $b('[data-plxvol]'); if(vol) vol.value = Math.round((saved.volume == null ? 0.9 : saved.volume) * 100);
+    const pk = $b('[data-plxpick]');
+    if(pk){ pk.classList.toggle('on', !!picking || !!saved.loopRange);
+      pk.textContent = picking ? 'tap the bars… ✕' : saved.loopRange ? `loop m. ${saved.loopRange[0]}–${saved.loopRange[1]} ✕` : 'set loop…'; }
     const ac = $b('[data-plxaccent]');
     if(ac){ const on = accentOn(); ac.classList.toggle('on', on); ac.setAttribute('aria-pressed', String(on));
       ac.textContent = on ? 'beat 1 accented' : 'every beat the same'; }
-    const ch = $b('[data-plxopt="chords"]');
-    if(ch){ let t0 = null; try { t0 = timeline(); } catch(e){} ch.hidden = !(t0 && t0.chords); }
+    const t = tlSafe();
+    const ch = $b('[data-plxopt="chords"]'); if(ch) ch.hidden = !(t && t.chords);
     const mutes = $b('[data-plxmutes]');
-    const t = (() => { try { return timeline(); } catch(e){ return null; } })();
     if(mutes && t){
       const chips = [];
       t.parts.forEach((p, pi) => {
@@ -810,14 +965,14 @@ function scorePlayAttach(bar, cfg){
       $$('[data-plxmute]', mutes).forEach(b => b.onclick = () => {
         const k = b.dataset.plxmute;
         saved.muted = saved.muted.includes(k) ? saved.muted.filter(x => x !== k) : saved.muted.concat([k]);
-        if(player) player.set('muted', new Set(saved.muted));
-        save(); paintOpts(); });
+        ctl.applyMix(); save(); paintOpts(); });
     }
   };
   const goSay = () => { const g = $b('[data-plxgo]'); if(!g) return;
     const on = !!(player && player.running);
-    g.textContent = on ? '❚❚ Pause' : (player && player.paused ? '▶ Resume' : '▶ Play');
-    bar.classList.toggle('playing', on); };
+    g.textContent = loading ? 'Loading sounds…' : on ? '❚❚ Pause' : (player && player.paused ? '▶ Resume' : '▶ Play');
+    bar.classList.toggle('playing', on); bar.classList.toggle('loading', loading);
+    g.setAttribute('aria-busy', loading ? 'true' : 'false'); };
   /* the lit bar and the playhead */
   const layer = () => {
     const host = cfg.host; if(!host || !host.isConnected) return null;
@@ -836,15 +991,26 @@ function scorePlayAttach(bar, cfg){
     if(!geo || key !== geoKey || geoOsmd !== osmd){ geo = plxGeometry(osmd, host, root); geoKey = key; geoOsmd = osmd; }
     return geo;
   };
-  const paintAt = q => {
-    const t = tl; if(!t || !player) return;
-    const pm = player.perfAt(q); if(!pm) return;
+  /* keep the line being played a third of the way down whatever scrolls */
+  const follow = hl => {
+    const host = cfg.host;
+    const scroller = host && host.scrollHeight > host.clientHeight + 4 && /(auto|scroll)/.test(getComputedStyle(host).overflowY) ? host : null;
+    const r = hl.getBoundingClientRect();
+    if(scroller){ const sr = scroller.getBoundingClientRect(); const top = r.top - sr.top;
+      if(top < sr.height * 0.12 || top + r.height > sr.height * 0.85) scroller.scrollTo({top: Math.max(0, scroller.scrollTop + top - sr.height / 3), behavior: 'smooth'}); }
+    else { const vh = innerHeight;
+      if(r.top < vh * 0.12 || r.bottom > vh * 0.85) window.scrollTo({top: Math.max(0, scrollY + r.top - vh / 3), behavior: 'smooth'}); }
+  };
+  const paintAt = (q, still) => {
+    const t = tl; if(!t) return;
+    const pm = (player || {perfAt: qq => { let best = t.perf[0]; for(const p of t.perf){ if(p.q0 <= qq + 1e-9) best = p; else break; } return best; }}).perfAt(q);
+    if(!pm) return;
     const hl = layer(); if(!hl) return;
     if(pm.i !== lastPerf){ where(pm.i, q); }
     let g = (geometry() || new Map()).get(pm.k);
     if(g && cfg.onPage && !g.shown){ cfg.onPage(g.page); geo = null; g = (geometry() || new Map()).get(pm.k); }
     if(!g){ hl.hidden = true; lastPerf = pm.i; return; }
-    hl.hidden = false;
+    hl.hidden = false; hl.classList.toggle('paused', !!still);
     hl.style.left = g.x + 'px'; hl.style.top = (g.y - 6) + 'px'; hl.style.width = g.w + 'px'; hl.style.height = (g.h + 12) + 'px';
     /* the playhead runs from one moment with a note to the next */
     const inBar = q - pm.q0, es = g.entries;
@@ -857,64 +1023,151 @@ function scorePlayAttach(bar, cfg){
       }
     }
     const head = hl.firstElementChild; if(head) head.style.left = Math.max(0, x - g.x - 1) + 'px';
-    if(pm.i !== lastPerf && saved.follow){
-      try { hl.scrollIntoView({block: 'nearest', inline: 'nearest', behavior: 'smooth'}); } catch(e){}
-    }
+    if(pm.i !== lastPerf && saved.follow) follow(hl);
     lastPerf = pm.i;
+    if(cfg.onPosition) try { cfg.onPosition(pm, q, ctl); } catch(e){}
   };
   const loop = () => {
     raf = 0;
     if(!player || !player.running) return;
     /* the page was drawn again under it: a new bar for the same music takes
-       the playing over (see below); left alone for a second, it stops */
+       the playing over (see below); left alone for a moment, it stops */
     if(!bar.isConnected){ ctl._goneAt = ctl._goneAt || performance.now();
       if(performance.now() - ctl._goneAt > 2500){ ctl.stop(); return; } }
     else paintAt(player.position());
     raf = requestAnimationFrame(loop);
   };
   const clearHl = () => { const h = cfg.host && cfg.host.querySelector(':scope > .plx-hl'); if(h) h.hidden = true; lastPerf = -1; };
+  /* "3… 2… 1…", big, over the score, while the count-in clicks */
+  const countDown = () => {
+    const ci = player && player.countIn; if(!ci || !cfg.host) return;
+    const box = document.createElement('div'); box.className = 'plx-count serif'; box.setAttribute('aria-live', 'assertive');
+    document.body.appendChild(box);
+    const place = () => { const r = cfg.host.getBoundingClientRect();
+      const top = Math.max(r.top, 60), bottom = Math.min(r.bottom, innerHeight - 20);
+      box.style.left = (r.left + r.width / 2) + 'px'; box.style.top = ((top + bottom) / 2) + 'px'; };
+    place();
+    const now = player.audioTime;
+    for(let i = 0; i < ci.n; i++){
+      setTimeout(() => { if(!box.isConnected) return; place(); box.textContent = String(ci.n - i);
+        box.classList.remove('beat'); void box.offsetWidth; box.classList.add('beat'); }, Math.max(0, (ci.t0 + i * ci.beat - now) * 1000));
+    }
+    setTimeout(() => box.remove(), Math.max(0, (ci.t0 + ci.n * ci.beat - now) * 1000) + 120);
+    ctl._countBox = box;
+  };
+  /* every instrument the audible parts are played on, decoded before it starts */
+  const soundsFor = t => {
+    const muted = new Set(saved.muted);
+    const ids = new Set();
+    t.parts.forEach((p, pi) => { if(!muted.has(`p:${pi}`)) ids.add(p.inst === 'drums' ? 'piano' : (p.inst || 'piano')); });
+    if(t.chords) ids.add('piano');
+    return [...ids];
+  };
+  const soundsReady = ids => ids.every(id => typeof instrumentReady === 'function' ? instrumentReady(id) : id === 'piano' && (typeof grandPianoSettled !== 'function' || grandPianoSettled()));
   const ctl = {
-    stop(fromOutside){ if(raf) cancelAnimationFrame(raf); raf = 0;
-      if(player){ player.stop(); player = null; } clearHl(); goSay();
-      const t = tl; if(t) where(-1); if(_plxNow === ctl && !fromOutside) _plxNow = null; },
+    stop(fromOutside, ended){ if(raf) cancelAnimationFrame(raf); raf = 0;
+      const info = player ? {q: player.position(), loops: ctl.loops || 0, ended: !!ended} : null;
+      /* ▶ starts again from the bar it stopped in — or from the top, when it
+         stopped because it had finished */
+      if(player && info){ const pm = player.perfAt(info.q); cursorQ = ended ? null : pm ? pm.q0 : null; }
+      if(player){ player.stop(); player = null; }
+      if(ctl._countBox){ ctl._countBox.remove(); ctl._countBox = null; }
+      clearHl(); goSay();
+      const t = tl; if(t) where(-1); if(_plxNow === ctl && !fromOutside) _plxNow = null;
+      if(info && cfg.onStop) try { cfg.onStop(ctl, info); } catch(e){} },
     play(fromQ){
-      /* the first press in a session: the piano's recordings are decoded
-         first (a moment), so what starts is the piano and not its stand-in */
-      if(typeof grandPianoSettled === 'function' && !grandPianoSettled()){
-        const w = $b('[data-plxwhere]'); if(w) w.textContent = 'tuning the piano…';
-        grandPianoLoad().then(() => { if(bar.isConnected) ctl.play(fromQ); });
-        return;
-      }
       let t;
       try { t = timeline(); } catch(e){ toast(e.message || 'That score could not be read for playing.'); return; }
       if(!t || !t.playable){ toast('There are no notes in this to play.'); return; }
+      /* the first press: the instruments are decoded first (a moment), so what
+         starts is the real sound and not a stand-in */
+      const ids = soundsFor(t);
+      if(!soundsReady(ids) && !loading){
+        loading = true; goSay(); const w = $b('[data-plxwhere]'); if(w) w.textContent = 'Loading sounds…';
+        const load = typeof instrumentsLoad === 'function' ? instrumentsLoad(ids) : (typeof grandPianoLoad === 'function' ? grandPianoLoad() : Promise.resolve());
+        load.then(() => { loading = false; goSay(); if(bar.isConnected) ctl.play(fromQ); }, () => { loading = false; goSay(); });
+        return;
+      }
+      if(loading) return;
+      if(cfg.beforePlay && cfg.beforePlay(ctl, fromQ) === false) return;
       if(_plxNow && _plxNow !== ctl) scorePlayStopAll();
       const [a, z] = rangeIdx();
       if(player) player.stop();
+      const mix = cfg.mix ? cfg.mix(t) || {} : {};
       player = scorePlayer(t, {bpm: bpmNow(), swing: saved.swing ? (typeof saved.swing === 'number' ? saved.swing : 0.64) : 0,
-        from: a, to: z, loop: saved.loop, countIn: saved.countIn, click: saved.click, chords: !!saved.chords, accent: accentOn(), muted: new Set(saved.muted),
-        onEnd: () => { const c = _plxNow; if(c && c.player === pl) c.stop(); }});
+        from: a, to: z, loop: saved.loop, countIn: +saved.countIn || 0, click: saved.click === 'off' ? false : saved.click,
+        chords: !!saved.chords, accent: accentOn(), volume: saved.volume == null ? 0.9 : saved.volume,
+        muted: new Set(saved.muted.concat(mix.muted || [])), volumes: mix.volumes || {},
+        overrides: cfg.overrides ? cfg.overrides(t) || [] : [], fermata: cfg.fermata ? cfg.fermata() : 2,
+        gates: cfg.gates ? cfg.gates(t) : null,
+        onGate: q => { if(cfg.onGate) cfg.onGate(q, ctl); },
+        onLoop: () => { ctl.loops = (ctl.loops || 0) + 1; if(cfg.onLoop) cfg.onLoop(ctl); },
+        onEnd: () => { const c = _plxNow; if(c && c.player === pl) c.stop(false, true); }});
       const pl = player;
+      ctl.loops = 0;
       let q = fromQ;
       if(q == null && fromBar != null){ const pm = t.perf.slice(a, z + 1).find(p => p.number >= fromBar); if(pm) q = pm.q0; }
+      if(q == null && cursorQ != null) q = cursorQ;
       if(!player.start(null, q)){ toast('This browser cannot make sound.'); player = null; return; }
       _plxNow = ctl; lastPerf = -1;
       goSay();
+      countDown();
+      if(cfg.onStart) try { cfg.onStart(ctl); } catch(e){}
       if(!raf) raf = requestAnimationFrame(loop);
     },
     pause(){ if(!player || !player.running) return; const q = player.pause(); ctl._at = q;
-      if(raf) cancelAnimationFrame(raf); raf = 0; goSay(); },
-    toggle(){ if(player && player.running) ctl.pause();
+      if(raf) cancelAnimationFrame(raf); raf = 0; goSay(); if(q != null) paintAt(q, true); },
+    toggle(){ if(loading) return;
+      if(player && player.waiting != null){ player.release(); return; }
+      if(player && player.running) ctl.pause();
       else if(player && player.paused){ const q = ctl._at; player.stop(); player = null; ctl.play(q); }
       else ctl.play(); },
-    /* a press on a bar while it plays is "from here" */
+    /* back to the start of what plays (the loop, the focus, the piece) */
+    rewind(){ cursorQ = null; fromBar = null; const t = tlSafe(); if(!t) return;
+      const [a] = rangeIdx(); const q = t.perf[a] ? t.perf[a].q0 : 0;
+      if(player && player.running) ctl.play(q);
+      else if(player && player.paused){ ctl._at = q; paintAt(q, true); }
+      else { clearHl(); where(-1); } },
+    /* one bar back or on, from wherever it is */
+    step(by){ const t = tlSafe(); if(!t) return;
+      const q = player && player.running ? player.position() : player && player.paused ? ctl._at : cursorQ;
+      if(q == null) return;
+      const [a, z] = rangeIdx();
+      const pm = (player || {perfAt: () => null}).perfAt(q) || t.perf.find(p => p.q0 <= q + 1e-9 && q < p.q0 + p.len) || t.perf[a];
+      const i = Math.max(a, Math.min(z, pm.i + by)); const nq = t.perf[i].q0;
+      if(player && player.running) ctl.play(nq);
+      else if(player && player.paused){ ctl._at = nq; paintAt(nq, true); }
+      else { cursorQ = nq; where(i); } },
+    /* a press on a bar: while it plays, go there; paused, start there */
     jumpTo(k){ const t = tl; if(!t) return;
       const [a, z] = rangeIdx();
       const pm = t.perf.slice(a, z + 1).find(p => p.k === k);
-      if(pm) ctl.play(pm.q0); },
-    get player(){ return player; }, get timeline(){ return tl; },
+      if(!pm) return;
+      if(player && player.paused){ ctl._at = pm.q0; paintAt(pm.q0, true); return; }
+      ctl.play(pm.q0); },
+    /* two presses on the score set the loop */
+    pickBar(k){ const t = tl; if(!t || !picking) return;
+      const pm = t.perf.find(p => p.k === k); if(!pm) return;
+      if(picking.a == null){ picking.a = pm.number; where(-1); paintOpts(); return; }
+      const lo = Math.min(picking.a, pm.number), hi = Math.max(picking.a, pm.number);
+      picking = null; saved.loopRange = [lo, hi]; saved.loop = true; save();
+      if(player) player.set('loop', true);
+      paintOpts(); where(-1);
+      if(player && player.running){ const [aa] = rangeIdx(); ctl.play(t.perf[aa].q0); } },
+    get picking(){ return !!picking; },
+    get player(){ return player; }, get timeline(){ return tl; }, get saved(){ return saved; },
+    tempoPct: () => pctNow(), bpm: () => bpmNow(), scoreBpm: () => scoreBpm(),
     /* the room changed the accent: the click that is playing hears it now */
     setAccent(v){ if(player) player.set('accent', v !== false); paintOpts(); },
+    /* the room changed who is heard and how loud: the playing hears it now */
+    applyMix(){ if(!player) return; const t = tlSafe(); if(!t) return;
+      const mix = cfg.mix ? cfg.mix(t) || {} : {};
+      player.set('muted', new Set(saved.muted.concat(mix.muted || []))); player.set('volumes', mix.volumes || {}); },
+    applyTempo(){ if(!player) return; const t = tlSafe(); if(!t) return;
+      player.set('overrides', cfg.overrides ? cfg.overrides(t) || [] : []);
+      player.set('fermata', cfg.fermata ? cfg.fermata() : 2);
+      player.set('gates', cfg.gates ? cfg.gates(t) : null); },
+    setPct, paint(){ paintTempo(); paintOpts(); },
     refresh(){ tl = null; tlXml = null; geo = null; paintTempo(); paintOpts(); try { timeline(); where(-1); } catch(e){} },
     /* the engraving was drawn again — another key, another size: what is
        playing carries on from the same place in the new notes */
@@ -931,23 +1184,36 @@ function scorePlayAttach(bar, cfg){
   };
   $b('[data-plxgo]').onclick = () => { sound('click'); ctl.toggle(); };
   $b('[data-plxstop]').onclick = () => { ctl.stop(); ctl._at = null; };
-  const r = $b('[data-plxbpm]');
-  r.oninput = () => { saved.bpm = +r.value; $b('[data-plxbpmv]').textContent = r.value;
-    if(player) player.set('bpm', saved.bpm); paintTempo(); };
-  r.onchange = save;
+  $b('[data-plxrew]').onclick = () => { sound('click'); ctl.rewind(); };
+  const bpmIn = $b('[data-plxbpm]');
+  bpmIn.onchange = () => { const v = parseFloat(bpmIn.value); if(!(v > 0)) { paintTempo(); return; } setPct(v / scoreBpm() * 100); };
+  const pctIn = $b('[data-plxpct]');
+  if(pctIn){ pctIn.oninput = () => setPct(+pctIn.value, true); pctIn.onchange = () => save(); }
+  const cnt = $b('[data-plxcount]'); if(cnt) cnt.onchange = () => { saved.countIn = +cnt.value || 0; save(); };
+  const clk = $b('[data-plxclick]');
+  if(clk) clk.onchange = () => { saved.click = clk.value; save();
+    if(player && player.running){ const q = player.position(); ctl.play(q); } };
+  const vol = $b('[data-plxvol]');
+  if(vol){ vol.oninput = () => { saved.volume = +vol.value / 100; if(player) player.set('volume', saved.volume); }; vol.onchange = () => save(); }
+  const pick = $b('[data-plxpick]');
+  if(pick) pick.onclick = () => {
+    if(picking){ picking = null; }
+    else if(saved.loopRange){ saved.loopRange = null; save();
+      if(player && player.running){ const q = player.position(); ctl.play(q); } }
+    else picking = {a: null};
+    paintOpts(); where(-1); };
   const more = $b('[data-plxmore]');
   if(more) more.onclick = () => { const box = $b('[data-plxopts]'); box.hidden = !box.hidden;
     more.setAttribute('aria-expanded', box.hidden ? 'false' : 'true'); if(!box.hidden) paintOpts(); };
-  $$('[data-plxopt]', bar).forEach(b => b.onclick = () => {
-    const k = b.dataset.plxopt;
+  $$('[data-plxopt]', bar).forEach(b => b.onclick = () => ctl.option(b.dataset.plxopt));
+  ctl.option = k => {
     saved[k] = k === 'swing' ? (saved.swing ? 0 : 0.64) : !saved[k];
     if(player && player.running){
       if(k === 'swing') player.set('swing', saved.swing);
       else if(k === 'loop') player.set('loop', saved.loop);
       else if(k === 'chords') player.set('chords', saved.chords);
-      else if(k === 'click'){ const q = player.position(); ctl.play(q); }
     }
-    save(); paintOpts(); });
+    save(); paintOpts(); };
   const ac = $b('[data-plxaccent]');
   if(ac) ac.onclick = () => { const v = !accentOn();
     if(cfg.accent) cfg.accent.set(v); else { saved.accent = v; save(); }
@@ -955,19 +1221,22 @@ function scorePlayAttach(bar, cfg){
   const fr = $b('[data-plxfrom]');
   if(fr) fr.onchange = () => { const n = parseInt(fr.value, 10); fromBar = isFinite(n) ? n : null; };
   const wr = $b('[data-plxwritten]');
-  if(wr) wr.onclick = () => { saved.bpm = null; save(); paintTempo(); if(player) player.set('bpm', bpmNow()); };
-  /* while it plays, a press on the engraving moves it to that bar */
+  if(wr) wr.onclick = () => setPct(100);
+  /* a press on the engraving: a bar of the loop being set, or — while it
+     plays or waits paused — the bar to go to */
   if(cfg.host && !cfg.host._plxBound){
     cfg.host._plxBound = true;
     cfg.host.addEventListener('click', ev => {
       const c = (_plxNow && _plxNow._host === cfg.host) ? _plxNow : cfg.host._plxCtl;
-      if(!c || !c.player || !c.player.running) return;
+      if(!c || !(c.picking || (c.player && (c.player.running || c.player.paused)))) return;
       const g = (() => { try { return c._geo(); } catch(e){ return null; } })();
       if(!g) return;
       const hr = cfg.host.getBoundingClientRect();
       const px = ev.clientX - hr.left - cfg.host.clientLeft + cfg.host.scrollLeft, py = ev.clientY - hr.top - cfg.host.clientTop + cfg.host.scrollTop;
       const hit = [...g.values()].find(b => b.shown && px >= b.x && px <= b.x + b.w && py >= b.y - 10 && py <= b.y + b.h + 10);
-      if(hit){ ev.stopPropagation(); ev.preventDefault(); c.jumpTo(hit.k); }
+      if(!hit) return;
+      ev.stopPropagation(); ev.preventDefault();
+      if(c.picking) c.pickBar(hit.k); else c.jumpTo(hit.k);
     }, true);
   }
   if(cfg.host) cfg.host._plxCtl = ctl;
@@ -1005,19 +1274,41 @@ function scorePlayAttach(bar, cfg){
   ctl._bar = bar;
   return ctl;
 }
-/* space bar: play and pause whichever score is on the page, unless you are typing */
+/* The keys, whichever score on the page is playing (or was last): space to
+   play and pause, ← → a bar back or on, L the loop, − + the tempo by 5%.
+   Never while typing, never under a dialog, and in the score room's reading
+   mode space and the arrows are the page turns they already were. */
 addEventListener('keydown', ev => {
-  if(ev.code !== 'Space' || ev.repeat || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  if(ev.ctrlKey || ev.metaKey || ev.altKey) return;
+  const k = ev.key, code = ev.code;
+  const isSpace = code === 'Space', isArrow = k === 'ArrowLeft' || k === 'ArrowRight';
+  const isL = k === 'l' || k === 'L', isTempo = k === '-' || k === '+' || k === '=' || k === '_';
+  if(!isSpace && !isArrow && !isL && !isTempo) return;
+  if(isSpace && ev.repeat) return;
   const t = ev.target;
-  if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName))) return;
+  /* a play bar's own buttons keep the keys working after they are pressed
+     (space is still the focused button's own) */
+  const ownButton = t && t.tagName === 'BUTTON' && t.closest && t.closest('.plx-bar') && !isSpace;
+  if(t && !ownButton && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(t.tagName))) return;
   if(ev.defaultPrevented || document.querySelector('#modals .overlay')) return;
-  /* reading a score, space turns the page — a page-turning pedal sends it */
-  if(typeof scoreUi === 'function' && scoreUi().reading && parseHash().name === 'score') return;
+  const reading = typeof scoreUi === 'function' && scoreUi().reading && parseHash().name === 'score';
+  if(reading && (isSpace || isArrow)) return;
   const bars = [...document.querySelectorAll('.plx-bar')].filter(b => b._plx && b.offsetParent !== null);
   if(!bars.length) return;
   const b = (_plxNow && bars.find(x => x._plx === _plxNow)) || bars[0];
+  const c = b._plx;
+  /* the arrows, L and the tempo keys only once the score has been played:
+     before that they are the page's own */
+  const live = !!(c.player || c.picking);
+  if(isSpace){
+    /* the room may want space for itself while it plays (tap-to-lead) */
+    if(c.onSpace && c.onSpace(ev) === true){ ev.preventDefault(); return; }
+    ev.preventDefault(); c.toggle(); return; }
+  if(!live) return;
   ev.preventDefault();
-  b._plx.toggle();
+  if(isArrow) c.step(k === 'ArrowRight' ? 1 : -1);
+  else if(isL) c.option('loop');
+  else c.setPct(Math.max(25, Math.min(150, Math.round(c.tempoPct() / 5) * 5 + (k === '-' || k === '_' ? -5 : 5))));
 });
 
 /* A bar just before `anchor`, made once and reused, attached to what is

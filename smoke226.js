@@ -128,7 +128,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     return document.querySelector('.plx-bar [data-plxwhere]').textContent; });
   await p2.waitForTimeout(3000);
   const w1 = await p2.evaluate(() => ({running: !!(_plxNow && _plxNow.player && _plxNow.player.running), state: _grand.state, stats: grandPianoStats()}));
-  yes('it says it is tuning the piano, then plays — the piano, not a stand-in', /tuning the piano/.test(w0) && w1.running && w1.state === 'ready' && w1.stats.synth === 0 && w1.stats.sampled > 0, [w0, w1]);
+  yes('it says it is loading the sounds, then plays — the piano, not a stand-in', /Loading sounds/.test(w0) && w1.running && w1.state === 'ready' && w1.stats.synth === 0 && w1.stats.sampled > 0, [w0, w1]);
   await p2.evaluate(() => scorePlayStopAll());
 
   console.log('\n6. credited where it is played');

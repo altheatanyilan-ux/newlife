@@ -171,6 +171,30 @@ if(piano){
   out = at > -1 ? out.slice(0, at) + tag + out.slice(at) : out + tag;
 }
 
+/* The other instruments (vendor/gm: Fluid R3 via midi-js-soundfonts, CC BY
+   3.0 — see its LICENSE.md): bass, violin, cello, flute and strings, for the
+   parts of a score that are not piano and the Jazz Studio's rhythm section.
+   The same kind of payload, decoded an instrument at a time when a part
+   needs it. */
+let gm = null, gmBytes = 0, gmNotes = 0;
+const gmDir = path.join(__dirname, 'vendor', 'gm');
+if(fs.existsSync(gmDir)){
+  fs.readdirSync(gmDir).filter(d => fs.statSync(path.join(gmDir, d)).isDirectory()).sort().forEach(inst => {
+    const files = fs.readdirSync(path.join(gmDir, inst)).filter(f => /\.mp3$/i.test(f)).sort();
+    if(!files.length) return;
+    gm = gm || {};
+    gm[inst] = {};
+    files.forEach(f => { gm[inst][f.replace(/\.mp3$/i, '')] = fs.readFileSync(path.join(gmDir, inst, f)).toString('base64'); gmNotes++; });
+  });
+}
+if(gm){
+  const body = JSON.stringify(gm);
+  gmBytes = body.length;
+  const tag = `<script type="text/plain" id="gmSrc">${body}<\/script>\n`;
+  const at = out.lastIndexOf('</body>');
+  out = at > -1 ? out.slice(0, at) + tag + out.slice(at) : out + tag;
+}
+
 fs.writeFileSync(path.join(__dirname, 'index.html'), out);
 
 /* The service worker holds a copy of index.html for offline use, and the only
@@ -195,4 +219,5 @@ const build = stampServiceWorker();
 console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}`
   + ` — score engraver: ${osmd ? `OSMD (${(osmd.length/1024).toFixed(0)} KB, parsed on first use)` : 'not installed'}`
   + ` — grand piano: ${piano ? `${Object.keys(piano).length} samples (${(pianoBytes/1024).toFixed(0)} KB)` : 'not fetched (sh tools/fetch-grand-piano.sh)'}`
+  + ` — instruments: ${gm ? `${Object.keys(gm).length} (${gmNotes} samples, ${(gmBytes/1024).toFixed(0)} KB)` : 'not fetched (sh tools/fetch-gm-instruments.sh)'}`
   + `${build ? ` — build ${build}` : ''}`);
