@@ -57,7 +57,7 @@ function habSummaryHTML(){
           <circle cx="20" cy="20" r="${R}" class="hb-ra" style="stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - pct)).toFixed(1)}"/></svg>
         <div class="num">${kept.length} / ${due.length}</div></div></div>
     <div class="hb-s1"><div class="k">longest run</div>
-      <div class="num">${best?.s.cur ? `🔥 ${best.s.cur}` : '—'}</div>
+      <div class="num">${best?.s.cur ? `${habRunMark(habIsBreaking(best.h))} ${best.s.cur}` : '—'}</div>
       <div class="mono faint">${best?.s.cur ? esc(best.h.name) : 'nothing running yet'}</div></div>
     <div class="hb-s1 hb-bal"><div class="k">energy today</div>
       <div class="hb-dots">${DIMS.map(x => { const v = bal[x.id];
@@ -73,7 +73,7 @@ function habDashboardHTML(){
   const cats = [...new Set(habList().map(h => h.category))];
   return `${habSummaryHTML()}
     <div class="hb-filters">
-      ${[['all','Everything'],['building','🌱 Building'],['breaking','🔓 Breaking']].map(([k, n]) =>
+      ${[['all','Everything'],['building',`${habMark('sprout')} Building`],['breaking',`${habMark('loosed')} Breaking`]].map(([k, n]) =>
         `<button class="chip click${f.type === k ? ' on' : ''}" data-hbf="type:${k}">${n}</button>`).join('')}
       <span class="hb-fsep"></span>
       ${cats.map(c => `<button class="chip click${f.cat === c ? ' on' : ''}" data-hbf="cat:${c}">${esc(c)}</button>`).join('')}
@@ -97,13 +97,13 @@ function habCardHTML(h){
   const state = !due ? 'off' : kept ? 'kept' : 'pending';
   return `<div class="hb-card ${state}${br ? ' breaking' : ''}" data-hbcard="${h.id}" style="--c:${esc(c)}">
     <div class="hb-ctop">
-      <span class="hb-face">${esc(h.icon || (br ? '🔓' : '🌱'))}</span>
+      <span class="hb-face">${habFaceHTML(h, br)}</span>
       <button class="hb-name" data-hbopen="${h.id}">${esc(h.name)}</button>
-      <span class="hb-badge">${br ? '🔓' : '🌱'}</span>
+      <span class="hb-badge" title="${br ? 'breaking' : 'building'}">${habKindMark(br)}</span>
       ${t.dir === 'down' ? '<span class="hb-decline" title="kept less often than a fortnight ago"></span>' : ''}
     </div>
     ${h.identity ? `<div class="hb-ident">${esc(h.identity)}</div>` : ''}
-    <div class="hb-streak">${br ? `🛡 ${st.cur}` : `🔥 ${st.cur}`}
+    <div class="hb-streak">${habRunMark(br)}${st.cur}
       <span class="hb-sunit">${br ? 'days clean' : st.cur === 1 ? 'day' : 'days'}</span></div>
     <div class="hb-mini">${lastDays(30).map(d => {
       const s = habStatus(h, d);
@@ -111,7 +111,7 @@ function habCardHTML(h){
         : (s === 'completed' ? 'on' : s === 'partial' ? 'half' : habDue(h, d) ? '' : 'off');
       return `<i class="${cls}" title="${esc(fmtDate(d, 'short'))}${s ? ' — ' + HAB_SESSION_STATUS[s][1] : ''}"></i>`; }).join('')}</div>
     <div class="hb-meta mono">
-      <span>${!due ? 'not due today' : kept ? '✅ done today' : 'due today'}</span>
+      <span>${!due ? 'not due today' : kept ? '✓ done today' : 'due today'}</span>
       <span class="hb-dim">${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</span>
     </div>
     ${(h.links.values || []).length ? `<div class="hb-vals">${(h.links.values || []).map(id =>
@@ -156,7 +156,7 @@ function habTodayRowHTML(h){
       ${h.cue ? `<div class="hb-tcue mono">after: ${esc(h.cue)}</div>` : ''}
     </div>
     <div class="hb-tright">
-      <span class="mono hb-tstreak">${br ? '🛡' : '🔥'} ${st.cur}</span>
+      <span class="mono hb-tstreak">${habRunMark(br)} ${st.cur}</span>
       ${h.durationTarget ? `<span class="mono hb-tdur">${h.durationTarget} min</span>` : ''}
     </div></div>`;
 }
@@ -185,7 +185,7 @@ function habAnalyticsHTML(){
       <div class="hb-health">${hs.map(h => { const sc = habHealth(h), t = habTrend(h), st = habStreak(h);
         return `<div class="hb-hrow" style="--c:${esc(h.color || (habIsBreaking(h) ? 'var(--terra)' : 'var(--sage)'))}">
           <span class="hb-hname">${esc(h.icon || '◍')} ${esc(h.name)}
-            <span class="hb-badge sm">${habIsBreaking(h) ? '🔓' : '🌱'}</span></span>
+            <span class="hb-badge sm">${habKindMark(habIsBreaking(h))}</span></span>
           <span class="hb-hscore mono" title="completion, consistency and direction">${sc == null ? '—' : sc}</span>
           <span class="hb-mini sm">${lastDays(30).map(d => { const s = habStatus(h, d);
             const cls = s === 'slipped' ? 'slip' : (s && habKept(h, d)) ? 'on' : habDue(h, d) ? '' : 'off';

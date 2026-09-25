@@ -3,13 +3,13 @@
 
    Two kinds, and they are not the same thing wearing different words.
 
-   Building 🌱 is planting: a behaviour you are making automatic. Loehr and
+   Building is planting: a behaviour you are making automatic. Loehr and
    Schwartz are the ground here — a ritual is a precise behaviour at a precise
    time, fuelled by something you actually care about, and after thirty to
    sixty days it stops costing anything to do. The point is not discipline.
    Discipline is what you spend when the ritual has not formed yet.
 
-   Breaking 🔓 is outgrowing. Maltz: habits are garments worn by the
+   Breaking is outgrowing. Maltz: habits are garments worn by the
    personality — you do not tear one off, you become someone it no longer fits.
    So a breaking habit is not tracked as an absence. It is tracked as a
    replacement, a map of what sets it off, and a record of the times the urge
@@ -33,8 +33,41 @@ const HAB_MILESTONES = [
 const HAB_TRIGGER_KINDS = ['emotional','situational','social','temporal','environmental'];
 const HAB_SESSION_STATUS = {
   completed:['✓','Completed'], partial:['◐','Partial'], skipped:['·','Skipped'],
-  clean:['○','Clean day'], resisted:['🛡','Resisted'], slipped:['↯','Slipped'],
+  clean:['○','Clean day'], resisted:['◇','Resisted'], slipped:['↯','Slipped'],
 };
+
+/* ---------- the marks ----------
+   They were emoji — a cartoon flame for a streak, a seedling, a padlock, a
+   shield — and a practice you are asking yourself to take seriously deserves
+   better than clip art. Fine ink lines instead, drawn to the weight of the
+   rest of the house and inked in the habit's own colour:
+
+     ember    a run kept: a slender flame, the inner stroke its heat
+     enso     days clean: the circle drawn in one breath, open where the
+              brush lifted — nothing added, which is the point
+     sprout   building: a stem and two leaves
+     loosed   breaking: a chain parted in the middle
+     guard    an urge resisted: a fine shield
+*/
+const HAB_MARK_PATHS = {
+  ember: '<path d="M12 21.3c-3.9 0-6.4-2.6-6.4-6.1 0-3.6 2.7-5.5 3.8-8.9.9 1.5 1.1 3 .9 4.3 1.9-1.4 3-4.3 2.6-7.7 3.4 2.3 5.5 6.5 5.5 11 0 4.4-2.6 7.4-6.4 7.4z"/><path d="M12 21.3c-1.6 0-2.7-1.1-2.7-2.7 0-1.9 1.6-2.8 2.1-4.5 1.6 1.2 3.3 2.7 3.3 4.6 0 1.5-1.1 2.6-2.7 2.6z"/>',
+  enso: '<path d="M18.9 7.6A8.4 8.4 0 1 0 20.3 13.4"/><path d="M18.9 7.6c.5.8.8 1.5 1 2.3" opacity=".5"/>',
+  sprout: '<path d="M12 21v-8.6"/><path d="M12 12.4c0-3.6 2.4-6.1 6.4-6.1 0 3.7-2.5 6.1-6.4 6.1z"/><path d="M12 15c0-2.8-1.9-4.8-5-4.8 0 2.9 1.9 4.8 5 4.8z"/>',
+  loosed: '<path d="M10 14.6l-2.3 2.3a3.4 3.4 0 0 1-4.8-4.8l3-3a3.4 3.4 0 0 1 4.6-.2"/><path d="M14 9.4l2.3-2.3a3.4 3.4 0 0 1 4.8 4.8l-3 3a3.4 3.4 0 0 1-4.6.2"/><path d="M8.6 3.4v2.1M3.4 8.6h2.1M15.4 20.6v-2.1M20.6 15.4h-2.1" opacity=".6"/>',
+  guard: '<path d="M12 3.2l7 2.6v5.4c0 4.6-3 8.1-7 9.6-4-1.5-7-5-7-9.6V5.8z"/>',
+};
+function habMark(kind, label){
+  return `<svg class="hb-mark hb-mark-${kind}" viewBox="0 0 24 24"${label
+    ? ` role="img" aria-label="${esc(label)}"` : ' aria-hidden="true"'}>${HAB_MARK_PATHS[kind] || ''}</svg>`;
+}
+/* the mark a habit shows when it has no icon of its own, and its run */
+const habKindMark = (br, label) => habMark(br ? 'loosed' : 'sprout', label === undefined ? (br ? 'breaking' : 'building') : label);
+const habRunMark = br => habMark(br ? 'enso' : 'ember', br ? 'days clean' : 'days kept');
+/* A habit's own icon when it was given one. The emoji the house used to hand
+   out as the default (the starter habits still carry them) count as none, so
+   they get the mark instead; an icon somebody chose is left alone. */
+const HAB_OLD_DEFAULT_ICONS = ['🔓', '🌱', '🛡', '🔥', '🛡️'];
+const habFaceHTML = (h, br) => h.icon && !HAB_OLD_DEFAULT_ICONS.includes(h.icon) ? esc(h.icon) : habKindMark(br);
 /* the quotes are not decoration: each one is the reason the field beside it
    exists, and seeing it at the moment of writing is the whole point */
 const HAB_QUOTES = {

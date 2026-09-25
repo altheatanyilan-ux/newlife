@@ -15,12 +15,12 @@ function openHabitCheckIn(id, day = today(), how = {}){
   /* opened from "account for this" rather than from the ring, so it opens on
      the question that was asked rather than making you pick Skipped first */
   let status = cur.status || (how.status && !br ? how.status : br ? 'clean' : 'completed');
-  const opts = br ? [['clean','○  Clean day — no urges'], ['resisted','🛡  Resisted an urge'], ['slipped','↯  Slipped']]
+  const opts = br ? [['clean','○  Clean day — no urges'], ['resisted','Resisted an urge'], ['slipped','↯  Slipped']]
     : [['completed','✓  Completed'], ['partial','◐  Partial'], ['skipped','·  Skipped']];
 
   const body = () => `
     <div class="hb-ci-status">${opts.map(([k, n]) =>
-      `<button type="button" class="hb-cis${status === k ? ' on' : ''}" data-cis="${k}">${esc(n)}</button>`).join('')}</div>
+      `<button type="button" class="hb-cis${status === k ? ' on' : ''}" data-cis="${k}">${k === 'resisted' ? habMark('guard') + ' ' : ''}${esc(n)}</button>`).join('')}</div>
     ${!br ? `
       <!-- how long it took and how it left you are questions about a thing
            that happened. On a skipped day they are not unanswered, they are
@@ -63,7 +63,7 @@ function openHabitCheckIn(id, day = today(), how = {}){
         : status === 'skipped' ? 'What happened' : 'Anything worth saying'}${h.prompt ? ` — ${esc(h.prompt)}` : ''}</label>
       <textarea class="ta" id="ciNote" style="min-height:64px" placeholder="${br ? 'Felt the pull after a stressful hour. Put the phone in the drawer.' : 'optional'}">${esc(cur.note || '')}</textarea></div>`;
 
-  const m = openModal(`<h2>${esc(h.icon || (br ? '🛡' : '✓'))} ${esc(h.name)}</h2>
+  const m = openModal(`<h2>${habFaceHTML(h, br)} ${esc(h.name)}</h2>
     <p class="muted" style="font-size:.86rem">${esc(fmtDate(day, 'long'))}</p>
     <div class="stack" id="ciBody">${body()}</div>
     <div class="row between" style="margin-top:16px">
@@ -183,13 +183,13 @@ function habPanelHTML(h){
   const log = lastDays(120).map(d => ({d, e: habEntry(h, d)})).filter(x => x.e);
   return `<div class="pd hb-panel" style="--c:${esc(c)}">
     <div class="hb-phead">
-      <span class="hb-pface">${esc(h.icon || (br ? '🔓' : '🌱'))}</span>
+      <span class="hb-pface">${habFaceHTML(h, br)}</span>
       <div style="min-width:0;flex:1">
         <input class="inp pd-title" id="hpName" value="${esc(h.name)}">
-        <div class="mono hb-psub">${br ? '🔓 breaking' : '🌱 building'} · ${esc(h.category)} ·
+        <div class="mono hb-psub">${habKindMark(br, '')} ${br ? 'breaking' : 'building'} · ${esc(h.category)} ·
           ${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</div>
       </div>
-      <div class="hb-pstreak">${br ? '🛡' : '🔥'} ${st.cur}</div>
+      <div class="hb-pstreak">${habRunMark(br)} ${st.cur}</div>
     </div>
     <div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0">
       <button class="btn sm primary" id="hpCheck">Check in</button>
@@ -255,7 +255,7 @@ function habPanelHTML(h){
       + sec('the urges that did not win', `
       ${h.urgeLog.length ? `<div class="hb-urges">${h.urgeLog.slice(0, 30).map(u => `<div class="hb-urge ${esc(u.outcome)}">
         <span class="mono">${esc(fmtDate(u.date, 'short'))}</span>
-        <span class="hb-uout">${u.outcome === 'slipped' ? '↯ slipped' : '🛡 resisted'}${u.intensity ? ` · ${u.intensity}/5` : ''}</span>
+        <span class="hb-uout">${u.outcome === 'slipped' ? '↯ slipped' : `${habMark('guard')} resisted`}${u.intensity ? ` · ${u.intensity}/5` : ''}</span>
         <span class="hb-unote">${esc(u.note || '')}</span></div>`).join('')}</div>`
         : '<div class="pk-empty">Nothing logged. Every resisted urge belongs here — it is the evidence the new self-image is forming.</div>'}`)
     : sec('the two sizes of it', `

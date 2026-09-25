@@ -2612,7 +2612,20 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .hb-warn{font-size:.72rem;color:var(--gold);margin-top:5px;line-height:1.35}
 .hb-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .hb-fsep{width:1px;height:16px;background:var(--line-2);margin:0 3px}
-.hb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:12px;align-items:start}
+/* every card the size of every other: the rows are all as tall as the
+   tallest card, and a card's check-in sits at its foot however much is
+   written above it */
+.hb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));grid-auto-rows:1fr;gap:12px;align-items:stretch}
+/* the marks: ink lines in the habit's colour, not emoji */
+.hb-mark{width:1em;height:1em;vertical-align:-.14em;fill:none;stroke:currentColor;stroke-width:1.45;
+  stroke-linecap:round;stroke-linejoin:round;flex:none}
+.hb-streak{display:flex;align-items:baseline;gap:.18em}
+.hb-streak .hb-mark{width:.82em;height:.82em;align-self:center;stroke-width:1.3}
+.hb-face .hb-mark{color:var(--c);width:1.05em;height:1.05em}
+.hb-badge .hb-mark{color:var(--c);opacity:.85}
+.chip .hb-mark{width:.95em;height:.95em;margin-right:1px}
+.hb-cis .hb-mark,.hb-uout .hb-mark{color:var(--dusty,#a0727e)}
+.hb-pstreak .hb-mark,.hb-tstreak .hb-mark,.hb-s1 .num .hb-mark{width:.8em;height:.8em;color:var(--c,var(--page-accent))}
 .hb-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid transparent;
   border-radius:12px;padding:13px 14px;cursor:pointer;display:flex;flex-direction:column;gap:7px;
   transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
@@ -2645,7 +2658,7 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .hb-vals{display:flex;flex-wrap:wrap;gap:4px}
 .hb-val{font-size:.6rem;padding:1px 6px;border-radius:20px;border:1px solid var(--c);color:var(--c)}
 .hb-rate{font-size:.66rem;color:var(--muted)}
-.hb-checkin{align-self:flex-start;margin-top:2px}
+.hb-checkin{align-self:flex-start;margin-top:auto}
 .hb-arch{margin-top:16px}
 .hb-archrow{padding:5px 0;border-top:1px dashed var(--line);font-size:.86rem}
 

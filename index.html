@@ -3281,7 +3281,20 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .hb-warn{font-size:.72rem;color:var(--gold);margin-top:5px;line-height:1.35}
 .hb-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .hb-fsep{width:1px;height:16px;background:var(--line-2);margin:0 3px}
-.hb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:12px;align-items:start}
+/* every card the size of every other: the rows are all as tall as the
+   tallest card, and a card's check-in sits at its foot however much is
+   written above it */
+.hb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));grid-auto-rows:1fr;gap:12px;align-items:stretch}
+/* the marks: ink lines in the habit's colour, not emoji */
+.hb-mark{width:1em;height:1em;vertical-align:-.14em;fill:none;stroke:currentColor;stroke-width:1.45;
+  stroke-linecap:round;stroke-linejoin:round;flex:none}
+.hb-streak{display:flex;align-items:baseline;gap:.18em}
+.hb-streak .hb-mark{width:.82em;height:.82em;align-self:center;stroke-width:1.3}
+.hb-face .hb-mark{color:var(--c);width:1.05em;height:1.05em}
+.hb-badge .hb-mark{color:var(--c);opacity:.85}
+.chip .hb-mark{width:.95em;height:.95em;margin-right:1px}
+.hb-cis .hb-mark,.hb-uout .hb-mark{color:var(--dusty,#a0727e)}
+.hb-pstreak .hb-mark,.hb-tstreak .hb-mark,.hb-s1 .num .hb-mark{width:.8em;height:.8em;color:var(--c,var(--page-accent))}
 .hb-card{background:var(--surface);border:1px solid var(--line);border-left:3px solid transparent;
   border-radius:12px;padding:13px 14px;cursor:pointer;display:flex;flex-direction:column;gap:7px;
   transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
@@ -3314,7 +3327,7 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .hb-vals{display:flex;flex-wrap:wrap;gap:4px}
 .hb-val{font-size:.6rem;padding:1px 6px;border-radius:20px;border:1px solid var(--c);color:var(--c)}
 .hb-rate{font-size:.66rem;color:var(--muted)}
-.hb-checkin{align-self:flex-start;margin-top:2px}
+.hb-checkin{align-self:flex-start;margin-top:auto}
 .hb-arch{margin-top:16px}
 .hb-archrow{padding:5px 0;border-top:1px dashed var(--line);font-size:.86rem}
 
@@ -39410,12 +39423,12 @@ function openHabitCheckIn(id, day = today(), how = {}){
   /* opened from "account for this" rather than from the ring, so it opens on
      the question that was asked rather than making you pick Skipped first */
   let status = cur.status || (how.status && !br ? how.status : br ? 'clean' : 'completed');
-  const opts = br ? [['clean','○  Clean day — no urges'], ['resisted','🛡  Resisted an urge'], ['slipped','↯  Slipped']]
+  const opts = br ? [['clean','○  Clean day — no urges'], ['resisted','Resisted an urge'], ['slipped','↯  Slipped']]
     : [['completed','✓  Completed'], ['partial','◐  Partial'], ['skipped','·  Skipped']];
 
   const body = () => `
     <div class="hb-ci-status">${opts.map(([k, n]) =>
-      `<button type="button" class="hb-cis${status === k ? ' on' : ''}" data-cis="${k}">${esc(n)}</button>`).join('')}</div>
+      `<button type="button" class="hb-cis${status === k ? ' on' : ''}" data-cis="${k}">${k === 'resisted' ? habMark('guard') + ' ' : ''}${esc(n)}</button>`).join('')}</div>
     ${!br ? `
       <!-- how long it took and how it left you are questions about a thing
            that happened. On a skipped day they are not unanswered, they are
@@ -39458,7 +39471,7 @@ function openHabitCheckIn(id, day = today(), how = {}){
         : status === 'skipped' ? 'What happened' : 'Anything worth saying'}${h.prompt ? ` — ${esc(h.prompt)}` : ''}</label>
       <textarea class="ta" id="ciNote" style="min-height:64px" placeholder="${br ? 'Felt the pull after a stressful hour. Put the phone in the drawer.' : 'optional'}">${esc(cur.note || '')}</textarea></div>`;
 
-  const m = openModal(`<h2>${esc(h.icon || (br ? '🛡' : '✓'))} ${esc(h.name)}</h2>
+  const m = openModal(`<h2>${habFaceHTML(h, br)} ${esc(h.name)}</h2>
     <p class="muted" style="font-size:.86rem">${esc(fmtDate(day, 'long'))}</p>
     <div class="stack" id="ciBody">${body()}</div>
     <div class="row between" style="margin-top:16px">
@@ -39578,13 +39591,13 @@ function habPanelHTML(h){
   const log = lastDays(120).map(d => ({d, e: habEntry(h, d)})).filter(x => x.e);
   return `<div class="pd hb-panel" style="--c:${esc(c)}">
     <div class="hb-phead">
-      <span class="hb-pface">${esc(h.icon || (br ? '🔓' : '🌱'))}</span>
+      <span class="hb-pface">${habFaceHTML(h, br)}</span>
       <div style="min-width:0;flex:1">
         <input class="inp pd-title" id="hpName" value="${esc(h.name)}">
-        <div class="mono hb-psub">${br ? '🔓 breaking' : '🌱 building'} · ${esc(h.category)} ·
+        <div class="mono hb-psub">${habKindMark(br, '')} ${br ? 'breaking' : 'building'} · ${esc(h.category)} ·
           ${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</div>
       </div>
-      <div class="hb-pstreak">${br ? '🛡' : '🔥'} ${st.cur}</div>
+      <div class="hb-pstreak">${habRunMark(br)} ${st.cur}</div>
     </div>
     <div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0">
       <button class="btn sm primary" id="hpCheck">Check in</button>
@@ -39650,7 +39663,7 @@ function habPanelHTML(h){
       + sec('the urges that did not win', `
       ${h.urgeLog.length ? `<div class="hb-urges">${h.urgeLog.slice(0, 30).map(u => `<div class="hb-urge ${esc(u.outcome)}">
         <span class="mono">${esc(fmtDate(u.date, 'short'))}</span>
-        <span class="hb-uout">${u.outcome === 'slipped' ? '↯ slipped' : '🛡 resisted'}${u.intensity ? ` · ${u.intensity}/5` : ''}</span>
+        <span class="hb-uout">${u.outcome === 'slipped' ? '↯ slipped' : `${habMark('guard')} resisted`}${u.intensity ? ` · ${u.intensity}/5` : ''}</span>
         <span class="hb-unote">${esc(u.note || '')}</span></div>`).join('')}</div>`
         : '<div class="pk-empty">Nothing logged. Every resisted urge belongs here — it is the evidence the new self-image is forming.</div>'}`)
     : sec('the two sizes of it', `
@@ -39755,13 +39768,13 @@ function bindHabRoom(root){
 
    Two kinds, and they are not the same thing wearing different words.
 
-   Building 🌱 is planting: a behaviour you are making automatic. Loehr and
+   Building is planting: a behaviour you are making automatic. Loehr and
    Schwartz are the ground here — a ritual is a precise behaviour at a precise
    time, fuelled by something you actually care about, and after thirty to
    sixty days it stops costing anything to do. The point is not discipline.
    Discipline is what you spend when the ritual has not formed yet.
 
-   Breaking 🔓 is outgrowing. Maltz: habits are garments worn by the
+   Breaking is outgrowing. Maltz: habits are garments worn by the
    personality — you do not tear one off, you become someone it no longer fits.
    So a breaking habit is not tracked as an absence. It is tracked as a
    replacement, a map of what sets it off, and a record of the times the urge
@@ -39785,8 +39798,41 @@ const HAB_MILESTONES = [
 const HAB_TRIGGER_KINDS = ['emotional','situational','social','temporal','environmental'];
 const HAB_SESSION_STATUS = {
   completed:['✓','Completed'], partial:['◐','Partial'], skipped:['·','Skipped'],
-  clean:['○','Clean day'], resisted:['🛡','Resisted'], slipped:['↯','Slipped'],
+  clean:['○','Clean day'], resisted:['◇','Resisted'], slipped:['↯','Slipped'],
 };
+
+/* ---------- the marks ----------
+   They were emoji — a cartoon flame for a streak, a seedling, a padlock, a
+   shield — and a practice you are asking yourself to take seriously deserves
+   better than clip art. Fine ink lines instead, drawn to the weight of the
+   rest of the house and inked in the habit's own colour:
+
+     ember    a run kept: a slender flame, the inner stroke its heat
+     enso     days clean: the circle drawn in one breath, open where the
+              brush lifted — nothing added, which is the point
+     sprout   building: a stem and two leaves
+     loosed   breaking: a chain parted in the middle
+     guard    an urge resisted: a fine shield
+*/
+const HAB_MARK_PATHS = {
+  ember: '<path d="M12 21.3c-3.9 0-6.4-2.6-6.4-6.1 0-3.6 2.7-5.5 3.8-8.9.9 1.5 1.1 3 .9 4.3 1.9-1.4 3-4.3 2.6-7.7 3.4 2.3 5.5 6.5 5.5 11 0 4.4-2.6 7.4-6.4 7.4z"/><path d="M12 21.3c-1.6 0-2.7-1.1-2.7-2.7 0-1.9 1.6-2.8 2.1-4.5 1.6 1.2 3.3 2.7 3.3 4.6 0 1.5-1.1 2.6-2.7 2.6z"/>',
+  enso: '<path d="M18.9 7.6A8.4 8.4 0 1 0 20.3 13.4"/><path d="M18.9 7.6c.5.8.8 1.5 1 2.3" opacity=".5"/>',
+  sprout: '<path d="M12 21v-8.6"/><path d="M12 12.4c0-3.6 2.4-6.1 6.4-6.1 0 3.7-2.5 6.1-6.4 6.1z"/><path d="M12 15c0-2.8-1.9-4.8-5-4.8 0 2.9 1.9 4.8 5 4.8z"/>',
+  loosed: '<path d="M10 14.6l-2.3 2.3a3.4 3.4 0 0 1-4.8-4.8l3-3a3.4 3.4 0 0 1 4.6-.2"/><path d="M14 9.4l2.3-2.3a3.4 3.4 0 0 1 4.8 4.8l-3 3a3.4 3.4 0 0 1-4.6.2"/><path d="M8.6 3.4v2.1M3.4 8.6h2.1M15.4 20.6v-2.1M20.6 15.4h-2.1" opacity=".6"/>',
+  guard: '<path d="M12 3.2l7 2.6v5.4c0 4.6-3 8.1-7 9.6-4-1.5-7-5-7-9.6V5.8z"/>',
+};
+function habMark(kind, label){
+  return `<svg class="hb-mark hb-mark-${kind}" viewBox="0 0 24 24"${label
+    ? ` role="img" aria-label="${esc(label)}"` : ' aria-hidden="true"'}>${HAB_MARK_PATHS[kind] || ''}</svg>`;
+}
+/* the mark a habit shows when it has no icon of its own, and its run */
+const habKindMark = (br, label) => habMark(br ? 'loosed' : 'sprout', label === undefined ? (br ? 'breaking' : 'building') : label);
+const habRunMark = br => habMark(br ? 'enso' : 'ember', br ? 'days clean' : 'days kept');
+/* A habit's own icon when it was given one. The emoji the house used to hand
+   out as the default (the starter habits still carry them) count as none, so
+   they get the mark instead; an icon somebody chose is left alone. */
+const HAB_OLD_DEFAULT_ICONS = ['🔓', '🌱', '🛡', '🔥', '🛡️'];
+const habFaceHTML = (h, br) => h.icon && !HAB_OLD_DEFAULT_ICONS.includes(h.icon) ? esc(h.icon) : habKindMark(br);
 /* the quotes are not decoration: each one is the reason the field beside it
    exists, and seeing it at the moment of writing is the whole point */
 const HAB_QUOTES = {
@@ -40173,7 +40219,7 @@ function habSummaryHTML(){
           <circle cx="20" cy="20" r="${R}" class="hb-ra" style="stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - pct)).toFixed(1)}"/></svg>
         <div class="num">${kept.length} / ${due.length}</div></div></div>
     <div class="hb-s1"><div class="k">longest run</div>
-      <div class="num">${best?.s.cur ? `🔥 ${best.s.cur}` : '—'}</div>
+      <div class="num">${best?.s.cur ? `${habRunMark(habIsBreaking(best.h))} ${best.s.cur}` : '—'}</div>
       <div class="mono faint">${best?.s.cur ? esc(best.h.name) : 'nothing running yet'}</div></div>
     <div class="hb-s1 hb-bal"><div class="k">energy today</div>
       <div class="hb-dots">${DIMS.map(x => { const v = bal[x.id];
@@ -40189,7 +40235,7 @@ function habDashboardHTML(){
   const cats = [...new Set(habList().map(h => h.category))];
   return `${habSummaryHTML()}
     <div class="hb-filters">
-      ${[['all','Everything'],['building','🌱 Building'],['breaking','🔓 Breaking']].map(([k, n]) =>
+      ${[['all','Everything'],['building',`${habMark('sprout')} Building`],['breaking',`${habMark('loosed')} Breaking`]].map(([k, n]) =>
         `<button class="chip click${f.type === k ? ' on' : ''}" data-hbf="type:${k}">${n}</button>`).join('')}
       <span class="hb-fsep"></span>
       ${cats.map(c => `<button class="chip click${f.cat === c ? ' on' : ''}" data-hbf="cat:${c}">${esc(c)}</button>`).join('')}
@@ -40213,13 +40259,13 @@ function habCardHTML(h){
   const state = !due ? 'off' : kept ? 'kept' : 'pending';
   return `<div class="hb-card ${state}${br ? ' breaking' : ''}" data-hbcard="${h.id}" style="--c:${esc(c)}">
     <div class="hb-ctop">
-      <span class="hb-face">${esc(h.icon || (br ? '🔓' : '🌱'))}</span>
+      <span class="hb-face">${habFaceHTML(h, br)}</span>
       <button class="hb-name" data-hbopen="${h.id}">${esc(h.name)}</button>
-      <span class="hb-badge">${br ? '🔓' : '🌱'}</span>
+      <span class="hb-badge" title="${br ? 'breaking' : 'building'}">${habKindMark(br)}</span>
       ${t.dir === 'down' ? '<span class="hb-decline" title="kept less often than a fortnight ago"></span>' : ''}
     </div>
     ${h.identity ? `<div class="hb-ident">${esc(h.identity)}</div>` : ''}
-    <div class="hb-streak">${br ? `🛡 ${st.cur}` : `🔥 ${st.cur}`}
+    <div class="hb-streak">${habRunMark(br)}${st.cur}
       <span class="hb-sunit">${br ? 'days clean' : st.cur === 1 ? 'day' : 'days'}</span></div>
     <div class="hb-mini">${lastDays(30).map(d => {
       const s = habStatus(h, d);
@@ -40227,7 +40273,7 @@ function habCardHTML(h){
         : (s === 'completed' ? 'on' : s === 'partial' ? 'half' : habDue(h, d) ? '' : 'off');
       return `<i class="${cls}" title="${esc(fmtDate(d, 'short'))}${s ? ' — ' + HAB_SESSION_STATUS[s][1] : ''}"></i>`; }).join('')}</div>
     <div class="hb-meta mono">
-      <span>${!due ? 'not due today' : kept ? '✅ done today' : 'due today'}</span>
+      <span>${!due ? 'not due today' : kept ? '✓ done today' : 'due today'}</span>
       <span class="hb-dim">${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</span>
     </div>
     ${(h.links.values || []).length ? `<div class="hb-vals">${(h.links.values || []).map(id =>
@@ -40272,7 +40318,7 @@ function habTodayRowHTML(h){
       ${h.cue ? `<div class="hb-tcue mono">after: ${esc(h.cue)}</div>` : ''}
     </div>
     <div class="hb-tright">
-      <span class="mono hb-tstreak">${br ? '🛡' : '🔥'} ${st.cur}</span>
+      <span class="mono hb-tstreak">${habRunMark(br)} ${st.cur}</span>
       ${h.durationTarget ? `<span class="mono hb-tdur">${h.durationTarget} min</span>` : ''}
     </div></div>`;
 }
@@ -40301,7 +40347,7 @@ function habAnalyticsHTML(){
       <div class="hb-health">${hs.map(h => { const sc = habHealth(h), t = habTrend(h), st = habStreak(h);
         return `<div class="hb-hrow" style="--c:${esc(h.color || (habIsBreaking(h) ? 'var(--terra)' : 'var(--sage)'))}">
           <span class="hb-hname">${esc(h.icon || '◍')} ${esc(h.name)}
-            <span class="hb-badge sm">${habIsBreaking(h) ? '🔓' : '🌱'}</span></span>
+            <span class="hb-badge sm">${habKindMark(habIsBreaking(h))}</span></span>
           <span class="hb-hscore mono" title="completion, consistency and direction">${sc == null ? '—' : sc}</span>
           <span class="hb-mini sm">${lastDays(30).map(d => { const s = habStatus(h, d);
             const cls = s === 'slipped' ? 'slip' : (s && habKept(h, d)) ? 'on' : habDue(h, d) ? '' : 'off';
