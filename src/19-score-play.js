@@ -523,6 +523,52 @@ function plxDrum(ctx, dest, midi, t, vel){
   g.gain.setValueAtTime(0.35 * (vel || 0.6), t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
   n.connect(f); f.connect(g); g.connect(dest); n.start(t); n.stop(t + d + 0.02);
 }
+/* A drum kit, synthesised, for the Jazz Studio's band (General MIDI
+   numbers): the kick a pitched thud falling, the snare a crack of band-passed
+   noise over a low tone, the cross-stick a dry click, the hi-hat and the
+   ride metal — six square waves at inharmonic ratios through a band-pass,
+   which is what a cymbal's spectrum is — and a brush (25) a swell of soft
+   noise rather than a hit. Anything else is the old stand-in. */
+const PLX_METAL = [1, 1.483, 1.932, 2.546, 2.63, 3.897];
+function plxKit(ctx, dest, midi, t, vel, dur){
+  const v = Math.max(0.03, Math.min(1, vel == null ? 0.6 : vel));
+  const noise = (type, freq, q, peak, decay, attack) => {
+    const n = ctx.createBufferSource(); n.buffer = plxNoise(ctx); n.loop = true;
+    const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const g = ctx.createGain();
+    if(attack){ g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(peak, t + attack); }
+    else g.gain.setValueAtTime(peak, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (attack || 0) + decay);
+    n.connect(f); f.connect(g); g.connect(dest); n.start(t); n.stop(t + (attack || 0) + decay + 0.03);
+  };
+  const tone = (type, f0, f1, peak, decay) => {
+    const o = ctx.createOscillator(); o.type = type;
+    o.frequency.setValueAtTime(f0, t); if(f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + Math.min(0.12, decay));
+    const g = ctx.createGain(); g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+    o.connect(g); g.connect(dest); o.start(t); o.stop(t + decay + 0.03);
+  };
+  const metal = (base, peak, decay, band) => {
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = band; bp.Q.value = 0.8;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = band * 0.7;
+    const g = ctx.createGain(); g.gain.setValueAtTime(peak, t); g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+    bp.connect(hp); hp.connect(g); g.connect(dest);
+    PLX_METAL.forEach(r => { const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = base * r;
+      o.connect(bp); o.start(t); o.stop(t + decay + 0.03); });
+  };
+  switch(midi){
+    case 35: case 36: tone('sine', 120, 44, 0.95 * v, 0.34); noise('lowpass', 1400, 0.5, 0.12 * v, 0.02); return;
+    case 37: noise('bandpass', 2300, 3, 0.55 * v, 0.045); tone('triangle', 820, 780, 0.22 * v, 0.03); return;
+    case 38: case 40: noise('bandpass', 1900, 0.8, 0.5 * v, 0.17); tone('triangle', 190, 160, 0.3 * v, 0.08); return;
+    case 25: noise('bandpass', 3400, 0.6, 0.16 * v, Math.max(0.2, (dur || 0.5) * 0.8), 0.1); return;
+    case 42: metal(400, 0.055 * v, 0.05, 9000); noise('highpass', 8000, 0.7, 0.05 * v, 0.04); return;
+    case 44: metal(400, 0.045 * v, 0.06, 7500); noise('highpass', 6500, 0.7, 0.05 * v, 0.05); return;
+    case 46: metal(400, 0.05 * v, 0.35, 9000); noise('highpass', 7500, 0.7, 0.05 * v, 0.3); return;
+    case 51: case 59: metal(380, 0.05 * v, 0.9, 7200); noise('bandpass', 9000, 1, 0.025 * v, 0.45); return;
+    case 53: metal(560, 0.07 * v, 1.2, 5200); return;
+    case 49: case 57: metal(330, 0.06 * v, 1.6, 6500); noise('highpass', 5000, 0.6, 0.08 * v, 1.4); return;
+    default: plxDrum(ctx, dest, midi, t, vel);
+  }
+}
 /* The count and the click: the score room metronome's wooden click (a
    struck block — noise through a tight band-pass), the downbeat a fifth
    higher and louder unless the accent is off. */
@@ -648,7 +694,7 @@ function scorePlayer(tl, opts){
     return g;
   };
   const voice = (e, dest, t0, d, held) => {
-    if(e.perc){ plxDrum(ctx, dest, e.midi, t0, e.vel); return; }
+    if(e.perc){ if(e.kit) plxKit(ctx, dest, e.midi, t0, e.vel, d); else plxDrum(ctx, dest, e.midi, t0, e.vel); return; }
     const inst = e.chord ? 'piano' : ((tl.parts[e.part] || {}).inst || 'piano');
     if(inst !== 'piano' && inst !== 'drums' && typeof instrumentNote === 'function'
       && instrumentNote(ctx, dest, inst, e.midi, t0, d, e.vel, held, 1)) return;

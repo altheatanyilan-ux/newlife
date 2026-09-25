@@ -9669,12 +9669,12 @@ html.ja-running{overflow:hidden}
 @keyframes plxspin{to{transform:rotate(360deg)}}
 .plx-where{font-size:.72rem;color:var(--muted);min-width:7.5em;font-family:'IBM Plex Mono',var(--mono)}
 .plx-bpm{display:flex;align-items:center;gap:4px;font-size:.76rem}
-.plx-bpm .inp{width:4.2em;text-align:center}
+.plx-bpm .inp{width:5em;padding-left:4px;padding-right:4px;text-align:center}
 .plx-score{font-size:.68rem}
 .plx-pct{display:flex;align-items:center;gap:6px;flex:1 1 200px;max-width:340px}
 .plx-pct input{flex:1;min-width:90px}
 .plx-pct b{font-size:.72rem;min-width:3em;text-align:right}
-.plx-sel{display:flex;align-items:center;gap:4px;font-size:.7rem}
+.plx-sel{display:flex;align-items:center;gap:4px;font-size:.7rem;white-space:nowrap}
 .plx-vol{display:flex;align-items:center;gap:6px;font-size:.7rem}
 .plx-vol input{width:90px}
 .plx-opts{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 0 2px;border-top:1px dashed var(--line)}
@@ -9761,5 +9761,41 @@ html.ja-running{overflow:hidden}
 html.sc-reading .sc-cue{display:none !important}
 @media (max-width:640px){.sc-ens-name{min-width:0;flex-basis:100%}.sc-ens-vol input{width:70px}}
 @media print{.sc-ens,.sc-cue,.sc-ens-wait,.sc-waitmarks{display:none !important}}
+
+/* ---------- the Jazz Studio's band ---------- */
+.jzb{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  display:flex;flex-direction:column;gap:7px;font-size:.78rem}
+.jzb-h{display:flex;align-items:center;gap:8px}
+.jzb-h .mono{font-size:.68rem}
+.jzb-row{display:flex;align-items:center;gap:8px 14px;flex-wrap:wrap}
+.jzb-f{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;white-space:nowrap}
+.jzb-f .inp{width:5em;padding-left:4px;padding-right:4px}
+.jzb-f .sel{min-width:7.5em}
+.jzb-f input[type=range]{width:90px}
+.jzb-f b{font-size:.7rem;min-width:3.4em}
+.jzb-go{min-width:10em;position:relative}
+.jzb-go.on{background:var(--page-accent,var(--accent));border-color:var(--page-accent,var(--accent))}
+.jzb-go.loading{padding-left:2.1em}
+.jzb-go.loading::before{content:"";position:absolute;left:.7em;top:50%;width:.8em;height:.8em;margin-top:-.4em;border-radius:50%;
+  border:2px solid currentColor;border-right-color:transparent;animation:plxspin .8s linear infinite}
+/* what the band is doing, big enough to read from the bench */
+.jzb-show{display:flex;flex-direction:column;align-items:center;gap:2px;margin:6px 0 8px;padding:8px 10px;border-radius:12px;
+  background:color-mix(in srgb,var(--page-accent,var(--accent)) 7%,var(--surface));border:1px solid var(--line);text-align:center}
+.jzb-show[hidden]{display:none}
+.jzb-key{font-size:2.2rem;line-height:1.1;color:var(--text)}
+.jzb-key:empty{display:none}
+.jzb-show[data-level="key_only"] .jzb-key{font-size:5.5rem}
+.jzb-chord{font-size:3.6rem;line-height:1.1;color:var(--text)}
+.jzb-chord:empty{display:none}
+.jzb-next{font-size:2rem;color:var(--page-accent,var(--accent));letter-spacing:.02em;animation:jzbcall .5s ease-in-out infinite alternate}
+.jzb-next[hidden]{display:none}
+@keyframes jzbcall{from{opacity:.6}to{opacity:1}}
+.jzb-where{font-size:.7rem;color:var(--muted)}
+.jz-stage-box.jzb-hidden{display:none}
+.jzb-reading{font-size:.7rem;margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.jzb-rl{color:var(--muted)}
+.jzb-rl.got{color:var(--text)}
+@media (max-width:640px){.jzb-key{font-size:1.8rem}.jzb-chord{font-size:2.6rem}.jzb-show[data-level="key_only"] .jzb-key{font-size:3.8rem}.jzb-f input[type=range]{width:70px}}
+@media print{.jzb,.jzb-show{display:none !important}}
 </style>
 </head>

@@ -53,6 +53,8 @@ async function jazzEngrave(box, xml){
     await osmd.load(xml);
     osmd.zoom = 1.05;
     osmd.render();
+    /* kept on its box, for whatever lights up its bars (the band) */
+    box._jzOsmd = osmd;
     jazzPlayBarFor(box, xml, osmd);
     return osmd;
   } catch(e){
@@ -443,7 +445,8 @@ function jazzExerciseHTML(id){
             jazzEdited(id) ? 'user_edited' : esc(ex.acc || 'verified')}">
             ${jazzIsMultiExample(ex) ? `<div class="jz-ex-tabs" id="jzExTabs"></div>` : ''}
             <div class="jz-score" id="jzScore"></div></div>
-          ${jazzIsMultiExample(ex) ? '' : jazzScoreToolsHTML(id)}`
+          ${jazzIsMultiExample(ex) ? '' : jazzScoreToolsHTML(id)}
+          ${!single && typeof jazzBackingHTML === 'function' ? jazzBackingHTML(id) : ''}`
           : `<div class="jz-stage-box">${jazzV3MainTextHTML(ex)}</div>`}
         ${jazzV3YouTubeHTML(ex)}
         ${typeof jazzV3ToolHTML === 'function' ? jazzV3ToolHTML(ex) : ''}
@@ -467,6 +470,7 @@ function jazzExerciseHTML(id){
         </div>
         <div class="jz-count mono">${single ? (r.done ? `done ${esc(relDays(daysSince(r.done)))}` : 'not yet done')
           : `${got} of 12 keys`}${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
+        ${!single && draws && typeof jazzReadingHTML === 'function' ? jazzReadingHTML(id) : ''}
         ${jazzChecklistHTML(id)}
       </div>
       <aside class="jz-side">
@@ -496,7 +500,8 @@ function jazzExerciseHTML(id){
           <div class="jz-logs">${r.logs.slice(0, 6).map(l => `<div class="jz-log">
             <span class="mono">${esc(fmtDate(l.day, 'short'))}</span>
             <span>${l.minutes ? `${l.minutes}m` : ''} ${esc((JAZZ_QUALITY.find(q => q[0] === l.quality) || [])[1] || '')}</span>
-            <span class="faint mono">${l.keys.length ? esc(l.keys.map(jazzPretty).join(' ')) : ''}</span>
+            <span class="faint mono">${l.keys.length ? esc(l.keys.map(jazzPretty).join(' ')) : ''}${
+              l.backing ? ` · 🥁 ${esc(l.backing)}` : ''}${l.visibility && typeof JZB_SEE === 'object' ? ` · ${(JZB_SEE.find(v => v[0] === l.visibility) || [])[1] || ''}` : ''}</span>
             ${l.note ? `<p class="jz-lognote">${esc(l.note)}</p>` : ''}</div>`).join('')}</div></div>` : ''}
       </aside>
     </div>`;
@@ -588,6 +593,8 @@ function bindJazzExercise(root, id){
   draw();
   bindJazzTips(root);
   bindJazzScoreTools(root, id);
+  /* the band: a rhythm section under the exercise, in any key */
+  try { if(typeof bindJazzBacking === 'function') bindJazzBacking(root, id); } catch(e){ console.warn('the band did not bind', e); }
   $$('[data-jzint]', root).forEach(b => b.onclick = () => {
     ui.interval = b.dataset.jzint; sound('click'); rerender(); });
   root.querySelector('#jzBack').onclick = () => { ui.exId = null; navigate('#/jazz'); };
@@ -654,6 +661,9 @@ function bindJazzExercise(root, id){
 function openJazzLog(id){
   const ex = jazzExercise(id);
   const ui = jazzUi();
+  /* what the band last did here: the tempo, the keys it went through, the
+     style, how far off the page — the sitting already knows these */
+  const band = typeof jzbLogPrefill === 'function' ? jzbLogPrefill(id) : null;
   const m = openModal(`<h2>A sitting — ${esc(ex.name)}</h2>
     <div class="row" style="gap:10px">
       <label class="pd-q" style="flex:1"><span class="k">how long</span>
@@ -671,11 +681,20 @@ function openJazzLog(id){
         `<button class="jz-k${k === ui.key ? ' on' : ''}" data-jlk="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div></div>
     <label class="pd-q" style="margin-top:10px"><span class="k">notes</span>
       <textarea class="inp" rows="3" id="jlNote" placeholder="A flat and D flat still clunky. The V to I is the join that needs the work."></textarea></label>
+    ${typeof JZB_SEE === 'object' ? `<div class="row" style="gap:10px;margin-top:10px">
+      <label class="pd-q" style="flex:2"><span class="k">with the band</span>
+        <input class="inp" id="jlStyle" value="${esc(band ? band.style : '')}" placeholder="no band this time"></label>
+      <label class="pd-q" style="flex:1"><span class="k">reading</span>
+        <select class="sel" id="jlSee"><option value="">\u2014</option>${JZB_SEE.map(([k, icon]) =>
+          `<option value="${k}" ${band && band.visibility === k ? 'selected' : ''}>${icon} ${esc(JZB_SEE_SAY[k])}</option>`).join('')}</select></label>
+    </div>` : ''}
     <label class="row" style="gap:8px;margin-top:10px;align-items:center">
       <input type="checkbox" id="jlMark" checked><span>mark those keys as yours</span></label>
     <div class="row" style="justify-content:flex-end;margin-top:14px">
       <button class="btn primary" id="jlSave">Save</button></div>`, 'narrow');
-  const picked = new Set([ui.key]);
+  const picked = new Set(band && band.keys && band.keys.length ? band.keys : [ui.key]);
+  if(band){ m.querySelectorAll('[data-jlk]').forEach(b => b.classList.toggle('on', picked.has(b.dataset.jlk)));
+    if(band.bpm) m.querySelector('#jlTo').value = band.bpm; }
   m.querySelectorAll('[data-jlk]').forEach(b => b.onclick = ev => {
     ev.preventDefault();
     const k = b.dataset.jlk;
@@ -688,7 +707,10 @@ function openJazzLog(id){
       to: +m.querySelector('#jlTo').value || null,
       quality: m.querySelector('#jlQ').value,
       keys: [...picked], note: m.querySelector('#jlNote').value.trim(),
-      markKeys: m.querySelector('#jlMark').checked});
+      markKeys: m.querySelector('#jlMark').checked,
+      backing: (m.querySelector('#jlStyle') || {}).value ? m.querySelector('#jlStyle').value.trim() : null,
+      visibility: (m.querySelector('#jlSee') || {}).value || null,
+      bpm: band && band.bpm ? band.bpm : null});
     m.remove(); sound('success'); toast('Written down.'); rerender();
   };
   return m;
