@@ -119,7 +119,7 @@ function musicXmlTimeline(xml){
       const notes = [];
       perBar.push(notes);
       if(!bar) continue;
-      let pos = 0, maxPos = 0, lastOnset = 0;
+      let pos = 0, maxPos = 0, lastOnset = 0, soundEnd = 0;
       const info = barInfo[k];
       const sound = (s, at) => {
         if(!s) return;
@@ -160,6 +160,7 @@ function musicXmlTimeline(xml){
           if(!chord && !grace){ lastOnset = pos; pos += dur; }
           maxPos = Math.max(maxPos, pos, onset + dur);
           if(cue || plxKid(c, 'rest')) continue;
+          soundEnd = Math.max(soundEnd, onset + dur);
           hasNotes[k] = true;
           const pitch = plxKid(c, 'pitch'), unp = plxKid(c, 'unpitched');
           let midi = null, perc = false;
@@ -248,7 +249,30 @@ function musicXmlTimeline(xml){
       }
       if(!barSig[k]) barSig[k] = {beats, beatType};
       const nominal = beats * 4 / beatType;
-      const got = bar.implicit ? (maxPos || nominal) : Math.max(maxPos, nominal);
+      /* A bar whose voices overrun its time signature is almost always an
+         encoding slip, not music: rests left over as padding (common from
+         MuseScore), or tuplets written with their unscaled durations. Left
+         as it is, every later bar is out of step with the music. Only rests
+         over: the bar is its time signature's length. Notes over by no more
+         than a quarter of the bar: this part's bar is compressed to fit.
+         Anything longer (a cadenza written in one bar) is kept as written. */
+      let fit = maxPos;
+      if(!bar.implicit && maxPos > nominal + 1e-6){
+        if(soundEnd <= nominal + 0.02) fit = nominal;
+        else if(maxPos <= nominal * 1.26){
+          const f = nominal / maxPos;
+          notes.forEach(n => { n.at *= f; n.d *= f; });
+          harmIn[k].forEach(h => { if(h.part === pi) h.at *= f; });
+          pedalIn[pi][k].forEach(e => { e.at *= f; });
+          fit = nominal;
+        }
+      }
+      /* A first bar with less in it than its time signature is a pickup,
+         and a last bar so is its complement, whether or not the file says
+         "implicit" (exports forget to): it lasts what it holds, not a
+         silent full bar — which would put every later bar out of step */
+      const shortEdge = (k === 0 || k === nBars - 1) && maxPos > 1e-6 && maxPos < nominal - 1e-6;
+      const got = bar.implicit || shortEdge ? (maxPos || nominal) : Math.max(fit, nominal);
       barLen[k] = Math.max(barLen[k], got);
     }
     parts.push(Object.assign({id: pid, name: names[pid] || pid, staves}, instr[pid] || {}));
@@ -351,7 +375,7 @@ function musicXmlTimeline(xml){
       const s = spans.find(([a, b]) => end >= a - 0.001 && end < b);
       if(s) e.held = s[1] - e.q; });
   });
-  return {parts, measures, order, perf, events: keep, tempos, bpm: firstBpm, length: q, issues,
+  return {parts, measures, order, perf, events: keep, tempos, bpm: firstBpm, length: q, issues, barInfo,
     chords: keep.some(e => e.chord), playable: keep.some(e => !e.chord || e.auto)};
 }
 /* The places the road map cannot follow the page: a D.C. or D.S. written only
@@ -384,7 +408,7 @@ function plxRoadMap(info){
   const endAt = new Array(n).fill(null), lastEnding = new Array(n).fill(false);
   for(let k = 0; k < n; k++) if(info[k].ending){
     let j = k; while(j < n - 1 && !info[j].endingStop && !(j > k && info[j].ending)) j++;
-    if(j > k && info[j].ending && !info[j].endingStop) j--;
+    if(j > k && info[j].ending) j--;
     endAt[k] = j;
     const next = info[j + 1];
     lastEnding[k] = !(next && next.ending);

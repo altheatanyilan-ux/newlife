@@ -1,0 +1,5392 @@
+{
+ "version": 1,
+ "sampleRate": 44100,
+ "instruments": {
+  "bass-pizz": {
+   "name": "Double bass, pizzicato",
+   "family": "band",
+   "kind": "pitched",
+   "source": "1958 Otto Rubner double bass, D. Smolken",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 31,
+     "layer": 0,
+     "tune": -4,
+     "file": "bass-pizz/31_0.mp3",
+     "from": "pizz_g1_ma.wav"
+    },
+    {
+     "midi": 31,
+     "layer": 1,
+     "tune": 4,
+     "file": "bass-pizz/31_1.mp3",
+     "from": "pizz_g1_fa.wav"
+    },
+    {
+     "midi": 38,
+     "layer": 0,
+     "tune": 0,
+     "file": "bass-pizz/38_0.mp3",
+     "from": "pizz_d2_ma.wav"
+    },
+    {
+     "midi": 38,
+     "layer": 1,
+     "tune": 2,
+     "file": "bass-pizz/38_1.mp3",
+     "from": "pizz_d2_fa.wav"
+    },
+    {
+     "midi": 41,
+     "layer": 1,
+     "tune": 5,
+     "file": "bass-pizz/41_1.mp3",
+     "from": "pizz_f2_fa.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 0,
+     "tune": 0,
+     "file": "bass-pizz/45_0.mp3",
+     "from": "pizz_a2_ma.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 1,
+     "tune": -1,
+     "file": "bass-pizz/45_1.mp3",
+     "from": "pizz_a2_fa.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": 2,
+     "file": "bass-pizz/48_0.mp3",
+     "from": "pizz_c3_ma.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 1,
+     "tune": 3,
+     "file": "bass-pizz/48_1.mp3",
+     "from": "pizz_c3_fa.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": 0,
+     "file": "bass-pizz/52_0.mp3",
+     "from": "pizz_e3_ma.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 1,
+     "tune": -3,
+     "file": "bass-pizz/52_1.mp3",
+     "from": "pizz_e3_fa.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 3,
+     "file": "bass-pizz/55_0.mp3",
+     "from": "pizz_g3_ma.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 1,
+     "tune": 4,
+     "file": "bass-pizz/55_1.mp3",
+     "from": "pizz_g3_fa.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 5,
+     "file": "bass-pizz/57_0.mp3",
+     "from": "pizz_a3_ma.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": 9,
+     "file": "bass-pizz/57_1.mp3",
+     "from": "pizz_a3_fa.wav"
+    }
+   ],
+   "range": [
+    31,
+    57
+   ]
+  },
+  "piano": {
+   "name": "Grand piano (Steinway B)",
+   "family": "band",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 34,
+     "layer": 0,
+     "tune": 0,
+     "file": "piano/34_0.mp3",
+     "from": "JHPiano_NoSus_Close_A#1_vl3_rr1.wav"
+    },
+    {
+     "midi": 34,
+     "layer": 1,
+     "tune": 0,
+     "file": "piano/34_1.mp3",
+     "from": "JHPiano_NoSus_Close_A#1_vl4_rr1.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": 4,
+     "file": "piano/36_0.mp3",
+     "from": "JHPiano_NoSus_Close_C2_vl3_rr1.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 1,
+     "tune": 1,
+     "file": "piano/36_1.mp3",
+     "from": "JHPiano_NoSus_Close_C2_vl4_rr1.wav"
+    },
+    {
+     "midi": 38,
+     "layer": 0,
+     "tune": 4,
+     "file": "piano/38_0.mp3",
+     "from": "JHPiano_NoSus_Close_D2_vl3_rr1.wav"
+    },
+    {
+     "midi": 38,
+     "layer": 1,
+     "tune": 6,
+     "file": "piano/38_1.mp3",
+     "from": "JHPiano_NoSus_Close_D2_vl4_rr1.wav"
+    },
+    {
+     "midi": 42,
+     "layer": 0,
+     "tune": 3,
+     "file": "piano/42_0.mp3",
+     "from": "JHPiano_NoSus_Close_F#2_vl3_rr1.wav"
+    },
+    {
+     "midi": 42,
+     "layer": 1,
+     "tune": -1,
+     "file": "piano/42_1.mp3",
+     "from": "JHPiano_NoSus_Close_F#2_vl4_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": -1,
+     "file": "piano/46_0.mp3",
+     "from": "JHPiano_NoSus_Close_A#2_vl3_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 1,
+     "tune": 1,
+     "file": "piano/46_1.mp3",
+     "from": "JHPiano_NoSus_Close_A#2_vl4_rr1.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": 1,
+     "file": "piano/48_0.mp3",
+     "from": "JHPiano_NoSus_Close_C3_vl3_rr1.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 1,
+     "tune": 1,
+     "file": "piano/48_1.mp3",
+     "from": "JHPiano_NoSus_Close_C3_vl4_rr1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 1,
+     "file": "piano/50_0.mp3",
+     "from": "JHPiano_NoSus_Close_D3_vl3_rr1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 1,
+     "tune": 4,
+     "file": "piano/50_1.mp3",
+     "from": "JHPiano_NoSus_Close_D3_vl4_rr1.wav"
+    },
+    {
+     "midi": 54,
+     "layer": 0,
+     "tune": 2,
+     "file": "piano/54_0.mp3",
+     "from": "JHPiano_NoSus_Close_F#3_vl3_rr1.wav"
+    },
+    {
+     "midi": 54,
+     "layer": 1,
+     "tune": 6,
+     "file": "piano/54_1.mp3",
+     "from": "JHPiano_NoSus_Close_F#3_vl4_rr1.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": 6,
+     "file": "piano/58_0.mp3",
+     "from": "JHPiano_NoSus_Close_A#3_vl3_rr1.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 1,
+     "tune": 9,
+     "file": "piano/58_1.mp3",
+     "from": "JHPiano_NoSus_Close_A#3_vl4_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 6,
+     "file": "piano/60_0.mp3",
+     "from": "JHPiano_NoSus_Close_C4_vl3_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": 16,
+     "file": "piano/60_1.mp3",
+     "from": "JHPiano_NoSus_Close_C4_vl4_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 2,
+     "file": "piano/62_0.mp3",
+     "from": "JHPiano_NoSus_Close_D4_vl3_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 1,
+     "tune": 4,
+     "file": "piano/62_1.mp3",
+     "from": "JHPiano_NoSus_Close_D4_vl4_rr1.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 0,
+     "tune": 1,
+     "file": "piano/66_0.mp3",
+     "from": "JHPiano_NoSus_Close_F#4_vl3_rr1.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 1,
+     "tune": 1,
+     "file": "piano/66_1.mp3",
+     "from": "JHPiano_NoSus_Close_F#4_vl4_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 11,
+     "file": "piano/70_0.mp3",
+     "from": "JHPiano_NoSus_Close_A#4_vl3_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 1,
+     "tune": 12,
+     "file": "piano/70_1.mp3",
+     "from": "JHPiano_NoSus_Close_A#4_vl4_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 2,
+     "file": "piano/72_0.mp3",
+     "from": "JHPiano_NoSus_Close_C5_vl3_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 1,
+     "tune": 4,
+     "file": "piano/72_1.mp3",
+     "from": "JHPiano_NoSus_Close_C5_vl4_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 2,
+     "file": "piano/74_0.mp3",
+     "from": "JHPiano_NoSus_Close_D5_vl3_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 1,
+     "tune": 1,
+     "file": "piano/74_1.mp3",
+     "from": "JHPiano_NoSus_Close_D5_vl4_rr1.wav"
+    },
+    {
+     "midi": 78,
+     "layer": 0,
+     "tune": 3,
+     "file": "piano/78_0.mp3",
+     "from": "JHPiano_NoSus_Close_F#5_vl3_rr1.wav"
+    },
+    {
+     "midi": 78,
+     "layer": 1,
+     "tune": 5,
+     "file": "piano/78_1.mp3",
+     "from": "JHPiano_NoSus_Close_F#5_vl4_rr1.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 0,
+     "tune": 0,
+     "file": "piano/82_0.mp3",
+     "from": "JHPiano_NoSus_Close_A#5_vl3_rr1.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 1,
+     "tune": 1,
+     "file": "piano/82_1.mp3",
+     "from": "JHPiano_NoSus_Close_A#5_vl4_rr1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 2,
+     "file": "piano/84_0.mp3",
+     "from": "JHPiano_NoSus_Close_C6_vl3_rr1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 1,
+     "tune": 3,
+     "file": "piano/84_1.mp3",
+     "from": "JHPiano_NoSus_Close_C6_vl4_rr1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": 5,
+     "file": "piano/86_0.mp3",
+     "from": "JHPiano_NoSus_Close_D6_vl3_rr1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 1,
+     "tune": 5,
+     "file": "piano/86_1.mp3",
+     "from": "JHPiano_NoSus_Close_D6_vl4_rr1.wav"
+    },
+    {
+     "midi": 90,
+     "layer": 0,
+     "tune": -3,
+     "file": "piano/90_0.mp3",
+     "from": "JHPiano_NoSus_Close_F#6_vl3_rr1.wav"
+    },
+    {
+     "midi": 90,
+     "layer": 1,
+     "tune": -2,
+     "file": "piano/90_1.mp3",
+     "from": "JHPiano_NoSus_Close_F#6_vl4_rr1.wav"
+    },
+    {
+     "midi": 94,
+     "layer": 0,
+     "tune": -9,
+     "file": "piano/94_0.mp3",
+     "from": "JHPiano_NoSus_Close_A#6_vl3_rr1.wav"
+    },
+    {
+     "midi": 94,
+     "layer": 1,
+     "tune": -6,
+     "file": "piano/94_1.mp3",
+     "from": "JHPiano_NoSus_Close_A#6_vl4_rr1.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 10,
+     "file": "piano/96_0.mp3",
+     "from": "JHPiano_NoSus_Close_C7_vl3_rr1.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 1,
+     "tune": 10,
+     "file": "piano/96_1.mp3",
+     "from": "JHPiano_NoSus_Close_C7_vl4_rr1.wav"
+    },
+    {
+     "midi": 98,
+     "layer": 0,
+     "tune": 8,
+     "file": "piano/98_0.mp3",
+     "from": "JHPiano_NoSus_Close_D7_vl3_rr1.wav"
+    },
+    {
+     "midi": 98,
+     "layer": 1,
+     "tune": 11,
+     "file": "piano/98_1.mp3",
+     "from": "JHPiano_NoSus_Close_D7_vl4_rr1.wav"
+    }
+   ],
+   "range": [
+    34,
+    98
+   ]
+  },
+  "tenor-sax": {
+   "name": "Tenor saxophone",
+   "family": "band",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 44,
+     "layer": 0,
+     "tune": 1,
+     "file": "tenor-sax/44_0.mp3",
+     "from": "BrettTenor_NV_Main_G#1_vl2_rr1.wav"
+    },
+    {
+     "midi": 44,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/44_1.mp3",
+     "from": "BrettTenor_NV_Main_G#1_vl3_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 0,
+     "file": "tenor-sax/46_0.mp3",
+     "from": "BrettTenor_NV_Main_A#1_vl2_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 1,
+     "tune": -1,
+     "file": "tenor-sax/46_1.mp3",
+     "from": "BrettTenor_NV_Main_A#1_vl3_rr1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 0,
+     "file": "tenor-sax/50_0.mp3",
+     "from": "BrettTenor_NV_Main_D2_vl2_rr1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/50_1.mp3",
+     "from": "BrettTenor_NV_Main_D2_vl3_rr1.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": 1,
+     "file": "tenor-sax/52_0.mp3",
+     "from": "BrettTenor_NV_Main_E2_vl2_rr1.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/52_1.mp3",
+     "from": "BrettTenor_NV_Main_E2_vl3_rr1.wav"
+    },
+    {
+     "midi": 56,
+     "layer": 0,
+     "tune": 0,
+     "file": "tenor-sax/56_0.mp3",
+     "from": "BrettTenor_NV_Main_G#2_vl2_rr1.wav"
+    },
+    {
+     "midi": 56,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/56_1.mp3",
+     "from": "BrettTenor_NV_Main_G#2_vl3_rr1.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": -1,
+     "file": "tenor-sax/58_0.mp3",
+     "from": "BrettTenor_NV_Main_A#2_vl2_rr1.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/58_1.mp3",
+     "from": "BrettTenor_NV_Main_A#2_vl3_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 1,
+     "file": "tenor-sax/62_0.mp3",
+     "from": "BrettTenor_NV_Main_D3_vl2_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/62_1.mp3",
+     "from": "BrettTenor_NV_Main_D3_vl3_rr1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": 0,
+     "file": "tenor-sax/64_0.mp3",
+     "from": "BrettTenor_NV_Main_E3_vl2_rr1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/64_1.mp3",
+     "from": "BrettTenor_NV_Main_E3_vl3_rr1.wav"
+    },
+    {
+     "midi": 68,
+     "layer": 0,
+     "tune": 0,
+     "file": "tenor-sax/68_0.mp3",
+     "from": "BrettTenor_NV_Main_G#3_vl2_rr1.wav"
+    },
+    {
+     "midi": 68,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/68_1.mp3",
+     "from": "BrettTenor_NV_Main_G#3_vl3_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 0,
+     "file": "tenor-sax/70_0.mp3",
+     "from": "BrettTenor_NV_Main_A#3_vl2_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/70_1.mp3",
+     "from": "BrettTenor_NV_Main_A#3_vl3_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": -1,
+     "file": "tenor-sax/74_0.mp3",
+     "from": "BrettTenor_NV_Main_D4_vl2_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/74_1.mp3",
+     "from": "BrettTenor_NV_Main_D4_vl3_rr1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 0,
+     "file": "tenor-sax/76_0.mp3",
+     "from": "BrettTenor_NV_Main_E4_vl2_rr1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 1,
+     "tune": 0,
+     "file": "tenor-sax/76_1.mp3",
+     "from": "BrettTenor_NV_Main_E4_vl3_rr1.wav"
+    }
+   ],
+   "range": [
+    44,
+    76
+   ]
+  },
+  "tenor-sax-vib": {
+   "name": "Tenor saxophone, vibrato",
+   "family": "band",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": -4,
+     "file": "tenor-sax-vib/46_0.mp3",
+     "from": "BrettTenor_Vib_Main_A#1_var2.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 6,
+     "file": "tenor-sax-vib/50_0.mp3",
+     "from": "BrettTenor_Vib_Main_D2_var2.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": 3,
+     "file": "tenor-sax-vib/52_0.mp3",
+     "from": "BrettTenor_Vib_Main_E2_var2.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": -8,
+     "file": "tenor-sax-vib/58_0.mp3",
+     "from": "BrettTenor_Vib_Main_A#2_var4.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 12,
+     "file": "tenor-sax-vib/62_0.mp3",
+     "from": "BrettTenor_Vib_Main_D3_var1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": 13,
+     "file": "tenor-sax-vib/64_0.mp3",
+     "from": "BrettTenor_Vib_Main_E3_var3.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": -17,
+     "file": "tenor-sax-vib/70_0.mp3",
+     "from": "BrettTenor_Vib_Main_A#3_var3.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 10,
+     "file": "tenor-sax-vib/74_0.mp3",
+     "from": "BrettTenor_Vib_Main_D4_var1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 7,
+     "file": "tenor-sax-vib/76_0.mp3",
+     "from": "BrettTenor_Vib_Main_E4_var4.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": 6,
+     "file": "tenor-sax-vib/79_0.mp3",
+     "from": "BrettTenor_Vib_Main_G4_var3.wav"
+    }
+   ],
+   "range": [
+    46,
+    79
+   ]
+  },
+  "tenor-sax-stac": {
+   "name": "Tenor saxophone, staccato",
+   "family": "band",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 44,
+     "layer": 0,
+     "tune": 1,
+     "file": "tenor-sax-stac/44_0.mp3",
+     "from": "BrettTenor_Staccato_Main_G#1_vl2_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 1,
+     "file": "tenor-sax-stac/46_0.mp3",
+     "from": "BrettTenor_Staccato_Main_A#1_vl2_rr5.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": -3,
+     "file": "tenor-sax-stac/50_0.mp3",
+     "from": "BrettTenor_Staccato_Main_D2_vl2_rr4.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": 5,
+     "file": "tenor-sax-stac/52_0.mp3",
+     "from": "BrettTenor_Staccato_Main_E2_vl2_rr1.wav"
+    },
+    {
+     "midi": 56,
+     "layer": 0,
+     "tune": 4,
+     "file": "tenor-sax-stac/56_0.mp3",
+     "from": "BrettTenor_Staccato_Main_G#2_vl2_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 1,
+     "file": "tenor-sax-stac/60_0.mp3",
+     "from": "BrettTenor_Staccato_Main_C3_vl2_rr4.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -5,
+     "file": "tenor-sax-stac/62_0.mp3",
+     "from": "BrettTenor_Staccato_Main_D3_vl2_rr5.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": 4,
+     "file": "tenor-sax-stac/64_0.mp3",
+     "from": "BrettTenor_Staccato_Main_E3_vl2_rr3.wav"
+    },
+    {
+     "midi": 68,
+     "layer": 0,
+     "tune": 2,
+     "file": "tenor-sax-stac/68_0.mp3",
+     "from": "BrettTenor_Staccato_Main_G#3_vl2_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 2,
+     "file": "tenor-sax-stac/70_0.mp3",
+     "from": "BrettTenor_Staccato_Main_A#3_vl2_rr4.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": -1,
+     "file": "tenor-sax-stac/74_0.mp3",
+     "from": "BrettTenor_Staccato_Main_D4_vl2_rr2.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 3,
+     "file": "tenor-sax-stac/77_0.mp3",
+     "from": "BrettTenor_Staccato_Main_F4_vl2_rr1.wav"
+    }
+   ],
+   "range": [
+    44,
+    77
+   ]
+  },
+  "trumpet": {
+   "name": "Trumpet",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": 3,
+     "file": "trumpet/53_0.mp3",
+     "from": "Sum_SHTrumpet_sus_F2_v1_rr1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 1,
+     "tune": -2,
+     "file": "trumpet/53_1.mp3",
+     "from": "Sum_SHTrumpet_sus_F2_v3_rr1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": -3,
+     "file": "trumpet/57_0.mp3",
+     "from": "Sum_SHTrumpet_sus_A2_v1_rr1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": -5,
+     "file": "trumpet/57_1.mp3",
+     "from": "Sum_SHTrumpet_sus_A2_v3_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": -27,
+     "file": "trumpet/60_0.mp3",
+     "from": "Sum_SHTrumpet_sus_C3_v1_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": -4,
+     "file": "trumpet/60_1.mp3",
+     "from": "Sum_SHTrumpet_sus_C3_v3_rr1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet/63_0.mp3",
+     "from": "Sum_SHTrumpet_sus_D#3_v1_rr1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 1,
+     "tune": 4,
+     "file": "trumpet/63_1.mp3",
+     "from": "Sum_SHTrumpet_sus_D#3_v3_rr1.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": 8,
+     "file": "trumpet/67_0.mp3",
+     "from": "Sum_SHTrumpet_sus_G3_v1_rr1.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 1,
+     "tune": 2,
+     "file": "trumpet/67_1.mp3",
+     "from": "Sum_SHTrumpet_sus_G3_v3_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 3,
+     "file": "trumpet/70_0.mp3",
+     "from": "Sum_SHTrumpet_sus_A#3_v1_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 1,
+     "tune": 2,
+     "file": "trumpet/70_1.mp3",
+     "from": "Sum_SHTrumpet_sus_A#3_v3_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet/74_0.mp3",
+     "from": "Sum_SHTrumpet_sus_D4_v1_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 1,
+     "tune": 1,
+     "file": "trumpet/74_1.mp3",
+     "from": "Sum_SHTrumpet_sus_D4_v3_rr1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 5,
+     "file": "trumpet/77_0.mp3",
+     "from": "Sum_SHTrumpet_sus_F4_v1_rr1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 1,
+     "tune": -4,
+     "file": "trumpet/77_1.mp3",
+     "from": "Sum_SHTrumpet_sus_F4_v3_rr1.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": -3,
+     "file": "trumpet/81_0.mp3",
+     "from": "Sum_SHTrumpet_sus_A4_v1_rr1.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 1,
+     "tune": 0,
+     "file": "trumpet/81_1.mp3",
+     "from": "Sum_SHTrumpet_sus_A4_v3_rr1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 1,
+     "file": "trumpet/84_0.mp3",
+     "from": "Sum_SHTrumpet_sus_C5_v1_rr1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 1,
+     "tune": -5,
+     "file": "trumpet/84_1.mp3",
+     "from": "Sum_SHTrumpet_sus_C5_v3_rr1.wav"
+    }
+   ],
+   "range": [
+    53,
+    84
+   ]
+  },
+  "trumpet-stac": {
+   "name": "Trumpet, staccato",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": -2,
+     "file": "trumpet-stac/53_0.mp3",
+     "from": "Sum_SHTrumpet_stac_F2_v2_rr1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 3,
+     "file": "trumpet-stac/57_0.mp3",
+     "from": "Sum_SHTrumpet_stac_A2_v2_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 8,
+     "file": "trumpet-stac/60_0.mp3",
+     "from": "Sum_SHTrumpet_stac_C3_v2_rr1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet-stac/63_0.mp3",
+     "from": "Sum_SHTrumpet_stac_D#3_v2_rr1.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet-stac/65_0.mp3",
+     "from": "Sum_SHTrumpet_stac_F3_v2_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 1,
+     "file": "trumpet-stac/70_0.mp3",
+     "from": "Sum_SHTrumpet_stac_A#3_v2_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet-stac/74_0.mp3",
+     "from": "Sum_SHTrumpet_stac_D4_v2_rr1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 5,
+     "file": "trumpet-stac/77_0.mp3",
+     "from": "Sum_SHTrumpet_stac_F4_v2_rr1.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": 3,
+     "file": "trumpet-stac/81_0.mp3",
+     "from": "Sum_SHTrumpet_stac_A4_v2_rr1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 4,
+     "file": "trumpet-stac/84_0.mp3",
+     "from": "Sum_SHTrumpet_stac_C5_v2_rr1.wav"
+    }
+   ],
+   "range": [
+    53,
+    84
+   ]
+  },
+  "trumpet-harmon": {
+   "name": "Trumpet, harmon mute",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": -4,
+     "file": "trumpet-harmon/58_0.mp3",
+     "from": "Sum_SHTrumpet_harmonM-sus_A#2_v3_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 3,
+     "file": "trumpet-harmon/60_0.mp3",
+     "from": "Sum_SHTrumpet_harmonM-sus_C3_v3_rr1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet-harmon/63_0.mp3",
+     "from": "Sum_SHTrumpet_harmonM-sus_D#3_v3_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet-harmon/70_0.mp3",
+     "from": "Sum_SHTrumpet_harmonM-sus_A#3_v3_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 1,
+     "file": "trumpet-harmon/74_0.mp3",
+     "from": "Sum_SHTrumpet_harmonM-sus_D4_v3_rr1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 2,
+     "file": "trumpet-harmon/77_0.mp3",
+     "from": "Sum_SHTrumpet_harmonM-sus_F4_v3_rr1.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": 0,
+     "file": "trumpet-harmon/81_0.mp3",
+     "from": "Sum_SHTrumpet_harmonM-sus_A4_v3_rr1.wav"
+    }
+   ],
+   "range": [
+    58,
+    81
+   ]
+  },
+  "trombone": {
+   "name": "Tenor trombone",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 39,
+     "layer": 0,
+     "tune": 2,
+     "file": "trombone/39_0.mp3",
+     "from": "tenortbn_sus_D#1_v2_1.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 1,
+     "tune": -2,
+     "file": "trombone/39_1.mp3",
+     "from": "tenortbn_sus_D#1_v3_1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone/46_0.mp3",
+     "from": "tenortbn_sus_A#1_v2_1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 1,
+     "tune": 0,
+     "file": "trombone/46_1.mp3",
+     "from": "tenortbn_sus_A#1_v3_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone/50_0.mp3",
+     "from": "tenortbn_sus_D2_v2_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 1,
+     "tune": 2,
+     "file": "trombone/50_1.mp3",
+     "from": "tenortbn_sus_D2_v3_1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone/53_0.mp3",
+     "from": "tenortbn_sus_F2_v2_1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 1,
+     "tune": 0,
+     "file": "trombone/53_1.mp3",
+     "from": "tenortbn_sus_F2_v3_1.wav"
+    },
+    {
+     "midi": 61,
+     "layer": 0,
+     "tune": 3,
+     "file": "trombone/61_0.mp3",
+     "from": "tenortbn_sus_C#3_v2_1.wav"
+    },
+    {
+     "midi": 61,
+     "layer": 1,
+     "tune": 0,
+     "file": "trombone/61_1.mp3",
+     "from": "tenortbn_sus_C#3_v3_1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 0,
+     "tune": -1,
+     "file": "trombone/63_0.mp3",
+     "from": "tenortbn_sus_D#3_v2_1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 1,
+     "tune": 0,
+     "file": "trombone/63_1.mp3",
+     "from": "tenortbn_sus_D#3_v3_1.wav"
+    }
+   ],
+   "range": [
+    39,
+    63
+   ]
+  },
+  "trombone-stac": {
+   "name": "Tenor trombone, staccato",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 41,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone-stac/41_0.mp3",
+     "from": "tenortbn_stac_F1_v3_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone-stac/46_0.mp3",
+     "from": "tenortbn_stac_A#1_v3_rr1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone-stac/53_0.mp3",
+     "from": "tenortbn_stac_F2_v3_rr1.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": 1,
+     "file": "trombone-stac/58_0.mp3",
+     "from": "tenortbn_stac_A#2_v3_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone-stac/62_0.mp3",
+     "from": "tenortbn_stac_D3_v3_rr1.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": 0,
+     "file": "trombone-stac/65_0.mp3",
+     "from": "tenortbn_stac_F3_v3_rr1.wav"
+    }
+   ],
+   "range": [
+    41,
+    65
+   ]
+  },
+  "vibraphone": {
+   "name": "Vibraphone",
+   "family": "band",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": -3,
+     "file": "vibraphone/53_0.mp3",
+     "from": "Vibes_soft_F2_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 1,
+     "tune": -5,
+     "file": "vibraphone/53_1.mp3",
+     "from": "Vibes_soft_F2_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/57_0.mp3",
+     "from": "Vibes_soft_A2_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": -1,
+     "file": "vibraphone/57_1.mp3",
+     "from": "Vibes_soft_A2_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/60_0.mp3",
+     "from": "Vibes_soft_C3_v1_rr2_Main.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": -1,
+     "file": "vibraphone/60_1.mp3",
+     "from": "Vibes_soft_C3_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/64_0.mp3",
+     "from": "Vibes_soft_E3_v1_rr2_Main.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/64_1.mp3",
+     "from": "Vibes_soft_E3_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/67_0.mp3",
+     "from": "Vibes_soft_G3_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/67_1.mp3",
+     "from": "Vibes_soft_G3_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 71,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/71_0.mp3",
+     "from": "Vibes_soft_B3_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 71,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/71_1.mp3",
+     "from": "Vibes_soft_B3_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/74_0.mp3",
+     "from": "Vibes_soft_D4_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/74_1.mp3",
+     "from": "Vibes_soft_D4_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/77_0.mp3",
+     "from": "Vibes_soft_F4_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/77_1.mp3",
+     "from": "Vibes_soft_F4_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/81_0.mp3",
+     "from": "Vibes_soft_A4_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/81_1.mp3",
+     "from": "Vibes_soft_A4_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/84_0.mp3",
+     "from": "Vibes_soft_C5_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/84_1.mp3",
+     "from": "Vibes_soft_C5_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 0,
+     "tune": 0,
+     "file": "vibraphone/88_0.mp3",
+     "from": "Vibes_soft_E5_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 1,
+     "tune": 0,
+     "file": "vibraphone/88_1.mp3",
+     "from": "Vibes_soft_E5_v2_rr1_Main.wav"
+    }
+   ],
+   "range": [
+    53,
+    88
+   ]
+  },
+  "violins": {
+   "name": "Violins (section)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 1,
+     "file": "violins/55_0.mp3",
+     "from": "VlnEns_susVib_G2_v1.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 1,
+     "tune": 1,
+     "file": "violins/55_1.mp3",
+     "from": "VlnEns_susVib_G2_v2.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": -1,
+     "file": "violins/57_0.mp3",
+     "from": "VlnEns_susVib_A2_v1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": 1,
+     "file": "violins/57_1.mp3",
+     "from": "VlnEns_susVib_A2_v2.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -1,
+     "file": "violins/62_0.mp3",
+     "from": "VlnEns_susVib_D3_v1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 1,
+     "tune": -2,
+     "file": "violins/62_1.mp3",
+     "from": "VlnEns_susVib_D3_v2.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 0,
+     "tune": -4,
+     "file": "violins/66_0.mp3",
+     "from": "VlnEns_susVib_F#3_v1.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 1,
+     "tune": 11,
+     "file": "violins/66_1.mp3",
+     "from": "VlnEns_susVib_F#3_v2.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": 0,
+     "file": "violins/69_0.mp3",
+     "from": "VlnEns_susVib_A3_v1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 1,
+     "tune": 2,
+     "file": "violins/69_1.mp3",
+     "from": "VlnEns_susVib_A3_v2.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 2,
+     "file": "violins/72_0.mp3",
+     "from": "VlnEns_susVib_C4_v1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 1,
+     "tune": 0,
+     "file": "violins/72_1.mp3",
+     "from": "VlnEns_susVib_C4_v2.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": -4,
+     "file": "violins/76_0.mp3",
+     "from": "VlnEns_susVib_E4_v1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 1,
+     "tune": 1,
+     "file": "violins/76_1.mp3",
+     "from": "VlnEns_susVib_E4_v2.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": -3,
+     "file": "violins/79_0.mp3",
+     "from": "VlnEns_susVib_G4_v1.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 1,
+     "tune": 2,
+     "file": "violins/79_1.mp3",
+     "from": "VlnEns_susVib_G4_v2.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 0,
+     "tune": -1,
+     "file": "violins/83_0.mp3",
+     "from": "VlnEns_susVib_B4_v1.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 1,
+     "tune": -3,
+     "file": "violins/83_1.mp3",
+     "from": "VlnEns_susVib_B4_v2.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": -6,
+     "file": "violins/86_0.mp3",
+     "from": "VlnEns_susVib_D5_v1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 1,
+     "tune": 6,
+     "file": "violins/86_1.mp3",
+     "from": "VlnEns_susVib_D5_v2.wav"
+    }
+   ],
+   "range": [
+    55,
+    86
+   ]
+  },
+  "violins-pizz": {
+   "name": "Violins, pizzicato",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 0,
+     "file": "violins-pizz/55_0.mp3",
+     "from": "VlnEns_Pizz_G2_v2_rr1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 0,
+     "file": "violins-pizz/57_0.mp3",
+     "from": "VlnEns_Pizz_A2_v2_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -1,
+     "file": "violins-pizz/62_0.mp3",
+     "from": "VlnEns_Pizz_D3_v2_rr1.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 0,
+     "tune": 3,
+     "file": "violins-pizz/66_0.mp3",
+     "from": "VlnEns_Pizz_F#3_v2_rr1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": 12,
+     "file": "violins-pizz/69_0.mp3",
+     "from": "VlnEns_Pizz_A3_v2_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 5,
+     "file": "violins-pizz/72_0.mp3",
+     "from": "VlnEns_Pizz_C4_v2_rr1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 0,
+     "file": "violins-pizz/76_0.mp3",
+     "from": "VlnEns_Pizz_E4_v2_rr1.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": 0,
+     "file": "violins-pizz/79_0.mp3",
+     "from": "VlnEns_Pizz_G4_v2_rr1.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 0,
+     "tune": -10,
+     "file": "violins-pizz/83_0.mp3",
+     "from": "VlnEns_Pizz_B4_v2_rr1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": -34,
+     "file": "violins-pizz/86_0.mp3",
+     "from": "VlnEns_Pizz_D5_v2_rr1.wav"
+    }
+   ],
+   "range": [
+    55,
+    86
+   ]
+  },
+  "violins-spic": {
+   "name": "Violins, spiccato",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 0,
+     "file": "violins-spic/55_0.mp3",
+     "from": "VlnEns_Spic_G2_v2_rr1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": -1,
+     "file": "violins-spic/57_0.mp3",
+     "from": "VlnEns_Spic_A2_v2_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -1,
+     "file": "violins-spic/62_0.mp3",
+     "from": "VlnEns_Spic_D3_v2_rr1.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 0,
+     "tune": 2,
+     "file": "violins-spic/66_0.mp3",
+     "from": "VlnEns_Spic_F#3_v2_rr1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": 0,
+     "file": "violins-spic/69_0.mp3",
+     "from": "VlnEns_Spic_A3_v2_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": -4,
+     "file": "violins-spic/72_0.mp3",
+     "from": "VlnEns_Spic_C4_v2_rr1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": -2,
+     "file": "violins-spic/76_0.mp3",
+     "from": "VlnEns_Spic_E4_v2_rr1.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": 1,
+     "file": "violins-spic/79_0.mp3",
+     "from": "VlnEns_Spic_G4_v2_rr1.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 0,
+     "tune": -2,
+     "file": "violins-spic/83_0.mp3",
+     "from": "VlnEns_Spic_B4_v2_rr1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": 3,
+     "file": "violins-spic/86_0.mp3",
+     "from": "VlnEns_Spic_D5_v2_rr1.wav"
+    }
+   ],
+   "range": [
+    55,
+    86
+   ]
+  },
+  "violin-solo": {
+   "name": "Violin (solo)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 0,
+     "file": "violin-solo/55_0.mp3",
+     "from": "LLVln_ArcoVib_G3_p.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 1,
+     "tune": -6,
+     "file": "violin-solo/55_1.mp3",
+     "from": "LLVln_ArcoVib_G3_f.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 7,
+     "file": "violin-solo/57_0.mp3",
+     "from": "LLVln_ArcoVib_A3_p.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": 2,
+     "file": "violin-solo/57_1.mp3",
+     "from": "LLVln_ArcoVib_A3_f.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 15,
+     "file": "violin-solo/60_0.mp3",
+     "from": "LLVln_ArcoVib_C4_p.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": -31,
+     "file": "violin-solo/60_1.mp3",
+     "from": "LLVln_ArcoVib_C4_f.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": 5,
+     "file": "violin-solo/64_0.mp3",
+     "from": "LLVln_ArcoVib_E4_p.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 1,
+     "tune": 5,
+     "file": "violin-solo/64_1.mp3",
+     "from": "LLVln_ArcoVib_E4_f.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": -8,
+     "file": "violin-solo/67_0.mp3",
+     "from": "LLVln_ArcoVib_G4_p.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 1,
+     "tune": -5,
+     "file": "violin-solo/67_1.mp3",
+     "from": "LLVln_ArcoVib_G4_f.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": -8,
+     "file": "violin-solo/69_0.mp3",
+     "from": "LLVln_ArcoVib_A4_p.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 1,
+     "tune": 9,
+     "file": "violin-solo/69_1.mp3",
+     "from": "LLVln_ArcoVib_A4_f.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 7,
+     "file": "violin-solo/72_0.mp3",
+     "from": "LLVln_ArcoVib_C5_p.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 1,
+     "tune": 1,
+     "file": "violin-solo/72_1.mp3",
+     "from": "LLVln_ArcoVib_C5_f.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 9,
+     "file": "violin-solo/76_0.mp3",
+     "from": "LLVln_ArcoVib_E5_p.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 1,
+     "tune": 0,
+     "file": "violin-solo/76_1.mp3",
+     "from": "LLVln_ArcoVib_E5_f.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": -8,
+     "file": "violin-solo/79_0.mp3",
+     "from": "LLVln_ArcoVib_G5_p.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 1,
+     "tune": 5,
+     "file": "violin-solo/79_1.mp3",
+     "from": "LLVln_ArcoVib_G5_f.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": 5,
+     "file": "violin-solo/81_0.mp3",
+     "from": "LLVln_ArcoVib_A5_p.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 1,
+     "tune": 10,
+     "file": "violin-solo/81_1.mp3",
+     "from": "LLVln_ArcoVib_A5_f.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": -8,
+     "file": "violin-solo/84_0.mp3",
+     "from": "LLVln_ArcoVib_C6_p.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 1,
+     "tune": 0,
+     "file": "violin-solo/84_1.mp3",
+     "from": "LLVln_ArcoVib_C6_f.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 0,
+     "tune": 0,
+     "file": "violin-solo/88_0.mp3",
+     "from": "LLVln_ArcoVib_E6_p.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 1,
+     "tune": -3,
+     "file": "violin-solo/88_1.mp3",
+     "from": "LLVln_ArcoVib_E6_f.wav"
+    },
+    {
+     "midi": 91,
+     "layer": 0,
+     "tune": 0,
+     "file": "violin-solo/91_0.mp3",
+     "from": "LLVln_ArcoVib_G6_p.wav"
+    },
+    {
+     "midi": 91,
+     "layer": 1,
+     "tune": -34,
+     "file": "violin-solo/91_1.mp3",
+     "from": "LLVln_ArcoVib_G6_f.wav"
+    },
+    {
+     "midi": 93,
+     "layer": 0,
+     "tune": 0,
+     "file": "violin-solo/93_0.mp3",
+     "from": "LLVln_ArcoVib_A6_p.wav"
+    },
+    {
+     "midi": 93,
+     "layer": 1,
+     "tune": 7,
+     "file": "violin-solo/93_1.mp3",
+     "from": "LLVln_ArcoVib_A6_f.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 6,
+     "file": "violin-solo/96_0.mp3",
+     "from": "LLVln_ArcoVib_C7_p.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 1,
+     "tune": 0,
+     "file": "violin-solo/96_1.mp3",
+     "from": "LLVln_ArcoVib_C7_f.wav"
+    }
+   ],
+   "range": [
+    55,
+    96
+   ]
+  },
+  "violas": {
+   "name": "Violas (section)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": -1,
+     "file": "violas/48_0.mp3",
+     "from": "ViolaEns_susvib_C2_v1_1.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 1,
+     "tune": 0,
+     "file": "violas/48_1.mp3",
+     "from": "ViolaEns_susvib_C2_v2_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": -2,
+     "file": "violas/50_0.mp3",
+     "from": "ViolaEns_susvib_D2_v1_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 1,
+     "tune": 3,
+     "file": "violas/50_1.mp3",
+     "from": "ViolaEns_susvib_D2_v2_1.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 0,
+     "file": "violas/55_0.mp3",
+     "from": "ViolaEns_susvib_G2_v1_1.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 1,
+     "tune": -6,
+     "file": "violas/55_1.mp3",
+     "from": "ViolaEns_susvib_G2_v2_1.wav"
+    },
+    {
+     "midi": 59,
+     "layer": 0,
+     "tune": 0,
+     "file": "violas/59_0.mp3",
+     "from": "ViolaEns_susvib_B2_v1_1.wav"
+    },
+    {
+     "midi": 59,
+     "layer": 1,
+     "tune": 4,
+     "file": "violas/59_1.mp3",
+     "from": "ViolaEns_susvib_B2_v2_1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -6,
+     "file": "violas/62_0.mp3",
+     "from": "ViolaEns_susvib_D3_v1_1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 1,
+     "tune": -7,
+     "file": "violas/62_1.mp3",
+     "from": "ViolaEns_susvib_D3_v2_1.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": -2,
+     "file": "violas/65_0.mp3",
+     "from": "ViolaEns_susvib_F3_v1_1.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 1,
+     "tune": 13,
+     "file": "violas/65_1.mp3",
+     "from": "ViolaEns_susvib_F3_v2_1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": -3,
+     "file": "violas/69_0.mp3",
+     "from": "ViolaEns_susvib_A3_v1_1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 1,
+     "tune": -3,
+     "file": "violas/69_1.mp3",
+     "from": "ViolaEns_susvib_A3_v2_1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": -2,
+     "file": "violas/72_0.mp3",
+     "from": "ViolaEns_susvib_C4_v1_1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 1,
+     "tune": 0,
+     "file": "violas/72_1.mp3",
+     "from": "ViolaEns_susvib_C4_v2_1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 2,
+     "file": "violas/76_0.mp3",
+     "from": "ViolaEns_susvib_E4_v1_1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 1,
+     "tune": -12,
+     "file": "violas/76_1.mp3",
+     "from": "ViolaEns_susvib_E4_v2_1.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": -5,
+     "file": "violas/79_0.mp3",
+     "from": "ViolaEns_susvib_G4_v1_1.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 1,
+     "tune": -14,
+     "file": "violas/79_1.mp3",
+     "from": "ViolaEns_susvib_G4_v2_1.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 0,
+     "tune": 4,
+     "file": "violas/83_0.mp3",
+     "from": "ViolaEns_susvib_B4_v1_1.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 1,
+     "tune": 7,
+     "file": "violas/83_1.mp3",
+     "from": "ViolaEns_susvib_B4_v2_1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": 2,
+     "file": "violas/86_0.mp3",
+     "from": "ViolaEns_susvib_D5_v1_1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 1,
+     "tune": -1,
+     "file": "violas/86_1.mp3",
+     "from": "ViolaEns_susvib_D5_v2_1.wav"
+    }
+   ],
+   "range": [
+    48,
+    86
+   ]
+  },
+  "violas-pizz": {
+   "name": "Violas, pizzicato",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": 0,
+     "file": "violas-pizz/48_0.mp3",
+     "from": "ViolaEns_pizz_C2_v2_rr1.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": 0,
+     "file": "violas-pizz/52_0.mp3",
+     "from": "ViolaEns_pizz_E2_v2_rr1.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": -1,
+     "file": "violas-pizz/55_0.mp3",
+     "from": "ViolaEns_pizz_G2_v2_rr1.wav"
+    },
+    {
+     "midi": 59,
+     "layer": 0,
+     "tune": -3,
+     "file": "violas-pizz/59_0.mp3",
+     "from": "ViolaEns_pizz_B2_v2_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -1,
+     "file": "violas-pizz/62_0.mp3",
+     "from": "ViolaEns_pizz_D3_v2_rr1.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": 16,
+     "file": "violas-pizz/65_0.mp3",
+     "from": "ViolaEns_pizz_F3_v2_rr1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": -13,
+     "file": "violas-pizz/69_0.mp3",
+     "from": "ViolaEns_pizz_A3_v2_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 10,
+     "file": "violas-pizz/72_0.mp3",
+     "from": "ViolaEns_pizz_C4_v2_rr1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 3,
+     "file": "violas-pizz/76_0.mp3",
+     "from": "ViolaEns_pizz_E4_v2_rr1.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": -9,
+     "file": "violas-pizz/79_0.mp3",
+     "from": "ViolaEns_pizz_G4_v2_rr1.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 0,
+     "tune": -9,
+     "file": "violas-pizz/83_0.mp3",
+     "from": "ViolaEns_pizz_B4_v2_rr1.wav"
+    }
+   ],
+   "range": [
+    48,
+    83
+   ]
+  },
+  "celli": {
+   "name": "Cellos (section)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": 0,
+     "file": "celli/36_0.mp3",
+     "from": "susvib_C1_v1_1.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 1,
+     "tune": 0,
+     "file": "celli/36_1.mp3",
+     "from": "susvib_C1_v3_1.wav"
+    },
+    {
+     "midi": 40,
+     "layer": 0,
+     "tune": -3,
+     "file": "celli/40_0.mp3",
+     "from": "susvib_E1_v1_1.wav"
+    },
+    {
+     "midi": 40,
+     "layer": 1,
+     "tune": -4,
+     "file": "celli/40_1.mp3",
+     "from": "susvib_E1_v3_1.wav"
+    },
+    {
+     "midi": 43,
+     "layer": 0,
+     "tune": -5,
+     "file": "celli/43_0.mp3",
+     "from": "susvib_G1_v1_1.wav"
+    },
+    {
+     "midi": 43,
+     "layer": 1,
+     "tune": -1,
+     "file": "celli/43_1.mp3",
+     "from": "susvib_G1_v3_1.wav"
+    },
+    {
+     "midi": 47,
+     "layer": 0,
+     "tune": 0,
+     "file": "celli/47_0.mp3",
+     "from": "susvib_B1_v1_1.wav"
+    },
+    {
+     "midi": 47,
+     "layer": 1,
+     "tune": 0,
+     "file": "celli/47_1.mp3",
+     "from": "susvib_B1_v3_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 4,
+     "file": "celli/50_0.mp3",
+     "from": "susvib_D2_v1_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 1,
+     "tune": 6,
+     "file": "celli/50_1.mp3",
+     "from": "susvib_D2_v3_1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": 1,
+     "file": "celli/53_0.mp3",
+     "from": "susvib_F2_v1_1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 1,
+     "tune": -2,
+     "file": "celli/53_1.mp3",
+     "from": "susvib_F2_v3_1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": -1,
+     "file": "celli/57_0.mp3",
+     "from": "susvib_A2_v1_1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": 0,
+     "file": "celli/57_1.mp3",
+     "from": "susvib_A2_v3_1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": -1,
+     "file": "celli/60_0.mp3",
+     "from": "susvib_C3_v1_1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": 11,
+     "file": "celli/60_1.mp3",
+     "from": "susvib_C3_v3_1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": -1,
+     "file": "celli/64_0.mp3",
+     "from": "susvib_E3_v1_1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 1,
+     "tune": -6,
+     "file": "celli/64_1.mp3",
+     "from": "susvib_E3_v3_1.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": 7,
+     "file": "celli/67_0.mp3",
+     "from": "susvib_G3_v1_1.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 1,
+     "tune": 1,
+     "file": "celli/67_1.mp3",
+     "from": "susvib_G3_v3_1.wav"
+    },
+    {
+     "midi": 71,
+     "layer": 0,
+     "tune": -5,
+     "file": "celli/71_0.mp3",
+     "from": "susvib_B3_v1_1.wav"
+    },
+    {
+     "midi": 71,
+     "layer": 1,
+     "tune": 7,
+     "file": "celli/71_1.mp3",
+     "from": "susvib_B3_v3_1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 4,
+     "file": "celli/74_0.mp3",
+     "from": "susvib_D4_v1_1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 1,
+     "tune": -11,
+     "file": "celli/74_1.mp3",
+     "from": "susvib_D4_v3_1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": -13,
+     "file": "celli/77_0.mp3",
+     "from": "susvib_F4_v1_1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 1,
+     "tune": -13,
+     "file": "celli/77_1.mp3",
+     "from": "susvib_F4_v3_1.wav"
+    }
+   ],
+   "range": [
+    36,
+    77
+   ]
+  },
+  "celli-pizz": {
+   "name": "Cellos, pizzicato",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": 0,
+     "file": "celli-pizz/36_0.mp3",
+     "from": "pizzT_C1_v2_RR1.wav"
+    },
+    {
+     "midi": 40,
+     "layer": 0,
+     "tune": -2,
+     "file": "celli-pizz/40_0.mp3",
+     "from": "pizzT_E1_v2_RR1.wav"
+    },
+    {
+     "midi": 43,
+     "layer": 0,
+     "tune": 1,
+     "file": "celli-pizz/43_0.mp3",
+     "from": "pizzT_G1_v2_RR1.wav"
+    },
+    {
+     "midi": 47,
+     "layer": 0,
+     "tune": 2,
+     "file": "celli-pizz/47_0.mp3",
+     "from": "pizzT_B1_v2_RR1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 7,
+     "file": "celli-pizz/50_0.mp3",
+     "from": "pizzT_D2_v2_RR1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": -1,
+     "file": "celli-pizz/53_0.mp3",
+     "from": "pizzT_F2_v2_RR1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 5,
+     "file": "celli-pizz/57_0.mp3",
+     "from": "pizzT_A2_v2_RR1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 3,
+     "file": "celli-pizz/60_0.mp3",
+     "from": "pizzT_C3_v2_RR1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": -1,
+     "file": "celli-pizz/64_0.mp3",
+     "from": "pizzT_E3_v2_RR1.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": 2,
+     "file": "celli-pizz/67_0.mp3",
+     "from": "pizzT_G3_v2_RR1.wav"
+    },
+    {
+     "midi": 71,
+     "layer": 0,
+     "tune": 3,
+     "file": "celli-pizz/71_0.mp3",
+     "from": "pizzT_B3_v2_RR1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 0,
+     "file": "celli-pizz/74_0.mp3",
+     "from": "pizzT_D4_v2_RR1.wav"
+    }
+   ],
+   "range": [
+    36,
+    74
+   ]
+  },
+  "basses": {
+   "name": "Double basses (arco)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 31,
+     "layer": 0,
+     "tune": 0,
+     "file": "basses/31_0.mp3",
+     "from": "BKCtbss_SusVib_G0_v3_rr1.wav"
+    },
+    {
+     "midi": 34,
+     "layer": 0,
+     "tune": -2,
+     "file": "basses/34_0.mp3",
+     "from": "BKCtbss_SusVib_A#0_v3_rr1.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": 0,
+     "file": "basses/36_0.mp3",
+     "from": "BKCtbss_SusVib_C1_v3_rr1.wav"
+    },
+    {
+     "midi": 40,
+     "layer": 0,
+     "tune": 1,
+     "file": "basses/40_0.mp3",
+     "from": "BKCtbss_SusVib_E1_v3_rr1.wav"
+    },
+    {
+     "midi": 42,
+     "layer": 0,
+     "tune": -3,
+     "file": "basses/42_0.mp3",
+     "from": "BKCtbss_SusVib_F#1_v3_rr1.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 0,
+     "tune": 0,
+     "file": "basses/45_0.mp3",
+     "from": "BKCtbss_SusVib_A1_v3_rr1.wav"
+    },
+    {
+     "midi": 49,
+     "layer": 0,
+     "tune": -3,
+     "file": "basses/49_0.mp3",
+     "from": "BKCtbss_SusVib_C#2_v3_rr1.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": -2,
+     "file": "basses/52_0.mp3",
+     "from": "BKCtbss_SusVib_E2_v3_rr1.wav"
+    },
+    {
+     "midi": 56,
+     "layer": 0,
+     "tune": 9,
+     "file": "basses/56_0.mp3",
+     "from": "BKCtbss_SusVib_G#2_v3_rr1.wav"
+    },
+    {
+     "midi": 59,
+     "layer": 0,
+     "tune": -1,
+     "file": "basses/59_0.mp3",
+     "from": "BKCtbss_SusVib_B2_v3_rr1.wav"
+    }
+   ],
+   "range": [
+    31,
+    59
+   ]
+  },
+  "harp": {
+   "name": "Harp",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 28,
+     "layer": 0,
+     "tune": -19,
+     "file": "harp/28_0.mp3",
+     "from": "KSHarp_E1_f.wav"
+    },
+    {
+     "midi": 31,
+     "layer": 0,
+     "tune": -21,
+     "file": "harp/31_0.mp3",
+     "from": "KSHarp_G1_mp.wav"
+    },
+    {
+     "midi": 35,
+     "layer": 0,
+     "tune": -15,
+     "file": "harp/35_0.mp3",
+     "from": "KSHarp_B1_mf.wav"
+    },
+    {
+     "midi": 38,
+     "layer": 0,
+     "tune": -5,
+     "file": "harp/38_0.mp3",
+     "from": "KSHarp_D2_mf.wav"
+    },
+    {
+     "midi": 41,
+     "layer": 0,
+     "tune": -8,
+     "file": "harp/41_0.mp3",
+     "from": "KSHarp_F2_mf.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 0,
+     "tune": -4,
+     "file": "harp/45_0.mp3",
+     "from": "KSHarp_A2_mf.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": -3,
+     "file": "harp/48_0.mp3",
+     "from": "KSHarp_C3_mf.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": -4,
+     "file": "harp/52_0.mp3",
+     "from": "KSHarp_E3_mf.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": -7,
+     "file": "harp/55_0.mp3",
+     "from": "KSHarp_G3_mf.wav"
+    },
+    {
+     "midi": 59,
+     "layer": 0,
+     "tune": -9,
+     "file": "harp/59_0.mp3",
+     "from": "KSHarp_B3_mf.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -13,
+     "file": "harp/62_0.mp3",
+     "from": "KSHarp_D4_mf.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": -2,
+     "file": "harp/65_0.mp3",
+     "from": "KSHarp_F4_mf.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": -13,
+     "file": "harp/69_0.mp3",
+     "from": "KSHarp_A4_mf.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": -13,
+     "file": "harp/72_0.mp3",
+     "from": "KSHarp_C5_mf.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": -17,
+     "file": "harp/76_0.mp3",
+     "from": "KSHarp_E5_mf.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": -7,
+     "file": "harp/79_0.mp3",
+     "from": "KSHarp_G5_mf.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 0,
+     "tune": -10,
+     "file": "harp/83_0.mp3",
+     "from": "KSHarp_B5_mf.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": -7,
+     "file": "harp/86_0.mp3",
+     "from": "KSHarp_D6_mf.wav"
+    },
+    {
+     "midi": 89,
+     "layer": 0,
+     "tune": -6,
+     "file": "harp/89_0.mp3",
+     "from": "KSHarp_F6_mf.wav"
+    },
+    {
+     "midi": 93,
+     "layer": 0,
+     "tune": -19,
+     "file": "harp/93_0.mp3",
+     "from": "KSHarp_A6_mf.wav"
+    },
+    {
+     "midi": 95,
+     "layer": 0,
+     "tune": -11,
+     "file": "harp/95_0.mp3",
+     "from": "KSHarp_B6_mf.wav"
+    },
+    {
+     "midi": 98,
+     "layer": 0,
+     "tune": -8,
+     "file": "harp/98_0.mp3",
+     "from": "KSHarp_D7_f.wav"
+    },
+    {
+     "midi": 101,
+     "layer": 0,
+     "tune": -29,
+     "file": "harp/101_0.mp3",
+     "from": "KSHarp_F7_f.wav"
+    }
+   ],
+   "range": [
+    28,
+    101
+   ]
+  },
+  "piccolo": {
+   "name": "Piccolo",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": -17,
+     "file": "piccolo/79_0.mp3",
+     "from": "piccolo_G4_sustain1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": -3,
+     "file": "piccolo/84_0.mp3",
+     "from": "piccolo_C5_sustain1.wav"
+    },
+    {
+     "midi": 91,
+     "layer": 0,
+     "tune": 8,
+     "file": "piccolo/91_0.mp3",
+     "from": "piccolo_G5_sustain1.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 7,
+     "file": "piccolo/96_0.mp3",
+     "from": "piccolo_C6_sustain1.wav"
+    },
+    {
+     "midi": 103,
+     "layer": 0,
+     "tune": 0,
+     "file": "piccolo/103_0.mp3",
+     "from": "piccolo_G6_sustain1.wav"
+    }
+   ],
+   "range": [
+    79,
+    103
+   ]
+  },
+  "flute": {
+   "name": "Flute",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": -7,
+     "file": "flute/60_0.mp3",
+     "from": "LDFlute_susvib_C3_v1_1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": -6,
+     "file": "flute/64_0.mp3",
+     "from": "LDFlute_susvib_E3_v1_1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": -4,
+     "file": "flute/69_0.mp3",
+     "from": "LDFlute_susvib_A3_v1_1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 2,
+     "file": "flute/72_0.mp3",
+     "from": "LDFlute_susvib_C4_v1_1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 5,
+     "file": "flute/76_0.mp3",
+     "from": "LDFlute_susvib_E4_v1_1.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": -5,
+     "file": "flute/81_0.mp3",
+     "from": "LDFlute_susvib_A4_v1_1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": -11,
+     "file": "flute/84_0.mp3",
+     "from": "LDFlute_susvib_C5_v1_1.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 0,
+     "tune": -1,
+     "file": "flute/88_0.mp3",
+     "from": "LDFlute_susvib_E5_v1_1.wav"
+    },
+    {
+     "midi": 93,
+     "layer": 0,
+     "tune": 0,
+     "file": "flute/93_0.mp3",
+     "from": "LDFlute_susvib_A5_v1_1.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 1,
+     "file": "flute/96_0.mp3",
+     "from": "LDFlute_susvib_C6_v1_1.wav"
+    }
+   ],
+   "range": [
+    60,
+    96
+   ]
+  },
+  "flute-stac": {
+   "name": "Flute, staccato",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": 6,
+     "file": "flute-stac/69_0.mp3",
+     "from": "LDFlute_stac_A3_v3_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 7,
+     "file": "flute-stac/72_0.mp3",
+     "from": "LDFlute_stac_C4_v3_rr1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 6,
+     "file": "flute-stac/76_0.mp3",
+     "from": "LDFlute_stac_E4_v3_rr1.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": 6,
+     "file": "flute-stac/81_0.mp3",
+     "from": "LDFlute_stac_A4_v3_rr1.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 6,
+     "file": "flute-stac/84_0.mp3",
+     "from": "LDFlute_stac_C5_v3_rr1.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 0,
+     "tune": -1,
+     "file": "flute-stac/88_0.mp3",
+     "from": "LDFlute_stac_E5_v3_rr1.wav"
+    },
+    {
+     "midi": 93,
+     "layer": 0,
+     "tune": 1,
+     "file": "flute-stac/93_0.mp3",
+     "from": "LDFlute_stac_A5_v3_rr1.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 1,
+     "file": "flute-stac/96_0.mp3",
+     "from": "LDFlute_stac_C6_v2_rr1.wav"
+    }
+   ],
+   "range": [
+    69,
+    96
+   ]
+  },
+  "oboe": {
+   "name": "Oboe",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": 3,
+     "file": "oboe/58_0.mp3",
+     "from": "Oboe_Vib_A#2_v1_Main.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 1,
+     "tune": 1,
+     "file": "oboe/58_1.mp3",
+     "from": "Oboe_Vib_A#2_v3_Main.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -2,
+     "file": "oboe/62_0.mp3",
+     "from": "Oboe_Vib_D3_v1_Main.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 1,
+     "tune": -2,
+     "file": "oboe/62_1.mp3",
+     "from": "Oboe_Vib_D3_v3_Main.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": -3,
+     "file": "oboe/65_0.mp3",
+     "from": "Oboe_Vib_F3_v1_Main.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 1,
+     "tune": -5,
+     "file": "oboe/65_1.mp3",
+     "from": "Oboe_Vib_F3_v3_Main.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": -5,
+     "file": "oboe/70_0.mp3",
+     "from": "Oboe_Vib_A#3_v1_Main.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 1,
+     "tune": -7,
+     "file": "oboe/70_1.mp3",
+     "from": "Oboe_Vib_A#3_v3_Main.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": -3,
+     "file": "oboe/74_0.mp3",
+     "from": "Oboe_Vib_D4_v1_Main.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 1,
+     "tune": -1,
+     "file": "oboe/74_1.mp3",
+     "from": "Oboe_Vib_D4_v3_Main.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": -6,
+     "file": "oboe/77_0.mp3",
+     "from": "Oboe_Vib_F4_v1_Main.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 1,
+     "tune": 0,
+     "file": "oboe/77_1.mp3",
+     "from": "Oboe_Vib_F4_v3_Main.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 0,
+     "tune": -15,
+     "file": "oboe/82_0.mp3",
+     "from": "Oboe_Vib_A#4_v1_Main.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 1,
+     "tune": -12,
+     "file": "oboe/82_1.mp3",
+     "from": "Oboe_Vib_A#4_v3_Main.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": -7,
+     "file": "oboe/86_0.mp3",
+     "from": "Oboe_Vib_D5_v1_Main.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 1,
+     "tune": -16,
+     "file": "oboe/86_1.mp3",
+     "from": "Oboe_Vib_D5_v3_Main.wav"
+    },
+    {
+     "midi": 89,
+     "layer": 0,
+     "tune": -10,
+     "file": "oboe/89_0.mp3",
+     "from": "Oboe_Vib_F5_v1_Main.wav"
+    },
+    {
+     "midi": 89,
+     "layer": 1,
+     "tune": -11,
+     "file": "oboe/89_1.mp3",
+     "from": "Oboe_Vib_F5_v3_Main.wav"
+    }
+   ],
+   "range": [
+    58,
+    89
+   ]
+  },
+  "oboe-stac": {
+   "name": "Oboe, staccato",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": 2,
+     "file": "oboe-stac/58_0.mp3",
+     "from": "Oboe_Stacc_A#2_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 0,
+     "file": "oboe-stac/62_0.mp3",
+     "from": "Oboe_Stacc_D3_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": 1,
+     "file": "oboe-stac/65_0.mp3",
+     "from": "Oboe_Stacc_F3_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 0,
+     "file": "oboe-stac/70_0.mp3",
+     "from": "Oboe_Stacc_A#3_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 1,
+     "file": "oboe-stac/74_0.mp3",
+     "from": "Oboe_Stacc_D4_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 0,
+     "file": "oboe-stac/77_0.mp3",
+     "from": "Oboe_Stacc_F4_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 0,
+     "tune": 3,
+     "file": "oboe-stac/82_0.mp3",
+     "from": "Oboe_Stacc_A#4_v2_rr1_Main.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": -1,
+     "file": "oboe-stac/86_0.mp3",
+     "from": "Oboe_Stacc_D5_v1_rr1_Main.wav"
+    },
+    {
+     "midi": 89,
+     "layer": 0,
+     "tune": 18,
+     "file": "oboe-stac/89_0.mp3",
+     "from": "Oboe_Stacc_F5_v2_rr1_Main.wav"
+    }
+   ],
+   "range": [
+    58,
+    89
+   ]
+  },
+  "clarinet": {
+   "name": "Clarinet",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 4,
+     "file": "clarinet/50_0.mp3",
+     "from": "DCClar_susLong_D2_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 1,
+     "tune": 5,
+     "file": "clarinet/50_1.mp3",
+     "from": "DCClar_susLong_D2_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": 1,
+     "file": "clarinet/53_0.mp3",
+     "from": "DCClar_susLong_F2_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 1,
+     "tune": 3,
+     "file": "clarinet/53_1.mp3",
+     "from": "DCClar_susLong_F2_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": 1,
+     "file": "clarinet/58_0.mp3",
+     "from": "DCClar_susLong_A#2_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 1,
+     "tune": 1,
+     "file": "clarinet/58_1.mp3",
+     "from": "DCClar_susLong_A#2_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 3,
+     "file": "clarinet/62_0.mp3",
+     "from": "DCClar_susLong_D3_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 1,
+     "tune": 5,
+     "file": "clarinet/62_1.mp3",
+     "from": "DCClar_susLong_D3_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": 7,
+     "file": "clarinet/65_0.mp3",
+     "from": "DCClar_susLong_F3_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 1,
+     "tune": 2,
+     "file": "clarinet/65_1.mp3",
+     "from": "DCClar_susLong_F3_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 3,
+     "file": "clarinet/70_0.mp3",
+     "from": "DCClar_susLong_A#3_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 1,
+     "tune": 2,
+     "file": "clarinet/70_1.mp3",
+     "from": "DCClar_susLong_A#3_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 3,
+     "file": "clarinet/74_0.mp3",
+     "from": "DCClar_susLong_D4_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 1,
+     "tune": 3,
+     "file": "clarinet/74_1.mp3",
+     "from": "DCClar_susLong_D4_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 5,
+     "file": "clarinet/77_0.mp3",
+     "from": "DCClar_susLong_F4_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 1,
+     "tune": 2,
+     "file": "clarinet/77_1.mp3",
+     "from": "DCClar_susLong_F4_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 0,
+     "tune": 4,
+     "file": "clarinet/82_0.mp3",
+     "from": "DCClar_susLong_A#4_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 1,
+     "tune": 3,
+     "file": "clarinet/82_1.mp3",
+     "from": "DCClar_susLong_A#4_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": 7,
+     "file": "clarinet/86_0.mp3",
+     "from": "DCClar_susLong_D5_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 1,
+     "tune": 0,
+     "file": "clarinet/86_1.mp3",
+     "from": "DCClar_susLong_D5_v3_rr1_sum.wav"
+    },
+    {
+     "midi": 90,
+     "layer": 0,
+     "tune": 0,
+     "file": "clarinet/90_0.mp3",
+     "from": "DCClar_susLong_F#5_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 90,
+     "layer": 1,
+     "tune": 0,
+     "file": "clarinet/90_1.mp3",
+     "from": "DCClar_susLong_F#5_v3_rr1_sum.wav"
+    }
+   ],
+   "range": [
+    50,
+    90
+   ]
+  },
+  "clarinet-stac": {
+   "name": "Clarinet, staccato",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": -32,
+     "file": "clarinet-stac/50_0.mp3",
+     "from": "DCClar_stac_D2_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": -29,
+     "file": "clarinet-stac/53_0.mp3",
+     "from": "DCClar_stac_F2_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": -41,
+     "file": "clarinet-stac/58_0.mp3",
+     "from": "DCClar_stac_A#2_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -30,
+     "file": "clarinet-stac/62_0.mp3",
+     "from": "DCClar_stac_D3_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": -33,
+     "file": "clarinet-stac/65_0.mp3",
+     "from": "DCClar_stac_F3_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": -7,
+     "file": "clarinet-stac/70_0.mp3",
+     "from": "DCClar_stac_A#3_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": -18,
+     "file": "clarinet-stac/74_0.mp3",
+     "from": "DCClar_stac_D4_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": -24,
+     "file": "clarinet-stac/77_0.mp3",
+     "from": "DCClar_stac_F4_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 0,
+     "tune": -7,
+     "file": "clarinet-stac/82_0.mp3",
+     "from": "DCClar_stac_A#4_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": -2,
+     "file": "clarinet-stac/86_0.mp3",
+     "from": "DCClar_stac_D5_v2_rr1_sum.wav"
+    },
+    {
+     "midi": 89,
+     "layer": 0,
+     "tune": -1,
+     "file": "clarinet-stac/89_0.mp3",
+     "from": "DCClar_stac_F5_v2_rr1_sum.wav"
+    }
+   ],
+   "range": [
+    50,
+    89
+   ]
+  },
+  "bassoon": {
+   "name": "Bassoon",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 34,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon/34_0.mp3",
+     "from": "PSBassoon_A#0_v1_1.wav"
+    },
+    {
+     "midi": 34,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/34_1.mp3",
+     "from": "PSBassoon_A#0_v2_1.wav"
+    },
+    {
+     "midi": 37,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon/37_0.mp3",
+     "from": "PSBassoon_C#1_v1_1.wav"
+    },
+    {
+     "midi": 37,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/37_1.mp3",
+     "from": "PSBassoon_C#1_v2_1.wav"
+    },
+    {
+     "midi": 41,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon/41_0.mp3",
+     "from": "PSBassoon_F1_v1_1.wav"
+    },
+    {
+     "midi": 41,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/41_1.mp3",
+     "from": "PSBassoon_F1_v2_1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon/46_0.mp3",
+     "from": "PSBassoon_A#1_v1_1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 1,
+     "tune": 1,
+     "file": "bassoon/46_1.mp3",
+     "from": "PSBassoon_A#1_v2_1.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/48_1.mp3",
+     "from": "PSBassoon_C2_v2_1.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon/55_0.mp3",
+     "from": "PSBassoon_G2_v1_1.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 1,
+     "tune": 1,
+     "file": "bassoon/55_1.mp3",
+     "from": "PSBassoon_G2_v2_1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon/60_0.mp3",
+     "from": "PSBassoon_C3_v1_1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/60_1.mp3",
+     "from": "PSBassoon_C3_v2_1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon/63_0.mp3",
+     "from": "PSBassoon_D#3_v1_1.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 1,
+     "tune": 1,
+     "file": "bassoon/63_1.mp3",
+     "from": "PSBassoon_D#3_v2_1.wav"
+    },
+    {
+     "midi": 68,
+     "layer": 0,
+     "tune": -1,
+     "file": "bassoon/68_0.mp3",
+     "from": "PSBassoon_G#3_v1_1.wav"
+    },
+    {
+     "midi": 68,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/68_1.mp3",
+     "from": "PSBassoon_G#3_v2_1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon/69_0.mp3",
+     "from": "PSBassoon_A3_v1_1.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/69_1.mp3",
+     "from": "PSBassoon_A3_v2_1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon/72_0.mp3",
+     "from": "PSBassoon_C4_v1_1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 1,
+     "tune": 1,
+     "file": "bassoon/72_1.mp3",
+     "from": "PSBassoon_C4_v2_1.wav"
+    },
+    {
+     "midi": 75,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon/75_0.mp3",
+     "from": "PSBassoon_D#4_v2_1.wav"
+    },
+    {
+     "midi": 75,
+     "layer": 1,
+     "tune": 0,
+     "file": "bassoon/75_1.mp3",
+     "from": "PSBassoon_D#4_v2_1.wav"
+    }
+   ],
+   "range": [
+    34,
+    75
+   ]
+  },
+  "bassoon-stac": {
+   "name": "Bassoon, staccato",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 34,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon-stac/34_0.mp3",
+     "from": "PSBassoon_A#0_v2_rr1.wav"
+    },
+    {
+     "midi": 38,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon-stac/38_0.mp3",
+     "from": "PSBassoon_D1_v2_rr1.wav"
+    },
+    {
+     "midi": 41,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon-stac/41_0.mp3",
+     "from": "PSBassoon_F1_v2_rr1.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon-stac/45_0.mp3",
+     "from": "PSBassoon_A1_v2_rr1.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon-stac/48_0.mp3",
+     "from": "PSBassoon_C2_v2_rr1.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon-stac/52_0.mp3",
+     "from": "PSBassoon_E2_v2_rr1.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon-stac/55_0.mp3",
+     "from": "PSBassoon_G2_v2_rr1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon-stac/57_0.mp3",
+     "from": "PSBassoon_A2_v2_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 0,
+     "file": "bassoon-stac/60_0.mp3",
+     "from": "PSBassoon_C3_v2_rr1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": -1,
+     "file": "bassoon-stac/64_0.mp3",
+     "from": "PSBassoon_E3_v2_rr1.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon-stac/67_0.mp3",
+     "from": "PSBassoon_G3_v2_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 1,
+     "file": "bassoon-stac/72_0.mp3",
+     "from": "PSBassoon_C4_v2_rr1.wav"
+    }
+   ],
+   "range": [
+    34,
+    72
+   ]
+  },
+  "horn": {
+   "name": "French horn",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 33,
+     "layer": 0,
+     "tune": -9,
+     "file": "horn/33_0.mp3",
+     "from": "MOHorn_sus_A0_v1_1.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": 0,
+     "file": "horn/36_0.mp3",
+     "from": "MOHorn_sus_C1_v2_1.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 1,
+     "tune": -8,
+     "file": "horn/36_1.mp3",
+     "from": "MOHorn_sus_C1_v3_1.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 0,
+     "tune": 1,
+     "file": "horn/39_0.mp3",
+     "from": "MOHorn_sus_D#1_v2_1.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 1,
+     "tune": -9,
+     "file": "horn/39_1.mp3",
+     "from": "MOHorn_sus_D#1_v3_1.wav"
+    },
+    {
+     "midi": 43,
+     "layer": 0,
+     "tune": 11,
+     "file": "horn/43_0.mp3",
+     "from": "MOHorn_sus_G1_v2_1.wav"
+    },
+    {
+     "midi": 43,
+     "layer": 1,
+     "tune": 2,
+     "file": "horn/43_1.mp3",
+     "from": "MOHorn_sus_G1_v3_1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 3,
+     "file": "horn/46_0.mp3",
+     "from": "MOHorn_sus_A#1_v2_1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 1,
+     "tune": -4,
+     "file": "horn/46_1.mp3",
+     "from": "MOHorn_sus_A#1_v3_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": -4,
+     "file": "horn/50_0.mp3",
+     "from": "MOHorn_sus_D2_v2_1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 1,
+     "tune": 7,
+     "file": "horn/50_1.mp3",
+     "from": "MOHorn_sus_D2_v4_1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": -5,
+     "file": "horn/53_0.mp3",
+     "from": "MOHorn_sus_F2_v2_1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 1,
+     "tune": -8,
+     "file": "horn/53_1.mp3",
+     "from": "MOHorn_sus_F2_v3_1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 1,
+     "file": "horn/57_0.mp3",
+     "from": "MOHorn_sus_A2_v2_1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": -4,
+     "file": "horn/57_1.mp3",
+     "from": "MOHorn_sus_A2_v3_1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": -1,
+     "file": "horn/60_0.mp3",
+     "from": "MOHorn_sus_C3_v2_1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": -6,
+     "file": "horn/60_1.mp3",
+     "from": "MOHorn_sus_C3_v4_1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 5,
+     "file": "horn/74_0.mp3",
+     "from": "MOHorn_sus_D4_v1_1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 1,
+     "file": "horn/77_0.mp3",
+     "from": "MOHorn_sus_F4_v1_1.wav"
+    }
+   ],
+   "range": [
+    33,
+    77
+   ]
+  },
+  "horn-stac": {
+   "name": "French horn, staccato",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 33,
+     "layer": 0,
+     "tune": 0,
+     "file": "horn-stac/33_0.mp3",
+     "from": "MOHorn_stac_A0_v1_rr1.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": -31,
+     "file": "horn-stac/36_0.mp3",
+     "from": "MOHorn_stac_C1_v2_rr1.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 0,
+     "tune": 0,
+     "file": "horn-stac/39_0.mp3",
+     "from": "MOHorn_stac_D#1_v2_rr1.wav"
+    },
+    {
+     "midi": 43,
+     "layer": 0,
+     "tune": -5,
+     "file": "horn-stac/43_0.mp3",
+     "from": "MOHorn_stac_G1_v2_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": -1,
+     "file": "horn-stac/46_0.mp3",
+     "from": "MOHorn_stac_A#1_v2_rr1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 1,
+     "file": "horn-stac/50_0.mp3",
+     "from": "MOHorn_stac_D2_v2_rr1.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": 1,
+     "file": "horn-stac/53_0.mp3",
+     "from": "MOHorn_stac_F2_v2_rr1.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": -2,
+     "file": "horn-stac/57_0.mp3",
+     "from": "MOHorn_stac_A2_v2_rr1.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 18,
+     "file": "horn-stac/60_0.mp3",
+     "from": "MOHorn_stac_C3_v2_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 2,
+     "file": "horn-stac/74_0.mp3",
+     "from": "MOHorn_stac_D4_v2_rr1.wav"
+    },
+    {
+     "midi": 77,
+     "layer": 0,
+     "tune": 0,
+     "file": "horn-stac/77_0.mp3",
+     "from": "MOHorn_stac_F4_v2_rr1.wav"
+    }
+   ],
+   "range": [
+    33,
+    77
+   ]
+  },
+  "tuba": {
+   "name": "Tuba",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 29,
+     "layer": 0,
+     "tune": -33,
+     "file": "tuba/29_0.mp3",
+     "from": "Tuba3_sus_F0_v1_rr1_Mid.wav"
+    },
+    {
+     "midi": 34,
+     "layer": 0,
+     "tune": -7,
+     "file": "tuba/34_0.mp3",
+     "from": "Tuba3_sus_A#0_v2_rr1_Mid.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 0,
+     "tune": -2,
+     "file": "tuba/39_0.mp3",
+     "from": "Tuba3_sus_D#1_v2_rr1_Mid.wav"
+    },
+    {
+     "midi": 41,
+     "layer": 0,
+     "tune": 1,
+     "file": "tuba/41_0.mp3",
+     "from": "Tuba3_sus_F1_v2_rr1_Mid.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 4,
+     "file": "tuba/46_0.mp3",
+     "from": "Tuba3_sus_A#1_v2_rr1_Mid.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": -5,
+     "file": "tuba/50_0.mp3",
+     "from": "Tuba3_sus_D2_v2_rr1_Mid.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": -7,
+     "file": "tuba/53_0.mp3",
+     "from": "Tuba3_sus_F2_v2_rr1_Mid.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": 4,
+     "file": "tuba/58_0.mp3",
+     "from": "Tuba3_sus_A#2_v2_rr1_Mid.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": -4,
+     "file": "tuba/62_0.mp3",
+     "from": "Tuba3_sus_D3_v1_rr1_Mid.wav"
+    }
+   ],
+   "range": [
+    29,
+    62
+   ]
+  },
+  "tuba-stac": {
+   "name": "Tuba, staccato",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 34,
+     "layer": 0,
+     "tune": -13,
+     "file": "tuba-stac/34_0.mp3",
+     "from": "Tuba3_stac_A#0_v2_rr1_Sum.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 0,
+     "tune": 1,
+     "file": "tuba-stac/39_0.mp3",
+     "from": "Tuba3_stac_D#1_v2_rr1_Sum.wav"
+    },
+    {
+     "midi": 41,
+     "layer": 0,
+     "tune": -4,
+     "file": "tuba-stac/41_0.mp3",
+     "from": "Tuba3_stac_F1_v2_rr1_Sum.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": -9,
+     "file": "tuba-stac/46_0.mp3",
+     "from": "Tuba3_stac_A#1_v2_rr1_Sum.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 1,
+     "file": "tuba-stac/50_0.mp3",
+     "from": "Tuba3_stac_D2_v2_rr1_Sum.wav"
+    },
+    {
+     "midi": 53,
+     "layer": 0,
+     "tune": 0,
+     "file": "tuba-stac/53_0.mp3",
+     "from": "Tuba3_stac_F2_v2_rr1_Sum.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": -10,
+     "file": "tuba-stac/58_0.mp3",
+     "from": "Tuba3_stac_A#2_v2_rr1_Sum.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 4,
+     "file": "tuba-stac/62_0.mp3",
+     "from": "Tuba3_stac_D3_v2_rr1_Sum.wav"
+    }
+   ],
+   "range": [
+    34,
+    62
+   ]
+  },
+  "organ": {
+   "name": "Pipe organ",
+   "family": "keys",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 24,
+     "layer": 0,
+     "tune": 2,
+     "file": "organ/24_0.mp3",
+     "from": "Rode_Man3Open_01.wav"
+    },
+    {
+     "midi": 27,
+     "layer": 0,
+     "tune": 4,
+     "file": "organ/27_0.mp3",
+     "from": "Rode_Pedal_16.wav"
+    },
+    {
+     "midi": 30,
+     "layer": 0,
+     "tune": 1,
+     "file": "organ/30_0.mp3",
+     "from": "Rode_Man3Open_07.wav"
+    },
+    {
+     "midi": 33,
+     "layer": 0,
+     "tune": 0,
+     "file": "organ/33_0.mp3",
+     "from": "Rode_Man3Open_10.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": 2,
+     "file": "organ/36_0.mp3",
+     "from": "Rode_Man3Open_13.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 0,
+     "tune": 5,
+     "file": "organ/39_0.mp3",
+     "from": "Rode_Man3Open_04.wav"
+    },
+    {
+     "midi": 42,
+     "layer": 0,
+     "tune": 3,
+     "file": "organ/42_0.mp3",
+     "from": "Rode_Man3Open_19.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 0,
+     "tune": 0,
+     "file": "organ/45_0.mp3",
+     "from": "Rode_Man3Open_22.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": -3,
+     "file": "organ/48_0.mp3",
+     "from": "Rode_Pedal_25.wav"
+    },
+    {
+     "midi": 51,
+     "layer": 0,
+     "tune": -1,
+     "file": "organ/51_0.mp3",
+     "from": "Rode_Pedal_28.wav"
+    },
+    {
+     "midi": 54,
+     "layer": 0,
+     "tune": -1,
+     "file": "organ/54_0.mp3",
+     "from": "Rode_Man3Open_31.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": -2,
+     "file": "organ/60_0.mp3",
+     "from": "Rode_Man3Open_25.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 0,
+     "tune": -4,
+     "file": "organ/63_0.mp3",
+     "from": "Rode_Man3Open_28.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": -1,
+     "file": "organ/69_0.mp3",
+     "from": "Rode_Man3Open_34.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": -1,
+     "file": "organ/72_0.mp3",
+     "from": "Rode_Man3Open_49.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": -3,
+     "file": "organ/74_0.mp3",
+     "from": "Rode_Man3Open_58.wav"
+    },
+    {
+     "midi": 78,
+     "layer": 0,
+     "tune": 1,
+     "file": "organ/78_0.mp3",
+     "from": "Rode_Man3Open_43.wav"
+    },
+    {
+     "midi": 87,
+     "layer": 0,
+     "tune": -2,
+     "file": "organ/87_0.mp3",
+     "from": "Rode_Man3Open_52.wav"
+    },
+    {
+     "midi": 90,
+     "layer": 0,
+     "tune": -1,
+     "file": "organ/90_0.mp3",
+     "from": "Rode_Man3Open_55.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": -8,
+     "file": "organ/96_0.mp3",
+     "from": "Rode_Man3Open_61.wav"
+    }
+   ],
+   "range": [
+    24,
+    96
+   ]
+  },
+  "harpsichord": {
+   "name": "Harpsichord",
+   "family": "keys",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 30,
+     "layer": 0,
+     "tune": 3,
+     "file": "harpsichord/30_0.mp3",
+     "from": "HarpsiRH_Low_Far_F#0_rr1.wav"
+    },
+    {
+     "midi": 32,
+     "layer": 0,
+     "tune": 1,
+     "file": "harpsichord/32_0.mp3",
+     "from": "HarpsiRH_Low_Far_G#0_rr1.wav"
+    },
+    {
+     "midi": 34,
+     "layer": 0,
+     "tune": 4,
+     "file": "harpsichord/34_0.mp3",
+     "from": "HarpsiRH_Low_Far_A#0_rr1.wav"
+    },
+    {
+     "midi": 38,
+     "layer": 0,
+     "tune": 3,
+     "file": "harpsichord/38_0.mp3",
+     "from": "HarpsiRH_Low_Far_D1_rr1.wav"
+    },
+    {
+     "midi": 42,
+     "layer": 0,
+     "tune": -1,
+     "file": "harpsichord/42_0.mp3",
+     "from": "HarpsiRH_High_Far_F#1_rr1.wav"
+    },
+    {
+     "midi": 44,
+     "layer": 0,
+     "tune": 6,
+     "file": "harpsichord/44_0.mp3",
+     "from": "HarpsiRH_High_Far_G#1_rr1.wav"
+    },
+    {
+     "midi": 46,
+     "layer": 0,
+     "tune": 10,
+     "file": "harpsichord/46_0.mp3",
+     "from": "HarpsiRH_High_Far_A#1_rr1.wav"
+    },
+    {
+     "midi": 50,
+     "layer": 0,
+     "tune": 7,
+     "file": "harpsichord/50_0.mp3",
+     "from": "HarpsiRH_Low_Far_D2_rr1.wav"
+    },
+    {
+     "midi": 52,
+     "layer": 0,
+     "tune": 3,
+     "file": "harpsichord/52_0.mp3",
+     "from": "HarpsiRH_High_Far_E2_rr1.wav"
+    },
+    {
+     "midi": 56,
+     "layer": 0,
+     "tune": 4,
+     "file": "harpsichord/56_0.mp3",
+     "from": "HarpsiRH_High_Far_G#2_rr1.wav"
+    },
+    {
+     "midi": 58,
+     "layer": 0,
+     "tune": 6,
+     "file": "harpsichord/58_0.mp3",
+     "from": "HarpsiRH_High_Far_A#2_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 2,
+     "file": "harpsichord/62_0.mp3",
+     "from": "HarpsiRH_Low_Far_D3_rr1.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": 5,
+     "file": "harpsichord/64_0.mp3",
+     "from": "HarpsiRH_High_Far_E3_rr1.wav"
+    },
+    {
+     "midi": 68,
+     "layer": 0,
+     "tune": 0,
+     "file": "harpsichord/68_0.mp3",
+     "from": "HarpsiRH_High_Far_G#3_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": 0,
+     "file": "harpsichord/70_0.mp3",
+     "from": "HarpsiRH_Low_Far_A#3_rr1.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": 0,
+     "file": "harpsichord/74_0.mp3",
+     "from": "HarpsiRH_High_Far_D4_rr1.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 0,
+     "file": "harpsichord/76_0.mp3",
+     "from": "HarpsiRH_High_Far_E4_rr1.wav"
+    },
+    {
+     "midi": 80,
+     "layer": 0,
+     "tune": 1,
+     "file": "harpsichord/80_0.mp3",
+     "from": "HarpsiRH_High_Far_G#4_rr1.wav"
+    },
+    {
+     "midi": 82,
+     "layer": 0,
+     "tune": 3,
+     "file": "harpsichord/82_0.mp3",
+     "from": "HarpsiRH_High_Far_A#4_rr1.wav"
+    },
+    {
+     "midi": 86,
+     "layer": 0,
+     "tune": -1,
+     "file": "harpsichord/86_0.mp3",
+     "from": "HarpsiRH_High_Far_D5_rr1.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 0,
+     "tune": 0,
+     "file": "harpsichord/88_0.mp3",
+     "from": "HarpsiRH_High_Far_E5_rr1.wav"
+    }
+   ],
+   "range": [
+    30,
+    88
+   ]
+  },
+  "glockenspiel": {
+   "name": "Glockenspiel",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": 3,
+     "file": "glockenspiel/79_0.mp3",
+     "from": "glock_medium_G4_01.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 10,
+     "file": "glockenspiel/84_0.mp3",
+     "from": "glock_medium_C5_01.wav"
+    },
+    {
+     "midi": 91,
+     "layer": 0,
+     "tune": 11,
+     "file": "glockenspiel/91_0.mp3",
+     "from": "glock_medium_G5_01.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 15,
+     "file": "glockenspiel/96_0.mp3",
+     "from": "glock_medium_C6_01.wav"
+    },
+    {
+     "midi": 103,
+     "layer": 0,
+     "tune": 0,
+     "file": "glockenspiel/103_0.mp3",
+     "from": "glock_medium_G6_01.wav"
+    },
+    {
+     "midi": 108,
+     "layer": 0,
+     "tune": 0,
+     "file": "glockenspiel/108_0.mp3",
+     "from": "glock_medium_C7_01.wav"
+    }
+   ],
+   "range": [
+    79,
+    108
+   ]
+  },
+  "xylophone": {
+   "name": "Xylophone",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": 11,
+     "file": "xylophone/67_0.mp3",
+     "from": "Xylo_Hard_G3_ff_01_far.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 12,
+     "file": "xylophone/72_0.mp3",
+     "from": "Xylo_Hard_C4_ff_01_far.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": 24,
+     "file": "xylophone/79_0.mp3",
+     "from": "Xylo_Hard_G4_ff_01_far.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 15,
+     "file": "xylophone/84_0.mp3",
+     "from": "Xylo_Hard_C5_ff_01_far.wav"
+    },
+    {
+     "midi": 91,
+     "layer": 0,
+     "tune": -7,
+     "file": "xylophone/91_0.mp3",
+     "from": "Xylo_Hard_G5_ff_01_far.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": -5,
+     "file": "xylophone/96_0.mp3",
+     "from": "Xylo_Hard_C6_ff_01_far.wav"
+    },
+    {
+     "midi": 103,
+     "layer": 0,
+     "tune": 0,
+     "file": "xylophone/103_0.mp3",
+     "from": "Xylo_Hard_G6_ff_01_far.wav"
+    },
+    {
+     "midi": 108,
+     "layer": 0,
+     "tune": 0,
+     "file": "xylophone/108_0.mp3",
+     "from": "Xylo_Hard_C7_ff_01_far.wav"
+    }
+   ],
+   "range": [
+    67,
+    108
+   ]
+  },
+  "marimba": {
+   "name": "Marimba",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": 4,
+     "file": "marimba/48_0.mp3",
+     "from": "Marimba_hit_Outrigger_C2_med_01.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 0,
+     "file": "marimba/55_0.mp3",
+     "from": "Marimba_hit_Outrigger_G2_med_01.wav"
+    },
+    {
+     "midi": 59,
+     "layer": 0,
+     "tune": 3,
+     "file": "marimba/59_0.mp3",
+     "from": "Marimba_hit_Outrigger_B2_med_01.wav"
+    },
+    {
+     "midi": 65,
+     "layer": 0,
+     "tune": 0,
+     "file": "marimba/65_0.mp3",
+     "from": "Marimba_hit_Outrigger_F3_med_01.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 5,
+     "file": "marimba/72_0.mp3",
+     "from": "Marimba_hit_Outrigger_C4_med_01.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": -2,
+     "file": "marimba/79_0.mp3",
+     "from": "Marimba_hit_Outrigger_G4_med_01.wav"
+    },
+    {
+     "midi": 83,
+     "layer": 0,
+     "tune": 1,
+     "file": "marimba/83_0.mp3",
+     "from": "Marimba_hit_Outrigger_B4_med_01.wav"
+    },
+    {
+     "midi": 89,
+     "layer": 0,
+     "tune": -1,
+     "file": "marimba/89_0.mp3",
+     "from": "Marimba_hit_Outrigger_F5_med_01.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 7,
+     "file": "marimba/96_0.mp3",
+     "from": "Marimba_hit_Outrigger_C6_med_01.wav"
+    }
+   ],
+   "range": [
+    48,
+    96
+   ]
+  },
+  "tubular-bells": {
+   "name": "Tubular bells",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 0,
+     "file": "tubular-bells/60_0.mp3",
+     "from": "chimes_C3_f_rr1.wav"
+    },
+    {
+     "midi": 62,
+     "layer": 0,
+     "tune": 29,
+     "file": "tubular-bells/62_0.mp3",
+     "from": "chimes_D3_ff_rr1.wav"
+    },
+    {
+     "midi": 70,
+     "layer": 0,
+     "tune": -1,
+     "file": "tubular-bells/70_0.mp3",
+     "from": "chimes_A#3_ff_rr1.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 0,
+     "file": "tubular-bells/72_0.mp3",
+     "from": "chimes_C4_ff_rr2.wav"
+    },
+    {
+     "midi": 74,
+     "layer": 0,
+     "tune": -31,
+     "file": "tubular-bells/74_0.mp3",
+     "from": "chimes_D4_ff_rr2.wav"
+    }
+   ],
+   "range": [
+    60,
+    74
+   ]
+  },
+  "timpani": {
+   "name": "Timpani",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 1,
+   "notes": [
+    {
+     "midi": 37,
+     "layer": 0,
+     "tune": 24,
+     "file": "timpani/37_0.mp3",
+     "from": "Timpani3_Hit_v3_rr1_Sum.wav"
+    },
+    {
+     "midi": 40,
+     "layer": 0,
+     "tune": -4,
+     "file": "timpani/40_0.mp3",
+     "from": "Timpani4_Hit_v3_rr1_Sum.wav"
+    }
+   ],
+   "range": [
+    37,
+    40
+   ]
+  },
+  "ride": {
+   "name": "Ride cymbal",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "ride/0_0.mp3",
+     "from": "room_ride_ride_vl1_rr1.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "ride/0_1.mp3",
+     "from": "room_ride_ride_vl1_rr2.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 2,
+     "file": "ride/0_2.mp3",
+     "from": "room_ride_ride_vl1_rr3.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "ride/1_0.mp3",
+     "from": "room_ride_ride_vl2_rr1.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "ride/1_1.mp3",
+     "from": "room_ride_ride_vl2_rr2.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 2,
+     "file": "ride/1_2.mp3",
+     "from": "room_ride_ride_vl2_rr3.flac"
+    },
+    {
+     "layer": 2,
+     "rr": 0,
+     "file": "ride/2_0.mp3",
+     "from": "room_ride_ride_vl3_rr1.flac"
+    },
+    {
+     "layer": 2,
+     "rr": 1,
+     "file": "ride/2_1.mp3",
+     "from": "room_ride_ride_vl3_rr2.flac"
+    },
+    {
+     "layer": 2,
+     "rr": 2,
+     "file": "ride/2_2.mp3",
+     "from": "room_ride_ride_vl3_rr3.flac"
+    }
+   ]
+  },
+  "ride-bell": {
+   "name": "Ride cymbal, bell",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "ride-bell/0_0.mp3",
+     "from": "room_ride_bell_vl2_rr1.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "ride-bell/0_1.mp3",
+     "from": "room_ride_bell_vl2_rr2.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "ride-bell/1_0.mp3",
+     "from": "room_ride_bell_vl3_rr1.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "ride-bell/1_1.mp3",
+     "from": "room_ride_bell_vl3_rr2.flac"
+    }
+   ]
+  },
+  "ride-swirly": {
+   "name": "Ride cymbal (second kit)",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Swirly Drums, Karoryfer Samples",
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "ride-swirly/0_0.mp3",
+     "from": "ride_vl4_rr1.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "ride-swirly/0_1.mp3",
+     "from": "ride_vl4_rr2.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 2,
+     "file": "ride-swirly/0_2.mp3",
+     "from": "ride_vl4_rr3.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "ride-swirly/1_0.mp3",
+     "from": "ride_vl9_rr1.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "ride-swirly/1_1.mp3",
+     "from": "ride_vl9_rr2.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 2,
+     "file": "ride-swirly/1_2.mp3",
+     "from": "ride_vl9_rr3.wav"
+    },
+    {
+     "layer": 2,
+     "rr": 0,
+     "file": "ride-swirly/2_0.mp3",
+     "from": "ride_vl15_rr1.wav"
+    },
+    {
+     "layer": 2,
+     "rr": 1,
+     "file": "ride-swirly/2_1.mp3",
+     "from": "ride_vl15_rr2.wav"
+    },
+    {
+     "layer": 2,
+     "rr": 2,
+     "file": "ride-swirly/2_2.mp3",
+     "from": "ride_vl15_rr3.wav"
+    }
+   ]
+  },
+  "hihat-pedal": {
+   "name": "Hi-hat, foot",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "hihat-pedal/0_0.mp3",
+     "from": "room_hh_pedal_vl2_rr1.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "hihat-pedal/0_1.mp3",
+     "from": "room_hh_pedal_vl2_rr2.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 2,
+     "file": "hihat-pedal/0_2.mp3",
+     "from": "room_hh_pedal_vl2_rr3.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "hihat-pedal/1_0.mp3",
+     "from": "room_hh_pedal_vl3_rr1.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "hihat-pedal/1_1.mp3",
+     "from": "room_hh_pedal_vl3_rr2.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 2,
+     "file": "hihat-pedal/1_2.mp3",
+     "from": "room_hh_pedal_vl3_rr3.flac"
+    }
+   ]
+  },
+  "hihat-closed": {
+   "name": "Hi-hat, closed",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "hihat-closed/0_0.mp3",
+     "from": "room_hh_closed_vl2_rr1.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "hihat-closed/0_1.mp3",
+     "from": "room_hh_closed_vl2_rr2.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 2,
+     "file": "hihat-closed/0_2.mp3",
+     "from": "room_hh_closed_vl2_rr3.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "hihat-closed/1_0.mp3",
+     "from": "room_hh_closed_vl4_rr1.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "hihat-closed/1_1.mp3",
+     "from": "room_hh_closed_vl4_rr2.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 2,
+     "file": "hihat-closed/1_2.mp3",
+     "from": "room_hh_closed_vl4_rr3.flac"
+    }
+   ]
+  },
+  "hihat-open": {
+   "name": "Hi-hat, open",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "hihat-open/0_0.mp3",
+     "from": "room_hh_open_vl2_rr1.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "hihat-open/0_1.mp3",
+     "from": "room_hh_open_vl2_rr2.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "hihat-open/1_0.mp3",
+     "from": "room_hh_open_vl4_rr1.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "hihat-open/1_1.mp3",
+     "from": "room_hh_open_vl4_rr2.flac"
+    }
+   ]
+  },
+  "kick": {
+   "name": "Bass drum (kit)",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "kick/0_0.mp3",
+     "from": "room_kick_snoff_vl2_rr1.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "kick/0_1.mp3",
+     "from": "room_kick_snoff_vl2_rr2.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 2,
+     "file": "kick/0_2.mp3",
+     "from": "room_kick_snoff_vl2_rr3.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "kick/1_0.mp3",
+     "from": "room_kick_snoff_vl3_rr1.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "kick/1_1.mp3",
+     "from": "room_kick_snoff_vl3_rr2.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 2,
+     "file": "kick/1_2.mp3",
+     "from": "room_kick_snoff_vl3_rr3.flac"
+    },
+    {
+     "layer": 2,
+     "rr": 0,
+     "file": "kick/2_0.mp3",
+     "from": "room_kick_snoff_vl4_rr1.flac"
+    },
+    {
+     "layer": 2,
+     "rr": 1,
+     "file": "kick/2_1.mp3",
+     "from": "room_kick_snoff_vl4_rr2.flac"
+    },
+    {
+     "layer": 2,
+     "rr": 2,
+     "file": "kick/2_2.mp3",
+     "from": "room_kick_snoff_vl4_rr3.flac"
+    }
+   ]
+  },
+  "snare": {
+   "name": "Snare drum",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "snare/0_0.mp3",
+     "from": "room_snare_center_vl8.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "snare/1_0.mp3",
+     "from": "room_snare_center_vl20.flac"
+    },
+    {
+     "layer": 2,
+     "rr": 0,
+     "file": "snare/2_0.mp3",
+     "from": "room_snare_center_vl36.flac"
+    }
+   ]
+  },
+  "snare-ghost": {
+   "name": "Snare drum, ghost note",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 1,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "snare-ghost/0_0.mp3",
+     "from": "room_snare_offcenter_vl1.flac"
+    }
+   ]
+  },
+  "cross-stick": {
+   "name": "Cross-stick",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "cross-stick/0_0.mp3",
+     "from": "room_snare_crossstick_vl6.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "cross-stick/1_0.mp3",
+     "from": "room_snare_crossstick_vl16.flac"
+    }
+   ]
+  },
+  "crash": {
+   "name": "Crash cymbal",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "crash/0_0.mp3",
+     "from": "room_crash_crash_vl2_rr1.flac"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "crash/0_1.mp3",
+     "from": "room_crash_crash_vl2_rr2.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "crash/1_0.mp3",
+     "from": "room_crash_crash_vl3_rr1.flac"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "crash/1_1.mp3",
+     "from": "room_crash_crash_vl3_rr2.flac"
+    }
+   ]
+  },
+  "brush-stir": {
+   "name": "Brushes, stirred on the snare",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Swirly Drums, Karoryfer Samples",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "brush-stir/0_0.mp3",
+     "from": "stir_dl2_rr1.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "brush-stir/0_1.mp3",
+     "from": "stir_dl2_rr2.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 2,
+     "file": "brush-stir/0_2.mp3",
+     "from": "stir_dl2_rr3.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "brush-stir/1_0.mp3",
+     "from": "stir_dl4_rr1.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "brush-stir/1_1.mp3",
+     "from": "stir_dl4_rr2.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 2,
+     "file": "brush-stir/1_2.mp3",
+     "from": "stir_dl4_rr3.wav"
+    }
+   ]
+  },
+  "brush-tap": {
+   "name": "Brushes, snare tap",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Swirly Drums, Karoryfer Samples",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "brush-tap/0_0.mp3",
+     "from": "stir_dl2_skin_rr1.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "brush-tap/0_1.mp3",
+     "from": "stir_dl2_skin_rr2.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 2,
+     "file": "brush-tap/0_2.mp3",
+     "from": "stir_dl2_skin_rr3.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "brush-tap/1_0.mp3",
+     "from": "stir_dl4_skin_rr1.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "brush-tap/1_1.mp3",
+     "from": "stir_dl4_skin_rr2.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 2,
+     "file": "brush-tap/1_2.mp3",
+     "from": "stir_dl4_skin_rr3.wav"
+    }
+   ]
+  },
+  "bass-drum": {
+   "name": "Bass drum (orchestral)",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "bass-drum/0_0.mp3",
+     "from": "BDrumNewhit_v3_rr1_Sum.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "bass-drum/0_1.mp3",
+     "from": "BDrumNewhit_v3_rr2_Sum.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "bass-drum/1_0.mp3",
+     "from": "BDrumNewhit_v7_rr1_Sum.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "bass-drum/1_1.mp3",
+     "from": "BDrumNewhit_v7_rr2_Sum.wav"
+    }
+   ]
+  },
+  "snare-orch": {
+   "name": "Snare drum (orchestral)",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "snare-orch/0_0.mp3",
+     "from": "Snare2-HitNS_v3_rr1_Sum.wav"
+    },
+    {
+     "layer": 0,
+     "rr": 1,
+     "file": "snare-orch/0_1.mp3",
+     "from": "Snare2-HitNS_v3_rr2_Sum.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "snare-orch/1_0.mp3",
+     "from": "Snare2-HitNS_v6_rr1_Sum.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 1,
+     "file": "snare-orch/1_1.mp3",
+     "from": "Snare2-HitNS_v6_rr2_Sum.wav"
+    }
+   ]
+  },
+  "cymbals": {
+   "name": "Clash cymbals",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "cymbals/0_0.mp3",
+     "from": "cymbal-crash1_mp_rr1.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "cymbals/1_0.mp3",
+     "from": "cymbal-crash1_ff_rr1.wav"
+    }
+   ]
+  },
+  "sus-cymbal": {
+   "name": "Suspended cymbal",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "sus-cymbal/0_0.mp3",
+     "from": "susCymb1-hitstick_mp_rr1.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "sus-cymbal/1_0.mp3",
+     "from": "susCymb1-hitstick_fff_rr1.wav"
+    }
+   ]
+  },
+  "triangle": {
+   "name": "Triangle",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "triangle/0_0.mp3",
+     "from": "Triangle3-Hit_v1_rr1_Sum.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "triangle/1_0.mp3",
+     "from": "Triangle3-Hit_v2_rr1_Sum.wav"
+    }
+   ]
+  },
+  "tambourine": {
+   "name": "Tambourine",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "layers": 2,
+   "hits": [
+    {
+     "layer": 0,
+     "rr": 0,
+     "file": "tambourine/0_0.mp3",
+     "from": "Tamb1_Hit_v1_rr1_Mid.wav"
+    },
+    {
+     "layer": 1,
+     "rr": 0,
+     "file": "tambourine/1_0.mp3",
+     "from": "Tamb1_Hit_v2_rr1_Mid.wav"
+    }
+   ]
+  }
+ }
+}

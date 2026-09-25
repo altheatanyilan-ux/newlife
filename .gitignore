@@ -4,3 +4,6 @@ node_modules/
 # runner that walks the whole smoke suite
 _*.js
 _*.sh
+
+# the recording-sync harness decodes the orchestra samples here once
+tools/.cache/

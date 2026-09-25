@@ -1,0 +1,133 @@
+{
+ "version": 1,
+ "cases": [
+  {
+   "id": "bach-846",
+   "title": "Bach — Prelude in C major, BWV 846",
+   "kind": "asap",
+   "tests": "steady arpeggios; the easiest case",
+   "score": "asap/bach-846/score.musicxml",
+   "performance": "asap/bach-846/performance.mid",
+   "annotations": "asap/bach-846/annotations.txt",
+   "scoreMidi": "asap/bach-846/score.mid",
+   "scoreAnnotations": "asap/bach-846/score_annotations.txt",
+   "source": "ASAP: Bach/Prelude/bwv_846/Shi05M"
+  },
+  {
+   "id": "chopin-10-3",
+   "title": "Chopin — Étude Op. 10 No. 3 (\"Tristesse\")",
+   "kind": "asap",
+   "tests": "lyrical rubato, a stormy middle",
+   "score": "asap/chopin-10-3/score.musicxml",
+   "performance": "asap/chopin-10-3/performance.mid",
+   "annotations": "asap/chopin-10-3/annotations.txt",
+   "scoreMidi": "asap/chopin-10-3/score.mid",
+   "scoreAnnotations": "asap/chopin-10-3/score_annotations.txt",
+   "source": "ASAP: Chopin/Etudes_op_10/3/SunMeiting08"
+  },
+  {
+   "id": "beethoven-8-2",
+   "title": "Beethoven — Sonata Op. 13 (\"Pathétique\"), ii. Adagio cantabile",
+   "kind": "asap",
+   "tests": "slow, sustained, pedalled",
+   "score": "asap/beethoven-8-2/score.musicxml",
+   "performance": "asap/beethoven-8-2/performance.mid",
+   "annotations": "asap/beethoven-8-2/annotations.txt",
+   "scoreMidi": "asap/beethoven-8-2/score.mid",
+   "scoreAnnotations": "asap/beethoven-8-2/score_annotations.txt",
+   "source": "ASAP: Beethoven/Piano_Sonatas/8-2/Na06"
+  },
+  {
+   "id": "haydn-32-1",
+   "title": "Haydn — Sonata Hob. XVI:44 (No. 32), i. — repeats taken",
+   "kind": "asap",
+   "tests": "repeats played as written",
+   "score": "asap/haydn-32-1/score.musicxml",
+   "performance": "asap/haydn-32-1/performance.mid",
+   "annotations": "asap/haydn-32-1/annotations.txt",
+   "scoreMidi": "asap/haydn-32-1/score.mid",
+   "scoreAnnotations": "asap/haydn-32-1/score_annotations.txt",
+   "source": "ASAP: Haydn/Keyboard_Sonatas/32-1/SUDBIN01"
+  },
+  {
+   "id": "haydn-32-1-norep",
+   "title": "Haydn — Sonata Hob. XVI:44 (No. 32), i. — repeats skipped",
+   "kind": "asap",
+   "tests": "the score has repeats, the pianist does not take them",
+   "score": "asap/haydn-32-1-norep/score.musicxml",
+   "performance": "asap/haydn-32-1-norep/performance.mid",
+   "annotations": "asap/haydn-32-1-norep/annotations.txt",
+   "scoreMidi": "asap/haydn-32-1-norep/score.mid",
+   "scoreAnnotations": "asap/haydn-32-1-norep/score_annotations.txt",
+   "source": "ASAP: Haydn/Keyboard_Sonatas/32-1_no_repeat/Goldberg01"
+  },
+  {
+   "id": "schubert-90-3",
+   "title": "Schubert — Impromptu Op. 90 No. 3 in G♭",
+   "kind": "asap",
+   "tests": "flowing, pedalled, a long melody over triplets",
+   "score": "asap/schubert-90-3/score.musicxml",
+   "performance": "asap/schubert-90-3/performance.mid",
+   "annotations": "asap/schubert-90-3/annotations.txt",
+   "scoreMidi": "asap/schubert-90-3/score.mid",
+   "scoreAnnotations": "asap/schubert-90-3/score_annotations.txt",
+   "source": "ASAP: Schubert/Impromptu_op.90_D.899/3/Hou06M"
+  },
+  {
+   "id": "kreisleriana-1",
+   "title": "Schumann — Kreisleriana Op. 16 No. 1",
+   "kind": "asap",
+   "tests": "fast, agitated, dense",
+   "score": "asap/kreisleriana-1/score.musicxml",
+   "performance": "asap/kreisleriana-1/performance.mid",
+   "annotations": "asap/kreisleriana-1/annotations.txt",
+   "scoreMidi": "asap/kreisleriana-1/score.mid",
+   "scoreAnnotations": "asap/kreisleriana-1/score_annotations.txt",
+   "source": "ASAP: Schumann/Kreisleriana/1/Yarden09M"
+  },
+  {
+   "id": "mozart-12-1",
+   "title": "Mozart — Sonata K. 332, i. Allegro",
+   "kind": "asap",
+   "tests": "Classical allegro, exposition repeat",
+   "score": "asap/mozart-12-1/score.musicxml",
+   "performance": "asap/mozart-12-1/performance.mid",
+   "annotations": "asap/mozart-12-1/annotations.txt",
+   "scoreMidi": "asap/mozart-12-1/score.mid",
+   "scoreAnnotations": "asap/mozart-12-1/score_annotations.txt",
+   "source": "ASAP: Mozart/Piano_Sonatas/12-1/MunA03M"
+  },
+  {
+   "id": "berceuse",
+   "title": "Chopin — Berceuse Op. 57",
+   "kind": "asap",
+   "tests": "one harmony rocking for bars on end: little for the harmony to hold on to",
+   "score": "asap/berceuse/score.musicxml",
+   "performance": "asap/berceuse/performance.mid",
+   "annotations": "asap/berceuse/annotations.txt",
+   "scoreMidi": "asap/berceuse/score.mid",
+   "scoreAnnotations": "asap/berceuse/score_annotations.txt",
+   "source": "ASAP: Chopin/Berceuse_op_57/Tario07M"
+  },
+  {
+   "id": "debussy-reflets",
+   "title": "Debussy — Images I, \"Reflets dans l'eau\"",
+   "kind": "asap",
+   "tests": "free tempo, washes of pedal: the hardest case",
+   "score": "asap/debussy-reflets/score.musicxml",
+   "performance": "asap/debussy-reflets/performance.mid",
+   "annotations": "asap/debussy-reflets/annotations.txt",
+   "scoreMidi": "asap/debussy-reflets/score.mid",
+   "scoreAnnotations": "asap/debussy-reflets/score_annotations.txt",
+   "source": "ASAP: Debussy/Images_Book_1/1_Reflets_dans_lEau/Kleisen11M"
+  },
+  {
+   "id": "haydn-lark",
+   "title": "Haydn — String Quartet Op. 64 No. 5 (\"The Lark\"), i. (opening)",
+   "kind": "ensemble",
+   "score": "openscore/haydn-lark.mxl",
+   "bars": 56,
+   "source": "OpenScore String Quartets: scores/Haydn,_Joseph/String_Quartet_in_D_major,_Hob.III63,_Op.64_No.5/sq7284122.mxl"
+  }
+ ]
+}

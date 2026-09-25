@@ -1,0 +1,1336 @@
+{
+ "run": "2026-09-25T22:54:41.948Z",
+ "results": [
+  {
+   "truthInfo": "120 annotated downbeats, 120 placed in the score, 0 not placed",
+   "id": "kreisleriana-1",
+   "title": "Schumann — Kreisleriana Op. 16 No. 1",
+   "kind": "asap",
+   "tests": "fast, agitated, dense",
+   "audioSeconds": 164.7,
+   "renderMs": 1458,
+   "engineMs": 3947,
+   "inWorker": true,
+   "key": {
+    "transposition": 0,
+    "cents": -5.9,
+    "pitchErrorCents": -6,
+    "ok": true
+   },
+   "structure": {
+    "reading": "as written",
+    "expected": "as written",
+    "order": "Head · Ending",
+    "readings": [
+     {
+      "how": "as written",
+      "cost": -1.885
+     },
+     {
+      "how": "skipping the repeat at bar 9",
+      "cost": -1.823
+     },
+     {
+      "how": "skipping the repeat at bar 27",
+      "cost": -1.687
+     },
+     {
+      "how": "skipping the repeats at bars 9, 27",
+      "cost": -1.63
+     },
+     {
+      "how": "skipping the repeat at bar 36",
+      "cost": -1.763
+     },
+     {
+      "how": "skipping the repeats at bars 9, 36",
+      "cost": -1.708
+     },
+     {
+      "how": "skipping the repeats at bars 27, 36",
+      "cost": -1.561
+     },
+     {
+      "how": "skipping the repeats at bars 9, 27, 36",
+      "cost": -1.502
+     },
+     {
+      "how": "skipping the repeat at bar 52",
+      "cost": -1.578
+     },
+     {
+      "how": "skipping the repeats at bars 9, 52",
+      "cost": -1.517
+     },
+     {
+      "how": "skipping the repeats at bars 27, 52",
+      "cost": -1.361
+     },
+     {
+      "how": "skipping the repeats at bars 9, 27, 52",
+      "cost": -1.296
+     },
+     {
+      "how": "skipping the repeats at bars 36, 52",
+      "cost": -1.452
+     },
+     {
+      "how": "skipping the repeats at bars 9, 36, 52",
+      "cost": -1.386
+     },
+     {
+      "how": "skipping the repeats at bars 27, 36, 52",
+      "cost": -1.227
+     },
+     {
+      "how": "without the repeats",
+      "cost": -1.158
+     }
+    ]
+   },
+   "errors": {
+    "n": 120,
+    "matched": 120,
+    "median": 6304,
+    "p90": 7367,
+    "max": 8226,
+    "within50": 0,
+    "within100": 0,
+    "within200": 0,
+    "withinTarget": 0
+   },
+   "confidence": {
+    "overall": 0.737,
+    "sure": 99,
+    "sureMeanErr": 5590,
+    "unsure": 21,
+    "unsureMeanErr": 5283,
+    "interpolated": 23
+   },
+   "diagnostics": {
+    "bpm": 91.843,
+    "musicSpan": {
+     "start": 0,
+     "end": 164.6294784580499
+    },
+    "beatConfidence": 0.819,
+    "beatMode": false,
+    "beatLevel": false,
+    "gridAgreement": [
+     0.215
+    ],
+    "choruses": 1,
+    "stages": null,
+    "keyScores": [
+     {
+      "t": 0,
+      "score": 45129.561
+     },
+     {
+      "t": 5,
+      "score": 28507.617
+     },
+     {
+      "t": -5,
+      "score": 26917.4
+     }
+    ],
+    "tries": [
+     {
+      "t": 0,
+      "bpm": 92,
+      "cost": -1.885
+     },
+     {
+      "t": 5,
+      "bpm": 92,
+      "cost": -1.237
+     },
+     {
+      "t": -5,
+      "bpm": 92,
+      "cost": -1.17
+     }
+    ],
+    "unmappedCost": 0.1,
+    "cost": -1.885,
+    "readings": [
+     {
+      "how": "as written",
+      "cost": -1.885
+     },
+     {
+      "how": "skipping the repeat at bar 9",
+      "cost": -1.823
+     },
+     {
+      "how": "skipping the repeat at bar 27",
+      "cost": -1.687
+     },
+     {
+      "how": "skipping the repeats at bars 9, 27",
+      "cost": -1.63
+     },
+     {
+      "how": "skipping the repeat at bar 36",
+      "cost": -1.763
+     },
+     {
+      "how": "skipping the repeats at bars 9, 36",
+      "cost": -1.708
+     },
+     {
+      "how": "skipping the repeats at bars 27, 36",
+      "cost": -1.561
+     },
+     {
+      "how": "skipping the repeats at bars 9, 27, 36",
+      "cost": -1.502
+     },
+     {
+      "how": "skipping the repeat at bar 52",
+      "cost": -1.578
+     },
+     {
+      "how": "skipping the repeats at bars 9, 52",
+      "cost": -1.517
+     },
+     {
+      "how": "skipping the repeats at bars 27, 52",
+      "cost": -1.361
+     },
+     {
+      "how": "skipping the repeats at bars 9, 27, 52",
+      "cost": -1.296
+     },
+     {
+      "how": "skipping the repeats at bars 36, 52",
+      "cost": -1.452
+     },
+     {
+      "how": "skipping the repeats at bars 9, 36, 52",
+      "cost": -1.386
+     },
+     {
+      "how": "skipping the repeats at bars 27, 36, 52",
+      "cost": -1.227
+     },
+     {
+      "how": "without the repeats",
+      "cost": -1.158
+     }
+    ],
+    "analyseMs": 1430,
+    "alignMs": 2485,
+    "retried": false,
+    "alternate": null
+   },
+   "progress": [
+    "Analysing recording…",
+    "Analysing recording… tuning",
+    "Analysing recording… harmony",
+    "Finding the beat…",
+    "Detecting key…",
+    "Finding the choruses…",
+    "Which repeats were played… 2 of 16",
+    "Which repeats were played… 3 of 16",
+    "Which repeats were played… 4 of 16",
+    "Which repeats were played… 5 of 16",
+    "Which repeats were played… 6 of 16",
+    "Which repeats were played… 7 of 16",
+    "Which repeats were played… 8 of 16",
+    "Which repeats were played… 9 of 16",
+    "Which repeats were played… 10 of 16",
+    "Which repeats were played… 11 of 16",
+    "Which repeats were played… 12 of 16",
+    "Which repeats were played… 13 of 16",
+    "Which repeats were played… 14 of 16",
+    "Which repeats were played… 15 of 16",
+    "Which repeats were played… 16 of 16",
+    "Aligning chorus 1 of 1…"
+   ],
+   "rows": [
+    {
+     "bar": "1",
+     "truth": 1.011719,
+     "est": -0.998,
+     "err": -2010,
+     "tol": 100,
+     "confidence": 0.012,
+     "interpolated": true
+    },
+    {
+     "bar": "2",
+     "truth": 2.414062,
+     "est": 0.859,
+     "err": -1555,
+     "tol": 100,
+     "confidence": 0.59,
+     "interpolated": false
+    },
+    {
+     "bar": "3",
+     "truth": 3.6015620000000004,
+     "est": 2.415,
+     "err": -1187,
+     "tol": 100,
+     "confidence": 0.8,
+     "interpolated": false
+    },
+    {
+     "bar": "4",
+     "truth": 4.7708330000000005,
+     "est": 3.599,
+     "err": -1172,
+     "tol": 100,
+     "confidence": 0.903,
+     "interpolated": false
+    },
+    {
+     "bar": "5",
+     "truth": 5.950521,
+     "est": 4.76,
+     "err": -1191,
+     "tol": 100,
+     "confidence": 0.883,
+     "interpolated": false
+    },
+    {
+     "bar": "6",
+     "truth": 7.1627600000000005,
+     "est": 5.944,
+     "err": -1219,
+     "tol": 100,
+     "confidence": 0.903,
+     "interpolated": false
+    },
+    {
+     "bar": "7",
+     "truth": 8.311198,
+     "est": 7.152,
+     "err": -1159,
+     "tol": 100,
+     "confidence": 0.86,
+     "interpolated": false
+    },
+    {
+     "bar": "8",
+     "truth": 9.453125,
+     "est": 8.313,
+     "err": -1140,
+     "tol": 100,
+     "confidence": 0.933,
+     "interpolated": false
+    },
+    {
+     "bar": "9",
+     "truth": 11.00651,
+     "est": 9.451,
+     "err": -1556,
+     "tol": 100,
+     "confidence": 0.643,
+     "interpolated": false
+    },
+    {
+     "bar": "1 (2)",
+     "truth": 12.367188,
+     "est": 10.387,
+     "err": -1980,
+     "tol": 100,
+     "confidence": 0.086,
+     "interpolated": true
+    },
+    {
+     "bar": "2 (2)",
+     "truth": 13.601562,
+     "est": 11.006,
+     "err": -2596,
+     "tol": 100,
+     "confidence": 0.581,
+     "interpolated": false
+    },
+    {
+     "bar": "3 (2)",
+     "truth": 14.832031,
+     "est": 12.353,
+     "err": -2479,
+     "tol": 100,
+     "confidence": 0.654,
+     "interpolated": false
+    },
+    {
+     "bar": "4 (2)",
+     "truth": 16.039062,
+     "est": 13.351,
+     "err": -2688,
+     "tol": 100,
+     "confidence": 0.903,
+     "interpolated": false
+    },
+    {
+     "bar": "5 (2)",
+     "truth": 17.34375,
+     "est": 14.512,
+     "err": -2832,
+     "tol": 100,
+     "confidence": 0.789,
+     "interpolated": false
+    },
+    {
+     "bar": "6 (2)",
+     "truth": 18.528646,
+     "est": 16.022,
+     "err": -2507,
+     "tol": 100,
+     "confidence": 0.898,
+     "interpolated": false
+    },
+    {
+     "bar": "7 (2)",
+     "truth": 19.691406,
+     "est": 17.345,
+     "err": -2346,
+     "tol": 100,
+     "confidence": 0.848,
+     "interpolated": false
+    },
+    {
+     "bar": "8 (2)",
+     "truth": 21.190104,
+     "est": 18.53,
+     "err": -2660,
+     "tol": 100,
+     "confidence": 0.925,
+     "interpolated": false
+    },
+    {
+     "bar": "10",
+     "truth": 22.481771,
+     "est": 19.691,
+     "err": -2791,
+     "tol": 100,
+     "confidence": 0.752,
+     "interpolated": false
+    },
+    {
+     "bar": "11",
+     "truth": 23.861979,
+     "est": 20.573,
+     "err": -3289,
+     "tol": 100,
+     "confidence": 0.041,
+     "interpolated": true
+    },
+    {
+     "bar": "12",
+     "truth": 25.4375,
+     "est": 21.177,
+     "err": -4260,
+     "tol": 100,
+     "confidence": 0.732,
+     "interpolated": false
+    },
+    {
+     "bar": "13",
+     "truth": 26.635417,
+     "est": 22.407,
+     "err": -4228,
+     "tol": 100,
+     "confidence": 0.83,
+     "interpolated": false
+    },
+    {
+     "bar": "14",
+     "truth": 27.996094,
+     "est": 23.824,
+     "err": -4172,
+     "tol": 100,
+     "confidence": 0.763,
+     "interpolated": false
+    },
+    {
+     "bar": "15",
+     "truth": 29.229167,
+     "est": 25.426,
+     "err": -3803,
+     "tol": 100,
+     "confidence": 0.795,
+     "interpolated": false
+    },
+    {
+     "bar": "16",
+     "truth": 30.468099,
+     "est": 26.633,
+     "err": -3835,
+     "tol": 100,
+     "confidence": 0.847,
+     "interpolated": false
+    },
+    {
+     "bar": "17",
+     "truth": 31.78776,
+     "est": 28.003,
+     "err": -3785,
+     "tol": 100,
+     "confidence": 0.929,
+     "interpolated": false
+    },
+    {
+     "bar": "18",
+     "truth": 33.352865,
+     "est": 29.211,
+     "err": -4142,
+     "tol": 100,
+     "confidence": 0.951,
+     "interpolated": false
+    },
+    {
+     "bar": "19",
+     "truth": 34.611979,
+     "est": 30.465,
+     "err": -4147,
+     "tol": 100,
+     "confidence": 0.837,
+     "interpolated": false
+    },
+    {
+     "bar": "20",
+     "truth": 35.839844,
+     "est": 31.788,
+     "err": -4052,
+     "tol": 100,
+     "confidence": 0.873,
+     "interpolated": false
+    },
+    {
+     "bar": "21",
+     "truth": 37.166667,
+     "est": 33.158,
+     "err": -4009,
+     "tol": 100,
+     "confidence": 0.837,
+     "interpolated": false
+    },
+    {
+     "bar": "22",
+     "truth": 38.509115,
+     "est": 34.342,
+     "err": -4167,
+     "tol": 100,
+     "confidence": 0.738,
+     "interpolated": false
+    },
+    {
+     "bar": "23",
+     "truth": 39.722656,
+     "est": 35.542,
+     "err": -4181,
+     "tol": 100,
+     "confidence": 0.584,
+     "interpolated": true
+    },
+    {
+     "bar": "24",
+     "truth": 40.973958,
+     "est": 37.198,
+     "err": -3776,
+     "tol": 100,
+     "confidence": 0.84,
+     "interpolated": false
+    },
+    {
+     "bar": "25",
+     "truth": 42.757812,
+     "est": 38.429,
+     "err": -4329,
+     "tol": 100,
+     "confidence": 0.908,
+     "interpolated": false
+    },
+    {
+     "bar": "26",
+     "truth": 44.022135,
+     "est": 39.636,
+     "err": -4386,
+     "tol": 100,
+     "confidence": 0.913,
+     "interpolated": false
+    },
+    {
+     "bar": "27",
+     "truth": 45.375651,
+     "est": 40.96,
+     "err": -4416,
+     "tol": 100,
+     "confidence": 0.859,
+     "interpolated": false
+    },
+    {
+     "bar": "11 (2)",
+     "truth": 46.973307,
+     "est": 42.036,
+     "err": -4937,
+     "tol": 100,
+     "confidence": 0.035,
+     "interpolated": true
+    },
+    {
+     "bar": "12 (2)",
+     "truth": 48.089844,
+     "est": 42.748,
+     "err": -5342,
+     "tol": 100,
+     "confidence": 0.773,
+     "interpolated": false
+    },
+    {
+     "bar": "13 (2)",
+     "truth": 49.334635,
+     "est": 44.025,
+     "err": -5310,
+     "tol": 100,
+     "confidence": 0.786,
+     "interpolated": false
+    },
+    {
+     "bar": "14 (2)",
+     "truth": 50.768229,
+     "est": 45.438,
+     "err": -5330,
+     "tol": 100,
+     "confidence": 0.811,
+     "interpolated": false
+    },
+    {
+     "bar": "15 (2)",
+     "truth": 52.011067,
+     "est": 46.951,
+     "err": -5060,
+     "tol": 100,
+     "confidence": 0.926,
+     "interpolated": false
+    },
+    {
+     "bar": "16 (2)",
+     "truth": 53.289062,
+     "est": 48.042,
+     "err": -5247,
+     "tol": 100,
+     "confidence": 0.54,
+     "interpolated": true
+    },
+    {
+     "bar": "17 (2)",
+     "truth": 54.904948,
+     "est": 49.064,
+     "err": -5841,
+     "tol": 100,
+     "confidence": 0.626,
+     "interpolated": false
+    },
+    {
+     "bar": "18 (2)",
+     "truth": 56.11328100000001,
+     "est": 50.759,
+     "err": -5354,
+     "tol": 100,
+     "confidence": 0.878,
+     "interpolated": false
+    },
+    {
+     "bar": "19 (2)",
+     "truth": 57.295573,
+     "est": 52.013,
+     "err": -5283,
+     "tol": 100,
+     "confidence": 0.829,
+     "interpolated": false
+    },
+    {
+     "bar": "20 (2)",
+     "truth": 58.678385,
+     "est": 53.29,
+     "err": -5388,
+     "tol": 100,
+     "confidence": 0.671,
+     "interpolated": false
+    },
+    {
+     "bar": "21 (2)",
+     "truth": 59.960938,
+     "est": 54.915,
+     "err": -5046,
+     "tol": 100,
+     "confidence": 0.738,
+     "interpolated": false
+    },
+    {
+     "bar": "22 (2)",
+     "truth": 61.134115,
+     "est": 56.123,
+     "err": -5011,
+     "tol": 100,
+     "confidence": 0.911,
+     "interpolated": false
+    },
+    {
+     "bar": "23 (2)",
+     "truth": 62.388021,
+     "est": 57.307,
+     "err": -5081,
+     "tol": 100,
+     "confidence": 0.722,
+     "interpolated": false
+    },
+    {
+     "bar": "24 (2)",
+     "truth": 65.091146,
+     "est": 58.677,
+     "err": -6414,
+     "tol": 100,
+     "confidence": 0.632,
+     "interpolated": false
+    },
+    {
+     "bar": "25 (2)",
+     "truth": 66.492188,
+     "est": 59.675,
+     "err": -6817,
+     "tol": 100,
+     "confidence": 0.789,
+     "interpolated": false
+    },
+    {
+     "bar": "26 (2)",
+     "truth": 67.800781,
+     "est": 61.045,
+     "err": -6756,
+     "tol": 100,
+     "confidence": 0.953,
+     "interpolated": false
+    },
+    {
+     "bar": "27 (2)",
+     "truth": 69.00911500000001,
+     "est": 62.369,
+     "err": -6640,
+     "tol": 100,
+     "confidence": 0.877,
+     "interpolated": false
+    },
+    {
+     "bar": "28",
+     "truth": 70.24088499999999,
+     "est": 63.785,
+     "err": -6456,
+     "tol": 100,
+     "confidence": 0.314,
+     "interpolated": true
+    },
+    {
+     "bar": "29",
+     "truth": 71.49088499999998,
+     "est": 65.086,
+     "err": -6405,
+     "tol": 100,
+     "confidence": 0.751,
+     "interpolated": false
+    },
+    {
+     "bar": "30",
+     "truth": 72.710938,
+     "est": 66.479,
+     "err": -6232,
+     "tol": 100,
+     "confidence": 0.901,
+     "interpolated": false
+    },
+    {
+     "bar": "31",
+     "truth": 74.014323,
+     "est": 67.802,
+     "err": -6212,
+     "tol": 100,
+     "confidence": 0.884,
+     "interpolated": false
+    },
+    {
+     "bar": "32",
+     "truth": 75.75,
+     "est": 69.01,
+     "err": -6740,
+     "tol": 100,
+     "confidence": 0.849,
+     "interpolated": false
+    },
+    {
+     "bar": "33",
+     "truth": 77.148438,
+     "est": 70.24,
+     "err": -6908,
+     "tol": 100,
+     "confidence": 0.854,
+     "interpolated": false
+    },
+    {
+     "bar": "34",
+     "truth": 78.423177,
+     "est": 71.494,
+     "err": -6929,
+     "tol": 100,
+     "confidence": 0.74,
+     "interpolated": false
+    },
+    {
+     "bar": "35",
+     "truth": 79.596354,
+     "est": 72.725,
+     "err": -6871,
+     "tol": 100,
+     "confidence": 0.533,
+     "interpolated": true
+    },
+    {
+     "bar": "36",
+     "truth": 80.816406,
+     "est": 74.025,
+     "err": -6791,
+     "tol": 100,
+     "confidence": 0.654,
+     "interpolated": false
+    },
+    {
+     "bar": "29 (2)",
+     "truth": 82.046875,
+     "est": 75.743,
+     "err": -6304,
+     "tol": 100,
+     "confidence": 0.768,
+     "interpolated": false
+    },
+    {
+     "bar": "30 (2)",
+     "truth": 83.309896,
+     "est": 77.137,
+     "err": -6173,
+     "tol": 100,
+     "confidence": 0.894,
+     "interpolated": false
+    },
+    {
+     "bar": "31 (2)",
+     "truth": 84.580729,
+     "est": 78.414,
+     "err": -6167,
+     "tol": 100,
+     "confidence": 0.892,
+     "interpolated": false
+    },
+    {
+     "bar": "32 (2)",
+     "truth": 86.347656,
+     "est": 79.598,
+     "err": -6750,
+     "tol": 100,
+     "confidence": 0.853,
+     "interpolated": false
+    },
+    {
+     "bar": "33 (2)",
+     "truth": 87.69400999999998,
+     "est": 80.805,
+     "err": -6889,
+     "tol": 100,
+     "confidence": 0.844,
+     "interpolated": false
+    },
+    {
+     "bar": "34 (2)",
+     "truth": 89.07161500000002,
+     "est": 82.716,
+     "err": -6356,
+     "tol": 100,
+     "confidence": 0.559,
+     "interpolated": true
+    },
+    {
+     "bar": "35 (2)",
+     "truth": 90.334077,
+     "est": 84.076,
+     "err": -6258,
+     "tol": 100,
+     "confidence": 0.58,
+     "interpolated": true
+    },
+    {
+     "bar": "36 (2)",
+     "truth": 91.875,
+     "est": 85.436,
+     "err": -6439,
+     "tol": 100,
+     "confidence": 0.628,
+     "interpolated": true
+    },
+    {
+     "bar": "37",
+     "truth": 93.089844,
+     "est": 86.796,
+     "err": -6294,
+     "tol": 100,
+     "confidence": 0.926,
+     "interpolated": false
+    },
+    {
+     "bar": "38",
+     "truth": 94.395833,
+     "est": 87.756,
+     "err": -6640,
+     "tol": 100,
+     "confidence": 0.402,
+     "interpolated": true
+    },
+    {
+     "bar": "39",
+     "truth": 95.713542,
+     "est": 89.072,
+     "err": -6642,
+     "tol": 100,
+     "confidence": 0.883,
+     "interpolated": false
+    },
+    {
+     "bar": "40",
+     "truth": 97.934896,
+     "est": 90.326,
+     "err": -7609,
+     "tol": 100,
+     "confidence": 0.739,
+     "interpolated": false
+    },
+    {
+     "bar": "41",
+     "truth": 99.485677,
+     "est": 91.881,
+     "err": -7605,
+     "tol": 100,
+     "confidence": 0.652,
+     "interpolated": false
+    },
+    {
+     "bar": "42",
+     "truth": 100.759115,
+     "est": 93.089,
+     "err": -7670,
+     "tol": 100,
+     "confidence": 0.833,
+     "interpolated": false
+    },
+    {
+     "bar": "43",
+     "truth": 101.920573,
+     "est": 94.389,
+     "err": -7532,
+     "tol": 100,
+     "confidence": 0.92,
+     "interpolated": false
+    },
+    {
+     "bar": "44",
+     "truth": 103.540365,
+     "est": 95.875,
+     "err": -7665,
+     "tol": 100,
+     "confidence": 0.696,
+     "interpolated": false
+    },
+    {
+     "bar": "45",
+     "truth": 104.994792,
+     "est": 97.942,
+     "err": -7053,
+     "tol": 100,
+     "confidence": 0.777,
+     "interpolated": false
+    },
+    {
+     "bar": "46",
+     "truth": 106.111979,
+     "est": 99.474,
+     "err": -6638,
+     "tol": 100,
+     "confidence": 0.88,
+     "interpolated": false
+    },
+    {
+     "bar": "47",
+     "truth": 107.33593799999998,
+     "est": 100.751,
+     "err": -6585,
+     "tol": 100,
+     "confidence": 0.797,
+     "interpolated": false
+    },
+    {
+     "bar": "48",
+     "truth": 109.255208,
+     "est": 101.936,
+     "err": -7319,
+     "tol": 100,
+     "confidence": 0.857,
+     "interpolated": false
+    },
+    {
+     "bar": "49",
+     "truth": 110.591146,
+     "est": 103.538,
+     "err": -7053,
+     "tol": 100,
+     "confidence": 0.839,
+     "interpolated": false
+    },
+    {
+     "bar": "50",
+     "truth": 111.846354,
+     "est": 105.001,
+     "err": -6845,
+     "tol": 100,
+     "confidence": 0.646,
+     "interpolated": false
+    },
+    {
+     "bar": "51",
+     "truth": 113.088542,
+     "est": 106.58,
+     "err": -6509,
+     "tol": 100,
+     "confidence": 0.722,
+     "interpolated": false
+    },
+    {
+     "bar": "52",
+     "truth": 114.580729,
+     "est": 107.926,
+     "err": -6655,
+     "tol": 100,
+     "confidence": 0.742,
+     "interpolated": false
+    },
+    {
+     "bar": "37 (2)",
+     "truth": 115.778646,
+     "est": 109.301,
+     "err": -6478,
+     "tol": 100,
+     "confidence": 0.627,
+     "interpolated": true
+    },
+    {
+     "bar": "38 (2)",
+     "truth": 117.015625,
+     "est": 110.564,
+     "err": -6452,
+     "tol": 100,
+     "confidence": 0.337,
+     "interpolated": true
+    },
+    {
+     "bar": "39 (2)",
+     "truth": 118.416667,
+     "est": 111.827,
+     "err": -6590,
+     "tol": 100,
+     "confidence": 0.773,
+     "interpolated": false
+    },
+    {
+     "bar": "40 (2)",
+     "truth": 120.859375,
+     "est": 113.081,
+     "err": -7778,
+     "tol": 100,
+     "confidence": 0.796,
+     "interpolated": false
+    },
+    {
+     "bar": "41 (2)",
+     "truth": 122.66276,
+     "est": 114.567,
+     "err": -8096,
+     "tol": 100,
+     "confidence": 0.773,
+     "interpolated": false
+    },
+    {
+     "bar": "42 (2)",
+     "truth": 123.93099,
+     "est": 115.705,
+     "err": -8226,
+     "tol": 100,
+     "confidence": 0.618,
+     "interpolated": true
+    },
+    {
+     "bar": "43 (2)",
+     "truth": 125.092448,
+     "est": 117.005,
+     "err": -8087,
+     "tol": 100,
+     "confidence": 0.948,
+     "interpolated": false
+    },
+    {
+     "bar": "44 (2)",
+     "truth": 126.660156,
+     "est": 118.84,
+     "err": -7820,
+     "tol": 100,
+     "confidence": 0.973,
+     "interpolated": false
+    },
+    {
+     "bar": "45 (2)",
+     "truth": 128.203125,
+     "est": 120.86,
+     "err": -7343,
+     "tol": 100,
+     "confidence": 0.798,
+     "interpolated": false
+    },
+    {
+     "bar": "46 (2)",
+     "truth": 129.25911499999998,
+     "est": 122.648,
+     "err": -6611,
+     "tol": 100,
+     "confidence": 0.834,
+     "interpolated": false
+    },
+    {
+     "bar": "47 (2)",
+     "truth": 130.404948,
+     "est": 124.125,
+     "err": -6280,
+     "tol": 100,
+     "confidence": 0.609,
+     "interpolated": true
+    },
+    {
+     "bar": "48 (2)",
+     "truth": 132.364073,
+     "est": 125.801,
+     "err": -6563,
+     "tol": 100,
+     "confidence": 0.636,
+     "interpolated": true
+    },
+    {
+     "bar": "49 (2)",
+     "truth": 133.928249,
+     "est": 127.478,
+     "err": -6450,
+     "tol": 100,
+     "confidence": 0.724,
+     "interpolated": false
+    },
+    {
+     "bar": "50 (2)",
+     "truth": 135.144831,
+     "est": 128.333,
+     "err": -6812,
+     "tol": 100,
+     "confidence": 0.343,
+     "interpolated": true
+    },
+    {
+     "bar": "51 (2)",
+     "truth": 136.355619,
+     "est": 129.813,
+     "err": -6543,
+     "tol": 100,
+     "confidence": 0.445,
+     "interpolated": true
+    },
+    {
+     "bar": "53",
+     "truth": 137.499785,
+     "est": 131.292,
+     "err": -6208,
+     "tol": 100,
+     "confidence": 0.463,
+     "interpolated": true
+    },
+    {
+     "bar": "54",
+     "truth": 138.727953,
+     "est": 132.772,
+     "err": -5956,
+     "tol": 100,
+     "confidence": 0.584,
+     "interpolated": false
+    },
+    {
+     "bar": "55",
+     "truth": 139.924258,
+     "est": 133.933,
+     "err": -5991,
+     "tol": 100,
+     "confidence": 0.769,
+     "interpolated": false
+    },
+    {
+     "bar": "56",
+     "truth": 141.11766699999995,
+     "est": 134.761,
+     "err": -6357,
+     "tol": 100,
+     "confidence": 0.599,
+     "interpolated": true
+    },
+    {
+     "bar": "57",
+     "truth": 142.539909,
+     "est": 136.046,
+     "err": -6494,
+     "tol": 100,
+     "confidence": 0.601,
+     "interpolated": false
+    },
+    {
+     "bar": "58",
+     "truth": 143.710144,
+     "est": 137.509,
+     "err": -6201,
+     "tol": 100,
+     "confidence": 0.907,
+     "interpolated": false
+    },
+    {
+     "bar": "59",
+     "truth": 145.05997,
+     "est": 138.716,
+     "err": -6344,
+     "tol": 100,
+     "confidence": 0.863,
+     "interpolated": false
+    },
+    {
+     "bar": "60",
+     "truth": 146.430073,
+     "est": 139.923,
+     "err": -6507,
+     "tol": 100,
+     "confidence": 0.905,
+     "interpolated": false
+    },
+    {
+     "bar": "61",
+     "truth": 147.548169,
+     "est": 141.108,
+     "err": -6440,
+     "tol": 100,
+     "confidence": 0.735,
+     "interpolated": false
+    },
+    {
+     "bar": "62",
+     "truth": 148.8082,
+     "est": 141.982,
+     "err": -6826,
+     "tol": 100,
+     "confidence": 0.039,
+     "interpolated": true
+    },
+    {
+     "bar": "63",
+     "truth": 149.874157,
+     "est": 142.524,
+     "err": -7350,
+     "tol": 100,
+     "confidence": 0.756,
+     "interpolated": false
+    },
+    {
+     "bar": "64",
+     "truth": 150.971977,
+     "est": 143.708,
+     "err": -7264,
+     "tol": 100,
+     "confidence": 0.825,
+     "interpolated": false
+    },
+    {
+     "bar": "65",
+     "truth": 152.200145,
+     "est": 145.111,
+     "err": -7089,
+     "tol": 100,
+     "confidence": 0.891,
+     "interpolated": false
+    },
+    {
+     "bar": "66",
+     "truth": 153.66294,
+     "est": 146.425,
+     "err": -7238,
+     "tol": 100,
+     "confidence": 0.851,
+     "interpolated": false
+    },
+    {
+     "bar": "67",
+     "truth": 154.818692,
+     "est": 147.54,
+     "err": -7279,
+     "tol": 100,
+     "confidence": 0.799,
+     "interpolated": false
+    },
+    {
+     "bar": "68",
+     "truth": 155.994721,
+     "est": 148.817,
+     "err": -7178,
+     "tol": 100,
+     "confidence": 0.901,
+     "interpolated": false
+    },
+    {
+     "bar": "69",
+     "truth": 157.22868300000005,
+     "est": 149.862,
+     "err": -7367,
+     "tol": 100,
+     "confidence": 0.953,
+     "interpolated": false
+    },
+    {
+     "bar": "70",
+     "truth": 158.480024,
+     "est": 150.976,
+     "err": -7504,
+     "tol": 100,
+     "confidence": 0.654,
+     "interpolated": false
+    },
+    {
+     "bar": "71",
+     "truth": 159.644466,
+     "est": 152.238,
+     "err": -7406,
+     "tol": 100,
+     "confidence": 0.56,
+     "interpolated": true
+    },
+    {
+     "bar": "72",
+     "truth": 160.861047,
+     "est": 153.693,
+     "err": -7168,
+     "tol": 100,
+     "confidence": 0.761,
+     "interpolated": false
+    }
+   ]
+  }
+ ]
+}
