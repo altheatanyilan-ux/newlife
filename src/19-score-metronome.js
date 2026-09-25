@@ -27,7 +27,7 @@
 const ScoreMetronome = (() => {
   let ctx = null, out = null;
   let on = false, bpm = 90, perBar = 4, at = 0;
-  let timer = null, nextAt = 0, vol = 0.5;
+  let timer = null, nextAt = 0, vol = 0.5, accent = true;
   const listeners = new Set();
   /* Look a fifth of a second ahead and wake five times as often as that. Both
      numbers are unremarkable on purpose: long enough that a busy frame cannot
@@ -47,7 +47,9 @@ const ScoreMetronome = (() => {
   /* A wooden click rather than a beep: a short noise burst through a tight
      band-pass, which is what a block of wood being struck actually is. The
      downbeat is the same sound a fifth higher and a little louder, because a
-     bar you can hear the start of is a bar you can count. */
+     bar you can hear the start of is a bar you can count — unless the accent
+     is switched off, when every beat is the same click (for hearing the
+     pulse without the bar, or for a piece whose accents are not on one). */
   function click(when, strong){
     if(!ctx) return;
     const dur = 0.035;
@@ -73,7 +75,7 @@ const ScoreMetronome = (() => {
   function pump(){
     if(!on || !ctx) return;
     while(nextAt < ctx.currentTime + AHEAD){
-      const strong = at % Math.max(1, perBar) === 0;
+      const strong = accent && at % Math.max(1, perBar) === 0;
       click(nextAt, strong);
       beatSeen(nextAt, strong);
       nextAt += 60 / clamp(bpm, 20, 300);
@@ -119,6 +121,8 @@ const ScoreMetronome = (() => {
     get perBar(){ return perBar; },
     setPerBar(n){ perBar = clamp(Math.round(+n || 4), 1, 16); return perBar; },
     setVolume(v){ vol = clamp(+v, 0, 1); return vol; },
+    get accent(){ return accent; },
+    setAccent(v){ accent = v !== false; return accent; },
     get volume(){ return vol; },
     onBeat(fn){ listeners.add(fn); return () => listeners.delete(fn); },
   };

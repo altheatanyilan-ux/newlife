@@ -373,6 +373,7 @@ function scoreMetroHTML(x){
       <input class="inp sm mono" id="scBpmIn" type="number" min="20" max="300" value="${x.metronome.bpm}">
       <button class="tbtn" data-scbpm="5">+</button></span>
     <button class="tbtn" id="scTap" title="press it in time, four or more">tap</button>
+    ${scoreAccentHTML(x)}
     <label class="sc-per"><span class="k mono">beats/bar</span>
       <input class="inp sm mono" id="scPer" type="number" min="1" max="16" value="${per}"
         title="${t ? `the score is written in ${t.beats}/${t.unit}` : 'no time signature found'}"></label>
@@ -1120,6 +1121,8 @@ function scorePlayCfg(x){
     onPage: p => { const v = scoreView(); if(!v || !v.page || v.at === p) return;
       showScorePage(p); scoreOverlayPaint(x); scoreLayersPaint(x); scorePageSay(); },
     store: {get: () => x.playback || {}, set: v => { x.playback = v; saveNow(); }},
+    /* the play bar's click and count-in follow the piece's metronome */
+    accent: {get: () => x.metronome.accent !== false, set: v => scoreSetAccent(x, v)},
     swing: false};
 }
 function scorePlayBind(x){
@@ -1387,6 +1390,26 @@ function bindScoreViewer(root, x){
 /* The metronome's controls, which appear in two places — the toolbar's second
    row and the reading strip — so they are bound by one function over whatever
    is on the page rather than twice by hand. */
+/* Beat 1 louder and higher, or every beat the same. One setting for the
+   piece, shown wherever its clicks are set: here, and in the play bar. */
+function scoreAccentHTML(x){
+  const on = x.metronome.accent !== false;
+  return `<button class="tbtn sc-accent${on ? ' on' : ''}" data-scaccent aria-pressed="${on}"
+    title="${on ? 'beat 1 is louder and higher — press to make every beat the same' : 'every beat is the same click — press to accent beat 1 again'}">${
+      on ? 'beat 1 accented' : 'every beat the same'}</button>`;
+}
+function scoreAccentPaint(x){
+  const on = x.metronome.accent !== false;
+  $$('[data-scaccent]').forEach(b => { const t = document.createElement('span'); t.innerHTML = scoreAccentHTML(x);
+    const n = t.firstElementChild; b.className = n.className; b.title = n.title; b.textContent = n.textContent;
+    b.setAttribute('aria-pressed', String(on)); });
+  $$('#scPlayRow .plx-bar, #scStrip .plx-bar').forEach(b => { if(b._plx && b._plx.setAccent) b._plx.setAccent(on); });
+}
+function scoreSetAccent(x, on){
+  x.metronome.accent = !!on;
+  ScoreMetronome.setAccent(x.metronome.accent);
+  saveNow(); scoreAccentPaint(x);
+}
 function bindScoreMetro(root, x){
   const say = () => { $$('#scMetro').forEach(b => {
     b.textContent = (ScoreMetronome.running ? '◼' : '▶') + ' ♩';
@@ -1396,6 +1419,7 @@ function bindScoreMetro(root, x){
   $$('#scMetro', root).forEach(b => b.onclick = () => {
     ScoreMetronome.setBpm(x.metronome.bpm);
     ScoreMetronome.setPerBar(perOf());
+    ScoreMetronome.setAccent(x.metronome.accent);
     if(!ScoreMetronome.toggle() && !ScoreMetronome.running)
       toast('This browser will not make a sound.');
     say();
@@ -1411,6 +1435,7 @@ function bindScoreMetro(root, x){
   $$('#scSigBack', root).forEach(b => b.onclick = () => { x.metronome.perBar = null;
     ScoreMetronome.setPerBar(scoreTimeSignature() ? scoreTimeSignature().beats : 4);
     saveNow(); scoreMetroSay(x); });
+  $$('[data-scaccent]', root).forEach(b => b.onclick = () => { scoreSetAccent(x, x.metronome.accent === false); sound('click'); });
   $$('#scTap', root).forEach(b => b.onclick = () => {
     const n = scoreTapTempo();
     if(n == null){ toast('Again, in time — four or more.'); return; }

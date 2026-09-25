@@ -500,7 +500,7 @@ function plxClick(ctx, dest, t, accent){
    Quarter notes are the unit of musical time throughout. */
 function scorePlayer(tl, opts){
   const o = Object.assign({bpm: null, swing: 0, from: 0, to: tl.perf.length - 1, loop: false,
-    countIn: false, click: false, chords: false, muted: new Set()}, opts || {});
+    countIn: false, click: false, chords: false, accent: true, muted: new Set()}, opts || {});
   let ctx = null, out = null, timer = null, running = false, paused = false;
   let anchorT = 0, anchorQ = 0, idx = 0, clickQ = 0, endQ = 0, startQ = 0, prevT = null, prevQ = 0;
   const base = tl.tempos[0] ? tl.tempos[0].bpm : PLX_DEFAULT_BPM;
@@ -559,7 +559,7 @@ function scorePlayer(tl, opts){
       if(nq === nextClickQ){
         const pm = perfAt(clickQ);
         const step = beatStep(pm);
-        plxClick(ctx, out.input, t, pm && Math.abs(clickQ - pm.q0) < 1e-6);
+        plxClick(ctx, out.input, t, o.accent !== false && !!pm && Math.abs(clickQ - pm.q0) < 1e-6);
         clickQ += step;
         if(pm && clickQ > pm.q0 + pm.len - 1e-6) clickQ = pm.q0 + pm.len;
         continue;
@@ -600,7 +600,7 @@ function scorePlayer(tl, opts){
       if(o.countIn){
         const pm = perfAt(q0), step = beatStep(pm), n = pm ? Math.max(1, Math.min(8, Math.round(pm.len / step))) : 4;
         const beat = step * 60 / bpmAt(q0);
-        for(let i = 0; i < n; i++) plxClick(ctx, out.input, anchorT + i * beat, i === 0);
+        for(let i = 0; i < n; i++) plxClick(ctx, out.input, anchorT + i * beat, o.accent !== false && i === 0);
         anchorT += n * beat;
       }
       seek(q0);
@@ -729,6 +729,7 @@ function scorePlayBarHTML(opts){
       <button class="tbtn" data-plxopt="loop" title="play it round again from the start">⟳ loop</button>
       <button class="tbtn" data-plxopt="countIn" title="a bar of clicks before it starts">count-in</button>
       <button class="tbtn" data-plxopt="click" title="a click on every beat while it plays">click</button>
+      <button class="tbtn" data-plxaccent title="beat 1 of the click and the count-in louder and higher, or every beat the same">beat 1 accented</button>
       <button class="tbtn" data-plxopt="swing" title="long-short eighths, as jazz is played">swing</button>
       <button class="tbtn" data-plxopt="chords" title="sound the chord symbols under the notes too — bars with only a symbol always sound it" hidden>chord symbols</button>
       <button class="tbtn" data-plxopt="follow" title="scroll the page along with the music">follow</button>
@@ -747,6 +748,9 @@ function scorePlayAttach(bar, cfg){
   const saved = Object.assign({bpm: null, loop: false, countIn: false, click: false,
     swing: cfg.swing ? 0.64 : 0, follow: true, muted: []}, store.get() || {});
   let tl = null, tlXml = null, player = null, geo = null, geoKey = '', geoOsmd = null, raf = 0, lastPerf = -1, fromBar = null;
+  /* beat 1 of the click: the room's own setting where it has one (a piece's
+     metronome), this bar's otherwise */
+  const accentOn = () => cfg.accent ? cfg.accent.get() !== false : saved.accent !== false;
   const $b = s => bar.querySelector(s);
   const timeline = () => {
     const xml = cfg.xml();
@@ -786,6 +790,9 @@ function scorePlayAttach(bar, cfg){
   };
   const paintOpts = () => {
     $$('[data-plxopt]', bar).forEach(b => { const k = b.dataset.plxopt; b.classList.toggle('on', !!saved[k]); b.setAttribute('aria-pressed', saved[k] ? 'true' : 'false'); });
+    const ac = $b('[data-plxaccent]');
+    if(ac){ const on = accentOn(); ac.classList.toggle('on', on); ac.setAttribute('aria-pressed', String(on));
+      ac.textContent = on ? 'beat 1 accented' : 'every beat the same'; }
     const ch = $b('[data-plxopt="chords"]');
     if(ch){ let t0 = null; try { t0 = timeline(); } catch(e){} ch.hidden = !(t0 && t0.chords); }
     const mutes = $b('[data-plxmutes]');
@@ -885,7 +892,7 @@ function scorePlayAttach(bar, cfg){
       const [a, z] = rangeIdx();
       if(player) player.stop();
       player = scorePlayer(t, {bpm: bpmNow(), swing: saved.swing ? (typeof saved.swing === 'number' ? saved.swing : 0.64) : 0,
-        from: a, to: z, loop: saved.loop, countIn: saved.countIn, click: saved.click, chords: !!saved.chords, muted: new Set(saved.muted),
+        from: a, to: z, loop: saved.loop, countIn: saved.countIn, click: saved.click, chords: !!saved.chords, accent: accentOn(), muted: new Set(saved.muted),
         onEnd: () => { const c = _plxNow; if(c && c.player === pl) c.stop(); }});
       const pl = player;
       let q = fromQ;
@@ -906,6 +913,8 @@ function scorePlayAttach(bar, cfg){
       const pm = t.perf.slice(a, z + 1).find(p => p.k === k);
       if(pm) ctl.play(pm.q0); },
     get player(){ return player; }, get timeline(){ return tl; },
+    /* the room changed the accent: the click that is playing hears it now */
+    setAccent(v){ if(player) player.set('accent', v !== false); paintOpts(); },
     refresh(){ tl = null; tlXml = null; geo = null; paintTempo(); paintOpts(); try { timeline(); where(-1); } catch(e){} },
     /* the engraving was drawn again — another key, another size: what is
        playing carries on from the same place in the new notes */
@@ -939,6 +948,10 @@ function scorePlayAttach(bar, cfg){
       else if(k === 'click'){ const q = player.position(); ctl.play(q); }
     }
     save(); paintOpts(); });
+  const ac = $b('[data-plxaccent]');
+  if(ac) ac.onclick = () => { const v = !accentOn();
+    if(cfg.accent) cfg.accent.set(v); else { saved.accent = v; save(); }
+    if(player) player.set('accent', v); paintOpts(); };
   const fr = $b('[data-plxfrom]');
   if(fr) fr.onchange = () => { const n = parseInt(fr.value, 10); fromBar = isFinite(n) ? n : null; };
   const wr = $b('[data-plxwritten]');

@@ -220,7 +220,11 @@ function scoreDefaults(x){
      able to put down. */
   x.overlays = Object.assign({names:false, degrees:false, beats:false, chords:false,
     fingerings:true}, x.overlays || {});
-  x.metronome = Object.assign({bpm:90, perBar:null}, x.metronome || {});
+  x.metronome = Object.assign({bpm:90, perBar:null, accent:true}, x.metronome || {});
+  /* whether beat 1 is heard differently from the rest: on unless you say
+     otherwise, and it governs every click the piece gets — the metronome,
+     and the play bar's click and count-in */
+  x.metronome.accent = x.metronome.accent !== false;
   x.metronome.bpm = clamp(+x.metronome.bpm || 90, 20, 300);
   x.metronome.perBar = x.metronome.perBar == null ? null : clamp(+x.metronome.perBar, 1, 16);
   x.createdAt = x.createdAt || new Date().toISOString();
