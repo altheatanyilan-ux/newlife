@@ -64,7 +64,10 @@ const NAV_ICONS = {
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
 const NAV_PAGES = {
-  planning: {label:'Planning',         short:'Plan',     ico:NAV_ICONS.planning, route:'#/planning'},
+  /* Planning's tasks and habits, and the time tracker, are views of Today
+     now; the entries stay so their old addresses and anything that names
+     them still resolve, but they are not doors in the sidebar */
+  planning: {label:'Tasks',            short:'Tasks',    ico:NAV_ICONS.planning, route:'#/today/tasks'},
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Lived Record',     short:'Record',   ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
@@ -81,7 +84,7 @@ const NAV_PAGES = {
   score:    {label:'Repertoire',        short:'Repertoire', ico:NAV_ICONS.score,  route:'#/score'},
   jazz:     {label:'Jazz Studio',      short:'Jazz',     ico:NAV_ICONS.jazz,     route:'#/jazz'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
-  time:     {label:'Time',             short:'Time',     ico:NAV_ICONS.time,     route:'#/time'},
+  time:     {label:'Time tracking',    short:'Time',     ico:NAV_ICONS.time,     route:'#/today/time'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -96,11 +99,11 @@ const NAV_PAGES = {
    it is the sacred space on Today, under the looking-inward view, where the
    Stillness section used to be. A list that offers a way to a page that no
    longer exists is worse than one that does not mention it. */
-const NAV_TOP = ['today','planning'];
+const NAV_TOP = ['today'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills','score','jazz','japanese'],
-  identity: ['values','journals','people','study','time'],
+  identity: ['values','journals','people','study'],
   standalone:[],
 };
 const NAV_ZONES = [
@@ -119,10 +122,10 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
    sidebar. Timeline and the Library are both views of Journals. */
 /* `compass` joins these: the address still answers — it redirects to the
    Review tab — but it is not a room to be listed or dragged into a zone. */
-const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace','compass'];
+const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace','compass','planning','time'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
-const MOBILE_PRIMARY = ['today','planning','content','journals','values'];
+const MOBILE_PRIMARY = ['today','content','journals','values'];
 function navConfig(){
   if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT));
   const n = S.settings.nav;
@@ -149,8 +152,8 @@ function navConfig(){
 }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
-function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today'}[name] || name; }
-function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'planning' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
+function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today', planning:'today', time:'today'}[name] || name; }
+function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'today' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
 /* The clock stands in the foot of the sidebar and takes its shape from it, so
    whatever opens or closes the sidebar has to tell the clock — otherwise it
    keeps the shape the last render gave it. */

@@ -27,7 +27,8 @@ function focusDeskPossible(name){
   name = name || (typeof parseHash === 'function' ? parseHash().name : '');
   if(!routes[name]) name = 'today';
   if(name === 'planning') return true;
-  return name === 'today' && (S.settings && S.settings.todayView) !== 'in';
+  /* on Today, the two views that are about doing the day: Execution and Tasks */
+  return name === 'today' && ['do', 'tasks'].includes((S.settings && S.settings.todayView) || 'do');
 }
 function focusDeskOn(name){
   return pageFocusOn() && !S._pfWhole && focusDeskPossible(name);

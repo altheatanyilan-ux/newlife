@@ -74,11 +74,65 @@ function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, s
 function rememberFold(id, open){ if(!id) return; S.settings.todayOpen = S.settings.todayOpen || {}; S.settings.todayOpen[id] = !!open; saveNow(); }
 /* Doing the day and looking at it are two states of mind, and they are two
    views. Which one you were last in is a preference like any other fold. */
-const TODAY_VIEWS = ['do', 'in'];
+/* Six views. The first two are the day itself; the other four are rooms that
+   used to be pages of their own — the planner's tasks and its habits, the
+   Review (the Compass charts, the planner's statistics and the written
+   reviews, together), and the time tracker — brought here because they are
+   all about the day you are in. */
+const TODAY_VIEWS = ['do', 'in', 'tasks', 'habits', 'review', 'time'];
+const TODAY_VIEW_NAMES = {do:'Execution', in:'Looking inward', tasks:'Tasks', habits:'Habits',
+  review:'Review', time:'Time tracking'};
+/* the four drawn whole under Today's head, instead of Today's own sections */
+const TODAY_ROOM_VIEWS = ['tasks', 'habits', 'review', 'time'];
+const todayView = () => TODAY_VIEWS.includes(S.settings && S.settings.todayView) ? S.settings.todayView : 'do';
 function setTodayView(v){
-  if(!TODAY_VIEWS.includes(v) || S.settings.todayView === v) return;
+  if(!TODAY_VIEWS.includes(v)) return;
+  const was = todayView();
   S.settings.todayView = v; saveNow();
-  if(typeof rerender === 'function') rerender();
+  /* the four rooms have addresses of their own (#/today/tasks …), so a link
+     can open one; the day's two views live at #/today */
+  const want = TODAY_ROOM_VIEWS.includes(v) ? '#/today/' + v : '#/today';
+  if(parseHash().name === 'today' && location.hash !== want) return navigate(want);
+  if(was !== v && typeof rerender === 'function') rerender();
+}
+function todaySwitchHTML(view){
+  return `<div class="today-switch" role="tablist" aria-label="which view of the day">
+    ${TODAY_VIEWS.map(id => `<button role="tab" aria-selected="${view === id}"
+      class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(TODAY_VIEW_NAMES[id])}</button>`).join('')}
+  </div>`;
+}
+function bindTodaySwitch(root){
+  /* on a narrow screen the pill scrolls: the view you are in is brought into
+     it, rather than left off the edge */
+  const pill = root.querySelector('.today-switch'), on = pill && pill.querySelector('button.on');
+  if(pill && on && pill.scrollWidth > pill.clientWidth)
+    pill.scrollLeft = Math.max(0, on.offsetLeft - (pill.clientWidth - on.offsetWidth) / 2);
+  root.querySelectorAll('[data-tview]').forEach(b => b.onclick = () => {
+    /* back to the top: the views are different lengths, and landing halfway
+       down a view you have just arrived in is disorienting */
+    setTodayView(b.dataset.tview);
+    window.scrollTo({top: 0, behavior: reduced() ? 'auto' : 'smooth'});
+  });
+}
+/* Tasks, Habits, Review and Time tracking: the room itself, under a short head
+   — the date, anything to be reminded of, and the switch back to the day. */
+function todayRoomRender(root, view, rest){
+  const T = today();
+  root.innerHTML = `<div class="page today-page today-room-page" data-tview-room="${view}">
+    <header class="rv today-head today-head-room">
+      <div class="today-date">${fmtDate(T)}</div>
+    </header>
+    ${typeof remindTodayHTML === 'function' ? remindTodayHTML() : ''}
+    <div class="today-bar rv">${todaySwitchHTML(view)}</div>
+    <div class="today-room" id="todayRoom" data-room="${view}"></div>
+  </div>`;
+  bindTodaySwitch(root);
+  if(typeof bindRemindToday === 'function') bindRemindToday(root);
+  const box = root.querySelector('#todayRoom');
+  if(view === 'tasks' || view === 'habits'){ S._planRoom = view; routes.planning(box, rest, {embedded: true}); }
+  else if(view === 'review'){ if(typeof todayReviewRender === 'function') todayReviewRender(box); }
+  else if(view === 'time'){ routes.time(box, rest); }
+  reveal(root);
 }
 /* The headline number is what had to be done, because that is what finishing
    the day means; the bonus is counted beside it, never in it. Said the same
@@ -109,7 +163,11 @@ function askClock(title, value, onSet){
   m.querySelector('#clkNow').onclick = () => { m.querySelector('#clkV').value = nowHM(); go(); };
   m.querySelector('#clkV').onkeydown = e => { if(e.key === 'Enter') go(); };
 }
-routes.today = function(root){
+routes.today = function(root, params = []){
+  /* an address naming a view (#/today/tasks) opens it, and it is remembered */
+  if(params[0] && TODAY_VIEWS.includes(params[0]) && S.settings.todayView !== params[0]){
+    S.settings.todayView = params[0]; saveNow(); }
+  if(TODAY_ROOM_VIEWS.includes(todayView())) return todayRoomRender(root, todayView(), params.slice(1));
   const T = today(); const c = checkin(T); const moon = moonPhase();
   const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
   const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
@@ -212,8 +270,7 @@ routes.today = function(root){
 
      The index is per view, so it only ever offers what is actually on the
      screen. */
-  const VIEWS = [['do', 'Execution'], ['in', 'Looking inward']];
-  const view = TODAY_VIEWS.includes(S.settings.todayView) ? S.settings.todayView : 'do';
+  const view = todayView();
   const jumpsFor = {
     do: [
       ['t-plan',    'plan',     true],
@@ -273,10 +330,7 @@ routes.today = function(root){
          the same question at two scales, so they read better side by side, and
          the page gets a band of itself back. -->
     <div class="today-bar rv">
-      <div class="today-switch" role="tablist" aria-label="which half of the day">
-        ${VIEWS.map(([id, label]) => `<button role="tab" aria-selected="${view === id}"
-          class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(label)}</button>`).join('')}
-      </div>
+      ${todaySwitchHTML(view)}
       <nav class="today-jump" aria-label="jump to a section">
         ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
       </nav>
@@ -498,12 +552,7 @@ routes.today = function(root){
   /* The index is sticky, so scrolling a section to the top of the window puts
      it underneath the index. Scroll to the section's own top minus the height
      of the bar that would otherwise be standing on it. */
-  root.querySelectorAll('[data-tview]').forEach(b => b.onclick = () => {
-    /* back to the top: the two views are different lengths, and landing
-       halfway down a view you have just arrived in is disorienting */
-    setTodayView(b.dataset.tview);
-    window.scrollTo({top: 0, behavior: reduced() ? 'auto' : 'smooth'});
-  });
+  bindTodaySwitch(root);
 
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;

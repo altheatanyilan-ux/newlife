@@ -422,9 +422,28 @@ function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [
 /* rooms that no longer exist, pointed at where their work went */
 const ROUTE_ALIASES = {home:'today', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
   rituals:'today', reviews:'today', board:'today', vision:'today', needs:'today', spiral:'today'};
+/* Rooms that became views of Today. The old address is rewritten in place —
+   no second history entry, no page drawn and then replaced — and whatever it
+   named (a list, a span, a view of the time tracker) is carried across. */
+const ROUTE_MOVED = {
+  planning: params => {
+    if(typeof planApplyAddress === 'function') planApplyAddress(params);
+    const r = typeof planRoom === 'function' ? planRoom() : 'tasks';
+    return '#/today/' + (r === 'habits' ? 'habits' : r === 'stats' ? 'review' : 'tasks');
+  },
+  time: params => '#/today/time' + (params.length ? '/' + params.map(encodeURIComponent).join('/') : ''),
+  journals: params => params[0] === 'review' ? '#/today/review' : null,
+};
+function routeMoved(){
+  const {name, params} = parseHash();
+  const to = ROUTE_MOVED[name] ? ROUTE_MOVED[name](params) : null;
+  if(!to) return false;
+  try { history.replaceState(history.state, '', location.pathname + location.search + to); } catch(e){ location.hash = to; }
+  return true;
+}
 function renderRoute(){
   /* page-scoped atmosphere flags do not survive a navigation */
-  
+  routeMoved();
   let {name, params} = parseHash();
   /* An alias points a retired address at a room that still exists. The id in
      the old address belonged to the retired room, so it is dropped rather than
@@ -494,6 +513,7 @@ function pageRouteFn(name){
   return routes[name] || routes.today;
 }
 function rerender(){
+  routeMoved();
   const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
   main.innerHTML=''; PageEntryConfig.clear();
   try { pageRouteFn(name)(main, params); }

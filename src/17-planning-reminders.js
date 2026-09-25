@@ -119,7 +119,7 @@ function remindRemove(t){
 function openReminders(){
   S._planRoom = 'tasks';
   if(typeof planSetSel === 'function') planSetSel('remind', 'list'); else S._planSel = {kind: 'remind', id: 'list'};
-  if(parseHash().name === 'planning') rerender(); else navigate('#/planning');
+  if(planningOnScreen()) rerender(); else navigate('#/today/tasks');
 }
 
 /* ---------- on Planning: the Reminders view ---------- */
@@ -280,7 +280,7 @@ function paintRemindFloat(){
         ${list.length > 6 ? `<button class="rf-more" id="rfAll">${list.length - 6} more →</button>`
           : `<button class="rf-more" id="rfAll">all reminders →</button>`}
       </div>`;
-  const redraw = () => { paintRemindFloat(); if(parseHash().name === 'planning' || document.getElementById('t-remind')) rerender(); };
+  const redraw = () => { paintRemindFloat(); if(planningOnScreen() || document.getElementById('t-remind')) rerender(); };
   bindRemindRows(box, redraw);
   const set = m => () => { S._remFloatMode = m; paintRemindFloat(); };
   [['#rfOpen', 'strip'], ['#rfMin', 'min'], ['#rfExpand', 'open'], ['#rfFold', 'strip']].forEach(([q, m]) => {

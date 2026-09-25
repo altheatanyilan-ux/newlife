@@ -3622,15 +3622,18 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .hedge.hot{stroke:var(--page-accent);stroke-width:2;filter:drop-shadow(0 0 4px color-mix(in srgb,var(--page-accent) 60%,transparent))}
 .htip{position:absolute;background:var(--surface-2);border:1px solid var(--line-2);padding:10px 14px;border-radius:10px;font-size:.78rem;max-width:280px;pointer-events:none;display:none;box-shadow:var(--shadow);z-index:5;line-height:1.5}
 /* twelve columns, nine cards of four — three even rows and no ragged tail */
-.bento{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:18px;align-items:stretch}
+.bento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px;margin-top:18px;align-items:stretch}
+/* a chart as wide as its data must not widen the column it stands in: on a
+   phone one of them stretched the whole page to three screens */
+.bento > *{min-width:0}
 /* transparent, and with no side padding, so every card's first character sits
    on the same left edge as the section rule above it */
 .bento .card{padding:14px 0 4px;display:flex;flex-direction:column;gap:8px;background:transparent;backdrop-filter:none;border:none;border-top:1px solid var(--line);border-radius:0}
 .bento .card:hover{border-top-color:var(--line-2)}
 .bento .card > .sub:last-child{margin-top:auto}
 .bento .span2{grid-column:span 4}.bento .span3{grid-column:span 4}.bento .span4{grid-column:span 4}.bento .span6{grid-column:span 6}.bento .span8{grid-column:span 8}.bento .span12{grid-column:span 12}
-@media (max-width:1100px){.bento{grid-template-columns:repeat(2,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 2}}
-@media (max-width:640px){.bento{grid-template-columns:1fr}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 1}}
+@media (max-width:1100px){.bento{grid-template-columns:repeat(2,minmax(0,1fr))}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 2}}
+@media (max-width:640px){.bento{grid-template-columns:minmax(0,1fr)}.bento .span2,.bento .span3,.bento .span4,.bento .span6,.bento .span8,.bento .span12{grid-column:span 1}}
 /* a chart takes the room the card has, rather than leaving a hole under it */
 .bento .chart-fill{flex:1 1 auto;min-height:74px;display:flex;align-items:stretch}
 .bento .chart-fill > svg{width:100%;height:100%}
@@ -4197,8 +4200,19 @@ html.vision-deep .page-scene.on{opacity:var(--scene-op)}
 html[data-theme="dark"] .today-switch button.on,html:not([data-theme="light"]) .today-switch button.on{
   box-shadow:var(--neu-raised),0 0 12px color-mix(in srgb,var(--page-accent) 18%,transparent)}
 .today-switch button:focus-visible{outline:none;box-shadow:var(--neu-raised),var(--focus-ring)}
+/* six views now: on a narrow screen the pill scrolls sideways rather than
+   squeezing six names into a line that holds three */
+.today-switch{max-width:100%;overflow-x:auto;scrollbar-width:none}
+.today-switch::-webkit-scrollbar{display:none}
+.today-switch button{flex:0 0 auto;white-space:nowrap}
 @media (max-width:560px){.today-switch{display:flex;width:100%;flex:1 1 100%}
-  .today-switch button{flex:1;padding:7px 8px;font-size:.76rem}}
+  .today-switch button{padding:7px 11px;font-size:.76rem}}
+/* Tasks, Habits, Review and Time tracking under Today's short head */
+.today-head-room{margin-bottom:6px}
+.today-room .plan-embedded,.today-room .tm-page{margin-top:0}
+/* the Review's own date line repeats the one at the top of Today */
+.today-review .cmp-when{display:none}
+.rv-stats{margin-top:26px}
 /* a view that is not the one you are in is not there at all */
 .today-view[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.today-switch button{transition:none}}
@@ -11354,9 +11368,28 @@ function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [
 /* rooms that no longer exist, pointed at where their work went */
 const ROUTE_ALIASES = {home:'today', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
   rituals:'today', reviews:'today', board:'today', vision:'today', needs:'today', spiral:'today'};
+/* Rooms that became views of Today. The old address is rewritten in place —
+   no second history entry, no page drawn and then replaced — and whatever it
+   named (a list, a span, a view of the time tracker) is carried across. */
+const ROUTE_MOVED = {
+  planning: params => {
+    if(typeof planApplyAddress === 'function') planApplyAddress(params);
+    const r = typeof planRoom === 'function' ? planRoom() : 'tasks';
+    return '#/today/' + (r === 'habits' ? 'habits' : r === 'stats' ? 'review' : 'tasks');
+  },
+  time: params => '#/today/time' + (params.length ? '/' + params.map(encodeURIComponent).join('/') : ''),
+  journals: params => params[0] === 'review' ? '#/today/review' : null,
+};
+function routeMoved(){
+  const {name, params} = parseHash();
+  const to = ROUTE_MOVED[name] ? ROUTE_MOVED[name](params) : null;
+  if(!to) return false;
+  try { history.replaceState(history.state, '', location.pathname + location.search + to); } catch(e){ location.hash = to; }
+  return true;
+}
 function renderRoute(){
   /* page-scoped atmosphere flags do not survive a navigation */
-  
+  routeMoved();
   let {name, params} = parseHash();
   /* An alias points a retired address at a room that still exists. The id in
      the old address belonged to the retired room, so it is dropped rather than
@@ -11426,6 +11459,7 @@ function pageRouteFn(name){
   return routes[name] || routes.today;
 }
 function rerender(){
+  routeMoved();
   const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
   main.innerHTML=''; PageEntryConfig.clear();
   try { pageRouteFn(name)(main, params); }
@@ -18355,11 +18389,65 @@ function checkin(day=today()){ if(!S.checkins[day]) S.checkins[day] = {mood:0, s
 function rememberFold(id, open){ if(!id) return; S.settings.todayOpen = S.settings.todayOpen || {}; S.settings.todayOpen[id] = !!open; saveNow(); }
 /* Doing the day and looking at it are two states of mind, and they are two
    views. Which one you were last in is a preference like any other fold. */
-const TODAY_VIEWS = ['do', 'in'];
+/* Six views. The first two are the day itself; the other four are rooms that
+   used to be pages of their own — the planner's tasks and its habits, the
+   Review (the Compass charts, the planner's statistics and the written
+   reviews, together), and the time tracker — brought here because they are
+   all about the day you are in. */
+const TODAY_VIEWS = ['do', 'in', 'tasks', 'habits', 'review', 'time'];
+const TODAY_VIEW_NAMES = {do:'Execution', in:'Looking inward', tasks:'Tasks', habits:'Habits',
+  review:'Review', time:'Time tracking'};
+/* the four drawn whole under Today's head, instead of Today's own sections */
+const TODAY_ROOM_VIEWS = ['tasks', 'habits', 'review', 'time'];
+const todayView = () => TODAY_VIEWS.includes(S.settings && S.settings.todayView) ? S.settings.todayView : 'do';
 function setTodayView(v){
-  if(!TODAY_VIEWS.includes(v) || S.settings.todayView === v) return;
+  if(!TODAY_VIEWS.includes(v)) return;
+  const was = todayView();
   S.settings.todayView = v; saveNow();
-  if(typeof rerender === 'function') rerender();
+  /* the four rooms have addresses of their own (#/today/tasks …), so a link
+     can open one; the day's two views live at #/today */
+  const want = TODAY_ROOM_VIEWS.includes(v) ? '#/today/' + v : '#/today';
+  if(parseHash().name === 'today' && location.hash !== want) return navigate(want);
+  if(was !== v && typeof rerender === 'function') rerender();
+}
+function todaySwitchHTML(view){
+  return `<div class="today-switch" role="tablist" aria-label="which view of the day">
+    ${TODAY_VIEWS.map(id => `<button role="tab" aria-selected="${view === id}"
+      class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(TODAY_VIEW_NAMES[id])}</button>`).join('')}
+  </div>`;
+}
+function bindTodaySwitch(root){
+  /* on a narrow screen the pill scrolls: the view you are in is brought into
+     it, rather than left off the edge */
+  const pill = root.querySelector('.today-switch'), on = pill && pill.querySelector('button.on');
+  if(pill && on && pill.scrollWidth > pill.clientWidth)
+    pill.scrollLeft = Math.max(0, on.offsetLeft - (pill.clientWidth - on.offsetWidth) / 2);
+  root.querySelectorAll('[data-tview]').forEach(b => b.onclick = () => {
+    /* back to the top: the views are different lengths, and landing halfway
+       down a view you have just arrived in is disorienting */
+    setTodayView(b.dataset.tview);
+    window.scrollTo({top: 0, behavior: reduced() ? 'auto' : 'smooth'});
+  });
+}
+/* Tasks, Habits, Review and Time tracking: the room itself, under a short head
+   — the date, anything to be reminded of, and the switch back to the day. */
+function todayRoomRender(root, view, rest){
+  const T = today();
+  root.innerHTML = `<div class="page today-page today-room-page" data-tview-room="${view}">
+    <header class="rv today-head today-head-room">
+      <div class="today-date">${fmtDate(T)}</div>
+    </header>
+    ${typeof remindTodayHTML === 'function' ? remindTodayHTML() : ''}
+    <div class="today-bar rv">${todaySwitchHTML(view)}</div>
+    <div class="today-room" id="todayRoom" data-room="${view}"></div>
+  </div>`;
+  bindTodaySwitch(root);
+  if(typeof bindRemindToday === 'function') bindRemindToday(root);
+  const box = root.querySelector('#todayRoom');
+  if(view === 'tasks' || view === 'habits'){ S._planRoom = view; routes.planning(box, rest, {embedded: true}); }
+  else if(view === 'review'){ if(typeof todayReviewRender === 'function') todayReviewRender(box); }
+  else if(view === 'time'){ routes.time(box, rest); }
+  reveal(root);
 }
 /* The headline number is what had to be done, because that is what finishing
    the day means; the bonus is counted beside it, never in it. Said the same
@@ -18390,7 +18478,11 @@ function askClock(title, value, onSet){
   m.querySelector('#clkNow').onclick = () => { m.querySelector('#clkV').value = nowHM(); go(); };
   m.querySelector('#clkV').onkeydown = e => { if(e.key === 'Enter') go(); };
 }
-routes.today = function(root){
+routes.today = function(root, params = []){
+  /* an address naming a view (#/today/tasks) opens it, and it is remembered */
+  if(params[0] && TODAY_VIEWS.includes(params[0]) && S.settings.todayView !== params[0]){
+    S.settings.todayView = params[0]; saveNow(); }
+  if(TODAY_ROOM_VIEWS.includes(todayView())) return todayRoomRender(root, todayView(), params.slice(1));
   const T = today(); const c = checkin(T); const moon = moonPhase();
   const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
   const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
@@ -18493,8 +18585,7 @@ routes.today = function(root){
 
      The index is per view, so it only ever offers what is actually on the
      screen. */
-  const VIEWS = [['do', 'Execution'], ['in', 'Looking inward']];
-  const view = TODAY_VIEWS.includes(S.settings.todayView) ? S.settings.todayView : 'do';
+  const view = todayView();
   const jumpsFor = {
     do: [
       ['t-plan',    'plan',     true],
@@ -18554,10 +18645,7 @@ routes.today = function(root){
          the same question at two scales, so they read better side by side, and
          the page gets a band of itself back. -->
     <div class="today-bar rv">
-      <div class="today-switch" role="tablist" aria-label="which half of the day">
-        ${VIEWS.map(([id, label]) => `<button role="tab" aria-selected="${view === id}"
-          class="${view === id ? 'on' : ''}" data-tview="${id}">${esc(label)}</button>`).join('')}
-      </div>
+      ${todaySwitchHTML(view)}
       <nav class="today-jump" aria-label="jump to a section">
         ${jumps.map(([id, label]) => `<button data-jump="${id}">${esc(label)}</button>`).join('')}
       </nav>
@@ -18779,12 +18867,7 @@ routes.today = function(root){
   /* The index is sticky, so scrolling a section to the top of the window puts
      it underneath the index. Scroll to the section's own top minus the height
      of the bar that would otherwise be standing on it. */
-  root.querySelectorAll('[data-tview]').forEach(b => b.onclick = () => {
-    /* back to the top: the two views are different lengths, and landing
-       halfway down a view you have just arrived in is disorienting */
-    setTodayView(b.dataset.tview);
-    window.scrollTo({top: 0, behavior: reduced() ? 'auto' : 'smooth'});
-  });
+  bindTodaySwitch(root);
 
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
@@ -22118,7 +22201,9 @@ function bindArchiveEdges(scope){
    that run between them. It is not a separate room because it was never
    separate material — the memories on the spine are journal entries filed
    to a stage. */
-const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library'], ['review','◫','Review']];
+/* The Review was the fourth view here. It is a view of Today now (with the
+   planner's statistics folded into it), and #/journals/review goes there. */
+const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library']];
 /* Five of the fourteen journals were doors into rooms that already exist, or
    into nothing at all. Memories and life events are the Timeline's own
    material, filed to a stage. Media is the Library. The practice log is
@@ -22155,14 +22240,12 @@ document.addEventListener('keydown', ev => {
   if(ev.code === 'Digit1'){ ev.preventDefault(); navigate('#/journals/' + (S._journal || journalDefault())); }
   else if(ev.code === 'Digit2'){ ev.preventDefault(); navigate('#/journals/timeline'); }
   else if(ev.code === 'Digit3'){ ev.preventDefault(); navigate('#/journals/library'); }
-  else if(ev.code === 'Digit4'){ ev.preventDefault(); navigate('#/journals/review'); }
 }, true);
 function bindJournalViews(root){
   $$('[data-jrview]', root).forEach(b => b.onclick = () => {
     const v = b.dataset.jrview;
     navigate(v === 'timeline' ? '#/journals/timeline'
            : v === 'library'  ? '#/journals/library'
-           : v === 'review'   ? '#/journals/review'
            : '#/journals/' + (S._journal || journalDefault()));
   });
 }
@@ -22174,25 +22257,30 @@ function migrateJournalTypes(){
   const want = [['divination','Divination'], ['intuition','Intuition']];
   want.forEach(([type, name]) => { if(!S.journals.some(j => j.type === type)) S.journals.push({type, name}); });
 }
+/* The Review, as Today's fifth view: the charts that used to be the Compass,
+   the planner's statistics beside them (the numbers are one conversation),
+   then the reviews written about the periods they describe, and under all of
+   it the days themselves. The numbers say what the months came to and the
+   reviews say what you made of them; neither can hand back the Tuesday. */
+function todayReviewRender(box){
+  if(typeof migratePlanning === 'function') migratePlanning();
+  box.innerHTML = `<div class="today-review">
+    <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
+    ${typeof planStatsHTML === 'function' ? `<section class="section rv rv-stats" id="rvStats">
+      <span class="sc">Tasks and focus</span>${planStatsHTML()}</section>` : ''}
+    ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
+    ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
+  if(typeof bindCompassBody === 'function') bindCompassBody(box, () => rerender());
+  if(typeof bindReviewList === 'function') bindReviewList(box);
+  if(typeof bindDayArchive === 'function') bindDayArchive(box);
+}
 routes.journals = function(root, params){
   /* The Review: the charts that used to be the Compass, and under them the
      reviews written about the periods they describe. The Compass was a page
      of its own; it is a tab here, because looking at the numbers and writing
      about them is one activity and it was two rooms. */
-  if(params[0] === 'review'){
-    /* and under both: the days themselves. The numbers say what the months
-       came to and the reviews say what you made of them; neither can hand
-       back the Tuesday. See the note at the top of 13-journals-days. */
-    root.innerHTML = `<div class="page">${journalsHeadHTML('review')}
-      <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
-      ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
-      ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
-    bindJournalViews(root);
-    if(typeof bindCompassBody === 'function') bindCompassBody(root, () => rerender());
-    if(typeof bindReviewList === 'function') bindReviewList(root);
-    if(typeof bindDayArchive === 'function') bindDayArchive(root);
-    return;
-  }
+  /* (the Review is a view of Today now — see todayReviewRender below; the
+     router sends #/journals/review there before this runs) */
   if(params[0] === 'timeline'){
     renderTimeline(root, params[1] === 'threads' ? 'threads' : 'stages',
       {heading: journalsHeadHTML('timeline'), base: '#/journals/timeline'});
@@ -42112,7 +42200,7 @@ function rerenderPlanBody(){
      Anywhere but Planning, redraw the page — keeping the open panel and where
      the page was scrolled to, which is the only reason this is not just
      rerender() everywhere. */
-  if(parseHash().name !== 'planning' || (typeof focusDeskOn === 'function' && focusDeskOn())){
+  if(!planningOnScreen() || (typeof focusDeskOn === 'function' && focusDeskOn())){
     rerender();
     if(keep && !$('#panel')) document.body.appendChild(keep);
     window.scrollTo({top:y});
@@ -42164,7 +42252,7 @@ function planTypingInto(el){
   return /^(input|textarea|select)$/i.test(el.tagName);
 }
 document.addEventListener('keydown', ev => {
-  if(parseHash().name !== 'planning') return;
+  if(!planningOnScreen()) return;
   /* in focus mode the room is drawn as the desk, and these keys would change
      views nobody can see */
   if(typeof focusDeskOn === 'function' && focusDeskOn()) return;
@@ -42179,8 +42267,10 @@ document.addEventListener('keydown', ev => {
   ev.preventDefault();
   if(act === 'add'){ const i = document.querySelector('.pq-input'); if(i){ i.focus(); } else openPlanTask(null); return; }
   /* the timer lives on Today now — go to it rather than opening a second one */
-  if(act === 'focus')  return navigate('#/today');
-  if(act === 'stats')  return planSetRoom('stats');
+  /* the timer's words are on Today's Execution view, and the planner's
+     statistics are part of Today's Review now */
+  if(act === 'focus')  return typeof setTodayView === 'function' ? setTodayView('do') : navigate('#/today');
+  if(act === 'stats')  return typeof setTodayView === 'function' ? setTodayView('review') : planSetRoom('stats');
   if(act === 'today')  return planSetSel('smart', 'today');
   if(act === 'habits') return planSetSel('smart', 'habits');
   if(act === 'stats')  return planSetSel('smart', 'stats');
@@ -42858,8 +42948,26 @@ function planRoomsHTML(){
   </div>`;
 }
 
-routes.planning = function(root, params){
+/* What an old #/planning/<x> address named — a room, a smart view, a span —
+   applied to the planner's state, so the Today view it now leads to opens on
+   the same thing. */
+function planApplyAddress(params){
+  if(!params || !params[0]) return;
+  if(params[0] === 'habits' || params[0] === 'stats') S._planRoom = params[0];
+  else { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]};
+    if(PLAN_SPANS.includes(params[0])){ S._planSpan = params[0]; if(S.planning) planState().prefs.span = params[0]; } }
+}
+/* The planner's tasks are the Tasks view of Today; anything that used to ask
+   "is the Planning page up?" asks this instead. */
+function planningOnScreen(){
+  const n = parseHash().name;
+  return n === 'planning' || (n === 'today' && !!(S.settings && S.settings.todayView === 'tasks'));
+}
+routes.planning = function(root, params, opts = {}){
   migratePlanning();
+  /* drawn inside Today, as its Tasks or Habits view: Today's own switcher
+     says which, so the planner's room tabs are not drawn */
+  const rooms = () => opts.embedded ? '' : planRoomsHTML();
   /* an address still naming habits opens the habits room rather than a
      selection inside the task room that no longer exists */
   /* An address naming a room or a view is where you arrived, not a standing
@@ -42868,10 +42976,8 @@ routes.planning = function(root, params){
      redraw put it straight back — the page looked stuck on Today and no other
      list could be opened. It is consumed instead, the way the Skills and
      Projects pages already consume the id of a panel they were asked to open. */
-  if(params[0]){
-    if(params[0] === 'habits' || params[0] === 'stats') S._planRoom = params[0];
-    else { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]};
-      if(PLAN_SPANS.includes(params[0])){ S._planSpan = params[0]; planState().prefs.span = params[0]; } }
+  if(params[0] && !opts.embedded){
+    planApplyAddress(params);
     consumeHashParam('#/planning');
   }
   const sel = planSel();
@@ -42901,8 +43007,8 @@ routes.planning = function(root, params){
 
   const room = planRoom();
   if(room === 'habits' || room === 'stats'){
-    root.innerHTML = `<div class="page plan-page">
-      ${planRoomsHTML()}
+    root.innerHTML = `<div class="page plan-page${opts.embedded ? ' plan-embedded' : ''}">
+      ${rooms()}
       <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? habRoomHTML() : planStatsHTML()}</div>
     </div>`;
     bindPlanRooms(root);
@@ -42910,8 +43016,8 @@ routes.planning = function(root, params){
     return;
   }
 
-  root.innerHTML = `<div class="page plan-page">
-    ${planRoomsHTML()}
+  root.innerHTML = `<div class="page plan-page${opts.embedded ? ' plan-embedded' : ''}">
+    ${rooms()}
     ${planReminderBannerHTML()}
     <div class="plan-shell${planState().prefs.sidebarCollapsed ? ' shut' : ''}">
       ${planSidebarHTML()}
@@ -43135,7 +43241,7 @@ function planCheckReminders(){
      it, and takes the boot down with it. */
   if(!S || !S.planning) return;
   const due = planDueReminders();
-  const badge = document.querySelector('[data-page="planning"] .nav-badge');
+  const badge = document.querySelector('[data-page="today"] .nav-badge');
   if(badge){ badge.textContent = due.length || ''; badge.hidden = !due.length; }
   due.forEach(({r, t}) => {
     if(_planRemSeen.has(r.id)) return; _planRemSeen.add(r.id);
@@ -43144,7 +43250,7 @@ function planCheckReminders(){
         n.onclick = () => { window.focus(); navigate('#/planning'); setTimeout(() => openPlanTask(t.id), 400); };
       } catch(e){}
     }
-    if(parseHash().name === 'planning') rerender();
+    if(typeof planningOnScreen === 'function' ? planningOnScreen() : parseHash().name === 'planning') rerender();
   });
 }
 addEventListener('load', () => { setTimeout(planCheckReminders, 1500); setInterval(planCheckReminders, 60000); });
@@ -43280,7 +43386,7 @@ function remindRemove(t){
 function openReminders(){
   S._planRoom = 'tasks';
   if(typeof planSetSel === 'function') planSetSel('remind', 'list'); else S._planSel = {kind: 'remind', id: 'list'};
-  if(parseHash().name === 'planning') rerender(); else navigate('#/planning');
+  if(planningOnScreen()) rerender(); else navigate('#/today/tasks');
 }
 
 /* ---------- on Planning: the Reminders view ---------- */
@@ -43441,7 +43547,7 @@ function paintRemindFloat(){
         ${list.length > 6 ? `<button class="rf-more" id="rfAll">${list.length - 6} more →</button>`
           : `<button class="rf-more" id="rfAll">all reminders →</button>`}
       </div>`;
-  const redraw = () => { paintRemindFloat(); if(parseHash().name === 'planning' || document.getElementById('t-remind')) rerender(); };
+  const redraw = () => { paintRemindFloat(); if(planningOnScreen() || document.getElementById('t-remind')) rerender(); };
   bindRemindRows(box, redraw);
   const set = m => () => { S._remFloatMode = m; paintRemindFloat(); };
   [['#rfOpen', 'strip'], ['#rfMin', 'min'], ['#rfExpand', 'open'], ['#rfFold', 'strip']].forEach(([q, m]) => {
@@ -45170,7 +45276,7 @@ function openRemindModal(){
       time: m.querySelector('#rmTime').value, lead: +m.querySelector('#rmLead').value});
     if(!t) return;
     m.remove(); sound('success'); toast(`Reminder set — ${esc(remindWhen(t))}.`);
-    if(currentRoute === 'today' || currentRoute === 'planning') rerender();
+    if(currentRoute === 'today' || planningOnScreen()) rerender();
     paintRemindFloat(); };
   m.querySelector('#rmSave').onclick = fin; m.querySelector('#rmText').onkeydown = e => { if(e.key === 'Enter') fin(); }; setTimeout(() => m.querySelector('#rmText').focus(), 50);
 }
@@ -82894,7 +83000,10 @@ const NAV_ICONS = {
 };
 /* labels match the h1 of the page they open; `short` is for the mobile bar only */
 const NAV_PAGES = {
-  planning: {label:'Planning',         short:'Plan',     ico:NAV_ICONS.planning, route:'#/planning'},
+  /* Planning's tasks and habits, and the time tracker, are views of Today
+     now; the entries stay so their old addresses and anything that names
+     them still resolve, but they are not doors in the sidebar */
+  planning: {label:'Tasks',            short:'Tasks',    ico:NAV_ICONS.planning, route:'#/today/tasks'},
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Lived Record',     short:'Record',   ico:NAV_ICONS.journals, route:'#/journals'},
   projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
@@ -82911,7 +83020,7 @@ const NAV_PAGES = {
   score:    {label:'Repertoire',        short:'Repertoire', ico:NAV_ICONS.score,  route:'#/score'},
   jazz:     {label:'Jazz Studio',      short:'Jazz',     ico:NAV_ICONS.jazz,     route:'#/jazz'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
-  time:     {label:'Time',             short:'Time',     ico:NAV_ICONS.time,     route:'#/time'},
+  time:     {label:'Time tracking',    short:'Time',     ico:NAV_ICONS.time,     route:'#/today/time'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
 /* The three rooms you are in most days sit above everything, unlabelled and
@@ -82926,11 +83035,11 @@ const NAV_PAGES = {
    it is the sacred space on Today, under the looking-inward view, where the
    Stillness section used to be. A list that offers a way to a page that no
    longer exists is worse than one that does not mention it. */
-const NAV_TOP = ['today','planning'];
+const NAV_TOP = ['today'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills','score','jazz','japanese'],
-  identity: ['values','journals','people','study','time'],
+  identity: ['values','journals','people','study'],
   standalone:[],
 };
 const NAV_ZONES = [
@@ -82949,10 +83058,10 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
    sidebar. Timeline and the Library are both views of Journals. */
 /* `compass` joins these: the address still answers — it redirects to the
    Review tab — but it is not a room to be listed or dragged into a zone. */
-const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace','compass'];
+const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace','compass','planning','time'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
-const MOBILE_PRIMARY = ['today','planning','content','journals','values'];
+const MOBILE_PRIMARY = ['today','content','journals','values'];
 function navConfig(){
   if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT));
   const n = S.settings.nav;
@@ -82979,8 +83088,8 @@ function navConfig(){
 }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
-function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today'}[name] || name; }
-function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'planning' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
+function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today', planning:'today', time:'today'}[name] || name; }
+function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'today' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
 /* The clock stands in the foot of the sidebar and takes its shape from it, so
    whatever opens or closes the sidebar has to tell the clock — otherwise it
    keeps the shape the last render gave it. */
@@ -83190,7 +83299,8 @@ function focusDeskPossible(name){
   name = name || (typeof parseHash === 'function' ? parseHash().name : '');
   if(!routes[name]) name = 'today';
   if(name === 'planning') return true;
-  return name === 'today' && (S.settings && S.settings.todayView) !== 'in';
+  /* on Today, the two views that are about doing the day: Execution and Tasks */
+  return name === 'today' && ['do', 'tasks'].includes((S.settings && S.settings.todayView) || 'do');
 }
 function focusDeskOn(name){
   return pageFocusOn() && !S._pfWhole && focusDeskPossible(name);
@@ -92745,7 +92855,7 @@ routes.time = function(root, params){
   const u = timeUi();
   const want = params && params[0];
   if(['day','week','reports','categories'].includes(want)) u.view = want;
-  registerPageEntry({pageName:'Time', addLabel:'Log a sitting', defaultEntryType:'time',
+  registerPageEntry({pageName:'Time tracking', addLabel:'Log a sitting', defaultEntryType:'time',
     prefilledFields:{}, options:[
       {icon:'⏱', label:'Start the clock', desc:'Now, for whatever you are about to do.',
         run:()=>openTimeStartModal()},
@@ -92753,7 +92863,7 @@ routes.time = function(root, params){
         run:()=>openTimeEntryModal(null, timeDay())}]});
   root.innerHTML = `<div class="page tm-page">
     <div class="tm-head">
-      <h1 class="serif">Time</h1>
+      <h1 class="serif">Time tracking</h1>
       <span class="grow"></span>
       <span class="tabs sm">${[['day','Day'],['week','Week'],['reports','Reports'],['categories','Categories']].map(([k, n]) =>
         `<button class="tab${u.view === k ? ' on' : ''}" data-tmview="${k}">${n}</button>`).join('')}</span>

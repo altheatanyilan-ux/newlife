@@ -23,7 +23,7 @@ routes.time = function(root, params){
   const u = timeUi();
   const want = params && params[0];
   if(['day','week','reports','categories'].includes(want)) u.view = want;
-  registerPageEntry({pageName:'Time', addLabel:'Log a sitting', defaultEntryType:'time',
+  registerPageEntry({pageName:'Time tracking', addLabel:'Log a sitting', defaultEntryType:'time',
     prefilledFields:{}, options:[
       {icon:'⏱', label:'Start the clock', desc:'Now, for whatever you are about to do.',
         run:()=>openTimeStartModal()},
@@ -31,7 +31,7 @@ routes.time = function(root, params){
         run:()=>openTimeEntryModal(null, timeDay())}]});
   root.innerHTML = `<div class="page tm-page">
     <div class="tm-head">
-      <h1 class="serif">Time</h1>
+      <h1 class="serif">Time tracking</h1>
       <span class="grow"></span>
       <span class="tabs sm">${[['day','Day'],['week','Week'],['reports','Reports'],['categories','Categories']].map(([k, n]) =>
         `<button class="tab${u.view === k ? ' on' : ''}" data-tmview="${k}">${n}</button>`).join('')}</span>

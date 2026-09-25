@@ -17,7 +17,7 @@ function planTypingInto(el){
   return /^(input|textarea|select)$/i.test(el.tagName);
 }
 document.addEventListener('keydown', ev => {
-  if(parseHash().name !== 'planning') return;
+  if(!planningOnScreen()) return;
   /* in focus mode the room is drawn as the desk, and these keys would change
      views nobody can see */
   if(typeof focusDeskOn === 'function' && focusDeskOn()) return;
@@ -32,8 +32,10 @@ document.addEventListener('keydown', ev => {
   ev.preventDefault();
   if(act === 'add'){ const i = document.querySelector('.pq-input'); if(i){ i.focus(); } else openPlanTask(null); return; }
   /* the timer lives on Today now — go to it rather than opening a second one */
-  if(act === 'focus')  return navigate('#/today');
-  if(act === 'stats')  return planSetRoom('stats');
+  /* the timer's words are on Today's Execution view, and the planner's
+     statistics are part of Today's Review now */
+  if(act === 'focus')  return typeof setTodayView === 'function' ? setTodayView('do') : navigate('#/today');
+  if(act === 'stats')  return typeof setTodayView === 'function' ? setTodayView('review') : planSetRoom('stats');
   if(act === 'today')  return planSetSel('smart', 'today');
   if(act === 'habits') return planSetSel('smart', 'habits');
   if(act === 'stats')  return planSetSel('smart', 'stats');

@@ -55,7 +55,7 @@ function planCheckReminders(){
      it, and takes the boot down with it. */
   if(!S || !S.planning) return;
   const due = planDueReminders();
-  const badge = document.querySelector('[data-page="planning"] .nav-badge');
+  const badge = document.querySelector('[data-page="today"] .nav-badge');
   if(badge){ badge.textContent = due.length || ''; badge.hidden = !due.length; }
   due.forEach(({r, t}) => {
     if(_planRemSeen.has(r.id)) return; _planRemSeen.add(r.id);
@@ -64,7 +64,7 @@ function planCheckReminders(){
         n.onclick = () => { window.focus(); navigate('#/planning'); setTimeout(() => openPlanTask(t.id), 400); };
       } catch(e){}
     }
-    if(parseHash().name === 'planning') rerender();
+    if(typeof planningOnScreen === 'function' ? planningOnScreen() : parseHash().name === 'planning') rerender();
   });
 }
 addEventListener('load', () => { setTimeout(planCheckReminders, 1500); setInterval(planCheckReminders, 60000); });

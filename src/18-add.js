@@ -131,7 +131,7 @@ function openRemindModal(){
       time: m.querySelector('#rmTime').value, lead: +m.querySelector('#rmLead').value});
     if(!t) return;
     m.remove(); sound('success'); toast(`Reminder set — ${esc(remindWhen(t))}.`);
-    if(currentRoute === 'today' || currentRoute === 'planning') rerender();
+    if(currentRoute === 'today' || planningOnScreen()) rerender();
     paintRemindFloat(); };
   m.querySelector('#rmSave').onclick = fin; m.querySelector('#rmText').onkeydown = e => { if(e.key === 'Enter') fin(); }; setTimeout(() => m.querySelector('#rmText').focus(), 50);
 }

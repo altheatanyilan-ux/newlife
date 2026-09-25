@@ -6,7 +6,9 @@
    that run between them. It is not a separate room because it was never
    separate material — the memories on the spine are journal entries filed
    to a stage. */
-const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library'], ['review','◫','Review']];
+/* The Review was the fourth view here. It is a view of Today now (with the
+   planner's statistics folded into it), and #/journals/review goes there. */
+const JOURNAL_VIEWS = [['entries','✍','Journals'], ['timeline','◷','Timeline'], ['library','▤','Library']];
 /* Five of the fourteen journals were doors into rooms that already exist, or
    into nothing at all. Memories and life events are the Timeline's own
    material, filed to a stage. Media is the Library. The practice log is
@@ -43,14 +45,12 @@ document.addEventListener('keydown', ev => {
   if(ev.code === 'Digit1'){ ev.preventDefault(); navigate('#/journals/' + (S._journal || journalDefault())); }
   else if(ev.code === 'Digit2'){ ev.preventDefault(); navigate('#/journals/timeline'); }
   else if(ev.code === 'Digit3'){ ev.preventDefault(); navigate('#/journals/library'); }
-  else if(ev.code === 'Digit4'){ ev.preventDefault(); navigate('#/journals/review'); }
 }, true);
 function bindJournalViews(root){
   $$('[data-jrview]', root).forEach(b => b.onclick = () => {
     const v = b.dataset.jrview;
     navigate(v === 'timeline' ? '#/journals/timeline'
            : v === 'library'  ? '#/journals/library'
-           : v === 'review'   ? '#/journals/review'
            : '#/journals/' + (S._journal || journalDefault()));
   });
 }
@@ -62,25 +62,30 @@ function migrateJournalTypes(){
   const want = [['divination','Divination'], ['intuition','Intuition']];
   want.forEach(([type, name]) => { if(!S.journals.some(j => j.type === type)) S.journals.push({type, name}); });
 }
+/* The Review, as Today's fifth view: the charts that used to be the Compass,
+   the planner's statistics beside them (the numbers are one conversation),
+   then the reviews written about the periods they describe, and under all of
+   it the days themselves. The numbers say what the months came to and the
+   reviews say what you made of them; neither can hand back the Tuesday. */
+function todayReviewRender(box){
+  if(typeof migratePlanning === 'function') migratePlanning();
+  box.innerHTML = `<div class="today-review">
+    <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
+    ${typeof planStatsHTML === 'function' ? `<section class="section rv rv-stats" id="rvStats">
+      <span class="sc">Tasks and focus</span>${planStatsHTML()}</section>` : ''}
+    ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
+    ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
+  if(typeof bindCompassBody === 'function') bindCompassBody(box, () => rerender());
+  if(typeof bindReviewList === 'function') bindReviewList(box);
+  if(typeof bindDayArchive === 'function') bindDayArchive(box);
+}
 routes.journals = function(root, params){
   /* The Review: the charts that used to be the Compass, and under them the
      reviews written about the periods they describe. The Compass was a page
      of its own; it is a tab here, because looking at the numbers and writing
      about them is one activity and it was two rooms. */
-  if(params[0] === 'review'){
-    /* and under both: the days themselves. The numbers say what the months
-       came to and the reviews say what you made of them; neither can hand
-       back the Tuesday. See the note at the top of 13-journals-days. */
-    root.innerHTML = `<div class="page">${journalsHeadHTML('review')}
-      <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
-      ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
-      ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
-    bindJournalViews(root);
-    if(typeof bindCompassBody === 'function') bindCompassBody(root, () => rerender());
-    if(typeof bindReviewList === 'function') bindReviewList(root);
-    if(typeof bindDayArchive === 'function') bindDayArchive(root);
-    return;
-  }
+  /* (the Review is a view of Today now — see todayReviewRender below; the
+     router sends #/journals/review there before this runs) */
   if(params[0] === 'timeline'){
     renderTimeline(root, params[1] === 'threads' ? 'threads' : 'stages',
       {heading: journalsHeadHTML('timeline'), base: '#/journals/timeline'});

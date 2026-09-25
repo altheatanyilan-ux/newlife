@@ -642,8 +642,26 @@ function planRoomsHTML(){
   </div>`;
 }
 
-routes.planning = function(root, params){
+/* What an old #/planning/<x> address named — a room, a smart view, a span —
+   applied to the planner's state, so the Today view it now leads to opens on
+   the same thing. */
+function planApplyAddress(params){
+  if(!params || !params[0]) return;
+  if(params[0] === 'habits' || params[0] === 'stats') S._planRoom = params[0];
+  else { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]};
+    if(PLAN_SPANS.includes(params[0])){ S._planSpan = params[0]; if(S.planning) planState().prefs.span = params[0]; } }
+}
+/* The planner's tasks are the Tasks view of Today; anything that used to ask
+   "is the Planning page up?" asks this instead. */
+function planningOnScreen(){
+  const n = parseHash().name;
+  return n === 'planning' || (n === 'today' && !!(S.settings && S.settings.todayView === 'tasks'));
+}
+routes.planning = function(root, params, opts = {}){
   migratePlanning();
+  /* drawn inside Today, as its Tasks or Habits view: Today's own switcher
+     says which, so the planner's room tabs are not drawn */
+  const rooms = () => opts.embedded ? '' : planRoomsHTML();
   /* an address still naming habits opens the habits room rather than a
      selection inside the task room that no longer exists */
   /* An address naming a room or a view is where you arrived, not a standing
@@ -652,10 +670,8 @@ routes.planning = function(root, params){
      redraw put it straight back — the page looked stuck on Today and no other
      list could be opened. It is consumed instead, the way the Skills and
      Projects pages already consume the id of a panel they were asked to open. */
-  if(params[0]){
-    if(params[0] === 'habits' || params[0] === 'stats') S._planRoom = params[0];
-    else { S._planRoom = 'tasks'; S._planSel = {kind:'smart', id:params[0]};
-      if(PLAN_SPANS.includes(params[0])){ S._planSpan = params[0]; planState().prefs.span = params[0]; } }
+  if(params[0] && !opts.embedded){
+    planApplyAddress(params);
     consumeHashParam('#/planning');
   }
   const sel = planSel();
@@ -685,8 +701,8 @@ routes.planning = function(root, params){
 
   const room = planRoom();
   if(room === 'habits' || room === 'stats'){
-    root.innerHTML = `<div class="page plan-page">
-      ${planRoomsHTML()}
+    root.innerHTML = `<div class="page plan-page${opts.embedded ? ' plan-embedded' : ''}">
+      ${rooms()}
       <div class="pl-habits-room${room === 'stats' ? ' pl-stats-room' : ''}">${room === 'habits' ? habRoomHTML() : planStatsHTML()}</div>
     </div>`;
     bindPlanRooms(root);
@@ -694,8 +710,8 @@ routes.planning = function(root, params){
     return;
   }
 
-  root.innerHTML = `<div class="page plan-page">
-    ${planRoomsHTML()}
+  root.innerHTML = `<div class="page plan-page${opts.embedded ? ' plan-embedded' : ''}">
+    ${rooms()}
     ${planReminderBannerHTML()}
     <div class="plan-shell${planState().prefs.sidebarCollapsed ? ' shut' : ''}">
       ${planSidebarHTML()}
