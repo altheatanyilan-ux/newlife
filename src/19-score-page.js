@@ -300,10 +300,16 @@ function scoreViewerHTML(x){
       <button class="btn sm primary" id="scNewSec">＋ a section</button>
     </div>
     <div class="sc-bar sc-playrow" id="scPlayRow">${scorePlayBarHTML()}</div>
+    <div class="sc-bar sc-ens" id="scEns" hidden></div>
     ${ui.more ? `<div class="sc-bar sc-bar2">${scoreMetroHTML(x)}</div>
       <div class="sc-bar sc-bar2">${scoreLayerPickHTML(x)}
         <span class="grow"></span>${scoreXposeHTML(x)}</div>` : ''}
     ${scoreReadStripHTML(x)}
+    <div class="sc-cue" id="scCue" hidden>
+      <div class="sc-cue-h"><button class="tbtn" id="scCueTog" aria-label="fold the cue strip">▾</button>
+        <span class="mono faint">partner cue</span> <span class="mono" data-cuename></span></div>
+      <div class="sc-cue-in"></div>
+    </div>
     <div class="sc-body">
       <div class="sc-stage" id="scStage">
         <div class="sc-canvas" id="scCanvas"></div>
@@ -579,6 +585,7 @@ function scoreMarksSideHTML(x){
           <span class="sc-sec-m mono">${s.startMeasure}–${s.endMeasure}</span>
         </div>
         ${scoreTempoSay(s)}
+        ${typeof scoreSecTempoHTML === 'function' ? scoreSecTempoHTML(x, s) : ''}
         <div class="sc-sec-s mono" title="${esc((SCORE_STATUS.find(v => v[0] === s.status) || [,,''])[2])}">
           ${scoreStatusDots(s.status)} ${esc(scoreStatusName(s.status))}
           · ${s.lastPracticedDate ? esc(scoreAgo(s.lastPracticedDate)) : 'never practised'}${
@@ -830,7 +837,10 @@ function scoreNotebookHTML(x){
 }
 /* The tempo over time, with the fastest anything is written at as the line to
    get to. Drawn only once there are two points: one dot is not a trend and a
-   chart of it says something it cannot know. */
+   chart of it says something it cannot know. Sittings played with the room
+   as a partner are their own line (hollow dots, the second colour), because
+   holding a tempo against somebody else's is a different thing from holding
+   it alone — the two are on one axis and one time line, never two scales. */
 function scoreTempoChartHTML(nb){
   if(nb.tempos.length < 2) return '';
   const W = 270, H = 74, pad = 4;
@@ -839,15 +849,22 @@ function scoreTempoChartHTML(nb){
   const span = Math.max(1, hi - lo);
   const at = (t, i) => [pad + (W - pad * 2) * (nb.tempos.length < 2 ? 0 : i / (nb.tempos.length - 1)),
     H - pad - (H - pad * 2) * ((t - lo) / span)];
-  const pts = nb.tempos.map((t, i) => at(t.tempo, i));
-  const line = pts.map((q, i) => `${i ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`).join(' ');
+  const pts = nb.tempos.map((t, i) => ({t, q: at(t.tempo, i)}));
+  const alone = pts.filter(p => !p.t.partner), duo = pts.filter(p => p.t.partner);
+  const path = list => list.length > 1 ? list.map((p, i) => `${i ? 'L' : 'M'}${p.q[0].toFixed(1)} ${p.q[1].toFixed(1)}`).join(' ') : '';
   const targetY = nb.target ? at(nb.target, 0)[1] : null;
-  return `<div class="sc-nb-chart"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" aria-hidden="true">
+  const tip = p => `<title>${esc(fmtDate(p.t.date, 'short'))} \u00b7 \u2669=${p.t.tempo}${p.t.partner ? ' \u00b7 with the partner' : ''}</title>`;
+  return `<div class="sc-nb-chart"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" role="img"
+      aria-label="tempo of each sitting over time${duo.length ? ', alone and with the partner' : ''}">
     ${targetY != null ? `<line x1="0" y1="${targetY.toFixed(1)}" x2="${W}" y2="${targetY.toFixed(1)}"
-      stroke="#b0705e" stroke-dasharray="4 4" stroke-width="1" opacity=".7"/>` : ''}
-    <path d="${line}" fill="none" stroke="#5c7c8a" stroke-width="2" stroke-linejoin="round"/>
-    ${pts.map(q => `<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="2.6" fill="#5c7c8a"/>`).join('')}
+      class="sc-nb-target" stroke-dasharray="4 4" stroke-width="1"/>` : ''}
+    ${path(alone) ? `<path d="${path(alone)}" fill="none" class="sc-nb-s1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+    ${path(duo) ? `<path d="${path(duo)}" fill="none" class="sc-nb-s2" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : ''}
+    ${alone.map(p => `<circle cx="${p.q[0].toFixed(1)}" cy="${p.q[1].toFixed(1)}" r="4" class="sc-nb-d1">${tip(p)}</circle>`).join('')}
+    ${duo.map(p => `<circle cx="${p.q[0].toFixed(1)}" cy="${p.q[1].toFixed(1)}" r="4" class="sc-nb-d2" stroke-width="2">${tip(p)}</circle>`).join('')}
   </svg>
+  ${duo.length ? `<div class="sc-nb-legend mono sm"><span><i class="sc-nb-k1"></i>on your own</span>
+    <span><i class="sc-nb-k2"></i>with the partner</span></div>` : ''}
   <div class="mono faint sm">${nb.target ? `the dashed line is \u2669=${nb.target}, what it is written at`
     : 'no target tempo written on any section yet'}</div></div>`;
 }
@@ -880,9 +897,19 @@ function scoreSittingHTML(x, r){
       <button class="del-x inline" data-scsitdel="${esc(r.id)}">\u00d7</button>
     </div>
     ${names.length ? `<div class="mono faint sm">${esc(names.join(' \u00b7 '))}</div>` : ''}
+    ${scoreSittingPlaySay(r)}
     ${r.focus ? `<div class="sc-sitting-f">${esc(r.focus)}</div>` : ''}
     ${r.discoveries ? `<div class="sc-sitting-d">${linkify(r.discoveries)}</div>` : ''}
   </div>`;
+}
+/* how it was played along with, when it was */
+function scoreSittingPlaySay(r){
+  const bits = [];
+  if(r.withPartnerPlayback) bits.push('with the partner');
+  if(r.tempoPercent) bits.push(`${r.tempoPercent}% of the score's tempo`);
+  if(r.finalGuideLevel != null && typeof ensGuideWords === 'function') bits.push(ensGuideWords(r.finalGuideLevel));
+  if(r.loopsCompleted) bits.push(`${r.loopsCompleted} loop${r.loopsCompleted === 1 ? '' : 's'}`);
+  return bits.length ? `<div class="mono faint sm sc-sitting-p">${r.withPartnerPlayback ? '🎼 ' : ''}${esc(bits.join(' \u00b7 '))}</div>` : '';
 }
 /* What the log knows about a section that the section record does not: how
    many sittings it has had, and the fastest it has ever been logged at. */
@@ -1112,7 +1139,9 @@ async function scoreRedraw(x){
    section in focus, turning the page when the music does. The tempo, loop and
    which hands are heard are kept with the piece. */
 function scorePlayCfg(x){
-  return {
+  /* the ensemble's hooks: who is heard and how loud, a section's own tempo,
+     the fermatas, the places to wait, the guide fading at each loop */
+  return Object.assign(typeof scoreEnsembleCfg === 'function' ? scoreEnsembleCfg(x) : {}, {
     xml: () => scoreXmlFor(x),
     osmd: () => { const v = scoreView(); return v && v.scoreId === x.id ? v.osmd : null; },
     host: document.getElementById('scStage'), svgRoot: document.getElementById('scCanvas'),
@@ -1120,10 +1149,13 @@ function scorePlayCfg(x){
       return f ? [f.startMeasure, f.endMeasure] : null; },
     onPage: p => { const v = scoreView(); if(!v || !v.page || v.at === p) return;
       showScorePage(p); scoreOverlayPaint(x); scoreLayersPaint(x); scorePageSay(); },
-    store: {get: () => x.playback || {}, set: v => { x.playback = v; saveNow(); }},
+    store: {get: () => x.playback || {}, set: v => { x.playback = v;
+      if(x.ensembleSettings){ x.ensembleSettings.countInBars = +v.countIn || 0;
+        x.ensembleSettings.tempoPercent = v.pct != null ? Math.round(+v.pct) : 100; }
+      saveNow(); }},
     /* the play bar's click and count-in follow the piece's metronome */
     accent: {get: () => x.metronome.accent !== false, set: v => scoreSetAccent(x, v)},
-    swing: false};
+    swing: false});
 }
 function scorePlayBind(x){
   if(typeof scorePlayAttach !== 'function') return;
@@ -1131,8 +1163,11 @@ function scorePlayBind(x){
     try {
       if(bar._plx && bar._plxFor === x.id) bar._plx.redrawn();
       else { scorePlayAttach(bar, scorePlayCfg(x)); bar._plxFor = x.id; }
+      /* space taps the tempo, while it plays, when the room is asked to follow */
+      if(bar._plx && typeof ensembleSpace === 'function') bar._plx.onSpace = () => ensembleSpace(x, bar._plx);
     } catch(e){ console.warn('the player could not attach', e); }
   });
+  if(typeof scoreEnsemblePaint === 'function'){ scoreEnsemblePaint(x); ensembleCuePaint(x); }
 }
 /* and a repaint of the words, for everything else */
 function scoreSidePaint(x){
@@ -1552,6 +1587,7 @@ function bindScoreSide(root, x){
     spliceOut(x.pins, p => p.id === b.dataset.scpindel); saveNow();
     scoreSidePaint(x); scoreOverlayPaint(x);
   });
+  if(typeof bindScoreSecTempo === 'function') bindScoreSecTempo(root, x);
 }
 /* Turning a page: a tap on the right third or the left third, an arrow key, or
    a swipe. Three ways because the same person uses all three — a finger while
@@ -1766,6 +1802,7 @@ function openScoreLogModal(scoreId, sectionId){
         <select class="sel" id="logQuality"><option value="">\u2014</option>${SCORE_QUALITY.map(([v, n]) =>
           `<option value="${v}">${esc(n)}</option>`).join('')}</select></label>
     </div>
+    ${typeof ensLogFieldsHTML === 'function' ? ensLogFieldsHTML(x) : ''}
     ${s ? `<label class="pd-q" style="margin-top:10px"><span class="k">how it stands now</span>
       <select class="sel" id="logStatus">${SCORE_STATUS.map(([v, n, hint]) =>
         `<option value="${v}" ${s.status === v ? 'selected' : ''}>${esc(n)} \u2014 ${esc(hint)}</option>`).join('')}</select></label>` : ''}
@@ -1775,17 +1812,21 @@ function openScoreLogModal(scoreId, sectionId){
       <textarea class="inp" rows="3" id="logNotes" placeholder="There is an inner voice in the tenor I have been ignoring. Bar 48 should be pp."></textarea></label>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="logSave">Done</button></div>`,
     'narrow sc-modal');
+  /* the tempo the room last played it at, as a starting point */
+  const was = typeof ensLogPrefill === 'function' ? ensLogPrefill(x) : null;
+  if(was && was.bpm) m.querySelector('#logTempo').value = was.bpm;
   m.querySelector('#logSave').onclick = () => {
     const mins = +m.querySelector('#logMins').value || 0;
     const st = m.querySelector('#logStatus');
     if(s && st) s.status = st.value;
     const picked = $$('[data-logsec]', m).filter(b => b.checked).map(b => b.dataset.logsec);
     const tempo = +m.querySelector('#logTempo').value || null;
-    logScorePractice(x.id, s ? s.id : null, mins, {
+    logScorePractice(x.id, s ? s.id : null, mins, Object.assign({
       sections: picked, comfort: tempo, tempo,
       focus: m.querySelector('#logFocus').value.trim(),
       quality: m.querySelector('#logQuality').value || null,
-      discoveries: m.querySelector('#logNotes').value.trim()});
+      discoveries: m.querySelector('#logNotes').value.trim()},
+      typeof ensLogFieldsRead === 'function' ? ensLogFieldsRead(m) : {}));
     m.remove(); sound('success');
     toast(mins ? `${fmtHM(mins)} logged.` : 'Logged.');
     scoreSidePaint(x);

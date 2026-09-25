@@ -335,7 +335,10 @@ function scoreNotes(){
   const out = [];
   try {
     (osmd.GraphicSheet.MeasureList || []).forEach(line => (line || []).forEach(m => {
-      if(!m) return;
+      /* a part switched off is still in the list, laid out nowhere: its
+         notes would all land in the top left corner */
+      if(!m || !m.ParentStaffLine) return;
+      try { if(typeof m.isVisible === 'function' && !m.isVisible()) return; } catch(e){}
       const n = m.MeasureNumber;
       if(n == null || n < lo || n > hi) return;
       const sys = m.ParentStaffLine && m.ParentStaffLine.ParentMusicSystem;

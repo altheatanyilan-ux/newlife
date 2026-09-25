@@ -229,6 +229,8 @@ function scoreDefaults(x){
   x.metronome.perBar = x.metronome.perBar == null ? null : clamp(+x.metronome.perBar, 1, 16);
   x.createdAt = x.createdAt || new Date().toISOString();
   x.lastOpened = x.lastOpened || null;
+  /* who plays what when the room plays along (19-score-ensemble.js) */
+  if(typeof ensembleDefaults === 'function') ensembleDefaults(x);
   return x;
 }
 function scoreSectionDefaults(s, score){
@@ -270,6 +272,16 @@ function scorePracticeDefaults(r){
   r.tempo = +r.tempo || null;
   r.quality = SCORE_QUALITY.some(q => q[0] === r.quality) ? r.quality : null;
   r.discoveries = r.discoveries || '';
+  /* a sitting with the room playing the other part: whether, how fast as a
+     share of the score's tempo, how loud your own guide was by the end, and
+     how many times round. Absent on the sittings from before there was a
+     partner to play with. */
+  r.withPartnerPlayback = !!r.withPartnerPlayback;
+  r.tempoPercent = +r.tempoPercent > 0 ? Math.round(+r.tempoPercent) : null;
+  r.finalGuideLevel = r.finalGuideLevel == null || r.finalGuideLevel === '' || !isFinite(+r.finalGuideLevel)
+    ? null : clamp(+r.finalGuideLevel, 0, 1);
+  r.loopsCompleted = r.loopsCompleted == null || r.loopsCompleted === '' || !isFinite(+r.loopsCompleted)
+    ? null : Math.max(0, Math.round(+r.loopsCompleted));
   r.at = r.at || new Date().toISOString();
   return r;
 }
@@ -416,7 +428,9 @@ function logScorePractice(scoreId, sectionId, minutes, opts){
     : (sectionId ? [sectionId] : []);
   const s = sectionId ? scoreSection(x, sectionId) : null;
   const rec = scorePracticeDefaults({sections: ids, minutes,
-    focus: o.focus, tempo: o.tempo, quality: o.quality, discoveries: o.discoveries});
+    focus: o.focus, tempo: o.tempo, quality: o.quality, discoveries: o.discoveries,
+    withPartnerPlayback: o.withPartnerPlayback, tempoPercent: o.tempoPercent,
+    finalGuideLevel: o.finalGuideLevel, loopsCompleted: o.loopsCompleted});
   x.practice.push(rec);
   ids.forEach(id => { const sec = scoreSection(x, id); if(!sec) return;
     sec.practiceCount = (+sec.practiceCount || 0) + 1; sec.lastPracticedDate = today(); });
@@ -463,7 +477,7 @@ function scoreNotebook(x){
     rows,
     sessions: rows.length,
     minutes: sum(rows.map(r => +r.minutes || 0)),
-    tempos: tempos.map(r => ({date: r.date, tempo: r.tempo})),
+    tempos: tempos.map(r => ({date: r.date, tempo: r.tempo, partner: !!r.withPartnerPlayback})),
     from: tempos.length ? tempos[0].tempo : null,
     to: tempos.length ? tempos[tempos.length - 1].tempo : null,
     best: tempos.length ? Math.max(...tempos.map(r => r.tempo)) : null,

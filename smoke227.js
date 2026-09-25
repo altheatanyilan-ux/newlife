@@ -81,6 +81,8 @@ const piece = title => `<?xml version="1.0" encoding="UTF-8"?><score-partwise ve
   /* while it plays */
   await p.selectOption('#scPlayRow [data-plxclick]', 'beats');
   await p.click('#scPlayRow [data-plxgo]'); await p.waitForTimeout(1500);
+  /* these waltzes mark no tempo: the first ▶ asks for one, once (smoke229) */
+  if(await p.$('#ensTempoGo')){ await p.click('#ensTempoGo'); await p.waitForTimeout(1500); }
   await p.click('[data-scaccent]'); await p.waitForTimeout(300);
   is('changed while the piece plays, the click that is playing hears it', await p.evaluate(() => _plxNow && _plxNow.player && _plxNow.player.opts.accent), false);
   await p.evaluate(() => scorePlayStopAll());

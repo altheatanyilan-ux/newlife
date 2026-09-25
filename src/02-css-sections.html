@@ -8519,7 +8519,16 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
 /* the notebook */
 .sc-side-tabs{display:flex;align-items:center;gap:6px;margin-bottom:8px}
 .sc-nb-top{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;font-size:.74rem;margin-bottom:8px}
-.sc-nb-chart{margin:4px 0 10px}
+.sc-nb-chart{margin:4px 0 10px;--nb-s1:#2a78d6;--nb-s2:#eb6834;--nb-t:#52514e}
+html[data-theme="dark"] .sc-nb-chart{--nb-s1:#3987e5;--nb-s2:#d95926;--nb-t:#c3c2b7}
+.sc-nb-s1{stroke:var(--nb-s1)}.sc-nb-s2{stroke:var(--nb-s2)}
+.sc-nb-d1{fill:var(--nb-s1);stroke:var(--surface,#fff);stroke-width:2}
+.sc-nb-d2{fill:var(--surface,#fff);stroke:var(--nb-s2)}
+.sc-nb-target{stroke:var(--nb-t);opacity:.7}
+.sc-nb-legend{display:flex;gap:12px;color:var(--text);font-size:.66rem;margin:2px 0}
+.sc-nb-legend i{display:inline-block;width:14px;height:2px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.sc-nb-k1{background:var(--nb-s1)}.sc-nb-k2{background:var(--nb-s2)}
+.sc-sitting-p{margin-top:2px}
 .sc-heat{display:flex;flex-direction:column;gap:4px;margin-bottom:6px}
 .sc-heat-row{display:grid;grid-template-columns:minmax(0,1fr) 84px 2.4em;gap:6px;align-items:center;font-size:.72rem}
 .sc-heat-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -9677,7 +9686,10 @@ html.ja-running{overflow:hidden}
 .plx-mutes .mono{font-size:.68rem}
 .grand-credit{flex-basis:100%;font-size:.64rem;line-height:1.5}
 .grand-credit a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-.plx-bar.compact{margin:0;flex-direction:row}
+.plx-note{font-size:.66rem;color:var(--muted);line-height:1.4}
+.plx-note::before{content:"⚠ ";color:var(--warn,#b8862f)}
+.plx-bar.compact{margin:0;flex-direction:row;flex-wrap:wrap}
+.plx-bar.compact .plx-note{flex-basis:100%}
 .plx-bar.compact .plx-row{flex-wrap:nowrap}
 /* the bar being played, and the playhead running through it; dimmer when paused */
 .plx-hl{position:absolute;z-index:1;pointer-events:none;border-radius:6px;
@@ -9694,5 +9706,60 @@ html.ja-running{overflow:hidden}
 @keyframes plxbeat{0%{opacity:0;transform:translate(-50%,-50%) scale(.8)}25%{opacity:.95;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(1.06)}}
 @media (max-width:640px){.plx-pct{flex-basis:100%;max-width:none}.plx-where{min-width:0}.plx-count{font-size:4.5rem}}
 @media print{.plx-bar,.plx-hl{display:none !important}}
+
+/* ---------- the ensemble: parts, roles, the guide, the cue strip ---------- */
+.sc-sec-tempo{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:.66rem;margin:3px 0}
+.sc-sec-tempo .tbtn{font-size:.66rem;padding:1px 6px}
+.sc-sec-tempo .tbtn.on{border-color:var(--page-accent,var(--accent));color:var(--text)}
+.sc-sec-tempo .inp{width:3.8em;padding:1px 4px;font-size:.68rem}
+.sc-ens{display:block;padding:4px 0 6px;font-size:.78rem}
+.sc-ens[hidden]{display:none !important}
+.sc-ens-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sc-ens-presets{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.sc-ens-presets .mono{font-size:.66rem}
+.sc-ens-guide{font-size:.72rem;padding:1px 8px;border-radius:9px;border:1px solid var(--line);color:var(--text)}
+.sc-ens-guide[hidden]{display:none}
+.sc-ens-body{display:flex;flex-direction:column;gap:6px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
+.sc-ens-body[hidden]{display:none}
+.sc-ens-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sc-ens-name{min-width:8.5em;font-weight:600}
+.sc-ens-name i{font-weight:400;font-size:.66rem}
+.sc-ens-roles{display:inline-flex;gap:3px;flex-wrap:wrap}
+.sc-ens .tbtn.on{border-color:var(--page-accent,var(--accent));color:var(--text);background:color-mix(in srgb,var(--page-accent,var(--accent)) 12%,transparent)}
+.sc-ens-vol{display:flex;align-items:center;gap:5px;font-size:.7rem}
+.sc-ens-vol input{width:90px}
+.sc-ens-vol b{min-width:2.6em;font-size:.7rem}
+.sc-ens-opts{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap}
+.sc-ens-opts .mono{font-size:.68rem}
+.sc-ens-chk{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;cursor:pointer}
+.sc-ens-sel{display:inline-flex;align-items:center;gap:5px;font-size:.7rem}
+.sc-ens-sel .inp{width:4.4em}
+.sc-ens-midi{display:inline-flex;gap:10px;align-items:center}
+.sc-ens-midi[hidden]{display:none}
+.sc-ens-sum{font-size:.7rem}
+/* waiting: a chip over the score, and the notes it waits for, lit */
+.sc-ens-wait{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:4;font-size:.74rem;
+  padding:4px 12px;border-radius:14px;border:1px solid var(--page-accent,var(--accent));background:var(--surface);color:var(--text);
+  box-shadow:0 4px 14px rgba(0,0,0,.12);cursor:pointer}
+.sc-ens-wait[hidden]{display:none}
+.sc-waitmarks{z-index:3}
+.sc-wait-dot{position:absolute;width:15px;height:15px;margin:-7.5px 0 0 -3px;border-radius:50%;
+  background:color-mix(in srgb,var(--page-accent,#3d6fd1) 30%,transparent);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent,#3d6fd1) 55%,transparent),0 0 10px color-mix(in srgb,var(--page-accent,#3d6fd1) 45%,transparent);
+  animation:scwait 1.2s ease-in-out infinite alternate}
+.sc-wait-dot.got{animation:none;opacity:.35}
+@keyframes scwait{from{transform:scale(.9)}to{transform:scale(1.15)}}
+/* the partner, small, on one line that slides along */
+.sc-cue{margin:0 0 8px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden}
+.sc-cue[hidden]{display:none}
+.sc-cue-h{display:flex;align-items:center;gap:6px;padding:3px 8px;font-size:.7rem;border-bottom:1px solid var(--line)}
+.sc-cue.shut .sc-cue-h{border-bottom:none}
+.sc-cue-in{position:relative;overflow-x:auto;overflow-y:hidden;max-height:150px;padding:2px 0}
+.sc-cue.shut .sc-cue-in{display:none}
+.sc-cue-in svg{display:block;max-width:none !important}
+.sc-cue-wait{display:block;padding:10px 12px;font-size:.7rem}
+html.sc-reading .sc-cue{display:none !important}
+@media (max-width:640px){.sc-ens-name{min-width:0;flex-basis:100%}.sc-ens-vol input{width:70px}}
+@media print{.sc-ens,.sc-cue,.sc-ens-wait,.sc-waitmarks{display:none !important}}
 </style>
 </head>

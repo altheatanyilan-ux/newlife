@@ -205,7 +205,15 @@ function musicXmlTimeline(xml){
           const at = pos + plxNum(c, 'offset', 0) / div;
           plxKids(c, 'direction-type').forEach(dt => {
             plxKids(dt, 'words').forEach(w => { const sym = plxChordText(w.textContent);
-              if(sym) harmIn[k].push({at, sym, part: pi, words: true}); });
+              if(sym) harmIn[k].push({at, sym, part: pi, words: true});
+              /* what the words say about the tempo (a section tempo can ramp
+                 through a rit.), and a road sign written only as words */
+              const txt = w.textContent.trim();
+              if(!sym && txt){
+                if(/\b(rit|ritard|ritardando|rall|rallentando|allarg|allargando)\b/i.test(txt)) info.tempoWord = info.tempoWord || 'rit';
+                else if(/\baccel/i.test(txt)) info.tempoWord = info.tempoWord || 'accel';
+                info.words = (info.words ? info.words + ' ' : '') + txt;
+              } });
             const dyn = plxKid(dt, 'dynamics');
             if(dyn){ const k0 = [...dyn.children].map(x => x.nodeName).find(n => PLX_DYN[n] != null);
               if(k0) vel = PLX_DYN[k0]; }
@@ -253,11 +261,14 @@ function musicXmlTimeline(xml){
     const b0 = byPart.get(partIds[0])[k];
     const n = b0 ? parseInt(b0.number, 10) : NaN;
     return {k, number: isFinite(n) ? n : k + 1, len: barLen[k] || 4,
-      beats: (barSig[k] || {}).beats || 4, beatType: (barSig[k] || {}).beatType || 4};
+      beats: (barSig[k] || {}).beats || 4, beatType: (barSig[k] || {}).beatType || 4,
+      tempoWord: barInfo[k].tempoWord || null};
   });
 
   /* ---- the road map: which bars, in what order ---- */
   const order = plxRoadMap(barInfo);
+  /* and where it may not be what the page says: said, never stopped for */
+  const issues = plxRoadIssues(barInfo, order).map(v => ({k: v.k, number: measures[v.k].number, why: v.why}));
 
   /* the tempo and the pedal in force where each written bar starts, so a
      repeat that jumps back picks up what was in force there, not what was
@@ -340,8 +351,27 @@ function musicXmlTimeline(xml){
       const s = spans.find(([a, b]) => end >= a - 0.001 && end < b);
       if(s) e.held = s[1] - e.q; });
   });
-  return {parts, measures, order, perf, events: keep, tempos, bpm: firstBpm, length: q,
+  return {parts, measures, order, perf, events: keep, tempos, bpm: firstBpm, length: q, issues,
     chords: keep.some(e => e.chord), playable: keep.some(e => !e.chord || e.auto)};
+}
+/* The places the road map cannot follow the page: a D.C. or D.S. written only
+   as words (nothing in the file says to play it), a D.S. with no sign, a
+   To Coda with no coda, an ending that is never reached. It plays what it
+   can; these are only said. */
+function plxRoadIssues(info, order){
+  const out = [], seen = new Set(order);
+  const say = (k, why) => { if(!out.some(v => v.k === k && v.why === why)) out.push({k, why}); };
+  info.forEach((b, k) => {
+    const w = b.words || '';
+    if(/\bD\.\s?C\.|\bda capo\b/i.test(w) && !b.dacapo) say(k, 'a D.C. written only as words — played straight on');
+    if(/\bD\.\s?S\.|\bdal segno\b/i.test(w) && !b.dalsegno) say(k, 'a D.S. written only as words — played straight on');
+    if(/\bto coda\b/i.test(w) && !b.tocoda) say(k, 'a To Coda written only as words');
+    if(b.dalsegno && !info.some(x => x.segno)) say(k, 'a D.S. with no sign to go back to — from the top instead');
+    if(b.tocoda && !info.some(x => x.coda || x.codaMark)) say(k, 'a To Coda with no coda');
+    if(b.ending && !seen.has(k)) say(k, 'an ending that is never reached');
+  });
+  if(order.length >= 20000) say(0, 'repeats that do not end');
+  return out.sort((a, b) => a.k - b.k);
 }
 
 /* The order the written bars are played in: repeats (twice unless the
@@ -796,7 +826,10 @@ function plxGeometry(osmd, host, svgRoot){
   let list = [];
   try { list = osmd.GraphicSheet.MeasureList || []; } catch(e){ return out; }
   list.forEach((staves, k) => (staves || []).forEach(m => {
-    if(!m || !m.PositionAndShape || !m.PositionAndShape.AbsolutePosition) return;
+    /* a part switched off stays in the list — laid out nowhere (at 0,0), or
+       where it would have been: counted in, it stretches every lit bar */
+    if(!m || !m.ParentStaffLine || !m.PositionAndShape || !m.PositionAndShape.AbsolutePosition) return;
+    try { if(typeof m.isVisible === 'function' && !m.isVisible()) return; } catch(e){}
     const sys = m.ParentStaffLine && m.ParentStaffLine.ParentMusicSystem;
     const pg = sys && sys.Parent ? Math.max(0, pages.indexOf(sys.Parent)) : 0;
     const src = m.parentSourceMeasure;
@@ -873,6 +906,7 @@ function scorePlayBarHTML(opts){
       ${typeof grandPianoCreditHTML === 'function' ? grandPianoCreditHTML() : ''}
       ${typeof instrumentsCreditHTML === 'function' ? instrumentsCreditHTML() : ''}
     </div>`}
+    <div class="plx-note mono" data-plxnote hidden></div>
   </div>`;
 }
 
@@ -950,6 +984,13 @@ function scorePlayAttach(bar, cfg){
     if(ac){ const on = accentOn(); ac.classList.toggle('on', on); ac.setAttribute('aria-pressed', String(on));
       ac.textContent = on ? 'beat 1 accented' : 'every beat the same'; }
     const t = tlSafe();
+    /* a road sign it cannot follow: said once, quietly, and never in the way */
+    const note = $b('[data-plxnote]');
+    if(note){ const is = (t && t.issues) || [];
+      note.hidden = !is.length;
+      note.textContent = is.length ? `Playback may differ from the score at m. ${is[0].number}: ${is[0].why}${
+        is.length > 1 ? ` (and ${is.length - 1} more place${is.length > 2 ? 's' : ''})` : ''}.` : '';
+      note.title = is.map(v => `m. ${v.number}: ${v.why}`).join('\n'); }
     const ch = $b('[data-plxopt="chords"]'); if(ch) ch.hidden = !(t && t.chords);
     const mutes = $b('[data-plxmutes]');
     if(mutes && t){
