@@ -432,7 +432,7 @@ function renderRoute(){
   if(ROUTE_ALIASES[name] && !routes[name]){ navigate('#/' + ROUTE_ALIASES[name]); return; }
   markActiveNav(); applyPageTheme();
   const main = $('#main');
-  const fn = routes[name] || routes.today;
+  const fn = pageRouteFn(name);
   closePanel({keep:true});
   /* a modal belongs to the page that opened it — carrying one across a
      navigation leaves it stranded on top of a page it knows nothing about */
@@ -453,7 +453,8 @@ function renderRoute(){
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
   try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
-        Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton(); }
+        Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton();
+        if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -484,15 +485,23 @@ function holdScroll(y){
   go();
   requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); setTimeout(go, 340); });
 }
+/* What draws a room. In focus mode, Planning and Today's execution half are
+   drawn as the desk instead — the stopwatch, today's tasks and the Focus
+   section — which is the whole of what doing the plan needs (19-page-focus). */
+function pageRouteFn(name){
+  if(typeof focusDeskOn === 'function' && focusDeskOn(name)) return renderFocusDesk;
+  return routes[name] || routes.today;
+}
 function rerender(){
   const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
   main.innerHTML=''; PageEntryConfig.clear();
-  try { (routes[name]||routes.today)(main, params); }
+  try { pageRouteFn(name)(main, params); }
   catch(err){ console.error('rerender failed', err); routeFailure(err); holdScroll(y); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
-    Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); }
+    Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main);
+    if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
   catch(err){ console.error('page trimmings failed', err); }
   holdScroll(y);
 }

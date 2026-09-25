@@ -502,6 +502,9 @@ function scoreFullscreen(on){
       return true;
     }
     if(!document.fullscreenElement && !document.webkitFullscreenElement) return false;
+    /* the house is in focus mode around the score: leaving reading goes back
+       to that, which is still full screen */
+    if(document.documentElement.classList.contains('page-focus')) return false;
     const out = document.exitFullscreen || document.webkitExitFullscreen;
     if(!out) return false;
     const q = out.call(document);

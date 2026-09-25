@@ -18,6 +18,9 @@ function planTypingInto(el){
 }
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'planning') return;
+  /* in focus mode the room is drawn as the desk, and these keys would change
+     views nobody can see */
+  if(typeof focusDeskOn === 'function' && focusDeskOn()) return;
   /* ⌘K is the omni-search's, everywhere — see the note in the Content room:
      focusing a page's own field without stopping the event just means the
      palette opens over it. */

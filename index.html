@@ -10504,7 +10504,72 @@ html.sc-reading .sc-cue{display:none !important}
 .jzbt-mel{margin-top:6px;overflow-x:auto}
 .jzbt-mel[hidden]{display:none}
 .jzbt-show .jzb-key{font-size:1.8rem}
+/* ============================================================
+   FOCUS MODE — any page, full screen (19-page-focus.js)
+   Everything that is not the page goes: the way to the other rooms, the top
+   bar, Back, +, the corner clock and the time pill. The page takes the width
+   the sidebar had.
+   ============================================================ */
+html.page-focus{--sidebar:0px}
+html.page-focus .sidebar,
+html.page-focus .topbar,
+html.page-focus .back-btn,
+html.page-focus .mobile-nav,
+html.page-focus .fab-wrap,
+html.page-focus #focusDock,
+html.page-focus #timeDock{display:none !important}
+html.page-focus main{margin-left:0;padding-top:40px;padding-bottom:56px}
+@media (max-width:900px){ html.page-focus main{padding-top:52px;padding-bottom:40px}
+  html.page-focus .toast-wrap{bottom:16px} }
+/* the way out, top right; it says how and then gets out of the way */
+.pf-exit{position:fixed;top:10px;right:12px;z-index:95;display:flex;gap:6px;align-items:center;
+  transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.pf-exit.away{opacity:0;transform:translateY(-10px);pointer-events:none}
+.pf-b{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line-2);background:color-mix(in srgb,var(--surface) 88%,transparent);
+  color:var(--muted);font-size:.76rem;font-family:var(--sans);box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.pf-b:hover{color:var(--text);border-color:var(--page-accent)}
+.pf-b kbd{font-family:var(--mono);font-size:.62rem;padding:1px 5px;border-radius:4px;border:1px solid var(--line);color:var(--faint)}
+@media (hover:none){ .pf-exit.away{opacity:.72;transform:none;pointer-events:auto} .pf-b kbd{display:none} }
+@media (max-width:560px){ .pf-b{padding:6px 10px;font-size:.72rem} }
+/* on a phone the search button's words give way, so the ⛶ beside it fits */
+@media (max-width:560px){ #btnSearch span,#btnSearch kbd{display:none} }
+
+/* --- the desk: the stopwatch, today's tasks, the Focus section --- */
+.pf-desk{max-width:1500px;margin:0 auto}
+.pf-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 18px;padding-right:260px}
+.pf-date{font-family:var(--serif);font-size:1.35rem;color:var(--text)}
+.pf-grid{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:start}
+.pf-clockcol{position:sticky;top:24px}
+.pf-grid > .section,.pf-focuscol > .section{margin:0}
+.pf-sh{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.pf-focuscol .fp-head{margin-bottom:10px}
+/* the clock at the size of a thing you are meant to look at */
+.fd-card.fd-desk{width:100%;max-width:none;padding:18px 16px 16px;gap:12px;align-items:center}
+.fd-desk .fp-ring,.fd-desk .fp-ring svg{width:232px;height:232px}
+.fd-desk .fp-face{bottom:44px}
+.fd-desk .fp-time{font-size:1.5rem;padding:2px 8px}
+.fd-desk .fp-phase{font-size:.66rem}
+.fd-desk .fd-go .btn{padding:8px 18px;font-size:.9rem}
+.fd-deskhint{font-size:.74rem;text-align:center;min-height:1em}
+@media (max-width:1180px){
+  .pf-grid{grid-template-columns:minmax(240px,280px) minmax(0,1fr)}
+  .pf-focuscol{grid-column:2}
+  .pf-tasks{grid-column:2;grid-row:2}
+  .pf-clockcol{grid-row:1 / span 2}
+}
+@media (max-width:760px){
+  .pf-head{padding-right:0}
+  .pf-grid{grid-template-columns:minmax(0,1fr);gap:16px}
+  .pf-clockcol,.pf-focuscol,.pf-tasks{grid-column:1;grid-row:auto;position:static}
+  .fd-desk .fp-ring,.fd-desk .fp-ring svg{width:188px;height:188px}
+  .fd-desk .fp-face{bottom:36px}
+}
+/* the notes are as long as they need to be */
+.tf-area{min-height:64px;resize:vertical;line-height:1.5;font-family:inherit;overflow:hidden}
+.fl-did,.fl-bnote{white-space:pre-wrap}
 </style>
+
 </head>
 <body>
 <!-- The last resort. If the script below fails to *parse* — a half-finished
@@ -10605,6 +10670,7 @@ html.sc-reading .sc-cue{display:none !important}
 <button class="back-btn" id="backBtn" data-back hidden aria-label="Go back"><span class="arrow">←</span> Back</button>
 <div class="topbar">
   <button class="iconbtn" id="btnSearch" title="Search (⌘K)">⌕ <span>search</span> <kbd>⌘K</kbd></button>
+  <button class="iconbtn" id="btnFocusMode" title="Focus mode — this page, full screen (Z)" aria-label="Focus mode">⛶</button>
   <button class="iconbtn" id="btnKeys" title="Keyboard shortcuts (?)">?</button>
   <button class="iconbtn" id="btnSound" title="Interaction sounds">🔕</button>
   <button class="iconbtn" id="btnAmbient" title="Ambient background">🌊</button>
@@ -11199,7 +11265,7 @@ function renderRoute(){
   if(ROUTE_ALIASES[name] && !routes[name]){ navigate('#/' + ROUTE_ALIASES[name]); return; }
   markActiveNav(); applyPageTheme();
   const main = $('#main');
-  const fn = routes[name] || routes.today;
+  const fn = pageRouteFn(name);
   closePanel({keep:true});
   /* a modal belongs to the page that opened it — carrying one across a
      navigation leaves it stranded on top of a page it knows nothing about */
@@ -11220,7 +11286,8 @@ function renderRoute(){
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
   try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
-        Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton(); }
+        Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton();
+        if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
   catch(err){ console.error('page trimmings failed', err); }
   /* a review the user stepped out of to write an entry comes back, same step */
   if(typeof resumeReviewIfPending === 'function') resumeReviewIfPending();
@@ -11251,15 +11318,23 @@ function holdScroll(y){
   go();
   requestAnimationFrame(() => { go(); setTimeout(go, 60); setTimeout(go, 160); setTimeout(go, 340); });
 }
+/* What draws a room. In focus mode, Planning and Today's execution half are
+   drawn as the desk instead — the stopwatch, today's tasks and the Focus
+   section — which is the whole of what doing the plan needs (19-page-focus). */
+function pageRouteFn(name){
+  if(typeof focusDeskOn === 'function' && focusDeskOn(name)) return renderFocusDesk;
+  return routes[name] || routes.today;
+}
 function rerender(){
   const y = window.scrollY; const main = $('#main'); const {name, params} = parseHash();
   main.innerHTML=''; PageEntryConfig.clear();
-  try { (routes[name]||routes.today)(main, params); }
+  try { pageRouteFn(name)(main, params); }
   catch(err){ console.error('rerender failed', err); routeFailure(err); holdScroll(y); return; }
   try { decoratePageHead(main); mountContextAdd(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
-    Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); }
+    Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main);
+    if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit(); }
   catch(err){ console.error('page trimmings failed', err); }
   holdScroll(y);
 }
@@ -16039,9 +16114,17 @@ function fmtDockShort(secs){
   return m < 100 ? String(m) : `${Math.floor(m / 60)}h`;
 }
 
-function focusDockHTML(){
+/* In focus mode on Planning and Today the clock is not in a corner: it is the
+   first column of the desk, full size and always open. It is the same card,
+   painted into the desk's slot instead, and the corner is left empty so that
+   there is only ever one clock with these buttons on it. */
+function focusDeskClock(){
+  const n = document.getElementById('pfClock');
+  return n && n.isConnected ? n : null;
+}
+function focusDockHTML(o = {}){
   const s = FocusTimer.state();
-  if(focusDockShut()) return focusDockBubbleHTML(s);
+  if(!o.desk && focusDockShut()) return focusDockBubbleHTML(s);
 
   const c = planState().timer;
   const stop = s.mode === 'stopwatch' && s.phase === 'focus';
@@ -16059,14 +16142,16 @@ function focusDockHTML(){
 
      It is here whether or not anything is running. A clock that appears only
      once you have started is a clock you have to remember exists. */
-  return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}"
+  return `<div class="fd-card${o.desk ? ' fd-desk' : ''}${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}"
       data-focusdrop>
     ${focusClockHTML(face, frac, col, s, stop)}
     <div class="fd-go">
       <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
-      ${s.idle ? `<button class="btn sm ghost" id="fpFold" title="back to the dial">fold away</button>`
+      ${s.idle ? (o.desk ? '' : `<button class="btn sm ghost" id="fpFold" title="back to the dial">fold away</button>`)
                : `<button class="btn sm ghost" id="fpStop">finish</button>`}
     </div>
+    ${o.desk ? `<div class="fd-deskhint faint">${s.idle ? 'drag a task onto the clock, or press start'
+      : s.onBreak ? 'paused — say what the break is for, beside this' : s.phase !== 'focus' ? 'resting' : ''}</div>` : `
     <!-- one line, because the dial alone cannot say what it is counting -->
     <!-- The name goes to the task, not to the top of Today: a page this long
          with no clue where the thing you are timing sits is a link that only
@@ -16075,7 +16160,7 @@ function focusDockHTML(){
     <a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
        title="${ref ? 'go to this task on Today' : 'the sitting, in words, on Today'}">${
       ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
-          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
+          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>`}
   </div>`;
 }
 
@@ -16108,7 +16193,8 @@ function focusSectionFollow(sig){
   const first = _dockPageSig === null;
   _dockPageSig = sig;
   if(first) return;
-  if(typeof parseHash === 'function' && parseHash().name === 'today'
+  if(typeof parseHash === 'function'
+    && (parseHash().name === 'today' || (typeof focusDeskOn === 'function' && focusDeskOn()))
     && document.getElementById('t-focus') && !focusSectionTyping()) rerender();
 }
 /* never over a half-written note */
@@ -16126,10 +16212,19 @@ function paintFocusDock(force){
   const s = FocusTimer.state();
   focusDockPeekCheck(s);
   if(!force && focusDockTyping()){ focusDockFace(); return; }
-  const sig = focusDockSig(s);
-  if(!force && sig === _dockSig && dock.firstChild){ focusDockFace(); return; }
+  const sig = focusDockSig(s) + (focusDeskClock() ? '|desk' : '');
+  if(!force && sig === _dockSig && (focusDeskClock() || dock).firstChild){ focusDockFace(); return; }
   _dockSig = sig;
-  focusSectionFollow(sig);
+  focusSectionFollow(focusDockSig(s));
+  /* asked after following, which may have drawn the desk again */
+  const desk = focusDeskClock();
+  if(desk){
+    dock.innerHTML = ''; dock.dataset.shut = '1'; dock.dataset.running = '';
+    desk.innerHTML = focusDockHTML({desk: true});
+    bindFocusDock(desk);
+    focusDockMeasure();
+    return;
+  }
   dock.dataset.shut = focusDockShut() ? '1' : '';
   dock.dataset.running = s.running ? '1' : '';
   dock.innerHTML = focusDockHTML();
@@ -16210,7 +16305,10 @@ function bindFocusDock(dock){
       if(!id) return;
       ev.preventDefault(); ev.stopPropagation();
       focusTakeTask(id);
-      if(focusDockShut()) setFocusDockShut(false); else paintFocusDock();
+      /* on the desk the clock is already open, and opening it in the corner
+         would open the sidebar behind focus mode's back */
+      if(focusDeskClock()) paintFocusDock(true);
+      else if(focusDockShut()) setFocusDockShut(false); else paintFocusDock();
       /* the words about it live on Today, so redraw that too if it is open */
       if(typeof parseHash === 'function' && parseHash().name === 'today') rerender();
     });
@@ -16261,7 +16359,9 @@ function focusSaySpent(verb, taskId){
    second, so only the face is touched. This is also what runs while somebody
    is typing a note, which is why it never writes to an input. */
 function focusDockFace(){
-  const dock = document.getElementById('focusDock'); if(!dock) return;
+  [document.getElementById('focusDock'), focusDeskClock()].forEach(n => { if(n) focusFaceIn(n); });
+}
+function focusFaceIn(dock){
   const s = FocusTimer.state();
   const up = s.mode === 'stopwatch' && s.phase === 'focus';
   const secs = Math.max(0, (up ? s.elapsed : s.left) | 0);
@@ -16513,15 +16613,17 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
   if(!st.running || st.taskId !== id || st.subId !== (subId || null)) FocusTimer.start();
   if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
   /* pressing an estimate is an unambiguous "I am sitting down with this now",
-     so the clock opens rather than staying a circle in the corner */
-  if(typeof setFocusDockShut === 'function') setFocusDockShut(false);
+     so the clock opens rather than staying a circle in the corner — unless it
+     is already open on the desk, in focus mode, where the timer lives anyway */
+  const onDesk = typeof focusDeskOn === 'function' && focusDeskOn();
+  if(!onDesk && typeof setFocusDockShut === 'function') setFocusDockShut(false);
   sound('success');
   const thing = what || t?.text || 'this';
   toast(!minutes ? `Focusing on ${thing} — it is on today's list now.`
     : left >= 1
       ? `${fmtEst(left)}${left < minutes ? ` left of ${fmtEst(minutes)}` : ''} on ${thing} — it is on today's list now.`
       : `${fmtEst(minutes)} was the estimate and it is spent — this sitting counts up. ${thing} is on today's list now.`);
-  if(parseHash().name === 'today') rerender();
+  if(onDesk || parseHash().name === 'today') rerender();
   else navigate('#/today');
 }
 
@@ -16624,6 +16726,11 @@ function focusSectionHTML(){
   const rec = s.taskId ? taskWorkRecord(s.taskId) : null;
   const todayMins = focusMinutesOn(today());
   const face = s.mode === 'stopwatch' && s.phase === 'focus' ? s.elapsed : s.left;
+  /* in focus mode the clock is beside this, not in the foot of the sidebar */
+  const desk = typeof focusDeskOn === 'function' && focusDeskOn();
+  /* a countdown's short and long breaks are rests in their own right, not a
+     pause in a sitting, so they ask the rest's question rather than the work's */
+  const resting = !s.idle && s.phase !== 'focus';
 
   return `<section class="section rv focus-block" id="t-focus">
     <div class="row between fp-head" style="gap:10px;flex-wrap:wrap">
@@ -16657,24 +16764,34 @@ function focusSectionHTML(){
               esc(fmtSpent(subSpentOn(ref.id, sub.id), +sub.minutes || 0) || fmtEst(sub.minutes))}</span>` : ''}
           </div>` : ''}
           ${rec ? `<div class="tf-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}`
-        : `<div class="tf-empty">Drag a task here to time it — or start the clock at the foot of the sidebar without one.</div>`}
+        : `<div class="tf-empty">${desk ? 'Drag a task here to time it, or press its time in the list — or start the clock without one.'
+            : 'Drag a task here to time it — or start the clock at the foot of the sidebar without one.'}</div>`}
       </div>
 
       <!-- Two notes, and they answer different questions. One is what the work
            actually was; the other is what the time that was not work went on.
            Both are written while they are happening, because neither is
-           remembered accurately an hour later. -->
-      ${s.idle ? `<div class="faint tf-hint">The clock is in the foot of the sidebar. Start it there, and this is where you say what the sitting was.</div>`
+           remembered accurately an hour later — and both are as long as they
+           need to be: what a sitting went on is often more than a line. -->
+      ${s.idle ? `<div class="faint tf-hint">${desk
+          ? 'Start the clock, and this is where you say what the sitting was — and, when you pause, what the break was for.'
+          : 'The clock is in the foot of the sidebar. Start it there, and this is where you say what the sitting was.'}</div>`
+       : resting ? `<div class="tf-note resting">
+        <label class="k mono" for="fpRest">what is this rest for?</label>
+        <textarea class="inp tf-area" id="fpRest" rows="3"
+          placeholder="tea · a walk · lying on the floor">${esc(s.notes || '')}</textarea>
+        <div class="faint" style="font-size:.72rem">A ${s.phase === 'long' ? 'long' : 'short'} break. Kept with the sitting before it.</div>
+      </div>`
        : `<div class="tf-note">
         <label class="k mono" for="fpDid">what are you actually doing?</label>
-        <input class="inp" id="fpDid" value="${esc(s.notes || '')}"
-          placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
+        <textarea class="inp tf-area" id="fpDid" rows="3"
+          placeholder="the second draft · the tricky bit of the proof">${esc(s.notes || '')}</textarea>
         <div class="faint" style="font-size:.72rem">Kept with the sitting when it is finished.</div>
       </div>`}
       ${s.onBreak ? `<div class="tf-note resting">
         <label class="k mono" for="fpBreakNote">what is this break for?</label>
-        <input class="inp" id="fpBreakNote" value="${esc(s.breakNote || '')}"
-          placeholder="tea · a walk · scrolling, honestly" autocomplete="off">
+        <textarea class="inp tf-area" id="fpBreakNote" rows="3"
+          placeholder="tea · a walk · scrolling, honestly">${esc(s.breakNote || '')}</textarea>
         <div class="faint" style="font-size:.72rem">Since ${clockOf(s.breakSince)}. It is not counted as work.</div>
       </div>` : ''}
 
@@ -16716,8 +16833,16 @@ function bindFocusSection(root, redraw){
      before the sitting or the break ends */
   const did = box.querySelector('#fpDid');
   if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
+  const rest = box.querySelector('#fpRest');
+  if(rest) rest.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
   const note = box.querySelector('#fpBreakNote');
   if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
+  /* each note grows with what is written in it rather than scrolling inside
+     three lines; Enter is a new line, as it is anywhere you write */
+  $$('.tf-area', box).forEach(ta => {
+    const fit = () => { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, 64) + 'px'; };
+    ta.addEventListener('input', fit); requestAnimationFrame(fit);
+  });
 
   const drop = box.querySelector('[data-focusdrop]');
   if(drop){
@@ -16887,8 +17012,8 @@ function focusSessionHTML(s, {withDate = false} = {}){
     ${s.note ? `<div class="fl-did">${esc(s.note)}</div>`
       : `<div class="fl-did none">nothing written down about this one</div>`}
     ${brs.length ? `<ul class="fl-breaks">${brs.map(br =>
-      `<li><span class="mono">${esc(_lgClock(br.from))} · ${esc(fmtEst(breakMinutes(br)))}</span>
-        <span>${br.note ? esc(br.note) : '<em class="faint">no reason given</em>'}</span></li>`).join('')}</ul>` : ''}
+      `<li><span class="mono">${esc(_lgClock(br.from))} · ${esc(fmtEst(breakMinutes(br)))}${br.rest ? ` · ${br.rest === 'long' ? 'long rest' : 'rest'}` : ''}</span>
+        <span class="fl-bnote">${br.note ? esc(br.note) : '<em class="faint">no reason given</em>'}</span></li>`).join('')}</ul>` : ''}
   </div>`;
 }
 /* the day's ledger, as it appears at the foot of the focus panel */
@@ -18126,6 +18251,17 @@ function setTodayView(v){
   S.settings.todayView = v; saveNow();
   if(typeof rerender === 'function') rerender();
 }
+/* The headline number is what had to be done, because that is what finishing
+   the day means; the bonus is counted beside it, never in it. Said the same
+   way on Today and on the desk in focus mode. */
+function dayTasksSaid(rows){
+  if(!rows.length) return 'nothing parked yet';
+  const must = rows.filter(r => !taskIsBonus(r)), extra = rows.filter(taskIsBonus);
+  const mDone = must.filter(r => r.done).length, eDone = extra.filter(r => r.done).length;
+  return extra.length
+    ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
+    : `${mDone} of ${must.length} done`;
+}
 /* one small dialog for the two ends of the day */
 const nowHM = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 /* An empty <input type="time"> opens its picker at midnight, which is never
@@ -18357,15 +18493,7 @@ routes.today = function(root){
 
     <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
-      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${(() => {
-        if(!rows.length) return 'nothing parked yet';
-        const must = rows.filter(r => !taskIsBonus(r)), extra = rows.filter(taskIsBonus);
-        const mDone = must.filter(r => r.done).length, eDone = extra.filter(r => r.done).length;
-        /* the headline number is what had to be done, because that is what
-           finishing the day means; the bonus is counted beside it, never in it */
-        return extra.length
-          ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
-          : `${mDone} of ${must.length} done`; })()}</span>${flowTick('tasksAt')}</summary>
+      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${dayTasksSaid(rows)}</span>${flowTick('tasksAt')}</summary>
       <div class="body">
       <div class="card no-tilt" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
@@ -41809,7 +41937,7 @@ function rerenderPlanBody(){
      Anywhere but Planning, redraw the page — keeping the open panel and where
      the page was scrolled to, which is the only reason this is not just
      rerender() everywhere. */
-  if(parseHash().name !== 'planning'){
+  if(parseHash().name !== 'planning' || (typeof focusDeskOn === 'function' && focusDeskOn())){
     rerender();
     if(keep && !$('#panel')) document.body.appendChild(keep);
     window.scrollTo({top:y});
@@ -41859,6 +41987,9 @@ function planTypingInto(el){
 }
 document.addEventListener('keydown', ev => {
   if(parseHash().name !== 'planning') return;
+  /* in focus mode the room is drawn as the desk, and these keys would change
+     views nobody can see */
+  if(typeof focusDeskOn === 'function' && focusDeskOn()) return;
   /* ⌘K is the omni-search's, everywhere — see the note in the Content room:
      focusing a page's own field without stopping the event just means the
      palette opens over it. */
@@ -43046,6 +43177,8 @@ const FocusTimer = (() => {
       subId: st ? (st.subId || pendingSub) : pendingSub,
       round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
       notes: st ? (st.notes || '') : '',
+      /* a rest remembers the sitting it follows, which is where it is written */
+      restOf: st && st.phase === p ? (st.restOf || null) : null,
       /* the same sitting resumed is the same record: the minutes already
          written down stay written down and go on the same row */
       sessionId: st && st.phase === p ? st.sessionId : null,
@@ -43093,7 +43226,23 @@ const FocusTimer = (() => {
        the question at all. Only the two ends of a sitting close a break. */
     closeBreak();
     if(st && logIt && st.phase === 'focus') logSession(false);
+    if(st && logIt && st.phase !== 'focus') logRest();
     st = null; pendingTask = null; notify();
+  }
+  /* A countdown's short and long breaks are rests in their own right. Each is
+     written on the sitting it followed, beside that sitting's pauses, with
+     whatever was said about it while it was happening — a rest nobody said
+     anything about and that lasted a moment is not worth a line. */
+  function logRest(){
+    if(!st || st.phase === 'focus' || !st.restOf) return;
+    const rec = (planState().focusSessions || []).find(x => x.id === st.restOf); if(!rec) return;
+    const from = st.startedAt, to = new Date().toISOString(), note = st.notes || '';
+    if(!note && new Date(to) - new Date(from) < 30000) return;
+    rec.breaks = rec.breaks || [];
+    const had = rec.breaks.find(b => b.rest && b.from === from);
+    if(had){ had.to = to; had.note = note; }
+    else rec.breaks.push({from, to, note, rest: st.phase});
+    saveNow();
   }
   function skip(){ if(!st) return; finish(true); }
   /* A focus interval is written down as it goes: one record per sitting,
@@ -43131,11 +43280,12 @@ const FocusTimer = (() => {
   function finish(skipped){
     const c = cfg(), was = st.phase, taskId = st.taskId, round = st.round;
     closeBreak();
-    if(was === 'focus') logSession(!skipped);
+    if(was === 'focus') logSession(!skipped); else logRest();
+    const restOf = was === 'focus' ? (st.sessionId || null) : null;
     const nextRound = was === 'focus' ? round + 1 : round;
     const nextPhase = was === 'focus' ? (round % c.longBreakAfter === 0 ? 'long' : 'short') : 'focus';
     st = {phase:nextPhase, running:false, remaining:phaseLen(nextPhase), endsAt:0,
-      taskId, subId: pendingSub, round:nextRound, startedAt:new Date().toISOString()};
+      taskId, subId: pendingSub, round:nextRound, startedAt:new Date().toISOString(), restOf};
     if(!skipped) sound('success');
     const auto = nextPhase === 'focus' ? c.autoStartFocus : c.autoStartBreaks;
     if(auto) start(undefined, nextPhase); else notify();
@@ -82461,6 +82611,175 @@ function bindZoneEditor(root){
   root.querySelector('#zoneReset').onclick = () => { S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT)); saveNow(); renderNav(); rerender(); };
 }
 /* ============================================================
+   FOCUS MODE — any page, full screen, and nothing else on the glass.
+
+   Score Practice has had this for a while: "read" takes the sidebar, the top
+   bar, the clock and the buttons away and gives the whole screen to the score.
+   Every page can do it now, from the ⛶ at the top or with Z. The page stays
+   the page; what goes is everything that is not it — the way to the other
+   rooms (the sidebar, or the bar along the bottom of a phone), the top bar,
+   Back, the + button, the clock in the corner and the time tracker's pill.
+   The browser's own edges go too, where it allows that.
+
+   On Planning, and on the execution half of Today, focus mode is for doing
+   the plan rather than looking at it, so what fills the screen is a desk
+   instead of the page: the stopwatch, today's tasks, and the Focus section
+   where what each sitting and each break went on is written down while it
+   is happening. "the whole page" in the corner swaps back to the page itself,
+   still full screen.
+
+   Esc, or the corner, brings everything back. So does the browser leaving
+   full screen on its own, so the house is never half in and half out.
+   ============================================================ */
+
+const pageFocusOn = () => document.documentElement.classList.contains('page-focus');
+
+/* the rooms where focus mode means getting the plan done */
+function focusDeskPossible(name){
+  name = name || (typeof parseHash === 'function' ? parseHash().name : '');
+  if(!routes[name]) name = 'today';
+  if(name === 'planning') return true;
+  return name === 'today' && (S.settings && S.settings.todayView) !== 'in';
+}
+function focusDeskOn(name){
+  return pageFocusOn() && !S._pfWhole && focusDeskPossible(name);
+}
+
+function setPageFocus(on){
+  on = !!on;
+  if(on === pageFocusOn()) return;
+  document.documentElement.classList.toggle('page-focus', on);
+  S._pfWhole = false;
+  if(typeof closeSpeedDial === 'function') closeSpeedDial();
+  if(on){ pfWatch(true); pfFullscreen(true); }
+  else { pfWatch(false); pfFullscreen(false); }
+  rerender();
+  paintPfExit();
+  /* the clock goes onto the desk, or back into its corner */
+  if(typeof paintFocusDock === 'function') paintFocusDock(true);
+  sound('click');
+}
+
+/* ---------- the browser's full screen ---------- */
+function pfFullscreen(on){
+  const el = document.documentElement;
+  try {
+    if(on){
+      if(document.fullscreenElement || document.webkitFullscreenElement) return true;
+      const go = el.requestFullscreen || el.webkitRequestFullscreen;
+      if(!go) return false;
+      const p = go.call(el, {navigationUI: 'hide'});
+      /* refused (a phone, a frame): the page is stripped all the same, and the
+         browser's own edges are the only thing left showing */
+      if(p && p.catch) p.catch(() => {});
+      return true;
+    }
+    if(!document.fullscreenElement && !document.webkitFullscreenElement) return false;
+    const out = document.exitFullscreen || document.webkitExitFullscreen;
+    if(!out) return false;
+    const q = out.call(document);
+    if(q && q.catch) q.catch(() => {});
+    return true;
+  } catch(e){ return false; }
+}
+/* Esc in full screen belongs to the browser: it leaves full screen without
+   telling the page. So the change is watched, and focus mode follows it out. */
+let _pfFs = null, _pfWasFs = false;
+function pfWatch(on){
+  if(_pfFs){ removeEventListener('fullscreenchange', _pfFs);
+    removeEventListener('webkitfullscreenchange', _pfFs); _pfFs = null; }
+  _pfWasFs = false;
+  if(!on) return;
+  _pfFs = () => {
+    if(document.fullscreenElement || document.webkitFullscreenElement){ _pfWasFs = true; return; }
+    if(_pfWasFs && pageFocusOn()) setPageFocus(false);
+  };
+  addEventListener('fullscreenchange', _pfFs);
+  addEventListener('webkitfullscreenchange', _pfFs);
+}
+
+/* ---------- the way out, in the corner ----------
+   It says how to leave and then gets out of the way; moving to the top of the
+   screen brings it back. On a touch screen there is no pointer to move, so it
+   stays, faintly. */
+let _pfAway = null;
+function paintPfExit(){
+  let bar = document.getElementById('pfExit');
+  if(!pageFocusOn()){ if(bar) bar.remove(); clearTimeout(_pfAway); return; }
+  if(!bar){
+    bar = el('<div class="pf-exit" id="pfExit" role="toolbar" aria-label="focus mode"></div>');
+    document.body.appendChild(bar);
+    bar.addEventListener('mouseleave', pfWake);
+    bar.addEventListener('focusin', pfWake);
+  }
+  const can = focusDeskPossible(), desk = focusDeskOn();
+  bar.innerHTML = `${can ? `<button class="pf-b" id="pfSwap" title="${desk
+      ? 'this page itself, still full screen' : 'just the stopwatch, today’s tasks and the notes'}">${
+      desk ? '▤ the whole page' : '◷ just the work'}</button>` : ''}
+    <button class="pf-b pf-out" id="pfOut" title="leave focus mode (Esc)">⛶ leave focus mode <kbd>Esc</kbd></button>`;
+  bar.querySelector('#pfOut').onclick = () => setPageFocus(false);
+  const sw = bar.querySelector('#pfSwap');
+  if(sw) sw.onclick = () => {
+    S._pfWhole = !S._pfWhole;
+    rerender(); paintPfExit();
+    if(typeof paintFocusDock === 'function') paintFocusDock(true);
+    sound('click'); };
+  pfWake();
+}
+function pfWake(){
+  const bar = document.getElementById('pfExit'); if(!bar) return;
+  bar.classList.remove('away');
+  clearTimeout(_pfAway);
+  _pfAway = setTimeout(() => {
+    if(!bar.isConnected || bar.matches(':hover') || bar.contains(document.activeElement)) return;
+    bar.classList.add('away');
+  }, 2600);
+}
+document.addEventListener('pointermove', e => {
+  if(e.clientY < 72 && pageFocusOn()) pfWake();
+}, {passive: true});
+
+/* ---------- the desk ----------
+   Three things and nothing else: the clock, the day's list, and the words
+   about the sitting. Each is the same thing it is everywhere else — the clock
+   is the sidebar's clock, the list is Today's list, the section is Today's
+   Focus section — so a task ticked, dragged or timed here is ticked, dragged
+   or timed everywhere. */
+function renderFocusDesk(root){
+  const T = today();
+  const rows = tasksForDay(T);
+  root.innerHTML = `<div class="page pf-desk">
+    <header class="pf-head">
+      <span class="pf-date">${esc(fmtDate(T))}</span>
+      <span class="mono faint">focus mode</span>
+    </header>
+    <div class="pf-grid">
+      <aside class="pf-clockcol" aria-label="the stopwatch"><div id="pfClock" class="pf-clock"></div></aside>
+
+      <section class="section pf-tasks" id="t-tasks" aria-label="today's tasks">
+        <div class="pf-sh"><span class="sc" style="margin:0">Today's tasks</span>
+          <span class="mono">${esc(dayTasksSaid(rows))}</span></div>
+        <div class="card no-tilt" data-daydrop="${T}">
+          ${dayListFilterHTML(rows)}
+          ${dayTaskListHTML(rows, T) || (rows.length
+            ? `<div class="empty">Nothing in that list today. <button class="tbtn" data-tlist="all">show all ${rows.length}</button></div>`
+            : `<div class="empty">Nothing on today yet. Write one below, or pull one in.</div>`)}
+          <div class="row" style="margin-top:10px;gap:8px">${quickTaskInput(T, 'pfQuick')}
+            <button class="btn sm ghost" id="pullTask">pull in ↓</button></div>
+        </div>
+      </section>
+
+      <div class="pf-focuscol">${focusSectionHTML()}</div>
+    </div>
+  </div>`;
+  const redraw = () => rerender();
+  bindTaskRows(root, redraw); bindDayDrop(root, redraw); bindQuickTask(root, redraw); bindDayListFilter(root, redraw);
+  const pull = root.querySelector('#pullTask');
+  if(pull) pull.onclick = () => openTaskPicker(T, rerender);
+  bindFocusSection(root, redraw);
+  if(typeof paintFocusDock === 'function') paintFocusDock(true);
+}
+/* ============================================================
    PLANNING — the room, already furnished.
 
    A planning app opened on nothing teaches nobody anything: you cannot
@@ -85382,6 +85701,9 @@ function scoreFullscreen(on){
       return true;
     }
     if(!document.fullscreenElement && !document.webkitFullscreenElement) return false;
+    /* the house is in focus mode around the score: leaving reading goes back
+       to that, which is still full screen */
+    if(document.documentElement.classList.contains('page-focus')) return false;
     const out = document.exitFullscreen || document.webkitExitFullscreen;
     if(!out) return false;
     const q = out.call(document);
@@ -88692,7 +89014,8 @@ const SHORTCUT_GROUPS = [
     ['?',      'Show this list'],
     ['/  ·  ⌘K', 'Search everything'],
     ['N',      'Make something new'],
-    ['Esc',    'Close what is open'],
+    ['Z',      'Focus mode — this page, full screen'],
+    ['Esc',    'Close what is open · leave focus mode'],
     ['← →',    'Step through the Timeline stages'],
   ]},
   {scope:'content', name:'Content', line:[['1–4','switch view'],['N','catch an idea'],['W','open it and write']], rows:[
@@ -92699,11 +93022,14 @@ document.addEventListener('keydown', e => {
     if($('#speedDial') && !$('#speedDial').hidden){ closeSpeedDial(); return; }
     if($('#navOverlay')){ $('#navOverlay').remove(); return; }
     if(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.closest('.modal,.overlay,.side-panel,.palette')){ a.blur(); return; }
+    /* with nothing open over it, Esc takes the page out of focus mode */
+    if(typeof pageFocusOn === 'function' && pageFocusOn() && !$('#modals .overlay') && !$('#panel')){ setPageFocus(false); return; }
     closeModals(); return;
   }
   if(mod || e.altKey || isTyping() || $('#modals .overlay') || $('#panel')) return;
   if(e.key==='n' || e.key==='N'){ e.preventDefault(); toggleSpeedDialWithFilter(); }
   else if(e.key==='/'){ e.preventDefault(); openSearch(); }
+  else if((e.key==='z' || e.key==='Z') && typeof setPageFocus === 'function'){ e.preventDefault(); setPageFocus(!pageFocusOn()); }
   else if(e.key==='ArrowLeft' || e.key==='ArrowRight'){ if(typeof stepTimeline === 'function' && stepTimeline(e.key==='ArrowRight' ? 1 : -1)) e.preventDefault(); }
 });
 /* ============================================================
@@ -92839,7 +93165,8 @@ async function initInner(){
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => openAmbientMenu(); syncSoundButtons();
-  $('#btnSearch').onclick = openSearch; $('#btnKeys').onclick = openShortcuts; $('#btnSettings').onclick = () => navigate('#/settings'); $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
+  $('#btnSearch').onclick = openSearch; $('#btnKeys').onclick = openShortcuts;
+  if($('#btnFocusMode')) $('#btnFocusMode').onclick = () => setPageFocus(true); $('#btnSettings').onclick = () => navigate('#/settings'); $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();

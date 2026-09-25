@@ -55,6 +55,8 @@ const FocusTimer = (() => {
       subId: st ? (st.subId || pendingSub) : pendingSub,
       round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
       notes: st ? (st.notes || '') : '',
+      /* a rest remembers the sitting it follows, which is where it is written */
+      restOf: st && st.phase === p ? (st.restOf || null) : null,
       /* the same sitting resumed is the same record: the minutes already
          written down stay written down and go on the same row */
       sessionId: st && st.phase === p ? st.sessionId : null,
@@ -102,7 +104,23 @@ const FocusTimer = (() => {
        the question at all. Only the two ends of a sitting close a break. */
     closeBreak();
     if(st && logIt && st.phase === 'focus') logSession(false);
+    if(st && logIt && st.phase !== 'focus') logRest();
     st = null; pendingTask = null; notify();
+  }
+  /* A countdown's short and long breaks are rests in their own right. Each is
+     written on the sitting it followed, beside that sitting's pauses, with
+     whatever was said about it while it was happening — a rest nobody said
+     anything about and that lasted a moment is not worth a line. */
+  function logRest(){
+    if(!st || st.phase === 'focus' || !st.restOf) return;
+    const rec = (planState().focusSessions || []).find(x => x.id === st.restOf); if(!rec) return;
+    const from = st.startedAt, to = new Date().toISOString(), note = st.notes || '';
+    if(!note && new Date(to) - new Date(from) < 30000) return;
+    rec.breaks = rec.breaks || [];
+    const had = rec.breaks.find(b => b.rest && b.from === from);
+    if(had){ had.to = to; had.note = note; }
+    else rec.breaks.push({from, to, note, rest: st.phase});
+    saveNow();
   }
   function skip(){ if(!st) return; finish(true); }
   /* A focus interval is written down as it goes: one record per sitting,
@@ -140,11 +158,12 @@ const FocusTimer = (() => {
   function finish(skipped){
     const c = cfg(), was = st.phase, taskId = st.taskId, round = st.round;
     closeBreak();
-    if(was === 'focus') logSession(!skipped);
+    if(was === 'focus') logSession(!skipped); else logRest();
+    const restOf = was === 'focus' ? (st.sessionId || null) : null;
     const nextRound = was === 'focus' ? round + 1 : round;
     const nextPhase = was === 'focus' ? (round % c.longBreakAfter === 0 ? 'long' : 'short') : 'focus';
     st = {phase:nextPhase, running:false, remaining:phaseLen(nextPhase), endsAt:0,
-      taskId, subId: pendingSub, round:nextRound, startedAt:new Date().toISOString()};
+      taskId, subId: pendingSub, round:nextRound, startedAt:new Date().toISOString(), restOf};
     if(!skipped) sound('success');
     const auto = nextPhase === 'focus' ? c.autoStartFocus : c.autoStartBreaks;
     if(auto) start(undefined, nextPhase); else notify();

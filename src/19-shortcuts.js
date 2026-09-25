@@ -28,7 +28,8 @@ const SHORTCUT_GROUPS = [
     ['?',      'Show this list'],
     ['/  ·  ⌘K', 'Search everything'],
     ['N',      'Make something new'],
-    ['Esc',    'Close what is open'],
+    ['Z',      'Focus mode — this page, full screen'],
+    ['Esc',    'Close what is open · leave focus mode'],
     ['← →',    'Step through the Timeline stages'],
   ]},
   {scope:'content', name:'Content', line:[['1–4','switch view'],['N','catch an idea'],['W','open it and write']], rows:[

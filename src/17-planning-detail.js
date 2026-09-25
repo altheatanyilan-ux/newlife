@@ -303,7 +303,7 @@ function rerenderPlanBody(){
      Anywhere but Planning, redraw the page — keeping the open panel and where
      the page was scrolled to, which is the only reason this is not just
      rerender() everywhere. */
-  if(parseHash().name !== 'planning'){
+  if(parseHash().name !== 'planning' || (typeof focusDeskOn === 'function' && focusDeskOn())){
     rerender();
     if(keep && !$('#panel')) document.body.appendChild(keep);
     window.scrollTo({top:y});

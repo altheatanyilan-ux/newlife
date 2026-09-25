@@ -209,15 +209,17 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
   if(!st.running || st.taskId !== id || st.subId !== (subId || null)) FocusTimer.start();
   if(what && typeof FocusTimer.noteWork === 'function') FocusTimer.noteWork(what);
   /* pressing an estimate is an unambiguous "I am sitting down with this now",
-     so the clock opens rather than staying a circle in the corner */
-  if(typeof setFocusDockShut === 'function') setFocusDockShut(false);
+     so the clock opens rather than staying a circle in the corner — unless it
+     is already open on the desk, in focus mode, where the timer lives anyway */
+  const onDesk = typeof focusDeskOn === 'function' && focusDeskOn();
+  if(!onDesk && typeof setFocusDockShut === 'function') setFocusDockShut(false);
   sound('success');
   const thing = what || t?.text || 'this';
   toast(!minutes ? `Focusing on ${thing} — it is on today's list now.`
     : left >= 1
       ? `${fmtEst(left)}${left < minutes ? ` left of ${fmtEst(minutes)}` : ''} on ${thing} — it is on today's list now.`
       : `${fmtEst(minutes)} was the estimate and it is spent — this sitting counts up. ${thing} is on today's list now.`);
-  if(parseHash().name === 'today') rerender();
+  if(onDesk || parseHash().name === 'today') rerender();
   else navigate('#/today');
 }
 
@@ -320,6 +322,11 @@ function focusSectionHTML(){
   const rec = s.taskId ? taskWorkRecord(s.taskId) : null;
   const todayMins = focusMinutesOn(today());
   const face = s.mode === 'stopwatch' && s.phase === 'focus' ? s.elapsed : s.left;
+  /* in focus mode the clock is beside this, not in the foot of the sidebar */
+  const desk = typeof focusDeskOn === 'function' && focusDeskOn();
+  /* a countdown's short and long breaks are rests in their own right, not a
+     pause in a sitting, so they ask the rest's question rather than the work's */
+  const resting = !s.idle && s.phase !== 'focus';
 
   return `<section class="section rv focus-block" id="t-focus">
     <div class="row between fp-head" style="gap:10px;flex-wrap:wrap">
@@ -353,24 +360,34 @@ function focusSectionHTML(){
               esc(fmtSpent(subSpentOn(ref.id, sub.id), +sub.minutes || 0) || fmtEst(sub.minutes))}</span>` : ''}
           </div>` : ''}
           ${rec ? `<div class="tf-rec mono">${fmtHM(rec.minutes)} over ${rec.sessions} sitting${rec.sessions === 1 ? '' : 's'}${rec.breaks ? ` · ${rec.breaks} break${rec.breaks === 1 ? '' : 's'}` : ''} · started ${clockOf(rec.startedAt)}</div>` : ''}`
-        : `<div class="tf-empty">Drag a task here to time it — or start the clock at the foot of the sidebar without one.</div>`}
+        : `<div class="tf-empty">${desk ? 'Drag a task here to time it, or press its time in the list — or start the clock without one.'
+            : 'Drag a task here to time it — or start the clock at the foot of the sidebar without one.'}</div>`}
       </div>
 
       <!-- Two notes, and they answer different questions. One is what the work
            actually was; the other is what the time that was not work went on.
            Both are written while they are happening, because neither is
-           remembered accurately an hour later. -->
-      ${s.idle ? `<div class="faint tf-hint">The clock is in the foot of the sidebar. Start it there, and this is where you say what the sitting was.</div>`
+           remembered accurately an hour later — and both are as long as they
+           need to be: what a sitting went on is often more than a line. -->
+      ${s.idle ? `<div class="faint tf-hint">${desk
+          ? 'Start the clock, and this is where you say what the sitting was — and, when you pause, what the break was for.'
+          : 'The clock is in the foot of the sidebar. Start it there, and this is where you say what the sitting was.'}</div>`
+       : resting ? `<div class="tf-note resting">
+        <label class="k mono" for="fpRest">what is this rest for?</label>
+        <textarea class="inp tf-area" id="fpRest" rows="3"
+          placeholder="tea · a walk · lying on the floor">${esc(s.notes || '')}</textarea>
+        <div class="faint" style="font-size:.72rem">A ${s.phase === 'long' ? 'long' : 'short'} break. Kept with the sitting before it.</div>
+      </div>`
        : `<div class="tf-note">
         <label class="k mono" for="fpDid">what are you actually doing?</label>
-        <input class="inp" id="fpDid" value="${esc(s.notes || '')}"
-          placeholder="the second draft · the tricky bit of the proof" autocomplete="off">
+        <textarea class="inp tf-area" id="fpDid" rows="3"
+          placeholder="the second draft · the tricky bit of the proof">${esc(s.notes || '')}</textarea>
         <div class="faint" style="font-size:.72rem">Kept with the sitting when it is finished.</div>
       </div>`}
       ${s.onBreak ? `<div class="tf-note resting">
         <label class="k mono" for="fpBreakNote">what is this break for?</label>
-        <input class="inp" id="fpBreakNote" value="${esc(s.breakNote || '')}"
-          placeholder="tea · a walk · scrolling, honestly" autocomplete="off">
+        <textarea class="inp tf-area" id="fpBreakNote" rows="3"
+          placeholder="tea · a walk · scrolling, honestly">${esc(s.breakNote || '')}</textarea>
         <div class="faint" style="font-size:.72rem">Since ${clockOf(s.breakSince)}. It is not counted as work.</div>
       </div>` : ''}
 
@@ -412,8 +429,16 @@ function bindFocusSection(root, redraw){
      before the sitting or the break ends */
   const did = box.querySelector('#fpDid');
   if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
+  const rest = box.querySelector('#fpRest');
+  if(rest) rest.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
   const note = box.querySelector('#fpBreakNote');
   if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
+  /* each note grows with what is written in it rather than scrolling inside
+     three lines; Enter is a new line, as it is anywhere you write */
+  $$('.tf-area', box).forEach(ta => {
+    const fit = () => { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, 64) + 'px'; };
+    ta.addEventListener('input', fit); requestAnimationFrame(fit);
+  });
 
   const drop = box.querySelector('[data-focusdrop]');
   if(drop){
@@ -583,8 +608,8 @@ function focusSessionHTML(s, {withDate = false} = {}){
     ${s.note ? `<div class="fl-did">${esc(s.note)}</div>`
       : `<div class="fl-did none">nothing written down about this one</div>`}
     ${brs.length ? `<ul class="fl-breaks">${brs.map(br =>
-      `<li><span class="mono">${esc(_lgClock(br.from))} · ${esc(fmtEst(breakMinutes(br)))}</span>
-        <span>${br.note ? esc(br.note) : '<em class="faint">no reason given</em>'}</span></li>`).join('')}</ul>` : ''}
+      `<li><span class="mono">${esc(_lgClock(br.from))} · ${esc(fmtEst(breakMinutes(br)))}${br.rest ? ` · ${br.rest === 'long' ? 'long rest' : 'rest'}` : ''}</span>
+        <span class="fl-bnote">${br.note ? esc(br.note) : '<em class="faint">no reason given</em>'}</span></li>`).join('')}</ul>` : ''}
   </div>`;
 }
 /* the day's ledger, as it appears at the foot of the focus panel */

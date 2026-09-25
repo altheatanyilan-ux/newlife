@@ -115,9 +115,17 @@ function fmtDockShort(secs){
   return m < 100 ? String(m) : `${Math.floor(m / 60)}h`;
 }
 
-function focusDockHTML(){
+/* In focus mode on Planning and Today the clock is not in a corner: it is the
+   first column of the desk, full size and always open. It is the same card,
+   painted into the desk's slot instead, and the corner is left empty so that
+   there is only ever one clock with these buttons on it. */
+function focusDeskClock(){
+  const n = document.getElementById('pfClock');
+  return n && n.isConnected ? n : null;
+}
+function focusDockHTML(o = {}){
   const s = FocusTimer.state();
-  if(focusDockShut()) return focusDockBubbleHTML(s);
+  if(!o.desk && focusDockShut()) return focusDockBubbleHTML(s);
 
   const c = planState().timer;
   const stop = s.mode === 'stopwatch' && s.phase === 'focus';
@@ -135,14 +143,16 @@ function focusDockHTML(){
 
      It is here whether or not anything is running. A clock that appears only
      once you have started is a clock you have to remember exists. */
-  return `<div class="fd-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}"
+  return `<div class="fd-card${o.desk ? ' fd-desk' : ''}${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}"
       data-focusdrop>
     ${focusClockHTML(face, frac, col, s, stop)}
     <div class="fd-go">
       <button class="btn sm primary" id="fpGo">${s.running ? '⏸ pause' : s.idle ? '▶ start' : '▶ resume'}</button>
-      ${s.idle ? `<button class="btn sm ghost" id="fpFold" title="back to the dial">fold away</button>`
+      ${s.idle ? (o.desk ? '' : `<button class="btn sm ghost" id="fpFold" title="back to the dial">fold away</button>`)
                : `<button class="btn sm ghost" id="fpStop">finish</button>`}
     </div>
+    ${o.desk ? `<div class="fd-deskhint faint">${s.idle ? 'drag a task onto the clock, or press start'
+      : s.onBreak ? 'paused — say what the break is for, beside this' : s.phase !== 'focus' ? 'resting' : ''}</div>` : `
     <!-- one line, because the dial alone cannot say what it is counting -->
     <!-- The name goes to the task, not to the top of Today: a page this long
          with no clue where the thing you are timing sits is a link that only
@@ -151,7 +161,7 @@ function focusDockHTML(){
     <a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
        title="${ref ? 'go to this task on Today' : 'the sitting, in words, on Today'}">${
       ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
-          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>
+          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>`}
   </div>`;
 }
 
@@ -184,7 +194,8 @@ function focusSectionFollow(sig){
   const first = _dockPageSig === null;
   _dockPageSig = sig;
   if(first) return;
-  if(typeof parseHash === 'function' && parseHash().name === 'today'
+  if(typeof parseHash === 'function'
+    && (parseHash().name === 'today' || (typeof focusDeskOn === 'function' && focusDeskOn()))
     && document.getElementById('t-focus') && !focusSectionTyping()) rerender();
 }
 /* never over a half-written note */
@@ -202,10 +213,19 @@ function paintFocusDock(force){
   const s = FocusTimer.state();
   focusDockPeekCheck(s);
   if(!force && focusDockTyping()){ focusDockFace(); return; }
-  const sig = focusDockSig(s);
-  if(!force && sig === _dockSig && dock.firstChild){ focusDockFace(); return; }
+  const sig = focusDockSig(s) + (focusDeskClock() ? '|desk' : '');
+  if(!force && sig === _dockSig && (focusDeskClock() || dock).firstChild){ focusDockFace(); return; }
   _dockSig = sig;
-  focusSectionFollow(sig);
+  focusSectionFollow(focusDockSig(s));
+  /* asked after following, which may have drawn the desk again */
+  const desk = focusDeskClock();
+  if(desk){
+    dock.innerHTML = ''; dock.dataset.shut = '1'; dock.dataset.running = '';
+    desk.innerHTML = focusDockHTML({desk: true});
+    bindFocusDock(desk);
+    focusDockMeasure();
+    return;
+  }
   dock.dataset.shut = focusDockShut() ? '1' : '';
   dock.dataset.running = s.running ? '1' : '';
   dock.innerHTML = focusDockHTML();
@@ -286,7 +306,10 @@ function bindFocusDock(dock){
       if(!id) return;
       ev.preventDefault(); ev.stopPropagation();
       focusTakeTask(id);
-      if(focusDockShut()) setFocusDockShut(false); else paintFocusDock();
+      /* on the desk the clock is already open, and opening it in the corner
+         would open the sidebar behind focus mode's back */
+      if(focusDeskClock()) paintFocusDock(true);
+      else if(focusDockShut()) setFocusDockShut(false); else paintFocusDock();
       /* the words about it live on Today, so redraw that too if it is open */
       if(typeof parseHash === 'function' && parseHash().name === 'today') rerender();
     });
@@ -337,7 +360,9 @@ function focusSaySpent(verb, taskId){
    second, so only the face is touched. This is also what runs while somebody
    is typing a note, which is why it never writes to an input. */
 function focusDockFace(){
-  const dock = document.getElementById('focusDock'); if(!dock) return;
+  [document.getElementById('focusDock'), focusDeskClock()].forEach(n => { if(n) focusFaceIn(n); });
+}
+function focusFaceIn(dock){
   const s = FocusTimer.state();
   const up = s.mode === 'stopwatch' && s.phase === 'focus';
   const secs = Math.max(0, (up ? s.elapsed : s.left) | 0);

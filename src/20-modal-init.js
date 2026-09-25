@@ -253,11 +253,14 @@ document.addEventListener('keydown', e => {
     if($('#speedDial') && !$('#speedDial').hidden){ closeSpeedDial(); return; }
     if($('#navOverlay')){ $('#navOverlay').remove(); return; }
     if(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && !a.closest('.modal,.overlay,.side-panel,.palette')){ a.blur(); return; }
+    /* with nothing open over it, Esc takes the page out of focus mode */
+    if(typeof pageFocusOn === 'function' && pageFocusOn() && !$('#modals .overlay') && !$('#panel')){ setPageFocus(false); return; }
     closeModals(); return;
   }
   if(mod || e.altKey || isTyping() || $('#modals .overlay') || $('#panel')) return;
   if(e.key==='n' || e.key==='N'){ e.preventDefault(); toggleSpeedDialWithFilter(); }
   else if(e.key==='/'){ e.preventDefault(); openSearch(); }
+  else if((e.key==='z' || e.key==='Z') && typeof setPageFocus === 'function'){ e.preventDefault(); setPageFocus(!pageFocusOn()); }
   else if(e.key==='ArrowLeft' || e.key==='ArrowRight'){ if(typeof stepTimeline === 'function' && stepTimeline(e.key==='ArrowRight' ? 1 : -1)) e.preventDefault(); }
 });
 /* ============================================================
@@ -393,7 +396,8 @@ async function initInner(){
   try { navigator.storage?.persist?.(); } catch(e){}
   $('#btnTheme').onclick = () => { S.settings.theme = S.settings.theme==='dark'?'light':'dark'; saveNow(); applyTheme(); };
   $('#btnSound').onclick = () => SoundManager.toggleSound(); $('#btnAmbient').onclick = () => openAmbientMenu(); syncSoundButtons();
-  $('#btnSearch').onclick = openSearch; $('#btnKeys').onclick = openShortcuts; $('#btnSettings').onclick = () => navigate('#/settings'); $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
+  $('#btnSearch').onclick = openSearch; $('#btnKeys').onclick = openShortcuts;
+  if($('#btnFocusMode')) $('#btnFocusMode').onclick = () => setPageFocus(true); $('#btnSettings').onclick = () => navigate('#/settings'); $('#fab').onclick = e => { e.stopPropagation(); toggleSpeedDial(); };
   renderNav();
   if(navigator.platform.toUpperCase().indexOf('MAC')<0){ $$('kbd').forEach(k => k.textContent = k.textContent.replace('⌘','Ctrl+')); }
   if(!location.hash) location.hash = '#/' + homeRoute();

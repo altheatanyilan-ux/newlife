@@ -80,6 +80,17 @@ function setTodayView(v){
   S.settings.todayView = v; saveNow();
   if(typeof rerender === 'function') rerender();
 }
+/* The headline number is what had to be done, because that is what finishing
+   the day means; the bonus is counted beside it, never in it. Said the same
+   way on Today and on the desk in focus mode. */
+function dayTasksSaid(rows){
+  if(!rows.length) return 'nothing parked yet';
+  const must = rows.filter(r => !taskIsBonus(r)), extra = rows.filter(taskIsBonus);
+  const mDone = must.filter(r => r.done).length, eDone = extra.filter(r => r.done).length;
+  return extra.length
+    ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
+    : `${mDone} of ${must.length} done`;
+}
 /* one small dialog for the two ends of the day */
 const nowHM = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 /* An empty <input type="time"> opens its picker at midnight, which is never
@@ -311,15 +322,7 @@ routes.today = function(root){
 
     <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
-      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${(() => {
-        if(!rows.length) return 'nothing parked yet';
-        const must = rows.filter(r => !taskIsBonus(r)), extra = rows.filter(taskIsBonus);
-        const mDone = must.filter(r => r.done).length, eDone = extra.filter(r => r.done).length;
-        /* the headline number is what had to be done, because that is what
-           finishing the day means; the bonus is counted beside it, never in it */
-        return extra.length
-          ? `${mDone} of ${must.length} done · ${eDone}/${extra.length} bonus`
-          : `${mDone} of ${must.length} done`; })()}</span>${flowTick('tasksAt')}</summary>
+      <summary><span class="sc" style="margin:0">Today's tasks</span><span class="mono">${dayTasksSaid(rows)}</span>${flowTick('tasksAt')}</summary>
       <div class="body">
       <div class="card no-tilt" data-daydrop="${T}" style="margin-top:10px">
         ${dayListFilterHTML(rows)}
