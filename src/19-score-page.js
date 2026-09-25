@@ -36,7 +36,10 @@ function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:
 
 routes.score = function(root, params){
   scoreState();
-  if(typeof grandPianoWarm === 'function') grandPianoWarm();
+  /* The piano is not warmed here any more. Decoding thirty recordings is
+     seconds of work on a slow machine, and doing it while the score is being
+     engraved made both slower; it waits until the notes are on the screen
+     (scorePaint), or until somebody presses play. */
   const ui = scoreUi();
   const want = params && params[0] ? params[0] : null;
   if(want && scoreById(want)) ui.id = want;
@@ -45,7 +48,11 @@ routes.score = function(root, params){
     {icon:'📄', label:'A score', desc:'A MusicXML file, from MuseScore or anywhere.', run:()=>scorePickFile()},
     ...(rec ? [{icon:'🎯', label:'A section', desc:'A measure range worth practising on its own.', run:()=>openSectionModal(rec.id)}] : [])]});
   if(!rec){ document.documentElement.classList.remove('sc-reading'); ui.reading = false;
-    root.innerHTML = `<div class="page sc-page">${scoreLibraryHTML()}</div>`; bindScoreLibrary(root); return; }
+    root.innerHTML = `<div class="page sc-page">${scoreLibraryHTML()}</div>`; bindScoreLibrary(root);
+    /* while you are choosing, the engraver compiles — so the one you choose
+       has only its own notes left to draw */
+    scoreWarmEngraver();
+    return; }
   document.documentElement.classList.toggle('sc-reading', !!ui.reading);
   root.innerHTML = `<div class="page sc-page sc-open">${scoreViewerHTML(rec)}</div>`;
   bindScoreViewer(root, rec);
@@ -667,12 +674,23 @@ async function scorePaint(x){
        the score is filled in after the first engraving rather than guessed —
        always, because before it there is nothing there to correct */
     scoreRepaintParts(x);
+    scorePageSay();
+    /* The notes first. Everything below only decorates them or gets ready to
+       play them, and on a slow machine it was seconds more before the browser
+       was allowed to show the engraving it already had. So the page is
+       painted, then the marks go on, and the player (which reads the whole
+       file again, for timing) and the piano wait for a quiet moment. */
+    await scoreNextPaint();
+    if(!stage.isConnected) return;
     scoreOverlayPaint(x);
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
-    scorePageSay();
-    scorePlayBind(x);
-    saveNow();
+    scoreWhenIdle(() => {
+      if(!stage.isConnected) return;
+      scorePlayBind(x);
+      saveNow();
+      if(typeof grandPianoWarm === 'function') grandPianoWarm();
+    });
   } catch(e){
     if(say) say.textContent = `That score could not be drawn — ${e.message}`;
     console.warn('score render failed', e);
@@ -1245,8 +1263,39 @@ function openScoreDetails(id){
   };
   return m;
 }
+/* The engraver is a megabyte of code, compiled the first time a score is
+   drawn — a second or more on a slow machine, spent after the press. So it is
+   compiled before the press where there is a chance: when the shelf is idle,
+   and at once when a finger or a pointer comes near a score. */
+function scoreWarmEngraver(now){
+  if(typeof opensheetmusicdisplay !== 'undefined' || !osmdBuiltIn()) return;
+  const go = () => { osmdBoot().catch(() => {}); };
+  if(now) return go();
+  if(typeof requestIdleCallback === 'function') requestIdleCallback(go, {timeout: 2500}); else setTimeout(go, 600);
+}
+/* a pointer or a finger on the way to the room starts the compile, so it is
+   done or nearly done by the time the click lands */
+document.addEventListener('pointerover', ev => {
+  const a = ev.target && ev.target.closest && ev.target.closest('a[href^="#/score"], [data-page="score"]');
+  if(a) scoreWarmEngraver(true);
+}, {passive: true});
+document.addEventListener('pointerdown', ev => {
+  const a = ev.target && ev.target.closest && ev.target.closest('a[href^="#/score"], [data-page="score"]');
+  if(a) scoreWarmEngraver(true);
+}, {passive: true, capture: true});
+/* the next frame the browser actually paints, so a thing just drawn is seen
+   before anything slower is started */
+const scoreNextPaint = () => new Promise(res => requestAnimationFrame(() => setTimeout(res, 0)));
+const scoreWhenIdle = (fn, timeout = 400) => typeof requestIdleCallback === 'function'
+  ? requestIdleCallback(fn, {timeout}) : setTimeout(fn, 60);
 function bindScoreLibrary(root){
   const file = root.querySelector('#scFile');
+  $$('[data-scopen]', root).forEach(b => {
+    const warm = () => scoreWarmEngraver(true);
+    b.addEventListener('pointerenter', warm, {once: true});
+    b.addEventListener('pointerdown', warm, {once: true});
+    b.addEventListener('focus', warm, {once: true});
+  });
   const drop = root.querySelector('#scDrop');
   if(file) file.onchange = () => { const f = file.files && file.files[0]; file.value = ''; takeScoreFile(f); };
   if(drop){

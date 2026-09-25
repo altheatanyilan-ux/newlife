@@ -188,8 +188,31 @@ const STAFF_UNITS = 4;
 let _sv = null;
 const scoreView = () => _sv;
 
+/* what an engraving depends on, besides the notes: if none of it has moved,
+   the picture is still right */
+function scoreRenderKey(rec, page, from, to){
+  return JSON.stringify([rec.id, page || 0, from || 0, to || 0, Math.round(+rec.transpose || 0),
+    clamp(+rec.zoom || 1, 0.4, 2.5), clamp(+rec.barsPerLine || 0, 0, 16), (rec.hidden || []).slice().sort()]);
+}
 async function openScoreIn(container, rec, opts = {}){
   const lib = await osmdBoot();
+  /* The same score, drawn at the same width and with nothing about it
+     changed, is still in memory from the last visit — going back to the
+     shelf and returning, or to Today and back. The drawn pages are moved onto
+     this page rather than engraved again, which on a slow machine is the
+     difference between a pause and none. */
+  if(_sv && _sv.osmd && _sv.loaded && _sv.scoreId === rec.id && _sv.container !== container
+    && !_sv.container.isConnected && _sv.w === container.clientWidth
+    /* a fresh open means the whole piece unless a range is asked for — the
+       same as a fresh engraving would take it */
+    && _sv.key === scoreRenderKey(rec, opts.page == null ? null : opts.page,
+      opts.from == null ? null : opts.from, opts.to == null ? null : opts.to)){
+    while(_sv.container.firstChild) container.appendChild(_sv.container.firstChild);
+    try { _sv.osmd.container = container; } catch(e){}
+    _sv.container = container; _sv.reused = (_sv.reused || 0) + 1;
+    showScorePage(_sv.at);
+    return _sv;
+  }
   if(_sv && _sv.osmd && _sv.container !== container){ try { _sv.osmd.clear(); } catch(e){} }
   const osmd = new lib.OpenSheetMusicDisplay(container, {
     autoResize: false,                      /* the room decides when to reflow */
@@ -290,6 +313,8 @@ async function renderScore(rec, opts = {}){
   showScorePage(_sv.at);
   /* the count is the whole piece's, which only a full engraving can say */
   if(!from && !to) rec.totalMeasures = scoreMeasureCount(osmd) || rec.totalMeasures;
+  _sv.key = scoreRenderKey(rec, page, from, to);
+  _sv.w = _sv.container.clientWidth;
   return _sv;
 }
 /* One page's worth of shape, in the engraver's units. Only the ratio is read,

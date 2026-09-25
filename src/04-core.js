@@ -565,17 +565,26 @@ window.addEventListener('scroll', debounce(() => keepScroll(), 150), {passive:tr
    transition still in flight, and keep a timer that renders regardless if the
    callback has not fired. Navigation cannot be lost, only un-animated. */
 let activeVT = null;
+/* A machine too slow to take the snapshot before the timer below gives up is
+   a machine where the crossfade only ever costs: the page arrives a quarter of
+   a second late and unfaded. The first time that happens the crossfade is
+   left off for the rest of the visit, so every page after it simply arrives. */
+let _vtOff = false;
 function navigateNow(){
   if(typeof stopSway === 'function') stopSway();
-  if(!(document.startViewTransition && !reduced() && document.visibilityState === 'visible')){ renderRoute(); return; }
+  if(_vtOff || !(document.startViewTransition && !reduced() && document.visibilityState === 'visible')){ renderRoute(); return; }
   if(activeVT){ try { activeVT.skipTransition(); } catch(e){} activeVT = null; }
+  /* Once, whichever comes first. On a slow machine the transition's own
+     callback often arrives after the timer below has already drawn the page —
+     and it used to draw it again, so every room was built twice and a score
+     engraved twice, one of them into a page already thrown away. */
   let ran = false;
-  const run = () => { ran = true; renderRoute(); };
+  const run = () => { if(ran) return; ran = true; renderRoute(); };
   let vt;
   try { vt = document.startViewTransition(run); } catch(e){ run(); return; }
   activeVT = vt;
   vt.finished?.catch(() => {}).finally?.(() => { if(activeVT === vt) activeVT = null; });
-  setTimeout(() => { if(!ran){ try { vt.skipTransition(); } catch(e){} if(!ran) run(); } }, 260);
+  setTimeout(() => { if(!ran){ _vtOff = true; try { vt.skipTransition(); } catch(e){} if(!ran) run(); } }, 260);
 }
 window.addEventListener('hashchange', () => { sound('page'); markNavDirection(); navigateNow(); });
 

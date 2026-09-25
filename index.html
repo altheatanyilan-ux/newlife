@@ -11484,17 +11484,26 @@ window.addEventListener('scroll', debounce(() => keepScroll(), 150), {passive:tr
    transition still in flight, and keep a timer that renders regardless if the
    callback has not fired. Navigation cannot be lost, only un-animated. */
 let activeVT = null;
+/* A machine too slow to take the snapshot before the timer below gives up is
+   a machine where the crossfade only ever costs: the page arrives a quarter of
+   a second late and unfaded. The first time that happens the crossfade is
+   left off for the rest of the visit, so every page after it simply arrives. */
+let _vtOff = false;
 function navigateNow(){
   if(typeof stopSway === 'function') stopSway();
-  if(!(document.startViewTransition && !reduced() && document.visibilityState === 'visible')){ renderRoute(); return; }
+  if(_vtOff || !(document.startViewTransition && !reduced() && document.visibilityState === 'visible')){ renderRoute(); return; }
   if(activeVT){ try { activeVT.skipTransition(); } catch(e){} activeVT = null; }
+  /* Once, whichever comes first. On a slow machine the transition's own
+     callback often arrives after the timer below has already drawn the page —
+     and it used to draw it again, so every room was built twice and a score
+     engraved twice, one of them into a page already thrown away. */
   let ran = false;
-  const run = () => { ran = true; renderRoute(); };
+  const run = () => { if(ran) return; ran = true; renderRoute(); };
   let vt;
   try { vt = document.startViewTransition(run); } catch(e){ run(); return; }
   activeVT = vt;
   vt.finished?.catch(() => {}).finally?.(() => { if(activeVT === vt) activeVT = null; });
-  setTimeout(() => { if(!ran){ try { vt.skipTransition(); } catch(e){} if(!ran) run(); } }, 260);
+  setTimeout(() => { if(!ran){ _vtOff = true; try { vt.skipTransition(); } catch(e){} if(!ran) run(); } }, 260);
 }
 window.addEventListener('hashchange', () => { sound('page'); markNavDirection(); navigateNow(); });
 
@@ -49849,15 +49858,21 @@ function grandTrim(buf, midi){
   try { out = new AudioBuffer({length: len, numberOfChannels: buf.numberOfChannels, sampleRate: buf.sampleRate}); }
   catch(e){ return buf; }
   const fade = Math.min(len, Math.round(0.5 * buf.sampleRate));
+  /* copied straight across and faded where it lands: no second copy of each
+     recording made on the way, which on a slow machine was most of the work
+     and all of the garbage */
   for(let ch = 0; ch < buf.numberOfChannels; ch++){
-    const d = buf.getChannelData(ch).subarray(0, len).slice();
-    for(let i = 0; i < fade; i++) d[len - fade + i] *= Math.pow(1 - i / fade, 2);
-    out.copyToChannel(d, ch);
+    out.copyToChannel(buf.getChannelData(ch).subarray(0, len), ch);
+    const d = out.getChannelData(ch), at = len - fade;
+    for(let i = 0; i < fade; i++){ const k = 1 - i / fade; d[at + i] *= k * k; }
   }
   return out;
 }
 /** Decode the thirty notes, once. Resolves true when the piano can play. */
-function grandPianoLoad(){
+function grandPianoLoad(opts){
+  /* anyone but the warm-up is waiting on the sound, so the unpacking stops
+     pausing between notes — including one already under way */
+  if(!(opts && opts.idle)) _grand.hurry = true;
   if(_grand.state === 'ready') return Promise.resolve(true);
   if(_grand.promise) return _grand.promise;
   if(!grandPianoAvailable()){ _grand.state = 'failed'; return Promise.resolve(false); }
@@ -49871,17 +49886,23 @@ function grandPianoLoad(){
        recordings decoded at full rate and full length are 150 MB. */
     const dec = OAC ? new OAC(2, 1, GRAND_RATE) : AC ? new AC() : null;
     if(!dec) throw new Error('this browser has no Web Audio');
-    await Promise.all(Object.keys(files).map(async name => {
-      const midi = grandMidiOf(name); if(midi == null) return;
+    /* One recording at a time off the page's text, with a breath between —
+       thirty of them unpacked in one go was a long stall on a slow machine,
+       at exactly the moment a score was being drawn. The decoding itself
+       still runs side by side, off the page's thread. */
+    const pending = [];
+    for(const name of Object.keys(files)){
+      const midi = grandMidiOf(name); if(midi == null) continue;
       const bin = atob(files[name]);
       const bytes = new Uint8Array(bin.length);
       for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const buf = await new Promise((res, rej) => {
+      pending.push(new Promise((res, rej) => {
         const p = dec.decodeAudioData(bytes.buffer, res, rej);
         if(p && typeof p.then === 'function') p.then(res, rej);
-      });
-      _grand.buffers.set(midi, grandTrim(buf, midi));
-    }));
+      }).then(buf => { _grand.buffers.set(midi, grandTrim(buf, midi)); }));
+      if(!_grand.hurry) await new Promise(r => setTimeout(r, 0));
+    }
+    await Promise.all(pending);
     _grand.keys = [..._grand.buffers.keys()].sort((a, b) => a - b);
     if(!_grand.keys.length) throw new Error('no notes decoded');
     _grand.state = 'ready';
@@ -49892,7 +49913,7 @@ function grandPianoLoad(){
 /* start decoding when the browser has a moment, so the first press is the piano */
 function grandPianoWarm(){
   if(_grand.state !== 'idle' || !grandPianoAvailable()) return;
-  const go = () => { grandPianoLoad(); };
+  const go = () => { grandPianoLoad({idle: true}); };
   if(typeof requestIdleCallback === 'function') requestIdleCallback(go, {timeout: 1500}); else setTimeout(go, 200);
 }
 
@@ -49947,9 +49968,11 @@ function grandPianoCreditHTML(){
   return `<span class="grand-credit mono faint">piano: <a href="${GRAND_CREDIT.url}" target="_blank" rel="noopener">${GRAND_CREDIT.name}</a>
     · ${GRAND_CREDIT.by} · <a href="${GRAND_CREDIT.licenceUrl}" target="_blank" rel="noopener">${GRAND_CREDIT.licence}</a></span>`;
 }
-/* the rooms with music in them warm it up as they open */
+/* The Jazz Studio warms it up as it opens. Score Practice does not: decoding
+   the piano while a score is being engraved made both slower, so that room
+   warms it itself once the notes are on the screen (scorePaint). */
 addEventListener('hashchange', () => {
-  try { const n = parseHash().name; if(n === 'jazz' || n === 'score') grandPianoWarm(); } catch(e){}
+  try { const n = parseHash().name; if(n === 'jazz') grandPianoWarm(); } catch(e){}
 });
 /* ============================================================
    THE OTHER INSTRUMENTS — bass, violin, cello, flute, strings.
@@ -85251,8 +85274,31 @@ const STAFF_UNITS = 4;
 let _sv = null;
 const scoreView = () => _sv;
 
+/* what an engraving depends on, besides the notes: if none of it has moved,
+   the picture is still right */
+function scoreRenderKey(rec, page, from, to){
+  return JSON.stringify([rec.id, page || 0, from || 0, to || 0, Math.round(+rec.transpose || 0),
+    clamp(+rec.zoom || 1, 0.4, 2.5), clamp(+rec.barsPerLine || 0, 0, 16), (rec.hidden || []).slice().sort()]);
+}
 async function openScoreIn(container, rec, opts = {}){
   const lib = await osmdBoot();
+  /* The same score, drawn at the same width and with nothing about it
+     changed, is still in memory from the last visit — going back to the
+     shelf and returning, or to Today and back. The drawn pages are moved onto
+     this page rather than engraved again, which on a slow machine is the
+     difference between a pause and none. */
+  if(_sv && _sv.osmd && _sv.loaded && _sv.scoreId === rec.id && _sv.container !== container
+    && !_sv.container.isConnected && _sv.w === container.clientWidth
+    /* a fresh open means the whole piece unless a range is asked for — the
+       same as a fresh engraving would take it */
+    && _sv.key === scoreRenderKey(rec, opts.page == null ? null : opts.page,
+      opts.from == null ? null : opts.from, opts.to == null ? null : opts.to)){
+    while(_sv.container.firstChild) container.appendChild(_sv.container.firstChild);
+    try { _sv.osmd.container = container; } catch(e){}
+    _sv.container = container; _sv.reused = (_sv.reused || 0) + 1;
+    showScorePage(_sv.at);
+    return _sv;
+  }
   if(_sv && _sv.osmd && _sv.container !== container){ try { _sv.osmd.clear(); } catch(e){} }
   const osmd = new lib.OpenSheetMusicDisplay(container, {
     autoResize: false,                      /* the room decides when to reflow */
@@ -85353,6 +85399,8 @@ async function renderScore(rec, opts = {}){
   showScorePage(_sv.at);
   /* the count is the whole piece's, which only a full engraving can say */
   if(!from && !to) rec.totalMeasures = scoreMeasureCount(osmd) || rec.totalMeasures;
+  _sv.key = scoreRenderKey(rec, page, from, to);
+  _sv.w = _sv.container.clientWidth;
   return _sv;
 }
 /* One page's worth of shape, in the engraver's units. Only the ratio is read,
@@ -85715,7 +85763,10 @@ function scoreUi(){ return S._score = S._score || {id:null, focus:null, reading:
 
 routes.score = function(root, params){
   scoreState();
-  if(typeof grandPianoWarm === 'function') grandPianoWarm();
+  /* The piano is not warmed here any more. Decoding thirty recordings is
+     seconds of work on a slow machine, and doing it while the score is being
+     engraved made both slower; it waits until the notes are on the screen
+     (scorePaint), or until somebody presses play. */
   const ui = scoreUi();
   const want = params && params[0] ? params[0] : null;
   if(want && scoreById(want)) ui.id = want;
@@ -85724,7 +85775,11 @@ routes.score = function(root, params){
     {icon:'📄', label:'A score', desc:'A MusicXML file, from MuseScore or anywhere.', run:()=>scorePickFile()},
     ...(rec ? [{icon:'🎯', label:'A section', desc:'A measure range worth practising on its own.', run:()=>openSectionModal(rec.id)}] : [])]});
   if(!rec){ document.documentElement.classList.remove('sc-reading'); ui.reading = false;
-    root.innerHTML = `<div class="page sc-page">${scoreLibraryHTML()}</div>`; bindScoreLibrary(root); return; }
+    root.innerHTML = `<div class="page sc-page">${scoreLibraryHTML()}</div>`; bindScoreLibrary(root);
+    /* while you are choosing, the engraver compiles — so the one you choose
+       has only its own notes left to draw */
+    scoreWarmEngraver();
+    return; }
   document.documentElement.classList.toggle('sc-reading', !!ui.reading);
   root.innerHTML = `<div class="page sc-page sc-open">${scoreViewerHTML(rec)}</div>`;
   bindScoreViewer(root, rec);
@@ -86346,12 +86401,23 @@ async function scorePaint(x){
        the score is filled in after the first engraving rather than guessed —
        always, because before it there is nothing there to correct */
     scoreRepaintParts(x);
+    scorePageSay();
+    /* The notes first. Everything below only decorates them or gets ready to
+       play them, and on a slow machine it was seconds more before the browser
+       was allowed to show the engraving it already had. So the page is
+       painted, then the marks go on, and the player (which reads the whole
+       file again, for timing) and the piano wait for a quiet moment. */
+    await scoreNextPaint();
+    if(!stage.isConnected) return;
     scoreOverlayPaint(x);
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
-    scorePageSay();
-    scorePlayBind(x);
-    saveNow();
+    scoreWhenIdle(() => {
+      if(!stage.isConnected) return;
+      scorePlayBind(x);
+      saveNow();
+      if(typeof grandPianoWarm === 'function') grandPianoWarm();
+    });
   } catch(e){
     if(say) say.textContent = `That score could not be drawn — ${e.message}`;
     console.warn('score render failed', e);
@@ -86924,8 +86990,39 @@ function openScoreDetails(id){
   };
   return m;
 }
+/* The engraver is a megabyte of code, compiled the first time a score is
+   drawn — a second or more on a slow machine, spent after the press. So it is
+   compiled before the press where there is a chance: when the shelf is idle,
+   and at once when a finger or a pointer comes near a score. */
+function scoreWarmEngraver(now){
+  if(typeof opensheetmusicdisplay !== 'undefined' || !osmdBuiltIn()) return;
+  const go = () => { osmdBoot().catch(() => {}); };
+  if(now) return go();
+  if(typeof requestIdleCallback === 'function') requestIdleCallback(go, {timeout: 2500}); else setTimeout(go, 600);
+}
+/* a pointer or a finger on the way to the room starts the compile, so it is
+   done or nearly done by the time the click lands */
+document.addEventListener('pointerover', ev => {
+  const a = ev.target && ev.target.closest && ev.target.closest('a[href^="#/score"], [data-page="score"]');
+  if(a) scoreWarmEngraver(true);
+}, {passive: true});
+document.addEventListener('pointerdown', ev => {
+  const a = ev.target && ev.target.closest && ev.target.closest('a[href^="#/score"], [data-page="score"]');
+  if(a) scoreWarmEngraver(true);
+}, {passive: true, capture: true});
+/* the next frame the browser actually paints, so a thing just drawn is seen
+   before anything slower is started */
+const scoreNextPaint = () => new Promise(res => requestAnimationFrame(() => setTimeout(res, 0)));
+const scoreWhenIdle = (fn, timeout = 400) => typeof requestIdleCallback === 'function'
+  ? requestIdleCallback(fn, {timeout}) : setTimeout(fn, 60);
 function bindScoreLibrary(root){
   const file = root.querySelector('#scFile');
+  $$('[data-scopen]', root).forEach(b => {
+    const warm = () => scoreWarmEngraver(true);
+    b.addEventListener('pointerenter', warm, {once: true});
+    b.addEventListener('pointerdown', warm, {once: true});
+    b.addEventListener('focus', warm, {once: true});
+  });
   const drop = root.querySelector('#scDrop');
   if(file) file.onchange = () => { const f = file.files && file.files[0]; file.value = ''; takeScoreFile(f); };
   if(drop){

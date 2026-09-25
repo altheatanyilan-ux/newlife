@@ -60,15 +60,21 @@ function grandTrim(buf, midi){
   try { out = new AudioBuffer({length: len, numberOfChannels: buf.numberOfChannels, sampleRate: buf.sampleRate}); }
   catch(e){ return buf; }
   const fade = Math.min(len, Math.round(0.5 * buf.sampleRate));
+  /* copied straight across and faded where it lands: no second copy of each
+     recording made on the way, which on a slow machine was most of the work
+     and all of the garbage */
   for(let ch = 0; ch < buf.numberOfChannels; ch++){
-    const d = buf.getChannelData(ch).subarray(0, len).slice();
-    for(let i = 0; i < fade; i++) d[len - fade + i] *= Math.pow(1 - i / fade, 2);
-    out.copyToChannel(d, ch);
+    out.copyToChannel(buf.getChannelData(ch).subarray(0, len), ch);
+    const d = out.getChannelData(ch), at = len - fade;
+    for(let i = 0; i < fade; i++){ const k = 1 - i / fade; d[at + i] *= k * k; }
   }
   return out;
 }
 /** Decode the thirty notes, once. Resolves true when the piano can play. */
-function grandPianoLoad(){
+function grandPianoLoad(opts){
+  /* anyone but the warm-up is waiting on the sound, so the unpacking stops
+     pausing between notes — including one already under way */
+  if(!(opts && opts.idle)) _grand.hurry = true;
   if(_grand.state === 'ready') return Promise.resolve(true);
   if(_grand.promise) return _grand.promise;
   if(!grandPianoAvailable()){ _grand.state = 'failed'; return Promise.resolve(false); }
@@ -82,17 +88,23 @@ function grandPianoLoad(){
        recordings decoded at full rate and full length are 150 MB. */
     const dec = OAC ? new OAC(2, 1, GRAND_RATE) : AC ? new AC() : null;
     if(!dec) throw new Error('this browser has no Web Audio');
-    await Promise.all(Object.keys(files).map(async name => {
-      const midi = grandMidiOf(name); if(midi == null) return;
+    /* One recording at a time off the page's text, with a breath between —
+       thirty of them unpacked in one go was a long stall on a slow machine,
+       at exactly the moment a score was being drawn. The decoding itself
+       still runs side by side, off the page's thread. */
+    const pending = [];
+    for(const name of Object.keys(files)){
+      const midi = grandMidiOf(name); if(midi == null) continue;
       const bin = atob(files[name]);
       const bytes = new Uint8Array(bin.length);
       for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      const buf = await new Promise((res, rej) => {
+      pending.push(new Promise((res, rej) => {
         const p = dec.decodeAudioData(bytes.buffer, res, rej);
         if(p && typeof p.then === 'function') p.then(res, rej);
-      });
-      _grand.buffers.set(midi, grandTrim(buf, midi));
-    }));
+      }).then(buf => { _grand.buffers.set(midi, grandTrim(buf, midi)); }));
+      if(!_grand.hurry) await new Promise(r => setTimeout(r, 0));
+    }
+    await Promise.all(pending);
     _grand.keys = [..._grand.buffers.keys()].sort((a, b) => a - b);
     if(!_grand.keys.length) throw new Error('no notes decoded');
     _grand.state = 'ready';
@@ -103,7 +115,7 @@ function grandPianoLoad(){
 /* start decoding when the browser has a moment, so the first press is the piano */
 function grandPianoWarm(){
   if(_grand.state !== 'idle' || !grandPianoAvailable()) return;
-  const go = () => { grandPianoLoad(); };
+  const go = () => { grandPianoLoad({idle: true}); };
   if(typeof requestIdleCallback === 'function') requestIdleCallback(go, {timeout: 1500}); else setTimeout(go, 200);
 }
 
@@ -158,7 +170,9 @@ function grandPianoCreditHTML(){
   return `<span class="grand-credit mono faint">piano: <a href="${GRAND_CREDIT.url}" target="_blank" rel="noopener">${GRAND_CREDIT.name}</a>
     · ${GRAND_CREDIT.by} · <a href="${GRAND_CREDIT.licenceUrl}" target="_blank" rel="noopener">${GRAND_CREDIT.licence}</a></span>`;
 }
-/* the rooms with music in them warm it up as they open */
+/* The Jazz Studio warms it up as it opens. Score Practice does not: decoding
+   the piano while a score is being engraved made both slower, so that room
+   warms it itself once the notes are on the screen (scorePaint). */
 addEventListener('hashchange', () => {
-  try { const n = parseHash().name; if(n === 'jazz' || n === 'score') grandPianoWarm(); } catch(e){}
+  try { const n = parseHash().name; if(n === 'jazz') grandPianoWarm(); } catch(e){}
 });
