@@ -9797,5 +9797,22 @@ html.sc-reading .sc-cue{display:none !important}
 .jzb-rl.got{color:var(--text)}
 @media (max-width:640px){.jzb-key{font-size:1.8rem}.jzb-chord{font-size:2.6rem}.jzb-show[data-level="key_only"] .jzb-key{font-size:3.8rem}.jzb-f input[type=range]{width:70px}}
 @media print{.jzb,.jzb-show{display:none !important}}
+/* band mode on the flashcards: the key called, the phase said */
+.jzbc-key{transition:color .2s ease}
+.jzbc-key.call{color:var(--page-accent,var(--accent));animation:jzbcall .5s ease-in-out infinite alternate}
+.jzbc-phase{text-align:center;font-size:.8rem;color:var(--muted);margin:4px 0 0;min-height:1.2em}
+.jzbc-set .inp{width:5em}
+.jzbc-trend{margin-top:2px}
+/* call and response */
+.jzb-call{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text)}
+.jzb-call[hidden]{display:none}
+/* the singer's range on the key picker */
+.jzv-warn{font-size:.72rem;margin:4px 0 8px;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.jz-k.jzv-out{border-style:dashed;opacity:.62}
+.jz-k.jzv-out::after{content:"↕";font-size:.6em;margin-left:2px}
+/* a tune as a performance */
+.jzbt-mel{margin-top:6px;overflow-x:auto}
+.jzbt-mel[hidden]{display:none}
+.jzbt-show .jzb-key{font-size:1.8rem}
 </style>
 </head>

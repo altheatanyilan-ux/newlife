@@ -52,6 +52,7 @@ function jazzFlashHTML(){
       <div class="sc" style="margin-top:14px">What the cards ask</div>
       <label class="jz-gate mono"><input type="checkbox" id="jzChecks" ${st.checks ? 'checked' : ''}>
         the checkpoints too — at tempo, from memory, eyes shut</label>
+      ${typeof jazzBandCardsSetupHTML === 'function' ? jazzBandCardsSetupHTML() : ''}
       <div class="sc" style="margin-top:14px">How many cards</div>
       <div class="row" style="gap:8px;flex-wrap:wrap">${[5, 10, 15, 25, 40].map(n =>
         `<button class="btn sm ${st.cards === n ? 'primary' : 'ghost'}" data-jzn="${n}">${n}</button>`).join('')}</div>
@@ -84,6 +85,7 @@ function bindJazzFlash(root){
     st.cards = +b.dataset.jzn; saveNow(); rerender(); });
   const chk = root.querySelector('#jzChecks');
   if(chk) chk.onchange = () => { st.checks = chk.checked; saveNow(); sound('click'); };
+  if(typeof bindJazzBandCardsSetup === 'function') bindJazzBandCardsSetup(root);
   const go = root.querySelector('#jzBegin');
   if(go) go.onclick = () => {
     const cards = jazzDeal(st.syllabus, st.cards, st.keyMode, st.customKeys);
@@ -107,6 +109,7 @@ function jazzCardSaid(ex, card){
     : `${ex.ask} ${where}`;
 }
 function jazzCardHTML(){
+  if(typeof jazzBandCardHTML === 'function' && jazzBandCardSettings().on) return jazzBandCardHTML();
   const f = jazzUi().flash;
   const card = f.cards[f.at];
   const ex = jazzExercise(card.exerciseId);
@@ -150,6 +153,7 @@ function jazzCardHTML(){
   </div>`;
 }
 function bindJazzCard(root){
+  if(typeof bindJazzBandCard === 'function' && jazzBandCardSettings().on){ bindJazzBandCard(root); return; }
   const ui = jazzUi(), f = ui.flash;
   const card = f.cards[f.at];
   const ex = card && jazzExercise(card.exerciseId);
@@ -182,6 +186,7 @@ function bindJazzCard(root){
   });
 }
 function jazzEndSession(finished){
+  if(typeof jzbcStopAll === 'function') jzbcStopAll();
   const ui = jazzUi();
   const f = ui.flash;
   ui.flash = null;

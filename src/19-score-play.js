@@ -649,7 +649,8 @@ function plxTempoMap(tl, o){
    muted (Set of 'p:<part>', 'p:<part>:s:<staff>', 'chords'), overrides
    ([{q0, q1, start, end}] section tempos at 100%), fermata (a hold, e.g. 2, or
    'wait'), gates (sorted quarter-note places to stop at until released),
-   onGate(q), onEnd()}.
+   onGate(q), onEnd(), at (the audio-clock time to start at, so one run can
+   follow another on the beat)}.
    Quarter notes are the unit of musical time throughout. */
 function scorePlayer(tl, opts){
   const o = Object.assign({bpm: null, swing: 0, from: 0, to: tl.perf.length - 1, loop: false,
@@ -775,7 +776,7 @@ function scorePlayer(tl, opts){
       gains.clear();
       [startQ, endQ] = rangeQ();
       const q0 = fromQ != null ? Math.max(startQ, Math.min(endQ - 0.01, fromQ)) : startQ;
-      anchorT = ctx.currentTime + 0.08; anchorQ = q0;
+      anchorT = o.at != null && !offline ? Math.max(+o.at, ctx.currentTime + 0.02) : ctx.currentTime + 0.08; anchorQ = q0;
       ci = null;
       const bars = Math.max(0, Math.min(2, +o.countIn || 0));
       if(bars){

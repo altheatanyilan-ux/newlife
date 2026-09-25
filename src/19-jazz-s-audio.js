@@ -35,7 +35,8 @@ const jzMidiHz = m => 440 * Math.pow(2, (m - 69) / 12);
 /* ---------- chords, as notes ---------- */
 /* the intervals of a chord symbol, the ones it requires, and a voicing */
 function jazzChordSpec(sym){
-  const c = typeof jazzParseChord === 'function' ? jazzParseChord(String(sym || '').trim()) : null;
+  sym = String(sym || '').trim().replace(/♭/g, 'b').replace(/♯/g, '#');
+  const c = typeof jazzParseChord === 'function' ? jazzParseChord(sym) : null;
   if(!c || c.pc == null) return null;
   const q = c.q || '';
   let tones;
@@ -50,7 +51,7 @@ function jazzChordSpec(sym){
     tones = /69/.test(q) ? [0, 4, 7, 9, 14] : /6/.test(q) ? [0, 4, 7, 9]
       : /(maj13|M13)/.test(q) ? [0, 4, 7, 11, 14, 21] : /(maj9|M9)/.test(q) ? [0, 4, 7, 11, 14] : /(maj|M7|Δ|\^)/.test(q) ? [0, 4, 7, 11] : [0, 4, 7];
   } else if(c.quality === 'dom'){
-    tones = /alt/.test(q) ? [0, 4, 10, 13, 15, 20] : /13/.test(q) ? [0, 4, 7, 10, 14, 21]
+    tones = /alt/.test(q) ? [0, 4, 10, 13, 15, 20] : /(^|[^b#])13/.test(q) ? [0, 4, 7, 10, 14, 21]
       : /^9/.test(q) ? [0, 4, 7, 10, 14] : [0, 4, 7, 10];
     if(/(\+|#5)/.test(q)) tones = tones.map(t => t === 7 ? 8 : t);
   } else tones = [0, 4, 7];

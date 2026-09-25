@@ -152,6 +152,7 @@ function jazzTuneHTML(id){
           <label class="jz-gate mono"><input type="checkbox" id="jtOverlay" ${u.overlay ? 'checked' : ''}> show the patterns</label>
           ${u.overlay ? jazzPatternLegendHTML(t) : ''}</div>
         ${jazzPracticePanelHTML(t)}
+        ${typeof jazzTunePlayHTML === 'function' ? jazzTunePlayHTML(t) : ''}
         ${jazzChartHTML(t, key, u.overlay)}
         <p class="mono faint jt-help">Tap a chord for its scales and voicings. While it plays (or after “set a loop”), tap a start bar and an end bar to loop them;
           tap a pattern’s coloured bar to loop that pattern. A chord with (n) after it fills n bars; % repeats the bar before; chords in brackets are optional.</p>
@@ -203,6 +204,7 @@ function bindJazzTune(root, id){
     rerender(); });
   const t0 = jazzTune(id);
   if(t0){ bindJazzPracticePanel(root, t0);
+    try { if(typeof bindJazzTunePlay === 'function') bindJazzTunePlay(root, t0); } catch(e){ console.warn('the tune panel did not bind', e); }
     const side = root.querySelector('#jzjSide');
     if(side) bindJazzTakeRows(side, () => rerender()); }
   const ov = root.querySelector('#jtOverlay');
@@ -397,6 +399,8 @@ function openJazzAnalyseTune(id){
       <label class="pd-q" style="width:120px"><span class="k">key changes</span><input class="inp mono" id="jaKc" type="number" value="0" min="0"></label></div>
     <label class="pd-q" style="margin-top:8px"><span class="k">recordings, one a line</span>
       <textarea class="inp" rows="2" id="jaRecs"></textarea></label>
+    <label class="pd-q" style="margin-top:8px"><span class="k">the melody, if you have it (MusicXML or .mxl — optional)</span>
+      <input class="inp" type="file" id="jaMelody" accept=".musicxml,.xml,.mxl"></label>
     <div id="jaPreview" class="jt-preview"></div>
     <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px">
       <button class="btn sm ghost" id="jaTry">look at the analysis</button>
@@ -431,8 +435,17 @@ function openJazzAnalyseTune(id){
     ? `${jazzPatternLegendHTML(t)}${jazzChartHTML(t, '', true)}<p class="mono faint">tags: ${esc(JSON.stringify(t.harmonicTags))} · v3 stages: ${
       jazzTuneV3Alignment(t).map(a => a.stage + (a.role === 'primary' ? '' : '?')).join(', ')}</p>` : ''; };
   m.querySelector('#jaTry').onclick = preview;
+  /* a melody, read once when it is chosen: its notes play in the head */
+  let melody = r && jazzTune(r.id) ? jazzTune(r.id).melodyMusicXml || null : null;
+  const mf = m.querySelector('#jaMelody');
+  if(mf) mf.onchange = async () => { const f = mf.files && mf.files[0]; if(!f) return;
+    try { const x = typeof readMusicXmlFile === 'function' ? await readMusicXmlFile(f) : await f.text();
+      const xml = typeof x === 'string' ? x : (x && x.xml) || '';
+      musicXmlTimeline(xml); melody = xml; toast('The melody is in.'); }
+    catch(e){ melody = null; toast('That file could not be read as a melody.'); } };
   m.querySelector('#jaSave').onclick = () => {
     const t = read();
+    if(melody) t.melodyMusicXml = melody;
     if(!t.chordProgression){ toast('The changes are the one thing that cannot be left out.'); return; }
     const st = jazzTunesState();
     st.tunesAdded = st.tunesAdded.filter(x => x.id !== t.id).concat(t);

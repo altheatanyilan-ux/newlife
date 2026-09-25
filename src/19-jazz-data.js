@@ -471,11 +471,18 @@ const jazzMinutesOn = day => sum(jazzAllLogs().filter(l => l.day === day).map(l 
    the key off, which is the only way the twelve-key grid ever fills in
    without somebody ticking boxes about themselves. */
 const JAZZ_NAILED_FOR = 3;
-function jazzGrade(exerciseId, key, result, seconds){
+function jazzGrade(exerciseId, key, result, seconds, extra){
   const j = jazzState();
   const r = jazzRecord(exerciseId, true);
-  j.flashes.unshift({id: uid(), exerciseId, key, at: new Date().toISOString(),
-    day: today(), result, seconds: seconds == null ? null : Math.round(seconds)});
+  /* extra: {reactionWindowBeats, bpm} when the band called the key */
+  j.flashes.unshift(Object.assign({id: uid(), exerciseId, key, at: new Date().toISOString(),
+    day: today(), result, seconds: seconds == null ? null : Math.round(seconds), reactionWindowBeats: null}, extra || {}));
+  /* the fastest the band has had you in: the shortest window, in seconds */
+  const w = extra && +extra.reactionWindowBeats, bpm = extra && +extra.bpm;
+  if(result === 'nailed' && w > 0 && bpm > 0){
+    const f = r.fastestReaction, secs = v => v.beats * 60 / v.bpm;
+    if(!f || !(f.beats > 0) || secs({beats: w, bpm}) < secs(f)) r.fastestReaction = {beats: w, bpm};
+  }
   if(j.flashes.length > 2000) j.flashes.length = 2000;
   if(result === 'nailed'){
     r.nailed[key] = (+r.nailed[key] || 0) + 1;

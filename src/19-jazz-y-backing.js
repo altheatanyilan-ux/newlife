@@ -80,7 +80,11 @@ function jzbDefaults(id, ex){
        vocal pattern somebody else can comp */
     comping: vocal || improv ? 'charleston' : 'off',
     hearMyPart: vocal ? 0.2 : 0, hearFade: false, keyCycle: 'this', visibility: 'notation', hideAfterFirst: false,
-    choruses: 'infinite', countIn: 1};
+    choruses: 'infinite', countIn: 1,
+    /* call and response (a lick, a sung pattern): off until asked for */
+    callResponse: false, callVoice: vocal ? 'voice' : 'piano',
+    /* the singer's note before the count, and the octave the guide sings in */
+    startNote: vocal, octave: 0};
 }
 function jzbSettings(id){
   const base = jzbDefaults(id);
@@ -97,6 +101,8 @@ function jzbSettings(id){
   if(!JZB_CHORUSES.includes(s.choruses)) s.choruses = 'infinite';
   s.countIn = clamp(+s.countIn || 0, 0, 2);
   s.hearFade = !!s.hearFade; s.hideAfterFirst = !!s.hideAfterFirst;
+  s.callResponse = !!s.callResponse; s.callVoice = s.callVoice === 'voice' ? 'voice' : 'piano';
+  s.startNote = !!s.startNote; s.octave = [-12, 0, 12].includes(+s.octave) ? +s.octave : 0;
   return s;
 }
 function jzbSave(id, patch){
@@ -348,13 +354,18 @@ function jzbXml(id, key, interval){
    the band is. */
 function jazzBackingTimeline(plan){
   const s = plan.settings, ex = jazzExercise(plan.id) || {};
-  const parts = [{id: 'me', name: 'Your part', inst: 'piano', staves: 2},
+  const call = !!(s.callResponse);
+  const parts = [{id: 'me', name: 'Your part', inst: call && s.callVoice === 'voice' ? 'flute' : 'piano', staves: 2},
     {id: 'bass', name: 'Bass', inst: 'acoustic_bass', staves: 1},
     {id: 'drums', name: 'Drums', inst: 'drums', staves: 1},
     {id: 'comp', name: 'Comping', inst: 'piano', staves: 1}];
   const perf = [], events = [], choruses = [];
   let Q = 0;
-  plan.keys.forEach((key, ci) => {
+  /* call and response: every key twice, the room's phrase then your answer */
+  const passes = [];
+  plan.keys.forEach(key => { if(call){ passes.push({key, call: true}); passes.push({key, response: true}); } else passes.push({key}); });
+  passes.forEach((pass, ci) => {
+    const key = pass.key;
     const xml = plan.xmlFor ? plan.xmlFor(key) : jzbXml(plan.id, key, plan.interval);
     if(!xml) return;
     let tl; try { tl = musicXmlTimeline(xml); } catch(e){ return; }
@@ -371,13 +382,14 @@ function jazzBackingTimeline(plan){
     const add = (list, part, extra) => list.forEach(n => { const b = barAt(n.q);
       events.push(Object.assign({q: n.q, d: n.d || 0.25, midi: n.midi, vel: n.vel, part, staff: 1, voice: String(part),
         inBar: n.q - b.q0, perf: b.i}, extra || {})); });
-    /* your part: the exercise as written */
-    tl.events.forEach(e => { if(e.chord) return;
-      events.push(Object.assign({}, e, {q: Q + e.q, part: 0, perf: base + e.perf})); });
+    /* your part: the exercise as written (moved an octave for a voice that
+       needs it) — and in a response, nothing: that is yours to play */
+    if(!pass.response) tl.events.forEach(e => { if(e.chord) return;
+      events.push(Object.assign({}, e, {q: Q + e.q, midi: e.midi + (s.octave || 0), part: 0, perf: base + e.perf})); });
     add(jzbBass(sb, s.bassStyle, rnd), 1);
     add(jzbDrums(sb, s.drumStyle, rnd), 2, {perc: true, kit: true});
     add(jzbComp(sb, s.comping, rnd), 3);
-    choruses.push({key, q0: Q, q1: Q + tl.length, bars: sb.length, chart: !!chart, xml});
+    choruses.push({key, q0: Q, q1: Q + tl.length, bars: sb.length, chart: !!chart, xml, call: !!pass.call, response: !!pass.response});
     Q += tl.length;
   });
   events.sort((a, b) => a.q - b.q || a.part - b.part || a.midi - b.midi);
@@ -394,7 +406,9 @@ const jzbStyleSay = s => [`${(JZB_BASS.find(v => v[0] === s.bassStyle) || [])[1]
   s.comping === 'off' ? 'no comping' : `${(JZB_COMP.find(v => v[0] === s.comping) || [])[1] || ''} comping`.toLowerCase()].join(' · ');
 /* what the page shows in a chorus: the chosen level, except the first key
    when it is asked to be read from the notation */
-const jzbLevelFor = (r, overall) => r.settings.hideAfterFirst && overall === 0 ? 'notation' : r.settings.visibility;
+const jzbLevelFor = (r, overall) => {
+  if(r.settings.callResponse){ const c = r.tl.choruses[r.lastChorus] || {}; return r.reveal === c.key ? 'notation' : 'key_only'; }
+  return r.settings.hideAfterFirst && overall === 0 ? 'notation' : r.settings.visibility; };
 
 async function jzbStart(root, id){
   jzbStop('restart');
@@ -415,8 +429,19 @@ async function jzbStart(root, id){
     lastChorus: -1, overall: -1, shownKey: ui.key, started: Date.now(), raf: 0, osmd: null, geo: null};
   const player = scorePlayer(tl, {bpm: s.bpm, swing: straight ? 0 : jzbSwing(s.swingRatio, s.bpm),
     loop: s.choruses === 'infinite', countIn: s.countIn, click: false, accent: true, volume: 0.9,
-    volumes: jzbVolumes(r), muted: new Set(r.guide > 0 ? [] : ['p:0']),
+    volumes: jzbVolumes(r), muted: jzbMuted(r), at: null,
     onEnd: () => { if(_jzb.run === r) jzbStop('ended'); }});
+  /* the singer's note first: the pattern's first note (or the first chord's
+     root), then a breath, then the count */
+  const ctx0 = typeof plxAudioCtx === 'function' ? plxAudioCtx() : null;
+  if(s.startNote && ctx0){
+    const first = tl.events.find(e => e.part === 0 && !e.chord);
+    let m = first ? first.midi : null;
+    if(m == null){ const c = tl.perf[0] && tl.perf[0].changes && jazzChordSpec(tl.perf[0].changes[0].sym); if(c) m = 60 + c.pc; }
+    if(m != null){ const t0 = ctx0.currentTime + 0.05;
+      if(typeof jzVoiceKeys === 'function') jzVoiceKeys(ctx0, ctx0.destination, m, t0, 1.1, 0.6);
+      player.opts.at = t0 + 1.6; r.startNote = m; }
+  }
   r.player = player;
   if(!player.start()){ toast('This browser cannot make sound.'); return false; }
   _jzb.run = r;
@@ -426,7 +451,8 @@ async function jzbStart(root, id){
   r.raf = requestAnimationFrame(jzbFrame);
   return true;
 }
-const jzbVolumes = r => ({0: r.guide || 0, 1: 1, 2: 0.9, 3: 0.75});
+const jzbVolumes = r => ({0: r.settings.callResponse ? 0.85 : (r.guide || 0), 1: 1, 2: 0.9, 3: 0.75});
+const jzbMuted = r => new Set(r.settings.callResponse || r.guide > 0 ? [] : ['p:0']);
 function jzbCountDown(r){
   const ci = r.player.countIn, el = r.root.querySelector('#jzbWhere');
   if(!ci || !el) return;
@@ -458,12 +484,13 @@ function jzbFrame(){
   if(pm.chorus !== r.lastChorus){
     if(r.lastChorus >= 0){
       r.full++;
-      r.best = Math.max(r.best, jzbLevelIdx(jzbLevelFor(r, r.overall)));
+      if(!r.settings.callResponse) r.best = Math.max(r.best, jzbLevelIdx(jzbLevelFor(r, r.overall)));
       if(r.settings.hearFade && r.guide > 0){
         r.guide = JZB_FADE.find(v => v < r.guide - 1e-6) || 0;
-        p.set('volumes', jzbVolumes(r)); p.set('muted', new Set(r.guide > 0 ? [] : ['p:0']));
+        p.set('volumes', jzbVolumes(r)); p.set('muted', jzbMuted(r));
       }
     }
+    if(r.reveal && r.reveal !== ch.key) r.reveal = null;
     r.lastChorus = pm.chorus; r.overall++;
     r.reached.add(ch.key);
   }
@@ -496,6 +523,11 @@ function jzbPaint(r, pm, q, level, nextKey, lastBar, ch){
   const total = r.settings.choruses === 'infinite' ? '∞' : r.tl.choruses.length;
   const bars = r.tl.perf.filter(v => v.chorus === pm.chorus);
   if(where) where.textContent = `chorus ${r.overall + 1} of ${total} · bar ${bars.findIndex(v => v.i === pm.i) + 1} of ${bars.length}`;
+  const cr = $r('#jzbCall');
+  if(cr){ cr.hidden = !r.settings.callResponse;
+    const lab = cr.querySelector('b');
+    if(lab) lab.textContent = ch.call ? '🎺 the call — listen' : ch.response ? 'your turn — play it back' : '';
+    const sm = cr.querySelector('#jzbShowMe'); if(sm) sm.hidden = r.reveal === ch.key; }
   /* the bar being played, lit, when the page shows this key's notation */
   const box = $r('#jzScore');
   if(!box) return;
@@ -520,7 +552,7 @@ function jzbStop(why){
   _jzb.run = null;
   if(r.raf) cancelAnimationFrame(r.raf);
   /* the chorus it was in counts if it was played to the end */
-  if(why === 'ended' && r.lastChorus >= 0){ r.full++; r.best = Math.max(r.best, jzbLevelIdx(jzbLevelFor(r, r.overall))); }
+  if(why === 'ended' && r.lastChorus >= 0){ r.full++; if(!r.settings.callResponse) r.best = Math.max(r.best, jzbLevelIdx(jzbLevelFor(r, r.overall))); }
   try { r.player.stop(); } catch(e){}
   const best = r.best >= 0 ? JZB_SEE[r.best][0] : null;
   _jzb.last = {id: r.id, at: Date.now(), bpm: r.settings.bpm, keys: [...r.reached], style: jzbStyleSay(r.settings),
@@ -569,6 +601,14 @@ function jazzBackingHTML(id){
       <label class="mono jzb-f">keys <select class="sel sm" id="jzbKeys">${opt(JZB_KEYS, s.keyCycle)}</select></label>
       <label class="mono jzb-f">choruses <select class="sel sm" id="jzbChor">${opt(JZB_CHORUSES.map(v => [v, v === 'infinite' ? '∞' : String(v)]), s.choruses)}</select></label>
     </div>
+    ${jzbPhrase(id) ? `<div class="jzb-row">
+      <label class="mono jzb-f" title="the room plays the phrase for two bars, then two bars of band alone for you to play it back — the notes hidden until you ask"><input type="checkbox" id="jzbCR" ${s.callResponse ? 'checked' : ''}> call and response</label>
+      <label class="mono jzb-f">the call on <select class="sel sm" id="jzbCV">${opt([['piano', 'piano'], ['voice', 'a soft voice']], s.callVoice)}</select></label>
+    </div>` : ''}
+    <div class="jzb-row">
+      <label class="mono jzb-f" title="before the count: the pattern's first note, or the first chord's root"><input type="checkbox" id="jzbStart" ${s.startNote ? 'checked' : ''}> give me my starting note</label>
+      ${jzvVocal(id) ? jzvRangeHTML() + `<label class="mono jzb-f">sing it <select class="sel sm" id="jzbOct">${opt([[-12, 'an octave down'], [0, 'as written'], [12, 'an octave up']], s.octave)}</select></label>` : ''}
+    </div>
     <div class="jzb-row">
       <label class="mono jzb-f" title="take the page away a step at a time">reading <select class="sel sm" id="jzbSee">${opt(JZB_SEE.map(([k, i]) => [k, `${i} ${JZB_SEE_SAY[k]}`]), s.visibility)}</select></label>
       <label class="mono jzb-f"><input type="checkbox" id="jzbFirst" ${s.hideAfterFirst ? 'checked' : ''}> the notation for the first key</label>
@@ -577,6 +617,7 @@ function jazzBackingHTML(id){
 }
 function jzbShowHTML(){
   return `<div class="jzb-show" id="jzbShow" hidden aria-live="polite">
+    <div class="jzb-call" id="jzbCall" hidden><b class="mono"></b> <button class="tbtn" id="jzbShowMe">show me</button></div>
     <div class="jzb-next serif" id="jzbNext" hidden></div>
     <div class="jzb-key serif" id="jzbKey"></div>
     <div class="jzb-chord serif" id="jzbChord"></div>
@@ -605,10 +646,18 @@ function bindJazzBacking(root, id){
     $b(sel).onchange = () => { jzbSave(id, {[k]: $b(sel).value}); again(); }; });
   $b('#jzbChor').onchange = () => { const v = $b('#jzbChor').value; jzbSave(id, {choruses: v === 'infinite' ? 'infinite' : +v}); again(); };
   $b('#jzbHear').onchange = () => { const v = +$b('#jzbHear').value; jzbSave(id, {hearMyPart: v}); const r = live();
-    if(r){ r.guide = v; r.player.set('volumes', jzbVolumes(r)); r.player.set('muted', new Set(v > 0 ? [] : ['p:0'])); } };
+    if(r){ r.guide = v; r.player.set('volumes', jzbVolumes(r)); r.player.set('muted', jzbMuted(r)); } };
   $b('#jzbFade').onchange = () => { jzbSave(id, {hearFade: $b('#jzbFade').checked}); const r = live(); if(r) r.settings.hearFade = $b('#jzbFade').checked; };
   $b('#jzbSee').onchange = () => { jzbSave(id, {visibility: $b('#jzbSee').value}); const r = live(); if(r) r.settings.visibility = $b('#jzbSee').value; };
   $b('#jzbFirst').onchange = () => { jzbSave(id, {hideAfterFirst: $b('#jzbFirst').checked}); const r = live(); if(r) r.settings.hideAfterFirst = $b('#jzbFirst').checked; };
+  const cr = $b('#jzbCR'); if(cr) cr.onchange = () => { jzbSave(id, {callResponse: cr.checked}); again(); };
+  const cv = $b('#jzbCV'); if(cv) cv.onchange = () => { jzbSave(id, {callVoice: cv.value}); again(); };
+  const st = $b('#jzbStart'); if(st) st.onchange = () => jzbSave(id, {startNote: st.checked});
+  const oc = $b('#jzbOct'); if(oc) oc.onchange = () => { jzbSave(id, {octave: +oc.value}); again(); jzvPaintKeys(root, id); };
+  const me = root.querySelector('#jzbShowMe');
+  if(me) me.onclick = () => { const r = live(); if(!r) return; const c = r.tl.choruses[r.lastChorus]; if(c){ r.reveal = c.key; } };
+  bindJzvRange(box, root, id);
+  jzvPaintKeys(root, id);
 }
 
 /* ---------- reading, as progress ----------
@@ -631,4 +680,77 @@ function jzbLogPrefill(id){
   if(_jzb.run && _jzb.run.id === id){ const r = _jzb.run;
     return {bpm: r.settings.bpm, keys: [...r.reached], style: jzbStyleSay(r.settings), visibility: r.best >= 0 ? JZB_SEE[r.best][0] : null}; }
   return l && l.id === id && Date.now() - l.at < 3 * 3600 * 1000 ? l : null;
+}
+
+/* ---------- a phrase, and a voice ---------- */
+/* a single line — a lick, a sung pattern — can be called and answered */
+function jzbPhrase(id){
+  const xml = jzbXml(id, 'C', jazzUi().interval); if(!xml) return false;
+  let tl; try { tl = musicXmlTimeline(xml); } catch(e){ return false; }
+  const ev = tl.events.filter(e => !e.chord);
+  if(ev.length < 3) return false;
+  /* never two notes at once */
+  return ev.every((e, i) => i === 0 || e.q > ev[i - 1].q + 1e-6);
+}
+const jzvVocal = id => /^V\d/.test(id) || /vocal|scat|sing/i.test((jazzExercise(id) || {}).name || '');
+const JZV_NOTES = [...Array(49)].map((_, i) => 36 + i);           /* C2 – C6 */
+const jzvName = m => `${['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][m % 12]}${Math.floor(m / 12) - 1}`;
+function jzvRange(){ const r = jazzState().settings.vocalRange; return r && r.lowMidi && r.highMidi ? r : null; }
+function jzvRangeHTML(){
+  const r = jzvRange() || {lowMidi: 0, highMidi: 0};
+  const sel = (idv, v) => `<select class="sel sm" id="${idv}"><option value="">—</option>${JZV_NOTES.map(m =>
+    `<option value="${m}" ${m === v ? 'selected' : ''}>${jzvName(m)}</option>`).join('')}</select>`;
+  return `<label class="mono jzb-f" title="the lowest and highest notes you sing comfortably — kept for every exercise">your range ${sel('jzvLo', r.lowMidi)} to ${sel('jzvHi', r.highMidi)}</label>`;
+}
+function bindJzvRange(box, root, id){
+  const lo = box.querySelector('#jzvLo'), hi = box.querySelector('#jzvHi');
+  if(!lo || !hi) return;
+  const save = () => { const a = +lo.value, z = +hi.value;
+    jazzState().settings.vocalRange = a && z ? {lowMidi: Math.min(a, z), highMidi: Math.max(a, z)} : null;
+    saveNow(); jzvPaintKeys(root, id); };
+  lo.onchange = save; hi.onchange = save;
+}
+/* where the pattern goes in a key: its lowest and highest note, as sung */
+function jzvSpan(id, key){
+  const xml = jzbXml(id, key, jazzUi().interval); if(!xml) return null;
+  let tl; try { tl = musicXmlTimeline(xml); } catch(e){ return null; }
+  /* the sung line: the top staff, not the piano's left hand under it */
+  const ms = tl.events.filter(e => !e.chord && e.part === 0 && (e.staff || 1) === 1).map(e => e.midi + (jzbSettings(id).octave || 0));
+  return ms.length ? {lo: Math.min(...ms), hi: Math.max(...ms)} : null;
+}
+function jzvFits(id, key){
+  const r = jzvRange(), sp = jzvSpan(id, key);
+  if(!r || !sp) return {ok: true};
+  return {ok: sp.lo >= r.lowMidi && sp.hi <= r.highMidi, above: sp.hi > r.highMidi, below: sp.lo < r.lowMidi, sp};
+}
+/* the nearest key the pattern fits in, counting semitones either way */
+function jzvNearest(id, key){
+  const at = JZB_PC[key];
+  for(let d = 1; d <= 6; d++) for(const sgn of [-1, 1]){
+    const k = JAZZ_KEY_NAMES[((at + sgn * d) % 12 + 12) % 12];
+    if(jzvFits(id, k).ok) return k;
+  }
+  return null;
+}
+/* on the key picker: a mark on every key that leaves your range, and a word
+   about the one you are in */
+function jzvPaintKeys(root, id){
+  if(!jzvVocal(id)) return;
+  const r = jzvRange();
+  $$('[data-jzkey]', root).forEach(b => { const f = r ? jzvFits(id, b.dataset.jzkey) : {ok: true};
+    b.classList.toggle('jzv-out', !f.ok);
+    b.title = f.ok ? b.title.replace(/ — (above|below) your range$/, '') : `${b.title.replace(/ — (above|below) your range$/, '')} — ${f.above ? 'above' : 'below'} your range`; });
+  const row = root.querySelector('.jz-keyrow');
+  let warn = root.querySelector('#jzvWarn');
+  const key = jazzUi().key, f = r ? jzvFits(id, key) : {ok: true};
+  if(f.ok){ if(warn) warn.remove(); return; }
+  if(!warn && row){ warn = document.createElement('div'); warn.id = 'jzvWarn'; warn.className = 'jzv-warn mono'; row.insertAdjacentElement('afterend', warn); }
+  if(!warn) return;
+  const near = jzvNearest(id, key);
+  warn.innerHTML = `This key goes ${f.above ? 'above' : 'below'} your range (${f.above ? `up to ${jzvName(f.sp.hi)}` : `down to ${jzvName(f.sp.lo)}`}).
+    <button class="tbtn" id="jzvOct">sing it an octave ${f.above ? 'down' : 'up'}</button>${near ? ` <button class="tbtn" id="jzvNear">try ${esc(jazzPretty(near))}</button>` : ''}`;
+  const oc = warn.querySelector('#jzvOct');
+  if(oc) oc.onclick = () => { const o = jzbSettings(id).octave + (f.above ? -12 : 12); jzbSave(id, {octave: Math.max(-12, Math.min(12, o))}); rerender(); };
+  const nb = warn.querySelector('#jzvNear');
+  if(nb) nb.onclick = () => { jazzUi().key = near; rerender(); };
 }

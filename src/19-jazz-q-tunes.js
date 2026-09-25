@@ -172,6 +172,8 @@ function jazzTuneFilter(f){
 /* ---------- Module 4: reading a chart ---------- */
 const JAZZ_CHORD_RE = /^([A-G])([b#]?)([^/\s]*?)(?:\/([A-G])([b#]?))?$/;
 function jazzParseChord(tok){
+  /* as printed: B♭maj7, C7♯9, Cm7♭5 */
+  tok = String(tok == null ? '' : tok).trim().replace(/♭/g, 'b').replace(/♯/g, '#');
   const m = JAZZ_CHORD_RE.exec(tok);
   if(!m) return null;
   const q = m[3] || '';

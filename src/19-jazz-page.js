@@ -471,6 +471,7 @@ function jazzExerciseHTML(id){
         <div class="jz-count mono">${single ? (r.done ? `done ${esc(relDays(daysSince(r.done)))}` : 'not yet done')
           : `${got} of 12 keys`}${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
         ${!single && draws && typeof jazzReadingHTML === 'function' ? jazzReadingHTML(id) : ''}
+        ${!single && draws && typeof jazzReactionTrendHTML === 'function' ? jazzReactionTrendHTML(id) : ''}
         ${jazzChecklistHTML(id)}
       </div>
       <aside class="jz-side">
@@ -664,6 +665,8 @@ function openJazzLog(id){
   /* what the band last did here: the tempo, the keys it went through, the
      style, how far off the page — the sitting already knows these */
   const band = typeof jzbLogPrefill === 'function' ? jzbLogPrefill(id) : null;
+  /* a flashcard with the band in the last three hours: the window it gave */
+  const flash = (jazzState().flashes || []).find(f => f.exerciseId === id && f.reactionWindowBeats && Date.now() - new Date(f.at) < 3 * 3600 * 1000);
   const m = openModal(`<h2>A sitting — ${esc(ex.name)}</h2>
     <div class="row" style="gap:10px">
       <label class="pd-q" style="flex:1"><span class="k">how long</span>
@@ -681,6 +684,7 @@ function openJazzLog(id){
         `<button class="jz-k${k === ui.key ? ' on' : ''}" data-jlk="${esc(k)}">${esc(jazzPretty(k))}</button>`).join('')}</div></div>
     <label class="pd-q" style="margin-top:10px"><span class="k">notes</span>
       <textarea class="inp" rows="3" id="jlNote" placeholder="A flat and D flat still clunky. The V to I is the join that needs the work."></textarea></label>
+    ${flash ? `<p class="mono faint" style="margin:8px 0 0">reaction window with the band: ${flash.reactionWindowBeats} beats${flash.bpm ? ` at \u2669=${flash.bpm}` : ''}</p>` : ''}
     ${typeof JZB_SEE === 'object' ? `<div class="row" style="gap:10px;margin-top:10px">
       <label class="pd-q" style="flex:2"><span class="k">with the band</span>
         <input class="inp" id="jlStyle" value="${esc(band ? band.style : '')}" placeholder="no band this time"></label>
@@ -708,6 +712,7 @@ function openJazzLog(id){
       quality: m.querySelector('#jlQ').value,
       keys: [...picked], note: m.querySelector('#jlNote').value.trim(),
       markKeys: m.querySelector('#jlMark').checked,
+      reactionWindowBeats: flash ? flash.reactionWindowBeats : null,
       backing: (m.querySelector('#jlStyle') || {}).value ? m.querySelector('#jlStyle').value.trim() : null,
       visibility: (m.querySelector('#jlSee') || {}).value || null,
       bpm: band && band.bpm ? band.bpm : null});
