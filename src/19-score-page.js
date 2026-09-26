@@ -295,10 +295,7 @@ function scoreViewerHTML(x){
         <button class="tbtn" id="scAllParts">all of them</button>` : ''}
       <span class="grow"></span>
       ${scoreBplHTML(x)}
-      <span class="sc-zoom"><button class="tbtn" data-sczoom="-1" ${x.barsPerLine ? 'disabled' : ''}>−</button>
-        <span class="mono" id="scZoomSay" title="${x.barsPerLine
-          ? 'set by the bars to a line' : 'how big the engraving is'}">${scoreZoomSay(x)}</span>
-        <button class="tbtn" data-sczoom="1" ${x.barsPerLine ? 'disabled' : ''}>+</button></span>
+      ${scoreZoomHTML(x)}
       <label class="sc-jump"><span class="k mono">bar</span>
         <input class="inp sm mono" id="scJump" type="number" min="1" max="${x.totalMeasures || 9999}" placeholder="#"></label>
       <button class="tbtn" id="scMore" title="the metronome and the rest"
@@ -403,12 +400,36 @@ function scoreBplHTML(x){
     <span class="mono" id="scBplSay">${x.barsPerLine || 'fit'}</span>
     <button class="tbtn" data-scbpl="1">+</button></span>`;
 }
-/* Asking for a number of bars decides the size, so the size stops being
-   something you set — saying so is better than two controls quietly fighting. */
-function scoreZoomSay(x){
+/* The size and the bars to a line work together rather than one switching
+   the other off. The size is the largest the notation may be drawn; asking
+   for a number of bars to a line can only make it smaller, when that many
+   will not fit at the size you chose. So − always does something, and +
+   is only unavailable while the bars to a line are what is holding the size
+   down — which the control says. (It used to be switched off whenever a
+   number of bars was set, which read as a control that did nothing.) */
+function scoreZoomNow(x){
   const sv = scoreView();
-  const z = (x.barsPerLine && sv && sv.fitted) ? sv.fitted.zoom : (x.zoom || 1);
-  return Math.round(z * 100) + '%';
+  return (x.barsPerLine && sv && sv.fitted) ? sv.fitted.zoom : (+x.zoom || 1);
+}
+function scoreZoomHeld(x){
+  const sv = scoreView();
+  return !!(x.barsPerLine && sv && sv.fitted && sv.fitted.zoom < (+x.zoom || 1) - 0.01);
+}
+function scoreZoomSay(x){ return Math.round(scoreZoomNow(x) * 100) + '%'; }
+function scoreZoomHTML(x){
+  const held = scoreZoomHeld(x);
+  return `<span class="sc-zoom"><span class="k mono">size</span>
+    <button class="tbtn" data-sczoom="-1" title="smaller: more of the piece at once">−</button>
+    <span class="mono" id="scZoomSay" title="${held ? 'the bars to a line are holding the size down'
+      : 'how big the engraving is'}">${scoreZoomSay(x)}</span>
+    <button class="tbtn" data-sczoom="1" ${held ? 'disabled' : ''} title="${held
+      ? 'as big as that many bars to a line allows' : 'bigger'}">+</button></span>`;
+}
+/* Tight spacing closes up the gaps between lines and staves that the
+   engraver keeps for a printed page, which on a screen is room for another
+   line or two. */
+function scoreTightHTML(x){
+  return `<button class="tbtn${x.tight ? ' on' : ''}" id="scTight" title="close up the space between lines, to fit more on the page">tight</button>`;
 }
 
 /* ---------- reading ----------
@@ -426,6 +447,8 @@ function scoreReadStripHTML(x){
     <button class="tbtn" id="scHide" title="send this away now — a press anywhere brings it back">⌄</button>
     <span class="sc-strip-t serif">${esc(x.title)}</span>
     ${scoreBplHTML(x)}
+    ${scoreZoomHTML(x)}
+    ${scoreTightHTML(x)}
     ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
       `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>` : ''}
     <button class="tbtn${ui.marks ? ' on' : ''}" id="scMarks" title="the bands and pins you have put on it">marks</button>
@@ -678,6 +701,7 @@ async function scorePaint(x){
        always, because before it there is nothing there to correct */
     scoreRepaintParts(x);
     scorePageSay();
+    scoreBplRepaint(x);
     /* The notes first. Everything below only decorates them or gets ready to
        play them, and on a slow machine it was seconds more before the browser
        was allowed to show the engraving it already had. So the page is
@@ -1147,9 +1171,16 @@ function scoreBeatsHTML(notes, u, size){
 async function scoreRedraw(x){
   const ui = scoreUi();
   const focus = ui.focus ? scoreSection(x, ui.focus) : null;
+  /* paged, a re-layout moves every bar to another page; the one you were
+     looking at comes back into view rather than whatever page has its old
+     number */
+  const sv0 = scoreView();
+  const keep = sv0 && sv0.page ? firstMeasureOnPage() : null;
   try {
     await renderScore(x, Object.assign({page: scorePageShape()},
       focus ? {from:focus.startMeasure, to:focus.endMeasure} : {from:null, to:null}));
+    if(keep != null){ const sv = scoreView(); const pg = sv && sv.page ? pageOfMeasure(keep) : null;
+      if(pg != null && pg !== sv.at) showScorePage(pg); }
     scoreOverlayPaint(x);
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
@@ -1417,12 +1448,22 @@ function bindScoreViewer(root, x){
   const secJump = root.querySelector('#scSecJump');
   if(secJump) secJump.onchange = () => { const sec = scoreSection(x, secJump.value);
     if(sec) scoreScrollTo(sec.startMeasure); secJump.value = ''; };
-  $$('[data-sczoom]', root).forEach(b => b.onclick = () => {
-    x.zoom = clamp((+x.zoom || 1) + (+b.dataset.sczoom) * 0.15, 0.4, 2.5);
-    const say = root.querySelector('#scZoomSay');
-    if(say) say.textContent = Math.round(x.zoom * 100) + '%';
-    saveNow(); scoreRedraw(x);
+  $$('[data-sczoom]', root).forEach(b => b.onclick = async () => {
+    /* from the size on the glass, not the one asked for: with the bars to a
+       line holding it down, stepping from the asked-for size would land
+       above what is drawn and change nothing */
+    const step = +b.dataset.sczoom;
+    const z = scoreZoomNow(x) * (step > 0 ? 1.15 : 1 / 1.15);
+    x.zoom = Math.round(clamp(z, SCORE_ZOOM_MIN, 2.5) * 100) / 100;
+    saveNow();
+    await scoreRedraw(x);
+    scoreBplRepaint(x);
   });
+  const tight = root.querySelector('#scTight');
+  if(tight) tight.onclick = async () => {
+    x.tight = !x.tight; tight.classList.toggle('on', x.tight);
+    saveNow(); await scoreRedraw(x); scoreBplRepaint(x);
+  };
   $$('[data-scpart]', root).forEach(b => b.onchange = () => {
     if(!setScorePartVisible(x, +b.dataset.scpart, b.checked)){
       b.checked = true; toast('Something has to be visible.'); return; }
@@ -1479,6 +1520,7 @@ function bindScoreViewer(root, x){
      listeners it hangs on went with the old one */
   if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); bindScoreMetro(root, x); }
   else scoreKeysWatch(null);
+  scoreResizeWatch(x);
   bindScoreSide(root, x);
 }
 /* The metronome's controls, which appear in two places — the toolbar's second
@@ -1670,12 +1712,42 @@ function scorePageSay(){
   if(!sv || !sv.page || sv.pages < 2){ say.textContent = ''; return; }
   say.textContent = `${sv.at + 1} / ${sv.pages}`;
 }
+/* A page is laid out to the shape of the screen it is on, so when that shape
+   changes — the tablet turned, full screen arriving a moment after the page
+   was drawn, the browser's bar sliding away — the page has to be laid out
+   again. It was not, and a page drawn for a taller screen than the one it
+   was now on lost the bottom of its last line. The bar you were looking at
+   stays in view across the re-layout. */
+let _scRO = null, _scROt = 0;
+function scoreResizeWatch(x){
+  if(_scRO){ _scRO.disconnect(); _scRO = null; }
+  const stage = document.getElementById('scStage');
+  if(!stage || typeof ResizeObserver !== 'function' || !scoreUi().reading) return;
+  let was = [stage.clientWidth, stage.clientHeight];
+  const ro = _scRO = new ResizeObserver(() => {
+    clearTimeout(_scROt);
+    _scROt = setTimeout(async () => {
+      if(ro !== _scRO) return;
+      if(!stage.isConnected || !scoreUi().reading){ ro.disconnect(); if(_scRO === ro) _scRO = null; return; }
+      const w = stage.clientWidth, h = stage.clientHeight;
+      if(Math.abs(w - was[0]) < 8 && Math.abs(h - was[1]) < 8) return;
+      was = [w, h];
+      await scoreRedraw(x);
+      scoreBplRepaint(x);
+    }, 250);
+  });
+  ro.observe(stage);
+}
 /* both copies of the control, since reading mode carries its own */
 function scoreBplRepaint(x){
   $$('#scBplSay').forEach(n => n.textContent = x.barsPerLine || 'fit');
   $$('[data-scbpl="-1"]').forEach(n => n.disabled = !x.barsPerLine);
   $$('#scZoomSay').forEach(n => n.textContent = scoreZoomSay(x));
-  $$('[data-sczoom]').forEach(n => n.disabled = !!x.barsPerLine);
+  const held = scoreZoomHeld(x);
+  $$('[data-sczoom="1"]').forEach(n => { n.disabled = held;
+    n.title = held ? 'as big as that many bars to a line allows' : 'bigger'; });
+  $$('[data-sczoom="-1"]').forEach(n => n.disabled = scoreZoomNow(x) <= SCORE_ZOOM_MIN + 0.005);
+  $$('#scZoomSay').forEach(n => n.title = held ? 'the bars to a line are holding the size down' : 'how big the engraving is');
 }
 function scoreScrollTo(n){
   const stage = document.getElementById('scStage');

@@ -192,7 +192,7 @@ const scoreView = () => _sv;
    the picture is still right */
 function scoreRenderKey(rec, page, from, to){
   return JSON.stringify([rec.id, page || 0, from || 0, to || 0, Math.round(+rec.transpose || 0),
-    clamp(+rec.zoom || 1, 0.4, 2.5), clamp(+rec.barsPerLine || 0, 0, 16), (rec.hidden || []).slice().sort()]);
+    clamp(+rec.zoom || 1, SCORE_ZOOM_MIN, 2.5), clamp(+rec.barsPerLine || 0, 0, 16), (rec.hidden || []).slice().sort(), !!rec.tight]);
 }
 async function openScoreIn(container, rec, opts = {}){
   const lib = await osmdBoot();
@@ -298,7 +298,11 @@ async function renderScore(rec, opts = {}){
   const rules = osmd.EngravingRules || osmd.rules;
   const want = clamp(+rec.barsPerLine || 0, 0, 16);
   if(rules) rules.RenderXMeasuresPerLineAkaSystem = want;
-  osmd.zoom = clamp(+rec.zoom || 1, 0.4, 2.5);
+  scoreSpacing(rules, !!rec.tight);
+  /* the page's own shape every time, since the check below may have left it
+     shorter for the last engraving and this one may not need that */
+  if(page && rules && lib) try { rules.PageFormat = new lib.PageFormat(PAGE_UNITS, PAGE_UNITS * page, 'screen'); } catch(e){}
+  osmd.zoom = clamp(+rec.zoom || 1, SCORE_ZOOM_MIN, 2.5);
   osmd.render();
   /* Asking for eight bars to a line is asking for eight, and the engraver's
      own setting is only a ceiling: it will happily give five if five is all
@@ -307,6 +311,21 @@ async function renderScore(rec, opts = {}){
      and they are only paid when the setting or the width changes. */
   if(want) _sv.fitted = fitBarsPerLine(osmd, rec, want);
   else _sv.fitted = null;
+  /* A page is laid out to a height, and the engraver decides whether a line
+     fits by the line's own box — which does not count what hangs below it (a
+     pedal mark, a low ledger line, a fingering). The last line on a page
+     could then run past the page's bottom edge and lose its feet. So it is
+     checked, and where anything runs over, the engraver is told to keep that
+     much more room at the foot of every page, and lays the pages out again:
+     the line that did not fit starts the next page instead. */
+  if(page && rules){
+    for(let pass = 0; pass < 3; pass++){
+      const over = scorePageOverflow(osmd);
+      if(over <= 0) break;
+      try { rules.PageBottomMargin = (+rules.PageBottomMargin || 0) + over + 1; } catch(e){ break; }
+      osmd.render();
+    }
+  }
   _sv.dropped = _scoreDropped.slice(); _sv.why = _scoreWhy;
   _sv.pages = pageCount(osmd);
   _sv.at = clamp(_sv.at, 0, _sv.pages - 1);
@@ -471,24 +490,78 @@ function pageOfMeasure(n){
   const b = measureBoxes().find(x => x.measure === n);
   return b ? b.page : null;
 }
-/* How many bars the widest line actually got. Lines are found by grouping the
-   drawn measures by the height they sit at, which is the same trick the bands
-   use, so the two always agree about what a line is. */
+/* the first bar on the page being shown, so a re-layout can come back to it */
+function firstMeasureOnPage(){
+  if(!_sv) return null;
+  const on = measureBoxes().filter(b => b.page === _sv.at).map(b => b.measure);
+  return on.length ? Math.min(...on) : null;
+}
+/* How many bars a line actually got — the typical line, not the widest.
+   Counted line by line off the layout itself. It used to be counted by where
+   the bars sat on the page, which in reading mode — every page starting again
+   at its own top — put the first line of every page in one row: seventeen
+   pages of seven bars read as a line of fifty-six, the fit was satisfied
+   before it began, and asking for ten, twelve or sixteen bars to a line
+   changed nothing. And the widest line is the wrong one to ask about: one
+   line of ten among lines of seven is not ten to a line. So it is the middle
+   line of the piece, leaving out the last, which is as short as the music
+   that is left. */
 function barsOnWidestLine(){
-  const rows = {};
-  measureBoxes().forEach(b => { const k = Math.round(b.y / 20); rows[k] = (rows[k] || 0) + 1; });
-  const counts = Object.values(rows);
-  return counts.length ? Math.max(...counts) : 0;
+  if(!_sv) return 0;
+  const counts = [];
+  try {
+    (_sv.osmd.GraphicSheet.MusicPages || []).forEach(pg => (pg.MusicSystems || []).forEach(sys => {
+      const line = (sys.StaffLines || [])[0];
+      counts.push(line ? (line.Measures || []).length : 0);
+    }));
+  } catch(e){ return 0; }
+  if(counts.length > 1) counts.pop();
+  if(!counts.length) return 0;
+  counts.sort((a, b) => a - b);
+  return counts[Math.floor(counts.length / 2)];
+}
+/* How far past its page the lowest thing drawn on any page runs, in the
+   engraver's units (0 when everything is on the page). */
+function scorePageOverflow(osmd){
+  let worst = 0;
+  try {
+    const r = osmd.EngravingRules || osmd.rules;
+    const H = r && r.PageHeight;
+    if(!H || H > 100000) return 0;
+    (osmd.GraphicSheet.MusicPages || []).forEach(pg => (pg.MusicSystems || []).forEach(sys => {
+      const ps = sys.PositionAndShape;
+      worst = Math.max(worst, ps.AbsolutePosition.y + ps.BorderMarginBottom - H);
+    }));
+  } catch(e){ return 0; }
+  return worst;
+}
+/* The smallest the engraving goes. Reading a page from a stand wants it
+   small enough to take in a good many lines at once. */
+const SCORE_ZOOM_MIN = 0.3;
+/* Tight spacing: the gaps between lines and staves the engraver keeps for a
+   printed page, closed up so more lines fit on a screen. The defaults are
+   read off the engraver once and put back when it is switched off. */
+let _scoreSpacingDefaults = null;
+const SCORE_SPACING_KEYS = ['MinSkyBottomDistBetweenSystems', 'MinimumDistanceBetweenSystems',
+  'BetweenStaffDistance', 'StaffDistance', 'PageTopMargin', 'PageBottomMargin'];
+const SCORE_SPACING_TIGHT = {MinSkyBottomDistBetweenSystems: 1, MinimumDistanceBetweenSystems: 1,
+  BetweenStaffDistance: 2.5, StaffDistance: 3.5, PageTopMargin: 1.5, PageBottomMargin: 0.5};
+function scoreSpacing(rules, tight){
+  if(!rules) return;
+  if(!_scoreSpacingDefaults){ _scoreSpacingDefaults = {}; SCORE_SPACING_KEYS.forEach(k => _scoreSpacingDefaults[k] = rules[k]); }
+  SCORE_SPACING_KEYS.forEach(k => { const v = tight ? SCORE_SPACING_TIGHT[k] : _scoreSpacingDefaults[k];
+    if(v != null) try { rules[k] = v; } catch(e){} });
 }
 function fitBarsPerLine(osmd, rec, want){
-  let zoom = clamp(+rec.zoom || 1, 0.4, 2.5);
-  for(let pass = 0; pass < 3; pass++){
+  /* from the size it is drawn at now, which is the size being counted */
+  let zoom = +osmd.zoom || clamp(+rec.zoom || 1, SCORE_ZOOM_MIN, 2.5);
+  for(let pass = 0; pass < 5; pass++){
     const got = barsOnWidestLine();
     if(!got || got >= want) return {zoom, got};
     /* width needed runs about linearly with the size of the engraving, so the
        ratio of what arrived to what was asked for is the first guess, and it
        is a good one — a little under, so a near miss does not need a third go */
-    const next = clamp(zoom * (got / want) * 0.97, 0.25, 2.5);
+    const next = clamp(zoom * (got / want) * 0.97, 0.2, 2.5);
     if(Math.abs(next - zoom) < 0.01) return {zoom, got};
     zoom = next;
     osmd.zoom = zoom;

@@ -9583,7 +9583,7 @@ html.sc-reading .ctx-add{display:none !important}
 html.sc-reading #main{padding:0 !important;margin:0 !important;max-width:none !important}
 html.sc-reading .page{padding:0 !important;margin:0 !important;max-width:none !important}
 html.sc-reading .sc-body{display:block;margin:0;gap:0}
-html.sc-reading .sc-stage{max-height:100vh;height:100vh;border:none;border-radius:0;
+html.sc-reading .sc-stage{max-height:100vh;height:100vh;max-height:100dvh;height:100dvh;border:none;border-radius:0;
   padding:14px 10px 10px}
 html.sc-reading .sc-overlay,html.sc-reading .sc-pins{inset:14px 10px 10px}
 /* the only thing left, and it goes away by itself */
@@ -86027,7 +86027,7 @@ const scoreView = () => _sv;
    the picture is still right */
 function scoreRenderKey(rec, page, from, to){
   return JSON.stringify([rec.id, page || 0, from || 0, to || 0, Math.round(+rec.transpose || 0),
-    clamp(+rec.zoom || 1, 0.4, 2.5), clamp(+rec.barsPerLine || 0, 0, 16), (rec.hidden || []).slice().sort()]);
+    clamp(+rec.zoom || 1, SCORE_ZOOM_MIN, 2.5), clamp(+rec.barsPerLine || 0, 0, 16), (rec.hidden || []).slice().sort(), !!rec.tight]);
 }
 async function openScoreIn(container, rec, opts = {}){
   const lib = await osmdBoot();
@@ -86133,7 +86133,11 @@ async function renderScore(rec, opts = {}){
   const rules = osmd.EngravingRules || osmd.rules;
   const want = clamp(+rec.barsPerLine || 0, 0, 16);
   if(rules) rules.RenderXMeasuresPerLineAkaSystem = want;
-  osmd.zoom = clamp(+rec.zoom || 1, 0.4, 2.5);
+  scoreSpacing(rules, !!rec.tight);
+  /* the page's own shape every time, since the check below may have left it
+     shorter for the last engraving and this one may not need that */
+  if(page && rules && lib) try { rules.PageFormat = new lib.PageFormat(PAGE_UNITS, PAGE_UNITS * page, 'screen'); } catch(e){}
+  osmd.zoom = clamp(+rec.zoom || 1, SCORE_ZOOM_MIN, 2.5);
   osmd.render();
   /* Asking for eight bars to a line is asking for eight, and the engraver's
      own setting is only a ceiling: it will happily give five if five is all
@@ -86142,6 +86146,21 @@ async function renderScore(rec, opts = {}){
      and they are only paid when the setting or the width changes. */
   if(want) _sv.fitted = fitBarsPerLine(osmd, rec, want);
   else _sv.fitted = null;
+  /* A page is laid out to a height, and the engraver decides whether a line
+     fits by the line's own box — which does not count what hangs below it (a
+     pedal mark, a low ledger line, a fingering). The last line on a page
+     could then run past the page's bottom edge and lose its feet. So it is
+     checked, and where anything runs over, the engraver is told to keep that
+     much more room at the foot of every page, and lays the pages out again:
+     the line that did not fit starts the next page instead. */
+  if(page && rules){
+    for(let pass = 0; pass < 3; pass++){
+      const over = scorePageOverflow(osmd);
+      if(over <= 0) break;
+      try { rules.PageBottomMargin = (+rules.PageBottomMargin || 0) + over + 1; } catch(e){ break; }
+      osmd.render();
+    }
+  }
   _sv.dropped = _scoreDropped.slice(); _sv.why = _scoreWhy;
   _sv.pages = pageCount(osmd);
   _sv.at = clamp(_sv.at, 0, _sv.pages - 1);
@@ -86306,24 +86325,78 @@ function pageOfMeasure(n){
   const b = measureBoxes().find(x => x.measure === n);
   return b ? b.page : null;
 }
-/* How many bars the widest line actually got. Lines are found by grouping the
-   drawn measures by the height they sit at, which is the same trick the bands
-   use, so the two always agree about what a line is. */
+/* the first bar on the page being shown, so a re-layout can come back to it */
+function firstMeasureOnPage(){
+  if(!_sv) return null;
+  const on = measureBoxes().filter(b => b.page === _sv.at).map(b => b.measure);
+  return on.length ? Math.min(...on) : null;
+}
+/* How many bars a line actually got — the typical line, not the widest.
+   Counted line by line off the layout itself. It used to be counted by where
+   the bars sat on the page, which in reading mode — every page starting again
+   at its own top — put the first line of every page in one row: seventeen
+   pages of seven bars read as a line of fifty-six, the fit was satisfied
+   before it began, and asking for ten, twelve or sixteen bars to a line
+   changed nothing. And the widest line is the wrong one to ask about: one
+   line of ten among lines of seven is not ten to a line. So it is the middle
+   line of the piece, leaving out the last, which is as short as the music
+   that is left. */
 function barsOnWidestLine(){
-  const rows = {};
-  measureBoxes().forEach(b => { const k = Math.round(b.y / 20); rows[k] = (rows[k] || 0) + 1; });
-  const counts = Object.values(rows);
-  return counts.length ? Math.max(...counts) : 0;
+  if(!_sv) return 0;
+  const counts = [];
+  try {
+    (_sv.osmd.GraphicSheet.MusicPages || []).forEach(pg => (pg.MusicSystems || []).forEach(sys => {
+      const line = (sys.StaffLines || [])[0];
+      counts.push(line ? (line.Measures || []).length : 0);
+    }));
+  } catch(e){ return 0; }
+  if(counts.length > 1) counts.pop();
+  if(!counts.length) return 0;
+  counts.sort((a, b) => a - b);
+  return counts[Math.floor(counts.length / 2)];
+}
+/* How far past its page the lowest thing drawn on any page runs, in the
+   engraver's units (0 when everything is on the page). */
+function scorePageOverflow(osmd){
+  let worst = 0;
+  try {
+    const r = osmd.EngravingRules || osmd.rules;
+    const H = r && r.PageHeight;
+    if(!H || H > 100000) return 0;
+    (osmd.GraphicSheet.MusicPages || []).forEach(pg => (pg.MusicSystems || []).forEach(sys => {
+      const ps = sys.PositionAndShape;
+      worst = Math.max(worst, ps.AbsolutePosition.y + ps.BorderMarginBottom - H);
+    }));
+  } catch(e){ return 0; }
+  return worst;
+}
+/* The smallest the engraving goes. Reading a page from a stand wants it
+   small enough to take in a good many lines at once. */
+const SCORE_ZOOM_MIN = 0.3;
+/* Tight spacing: the gaps between lines and staves the engraver keeps for a
+   printed page, closed up so more lines fit on a screen. The defaults are
+   read off the engraver once and put back when it is switched off. */
+let _scoreSpacingDefaults = null;
+const SCORE_SPACING_KEYS = ['MinSkyBottomDistBetweenSystems', 'MinimumDistanceBetweenSystems',
+  'BetweenStaffDistance', 'StaffDistance', 'PageTopMargin', 'PageBottomMargin'];
+const SCORE_SPACING_TIGHT = {MinSkyBottomDistBetweenSystems: 1, MinimumDistanceBetweenSystems: 1,
+  BetweenStaffDistance: 2.5, StaffDistance: 3.5, PageTopMargin: 1.5, PageBottomMargin: 0.5};
+function scoreSpacing(rules, tight){
+  if(!rules) return;
+  if(!_scoreSpacingDefaults){ _scoreSpacingDefaults = {}; SCORE_SPACING_KEYS.forEach(k => _scoreSpacingDefaults[k] = rules[k]); }
+  SCORE_SPACING_KEYS.forEach(k => { const v = tight ? SCORE_SPACING_TIGHT[k] : _scoreSpacingDefaults[k];
+    if(v != null) try { rules[k] = v; } catch(e){} });
 }
 function fitBarsPerLine(osmd, rec, want){
-  let zoom = clamp(+rec.zoom || 1, 0.4, 2.5);
-  for(let pass = 0; pass < 3; pass++){
+  /* from the size it is drawn at now, which is the size being counted */
+  let zoom = +osmd.zoom || clamp(+rec.zoom || 1, SCORE_ZOOM_MIN, 2.5);
+  for(let pass = 0; pass < 5; pass++){
     const got = barsOnWidestLine();
     if(!got || got >= want) return {zoom, got};
     /* width needed runs about linearly with the size of the engraving, so the
        ratio of what arrived to what was asked for is the first guess, and it
        is a good one — a little under, so a near miss does not need a third go */
-    const next = clamp(zoom * (got / want) * 0.97, 0.25, 2.5);
+    const next = clamp(zoom * (got / want) * 0.97, 0.2, 2.5);
     if(Math.abs(next - zoom) < 0.01) return {zoom, got};
     zoom = next;
     osmd.zoom = zoom;
@@ -86771,10 +86844,7 @@ function scoreViewerHTML(x){
         <button class="tbtn" id="scAllParts">all of them</button>` : ''}
       <span class="grow"></span>
       ${scoreBplHTML(x)}
-      <span class="sc-zoom"><button class="tbtn" data-sczoom="-1" ${x.barsPerLine ? 'disabled' : ''}>−</button>
-        <span class="mono" id="scZoomSay" title="${x.barsPerLine
-          ? 'set by the bars to a line' : 'how big the engraving is'}">${scoreZoomSay(x)}</span>
-        <button class="tbtn" data-sczoom="1" ${x.barsPerLine ? 'disabled' : ''}>+</button></span>
+      ${scoreZoomHTML(x)}
       <label class="sc-jump"><span class="k mono">bar</span>
         <input class="inp sm mono" id="scJump" type="number" min="1" max="${x.totalMeasures || 9999}" placeholder="#"></label>
       <button class="tbtn" id="scMore" title="the metronome and the rest"
@@ -86879,12 +86949,36 @@ function scoreBplHTML(x){
     <span class="mono" id="scBplSay">${x.barsPerLine || 'fit'}</span>
     <button class="tbtn" data-scbpl="1">+</button></span>`;
 }
-/* Asking for a number of bars decides the size, so the size stops being
-   something you set — saying so is better than two controls quietly fighting. */
-function scoreZoomSay(x){
+/* The size and the bars to a line work together rather than one switching
+   the other off. The size is the largest the notation may be drawn; asking
+   for a number of bars to a line can only make it smaller, when that many
+   will not fit at the size you chose. So − always does something, and +
+   is only unavailable while the bars to a line are what is holding the size
+   down — which the control says. (It used to be switched off whenever a
+   number of bars was set, which read as a control that did nothing.) */
+function scoreZoomNow(x){
   const sv = scoreView();
-  const z = (x.barsPerLine && sv && sv.fitted) ? sv.fitted.zoom : (x.zoom || 1);
-  return Math.round(z * 100) + '%';
+  return (x.barsPerLine && sv && sv.fitted) ? sv.fitted.zoom : (+x.zoom || 1);
+}
+function scoreZoomHeld(x){
+  const sv = scoreView();
+  return !!(x.barsPerLine && sv && sv.fitted && sv.fitted.zoom < (+x.zoom || 1) - 0.01);
+}
+function scoreZoomSay(x){ return Math.round(scoreZoomNow(x) * 100) + '%'; }
+function scoreZoomHTML(x){
+  const held = scoreZoomHeld(x);
+  return `<span class="sc-zoom"><span class="k mono">size</span>
+    <button class="tbtn" data-sczoom="-1" title="smaller: more of the piece at once">−</button>
+    <span class="mono" id="scZoomSay" title="${held ? 'the bars to a line are holding the size down'
+      : 'how big the engraving is'}">${scoreZoomSay(x)}</span>
+    <button class="tbtn" data-sczoom="1" ${held ? 'disabled' : ''} title="${held
+      ? 'as big as that many bars to a line allows' : 'bigger'}">+</button></span>`;
+}
+/* Tight spacing closes up the gaps between lines and staves that the
+   engraver keeps for a printed page, which on a screen is room for another
+   line or two. */
+function scoreTightHTML(x){
+  return `<button class="tbtn${x.tight ? ' on' : ''}" id="scTight" title="close up the space between lines, to fit more on the page">tight</button>`;
 }
 
 /* ---------- reading ----------
@@ -86902,6 +86996,8 @@ function scoreReadStripHTML(x){
     <button class="tbtn" id="scHide" title="send this away now — a press anywhere brings it back">⌄</button>
     <span class="sc-strip-t serif">${esc(x.title)}</span>
     ${scoreBplHTML(x)}
+    ${scoreZoomHTML(x)}
+    ${scoreTightHTML(x)}
     ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
       `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>` : ''}
     <button class="tbtn${ui.marks ? ' on' : ''}" id="scMarks" title="the bands and pins you have put on it">marks</button>
@@ -87154,6 +87250,7 @@ async function scorePaint(x){
        always, because before it there is nothing there to correct */
     scoreRepaintParts(x);
     scorePageSay();
+    scoreBplRepaint(x);
     /* The notes first. Everything below only decorates them or gets ready to
        play them, and on a slow machine it was seconds more before the browser
        was allowed to show the engraving it already had. So the page is
@@ -87623,9 +87720,16 @@ function scoreBeatsHTML(notes, u, size){
 async function scoreRedraw(x){
   const ui = scoreUi();
   const focus = ui.focus ? scoreSection(x, ui.focus) : null;
+  /* paged, a re-layout moves every bar to another page; the one you were
+     looking at comes back into view rather than whatever page has its old
+     number */
+  const sv0 = scoreView();
+  const keep = sv0 && sv0.page ? firstMeasureOnPage() : null;
   try {
     await renderScore(x, Object.assign({page: scorePageShape()},
       focus ? {from:focus.startMeasure, to:focus.endMeasure} : {from:null, to:null}));
+    if(keep != null){ const sv = scoreView(); const pg = sv && sv.page ? pageOfMeasure(keep) : null;
+      if(pg != null && pg !== sv.at) showScorePage(pg); }
     scoreOverlayPaint(x);
     scoreLayersPaint(x);
     scoreXposeRepaint(x);
@@ -87893,12 +87997,22 @@ function bindScoreViewer(root, x){
   const secJump = root.querySelector('#scSecJump');
   if(secJump) secJump.onchange = () => { const sec = scoreSection(x, secJump.value);
     if(sec) scoreScrollTo(sec.startMeasure); secJump.value = ''; };
-  $$('[data-sczoom]', root).forEach(b => b.onclick = () => {
-    x.zoom = clamp((+x.zoom || 1) + (+b.dataset.sczoom) * 0.15, 0.4, 2.5);
-    const say = root.querySelector('#scZoomSay');
-    if(say) say.textContent = Math.round(x.zoom * 100) + '%';
-    saveNow(); scoreRedraw(x);
+  $$('[data-sczoom]', root).forEach(b => b.onclick = async () => {
+    /* from the size on the glass, not the one asked for: with the bars to a
+       line holding it down, stepping from the asked-for size would land
+       above what is drawn and change nothing */
+    const step = +b.dataset.sczoom;
+    const z = scoreZoomNow(x) * (step > 0 ? 1.15 : 1 / 1.15);
+    x.zoom = Math.round(clamp(z, SCORE_ZOOM_MIN, 2.5) * 100) / 100;
+    saveNow();
+    await scoreRedraw(x);
+    scoreBplRepaint(x);
   });
+  const tight = root.querySelector('#scTight');
+  if(tight) tight.onclick = async () => {
+    x.tight = !x.tight; tight.classList.toggle('on', x.tight);
+    saveNow(); await scoreRedraw(x); scoreBplRepaint(x);
+  };
   $$('[data-scpart]', root).forEach(b => b.onchange = () => {
     if(!setScorePartVisible(x, +b.dataset.scpart, b.checked)){
       b.checked = true; toast('Something has to be visible.'); return; }
@@ -87955,6 +88069,7 @@ function bindScoreViewer(root, x){
      listeners it hangs on went with the old one */
   if(ui.reading){ scoreQuietWatch(true); scoreKeysWatch(x); bindScoreMetro(root, x); }
   else scoreKeysWatch(null);
+  scoreResizeWatch(x);
   bindScoreSide(root, x);
 }
 /* The metronome's controls, which appear in two places — the toolbar's second
@@ -88146,12 +88261,42 @@ function scorePageSay(){
   if(!sv || !sv.page || sv.pages < 2){ say.textContent = ''; return; }
   say.textContent = `${sv.at + 1} / ${sv.pages}`;
 }
+/* A page is laid out to the shape of the screen it is on, so when that shape
+   changes — the tablet turned, full screen arriving a moment after the page
+   was drawn, the browser's bar sliding away — the page has to be laid out
+   again. It was not, and a page drawn for a taller screen than the one it
+   was now on lost the bottom of its last line. The bar you were looking at
+   stays in view across the re-layout. */
+let _scRO = null, _scROt = 0;
+function scoreResizeWatch(x){
+  if(_scRO){ _scRO.disconnect(); _scRO = null; }
+  const stage = document.getElementById('scStage');
+  if(!stage || typeof ResizeObserver !== 'function' || !scoreUi().reading) return;
+  let was = [stage.clientWidth, stage.clientHeight];
+  const ro = _scRO = new ResizeObserver(() => {
+    clearTimeout(_scROt);
+    _scROt = setTimeout(async () => {
+      if(ro !== _scRO) return;
+      if(!stage.isConnected || !scoreUi().reading){ ro.disconnect(); if(_scRO === ro) _scRO = null; return; }
+      const w = stage.clientWidth, h = stage.clientHeight;
+      if(Math.abs(w - was[0]) < 8 && Math.abs(h - was[1]) < 8) return;
+      was = [w, h];
+      await scoreRedraw(x);
+      scoreBplRepaint(x);
+    }, 250);
+  });
+  ro.observe(stage);
+}
 /* both copies of the control, since reading mode carries its own */
 function scoreBplRepaint(x){
   $$('#scBplSay').forEach(n => n.textContent = x.barsPerLine || 'fit');
   $$('[data-scbpl="-1"]').forEach(n => n.disabled = !x.barsPerLine);
   $$('#scZoomSay').forEach(n => n.textContent = scoreZoomSay(x));
-  $$('[data-sczoom]').forEach(n => n.disabled = !!x.barsPerLine);
+  const held = scoreZoomHeld(x);
+  $$('[data-sczoom="1"]').forEach(n => { n.disabled = held;
+    n.title = held ? 'as big as that many bars to a line allows' : 'bigger'; });
+  $$('[data-sczoom="-1"]').forEach(n => n.disabled = scoreZoomNow(x) <= SCORE_ZOOM_MIN + 0.005);
+  $$('#scZoomSay').forEach(n => n.title = held ? 'the bars to a line are holding the size down' : 'how big the engraving is');
 }
 function scoreScrollTo(n){
   const stage = document.getElementById('scStage');
