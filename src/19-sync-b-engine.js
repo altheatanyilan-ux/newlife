@@ -834,8 +834,12 @@ function syncEngineModule(){
       const SmF = simMatrix(Float64Array.from(fine.X), fine.n, best.T, L);
       const stats = frameStats(SmF, fine.n, L);
       const chor = [], stages = [];
-      pb.choruses.forEach((ch, ci) => {
-        progress(single ? 'Placing every bar on its notes…' : `Aligning chorus ${ci + 1} of ${nCh}…`, 0.75 + 0.2 * ci / Math.max(1, nCh));
+      /* a score played once through: aligned to the score itself, played through */
+      const refR = single && pb.choruses.length === 1 && opts.reference !== false ? refAlign(feat, tpl, score, best.tShift, span || musicSpan(feat), opts) : null;
+      /* one chorus placed: from the coarse path (the old way) or, for a
+         score played once through, from the reference path (rr) */
+      function placeChorus(ch, ci, rr){
+        let snapFrac = null;
         let t = fillLinear(Float64Array.from(ch.t));
         let hit = new Uint8Array(L);
         if(onGridCh[ci]){
@@ -851,12 +855,14 @@ function syncEngineModule(){
           /* the finer warping only where there are no notes to place beats
              on (a chart); for a score the coarse path goes straight to the
              attacks, which are closer than any finer warping gets */
-          if(!ons || opts.fineWarp) t = refineRubato(t, SmF, fine, L, period, ons ? {feat, tpl, shift: best.tShift, lambda: opts.onsetW != null ? opts.onsetW : 1.2} : null);
+          if(rr) t = Float64Array.from(rr.t);
+          else if(!ons || opts.fineWarp) t = refineRubato(t, SmF, fine, L, period, ons ? {feat, tpl, shift: best.tShift, lambda: opts.onsetW != null ? opts.onsetW : 1.2} : null);
           stage.fine = Array.from(t);
           stages[ci] = stage;
           if(tpl.beats.some(b => b.on && b.on.length)){
             /* the score says which notes begin on each beat: place the beat on their attack */
             const so = opts.snap || {};
+            {
             /* Anchors first. Where the texture repeats itself (an arpeggio on
                one harmony, a triplet accompaniment) the warping can drift by
                seconds, and a note that recurs every beat cannot say which beat
@@ -864,8 +870,11 @@ function syncEngineModule(){
                (a new bass note, a melody note): those are searched for far and
                wide, and trusted if they agree with their neighbours. Everything
                between them moves with them. */
-            if(so.anchors === true) t = anchorCorrect(t, tpl, feat, best.tShift, so);
-            let ps = pitchSnap(t, tpl.beats, feat, best.tShift, {win: so.win || 0.6, sigma: so.sigma || 0.3, ratio: so.ratio, floor: so.floor});
+            if(so.anchors === true && !rr) t = anchorCorrect(t, tpl, feat, best.tShift, so);
+            /* after the reference path the search is closer: it is already on the notes */
+            const w1 = rr ? (so.refWin || 0.4) : (so.win || 0.6), s1 = rr ? (so.refSigma || 0.2) : (so.sigma || 0.3);
+            let ps = pitchSnap(t, tpl.beats, feat, best.tShift, {win: w1, sigma: s1, ratio: so.ratio, floor: so.floor});
+            { let nOn = 0, nMv = 0; for(let j = 0; j < L; j++) if(tpl.beats[j].on && tpl.beats[j].on.length){ nOn++; if(ps.moved[j]) nMv++; } snapFrac = nOn ? nMv / nOn : null; }
             /* a second pass: the beats not placed are moved by the correction
                their placed neighbours needed (the warping's lag under the
                pedal is local, not random), then searched again, closely */
@@ -887,6 +896,7 @@ function syncEngineModule(){
             for(let j = 0; j < L; j++) if(!ps.moved[j] && tpl.beats[j].on && tpl.beats[j].on.length === 0){ tt[j] = NaN; any = true; }
             if(any) t = fillLinear(tt);
             for(let j = 1; j < L; j++) if(t[j] <= t[j - 1]) t[j] = t[j - 1] + 0.02;
+            }
           } else {
             /* the downbeats onto a clear onset, when there is one */
             const down = Float64Array.from(t).fill(NaN);
@@ -895,8 +905,43 @@ function syncEngineModule(){
             tpl.barStart.forEach(b => { t[b] = sn[b]; });
           }
         }
-        if(stages[ci]) stages[ci].final = Array.from(t);
-        chor.push({t, hit, start: ch.start, end: ch.end, complete: ch.complete, firstS: ch.firstS, lastS: ch.lastS, onGrid: onGridCh[ci]});
+        const stage = stages[ci]; if(stage) stage.final = Array.from(t);
+        return {t, hit, stage, snapFrac};
+      }
+      /* How well a placement fits the recording, from the recording alone:
+         the harmony along it (each frame against the beat it falls in, as
+         a z-score against every beat), and how many beats found their own
+         notes' attacks. */
+      function fitOf(t, snapFrac){
+        let zs = 0, nz = 0;
+        const f0 = Math.max(0, Math.floor(t[0] / fine.hop)), f1 = Math.min(fine.n - 1, Math.ceil(t[L - 1] / fine.hop));
+        let j = 0;
+        for(let f = f0; f < f1; f++){
+          const tt = f * fine.hop; while(j + 1 < L && t[j + 1] <= tt) j++;
+          if(stats.sd[f] > 1e-6){ zs += (SmF[f * L + j] - stats.mu[f]) / stats.sd[f]; nz++; }
+        }
+        /* onset strength at the placed beats that have notes, against the frames around them */
+        let os = 0, no = 0; const O = feat.onset, oh = feat.onsetHop;
+        for(let q = 0; q < L; q++){ if(!(tpl.beats[q].on && tpl.beats[q].on.length)) continue;
+          const k = Math.round(t[q] / oh); if(k < 3 || k >= O.length - 3) continue;
+          let m = 0; for(let d = -12; d <= 12; d++){ const x = O[Math.max(0, Math.min(O.length - 1, k + d))]; m += x; } m /= 25;
+          const pk = Math.max(O[k - 1], O[k], O[k + 1]); os += m > 0 ? pk / m : 0; no++; }
+        return {chroma: nz ? zs / nz : 0, snap: snapFrac, onset: no ? os / no : 0};
+      }
+      let pickInfo = null;
+      pb.choruses.forEach((ch, ci) => {
+        progress(single ? 'Placing every bar on its notes…' : `Aligning chorus ${ci + 1} of ${nCh}…`, 0.75 + 0.2 * ci / Math.max(1, nCh));
+        let r;
+        if(refR && ci === 0 && !onGridCh[ci]){
+          const mode = opts.reference === true ? 'ref' : opts.reference === 'old' ? 'old' : 'auto';
+          const A = placeChorus(ch, ci, null), sA = stages[ci];
+          const B = placeChorus(ch, ci, refR), sB = stages[ci];
+          const fa = fitOf(A.t, A.snapFrac), fb = fitOf(B.t, B.snapFrac);
+          const useRef = mode === 'ref' ? true : mode === 'old' ? false : refPrefer(fa, fb, opts);
+          r = useRef ? B : A; stages[ci] = useRef ? sB : sA;
+          pickInfo = {old: fa, ref: fb, used: useRef ? 'reference' : 'coarse'};
+        } else r = placeChorus(ch, ci, null);
+        chor.push({t: r.t, hit: r.hit, start: ch.start, end: ch.end, complete: ch.complete, firstS: ch.firstS, lastS: ch.lastS, onGrid: onGridCh[ci]});
       });
 
       /* confidence, bar by bar */
@@ -950,10 +995,17 @@ function syncEngineModule(){
       chor.forEach((ch, ci) => { for(let j = 0; j < L; j++){ flatT.push(ch.t[j]); const b = beatBar(j); const pbr = perBar[ci * bars + b]; flatC.push(pbr.confidence); flatBar.push(ci * bars + b); interp.push(0); } });
       const N = flatT.length;
       const idxOf = (ci, j) => ci * L + j;
+      /* The rules are for the coarse path, whose mistakes they are shaped
+         to: a bar it is unsure of, a tempo that lurches. The reference path
+         follows the score's own rubato plan, where a real ritardando is a
+         lurch and a quiet bar is unsure, and the rules undid what it got
+         right (Chopin's Berceuse, 81% of downbeats within 100 ms with them
+         off, 24% with them on) — so after it they stand down. */
+      const rulesOn = opts.rules !== false && !(pickInfo && pickInfo.used === 'reference' && opts.rules !== true);
       /* unsure bars */
-      for(let q = 0; q < N; q++) if(flatC[q] < 0.35){ interp[q] = 1; }
+      for(let q = 0; q < N; q++) if(flatC[q] < 0.35 && rulesOn){ interp[q] = 1; }
       /* tempo lurches: the less sure side of the lurch goes */
-      for(let pass = 0; pass < 2; pass++){
+      for(let pass = 0; pass < (rulesOn ? 2 : 0); pass++){
         chor.forEach((ch, ci) => {
           for(let b = 1; b < bars; b++){
             const p = perBar[ci * bars + b - 1], c = perBar[ci * bars + b];
@@ -1012,7 +1064,7 @@ function syncEngineModule(){
         perBar, diagnostics: {bpm: round3(best.bpm), musicSpan: span, beatConfidence: beat2.confidence, beatMode: onGrid, beatLevel: onGrid, gridAgreement: agree.map(round3), choruses: chor.length,
           stages: opts.stages ? stages.map(st => st && {coarse: tpl.barStart.map(b => st.coarse[b]), fine: tpl.barStart.map(b => st.fine[b]), final: tpl.barStart.map(b => st.final[b])}) : null,
           keyScores: keys.slice(0, 3).map(k => ({t: k.t, score: round3(k.score)})), tries: ranked.map(x => ({t: x.tShift, bpm: Math.round(x.bpm), cost: round3(x.total)})),
-          unmappedCost: round3(best.u)}
+          unmappedCost: round3(best.u), pick: pickInfo}
       };
     }
   }
@@ -1303,6 +1355,258 @@ function syncEngineModule(){
     /* the refinement may not move a beat further than the band allows */
     for(let j = 0; j < L; j++) if(Math.abs(out[j] - t[j]) > 1.0) out[j] = t[j];
     return out;
+  }
+
+  /* ---------- 8. the score played through: a reference to align to ----------
+     A beat-by-beat template cannot follow fast notes: a beat of
+     semiquavers is one smear of chroma at that scale, and a passage that
+     rushes or holds back inside the beat is invisible. So the score's own
+     notes are played through — every note at its place, for its length
+     (the pedal's, where the pedal is marked), at the tempo the score marks
+     — into the very features the recording is read into: chroma every
+     46 ms with the overtones the analysis hears and a piano's decay, and
+     the attacks. Recording and reference are then aligned frame by frame
+     (dynamic time warping: first at 186 ms over the whole piece, then at
+     46 ms in a band round that path). This is the score MIDI as the
+     baseline, not the recording alone.
+     Rubato: the reference is not played dead in time. Where the score asks
+     for a slowing (a rit., a fermata, the last bars) it already slows by
+     the amount a player usually takes, and there slowing further costs
+     less; a più mosso or an accel. pushes on. Every rule is below and
+     every amount is a number in this file. */
+  const RIT_RE = /\b(rit|ritard|ritardando|rall|rallent|rallentando|allarg|allargando|slentando|calando|smorz|smorzando|morendo|perdendosi)\b/;
+  const RITEN_RE = /\b(riten|ritenuto|sostenuto)\b/;
+  const ACC_RE = /\b(accel|accelerando|string|stringendo|stretto)\b/;
+  const FASTER_RE = /(più|piu) mosso|(più|piu) vivo|animato|agitato|(più|piu) animato/;
+  const SLOWER_RE = /meno mosso|(più|piu) lento|tranquillo|calmato|largamente/;
+  const ATEMPO_RE = /\ba tempo\b|\btempo i\b|tempo primo|\bin tempo\b|\btempo 1\b/;
+  function refPlan(tpl, score){
+    const L = tpl.L, bars = score.bars || [], sec = new Float64Array(L), give = new Float64Array(L).fill(1);
+    const why = [];
+    let fac = 1;
+    const bz = m => [tpl.barStart[m], m + 1 < bars.length ? tpl.barStart[m + 1] : L];
+    for(let m = 0; m < bars.length; m++){
+      const b = bars[m], [a, z] = bz(m), n = Math.max(1, z - a);
+      const len = b.len || n, bpm = b.bpm || score.tempoHint || 96, w = (b.words || '').toLowerCase();
+      if(ATEMPO_RE.test(w)) fac = 1;
+      if(FASTER_RE.test(w)){ fac = 0.87; why.push({measure: m + 1, what: 'faster', by: 0.87}); }
+      if(SLOWER_RE.test(w)){ fac = 1.15; why.push({measure: m + 1, what: 'slower', by: 1.15}); }
+      for(let j = a; j < z; j++) sec[j] = (len / n) * 60 / bpm * fac;
+    }
+    const ramp = (m0, bars2, to, g) => {
+      const a = tpl.barStart[m0], z = Math.min(L, m0 + bars2 < bars.length ? tpl.barStart[m0 + bars2] : L), n = Math.max(1, z - a);
+      for(let j = a; j < z; j++){ sec[j] *= 1 + (to - 1) * (j - a + 1) / n; give[j] = Math.min(give[j], g); }
+    };
+    for(let m = 0; m < bars.length; m++){
+      const b = bars[m], w = (b.words || '').toLowerCase();
+      /* a rit. over two bars (or up to an a tempo) to about three quarters of the pace */
+      if(b.tempoWord === 'rit' || RIT_RE.test(w)){
+        const until = ATEMPO_RE.test(((bars[m + 1] || {}).words || '').toLowerCase()) ? 1 : 2;
+        ramp(m, until, 1.35, 0.4); why.push({measure: m + 1, what: 'rit.', by: 1.35});
+      } else if(RITEN_RE.test(w)){ ramp(m, 1, 1.2, 0.5); why.push({measure: m + 1, what: 'riten.', by: 1.2}); }
+      if(b.tempoWord === 'accel' || ACC_RE.test(w)){ ramp(m, 2, 0.85, 0.5); why.push({measure: m + 1, what: 'accel.', by: 0.85}); }
+    }
+    /* a fermata: the beats its note covers held about twice as long */
+    bars.forEach((b, m) => {
+      const [a, z] = bz(m), n = Math.max(1, z - a), len = b.len || n;
+      (b.notes || []).forEach(nt => { if(!nt[4]) return;
+        const j0 = a + Math.floor(nt[0] * n / len + 1e-6), j1 = Math.min(z, a + Math.ceil((nt[0] + nt[1]) * n / len - 1e-6));
+        for(let j = j0; j < Math.max(j0 + 1, j1) && j < L; j++){ if(give[j] > 0.3){ sec[j] *= 2; give[j] = 0.3; } }
+        why.push({measure: m + 1, what: 'fermata', by: 2}); });
+      if(b.fermata && !(b.notes || []).some(nt => nt[4])){ sec[z - 1] *= 2; give[z - 1] = 0.3; why.push({measure: m + 1, what: 'fermata', by: 2}); }
+    });
+    /* the close: the last two bars broaden to about 1.3 */
+    if(bars.length >= 2) ramp(bars.length - 2, 2, 1.3, 0.5);
+    /* repeated why entries (a chord of fermatas) once */
+    const seen = new Set();
+    return {sec, give, why: why.filter(x => { const k = x.measure + x.what; if(seen.has(k)) return false; seen.add(k); return true; })};
+  }
+  const hasNotes = score => (score.bars || []).some(b => b.notes && b.notes.length);
+  /* the reference features: chroma (24, as analyse makes them), a silence
+     weight, and the attacks (12), every `hop` seconds, for the score laid
+     out on beat times `bt` (seconds, one more than the beats) */
+  function refRender(tpl, score, bt, shift, hop){
+    const L = tpl.L, bars = score.bars || [], g = hop / 2, total = bt[L] + 1.5;
+    const G = Math.ceil(total / g) + 1, R = Math.ceil(total / hop) + 1;
+    const E = new Float32Array(G * 24), ON = new Float32Array(G * 12);
+    const tAt = p => { if(p >= L) return bt[L] + (p - L) * (bt[L] - bt[L - 1]); const j = Math.max(0, Math.floor(p)); return bt[j] + (p - j) * (bt[j + 1] - bt[j]); };
+    const AMP = [1, 0.75, 0.6, 0.5, 0.4, 0.33, 0.27, 0.22];
+    bars.forEach((b, m) => {
+      const a = tpl.barStart[m], z = m + 1 < bars.length ? tpl.barStart[m + 1] : L, n = Math.max(1, z - a), len = b.len || n;
+      (b.notes || []).forEach(([at, d, midi, vel]) => {
+        const t0 = tAt(a + at * n / len), t1 = Math.max(t0 + 0.05, tAt(a + (at + d) * n / len));
+        const mm = midi + shift, f0 = 440 * Math.pow(2, (mm - 69) / 12);
+        /* how long it sounds above the room: long in the bass, short at the top */
+        const fade = Math.max(1.5, Math.min(8, 8 - (mm - 36) * 0.11)), lvl = 0.5 + 0.5 * (vel == null ? 0.6 : vel);
+        const g0 = Math.max(0, Math.round(t0 / g)), gEnd = Math.min(G - 1, Math.ceil(Math.min(t0 + fade, t1 + 0.15) / g));
+        for(let h = 1; h <= 8; h++){
+          const f = h * f0; if(f > 2600) break;
+          const pc = (((mm + Math.round(12 * Math.log2(h))) % 12) + 12) % 12, A = AMP[h - 1] * lvl;
+          const bass = f >= 38 && f <= 230, tre = f >= 170 && f <= 2100;
+          if(f >= 170) ON[g0 * 12 + pc] += A;
+          if(!bass && !tre) continue;
+          for(let q = g0; q <= gEnd; q++){
+            const t = q * g; let env = 1 - (t - t0) / fade; if(t > t1) env *= Math.max(0, 1 - (t - t1) / 0.15);
+            if(env <= 0) continue;
+            if(tre) E[q * 24 + pc] += A * env;
+            if(bass) E[q * 24 + 12 + pc] += A * env;
+          }
+        }
+      });
+    });
+    /* each frame as the analysis window sees it: a Hann window of 371 ms */
+    const HW = 8, hw = []; for(let k = -HW; k <= HW; k++) hw.push(0.5 + 0.5 * Math.cos(Math.PI * k / (HW + 1)));
+    const Y = new Float32Array(R * 24), en = new Float32Array(R);
+    for(let r = 0; r < R; r++){
+      const c = 2 * r;
+      for(let k = -HW; k <= HW; k++){ const q = c + k; if(q < 0 || q >= G) continue; const w = hw[k + HW]; for(let x = 0; x < 24; x++) Y[r * 24 + x] += w * E[q * 24 + x]; }
+      let e = 0; for(let x = 0; x < 12; x++) e += Y[r * 24 + x]; en[r] = e;
+    }
+    const emed = median(Array.from(en).filter(v => v > 0)) || 1, sil = new Float32Array(R);
+    for(let r = 0; r < R; r++){ normChroma(Y, r * 24, en[r] / emed); sil[r] = 1 - Math.min(1, en[r] / emed / 0.15); }
+    /* attacks pooled to the frame, then as loud as the loudest near them */
+    const P = new Float32Array(R * 12);
+    for(let r = 0; r < R; r++) for(let q = Math.max(0, 2 * r - 1); q <= Math.min(G - 1, 2 * r + 1); q++) for(let c = 0; c < 12; c++){ const v = ON[q * 12 + c]; if(v > P[r * 12 + c]) P[r * 12 + c] = v; }
+    localMaxNorm(P, R, Math.round(1.5 / hop));
+    return {Y, sil, P, R, tAt};
+  }
+  function localMaxNorm(P, R, W){
+    const nm = new Float32Array(R);
+    for(let r = 0; r < R; r++){ let s = 0; for(let c = 0; c < 12; c++) s += P[r * 12 + c] * P[r * 12 + c]; nm[r] = Math.sqrt(s); }
+    for(let r = 0; r < R; r++){ let mx = 0; for(let k = Math.max(0, r - W); k <= Math.min(R - 1, r + W); k++) if(nm[k] > mx) mx = nm[k];
+      const d = mx > 1e-6 ? 1 / mx : 0; for(let c = 0; c < 12; c++) P[r * 12 + c] *= d; }
+  }
+  /* attacks linger a little (so two frames a hop apart still meet), and
+     each frame's attack vector to unit length with a small floor, so that
+     "nothing starts here" on both sides agrees */
+  function onsetTrail(P, R, keep){
+    const O = new Float32Array(R * 12);
+    for(let r = 0; r < R; r++) for(let c = 0; c < 12; c++){ const prev = r ? O[(r - 1) * 12 + c] * keep : 0, v = P[r * 12 + c]; O[r * 12 + c] = v > prev ? v : prev; }
+    for(let r = 0; r < R; r++){ let s = 0; for(let c = 0; c < 12; c++){ O[r * 12 + c] += 0.03; s += O[r * 12 + c] * O[r * 12 + c]; } s = Math.sqrt(s); for(let c = 0; c < 12; c++) O[r * 12 + c] /= s; }
+    return O;
+  }
+  /* frames summed k at a time (chroma averaged, attacks at their loudest) */
+  function poolFrames(X, sil, O, n, k){
+    const m = Math.ceil(n / k), X2 = new Float32Array(m * 24), s2 = new Float32Array(m), O2 = new Float32Array(m * 12);
+    for(let i = 0; i < m; i++){
+      let c = 0;
+      for(let f = i * k; f < Math.min(n, i * k + k); f++){ c++; for(let x = 0; x < 24; x++) X2[i * 24 + x] += X[f * 24 + x]; s2[i] += sil[f]; for(let x = 0; x < 12; x++) if(O[f * 12 + x] > O2[i * 12 + x]) O2[i * 12 + x] = O[f * 12 + x]; }
+      s2[i] /= c;
+      for(const base of [0, 12]){ let s = 0; for(let x = 0; x < 12; x++) s += X2[i * 24 + base + x] ** 2; s = Math.sqrt(s); const d = Math.max(0, 1 - s2[i]); if(s > 1e-9) for(let x = 0; x < 12; x++) X2[i * 24 + base + x] *= d / s; }
+      let s = 0; for(let x = 0; x < 12; x++) s += O2[i * 12 + x] ** 2; s = Math.sqrt(s) || 1; for(let x = 0; x < 12; x++) O2[i * 12 + x] /= s;
+    }
+    return {X: X2, sil: s2, O: O2, n: m};
+  }
+  /* The warping. Recording frames i against reference frames r. Steps: both
+     on (free), the recording on while the reference holds (the player
+     slower than the reference: costs `slow[r]`), the reference on while the
+     recording holds (faster: `fast`). Inside a band when one is given. */
+  function refDTW(A, B, lam, slow, fast, band){
+    const n = A.n, R = B.n, lo = band ? band.lo : null, hi = band ? band.hi : null;
+    const rowLo = i => lo ? lo[i] : 0, rowHi = i => hi ? hi[i] : R - 1;
+    const off = new Int32Array(n + 1);
+    for(let i = 0; i < n; i++) off[i + 1] = off[i] + Math.max(0, rowHi(i) - rowLo(i) + 1);
+    const bp = new Uint8Array(off[n]);
+    let prev = new Float64Array(R).fill(Infinity), cur = new Float64Array(R).fill(Infinity);
+    const cost = (i, r) => {
+      let d = 0; const a = i * 24, b = r * 24;
+      for(let x = 0; x < 24; x++) d += A.X[a + x] * B.X[b + x];
+      let o = 0; const ao = i * 12, bo = r * 12;
+      for(let x = 0; x < 12; x++) o += A.O[ao + x] * B.O[bo + x];
+      return (1 - 0.5 * (d + 2 * A.sil[i] * B.sil[r])) + lam * (1 - o);
+    };
+    for(let i = 0; i < n; i++){
+      const l = rowLo(i), h = rowHi(i), pl = i ? rowLo(i - 1) : 0, ph = i ? rowHi(i - 1) : -1;
+      for(let r = l; r <= h; r++){
+        const c = cost(i, r);
+        let best = Infinity, k = 0;
+        if(i === 0 && r === 0){ best = c; k = 3; }
+        else {
+          if(i > 0 && r > 0 && r - 1 >= pl && r - 1 <= ph){ const v = prev[r - 1] + 2 * c; if(v < best){ best = v; k = 0; } }
+          if(i > 0 && r >= pl && r <= ph){ const v = prev[r] + c + slow[r]; if(v < best){ best = v; k = 1; } }
+          if(r > l){ const v = cur[r - 1] + c + fast; if(v < best){ best = v; k = 2; } }
+        }
+        cur[r] = best; bp[off[i] + r - l] = k;
+      }
+      if(i + 1 < n){ const t = prev; prev = cur; cur = t; }
+    }
+    /* back from the corner */
+    const path = []; let i = n - 1, r = rowHi(n - 1) >= R - 1 ? R - 1 : rowHi(n - 1);
+    const total = cur[r];
+    while(i >= 0 && r >= 0){
+      path.push([i, r]);
+      const k = bp[off[i] + r - rowLo(i)];
+      if(k === 3) break;
+      if(k === 0){ i--; r--; } else if(k === 1) i--; else r--;
+    }
+    path.reverse();
+    return {path, total};
+  }
+  /* the recording's frames in the reference's terms */
+  function recFeatures(feat, i0, i1){
+    const hop = feat.chromaHop, n = i1 - i0, X = feat.chroma.subarray(i0 * 24, i1 * 24);
+    const E = feat.energy, emed = median(Array.from(E).filter(v => v > 0)) || 1, sil = new Float32Array(n);
+    for(let i = 0; i < n; i++) sil[i] = 1 - Math.min(1, E[i0 + i] / emed / 0.15);
+    const all = pooledOC(feat, hop, feat.energy.length), P = all.slice(i0 * 12, i1 * 12);
+    return {X: Float32Array.from(X), sil, P, n};
+  }
+  /* Everything: the score's beats as times in the recording, or null. */
+  /* Which of the two placements the recording agrees with better: the one
+     whose frames sit closer to the harmony of the beats they are placed in
+     (mean z-score of the chroma similarity along it). On the ten test
+     recordings this picks the better placement in nine; the tenth is within
+     three points either way. The attacks found and the onset strength at
+     the beats were tried and do worse (they prefer the coarse path's
+     smoother timing on Chopin, where the reference is 18 points better). */
+  function refPrefer(fa, fb, o){
+    const w = o.pickW || {chroma: 1, snap: 0, onset: 0};
+    const sc = f => w.chroma * f.chroma + w.snap * (f.snap || 0) + w.onset * f.onset;
+    return sc(fb) > sc(fa) + (o.pickMargin || 0);
+  }
+  function refAlign(feat, tpl, score, shift, span, o = {}){
+    if(!hasNotes(score) || tpl.L < 2) return null;
+    const hop = feat.chromaHop, K = o.refDown || 4, lam = o.refOnset != null ? o.refOnset : 1, keep = o.refKeep != null ? o.refKeep : 0.6;
+    const plan = refPlan(tpl, score);
+    const PAD = 1.5, L = tpl.L;
+    /* the marked tempo, scaled so the whole takes as long as the music heard */
+    let sum = 0; for(let j = 0; j < L; j++) sum += plan.sec[j];
+    const len = Math.max(1, span.end - (span.sound != null ? span.sound : span.start)), sc = len / sum;
+    const bt = new Float64Array(L + 1); bt[0] = PAD; for(let j = 0; j < L; j++) bt[j + 1] = bt[j] + plan.sec[j] * sc;
+    const ref = refRender(tpl, score, bt, shift, hop);
+    const B = {X: ref.Y, sil: ref.sil, O: onsetTrail(ref.P, ref.R, keep), n: ref.R};
+    const i0 = Math.max(0, Math.floor(((span.sound != null ? span.sound : span.start) - PAD) / hop)), i1 = Math.min(feat.energy.length, Math.ceil((span.end + PAD) / hop));
+    const rf = recFeatures(feat, i0, i1);
+    localMaxNorm(rf.P, rf.n, Math.round(1.5 / hop));
+    const A = {X: rf.X, sil: rf.sil, O: onsetTrail(rf.P, rf.n, keep), n: rf.n};
+    /* the rubato prior, frame by frame of the reference */
+    const pen = o.refPen != null ? o.refPen : 0.08;
+    const giveAt = new Float32Array(B.n).fill(1);
+    for(let j = 0; j < L; j++){ const a = Math.floor(bt[j] / hop), z = Math.ceil(bt[j + 1] / hop); for(let r = Math.max(0, a); r <= Math.min(B.n - 1, z); r++) giveAt[r] = Math.min(giveAt[r], plan.give[j]); }
+    /* coarse, over everything */
+    const Ac = poolFrames(A.X, A.sil, A.O, A.n, K), Bc = poolFrames(B.X, B.sil, B.O, B.n, K);
+    const slowC = new Float32Array(Bc.n); for(let r = 0; r < Bc.n; r++){ let g = 1; for(let q = r * K; q < Math.min(B.n, r * K + K); q++) g = Math.min(g, giveAt[q]); slowC[r] = pen * g; }
+    const wc = refDTW(Ac, Bc, lam, slowC, pen, null);
+    /* fine, in a band round it */
+    const W = Math.round((o.refBand || 1.2) / hop), lo = new Int32Array(A.n).fill(B.n), hi = new Int32Array(A.n).fill(-1);
+    wc.path.forEach(([ic, rc]) => { for(let i = ic * K; i < Math.min(A.n, ic * K + K); i++){ lo[i] = Math.min(lo[i], rc * K); hi[i] = Math.max(hi[i], Math.min(B.n - 1, rc * K + K - 1)); } });
+    for(let i = 0; i < A.n; i++){ if(hi[i] < 0){ lo[i] = i ? lo[i - 1] : 0; hi[i] = i ? hi[i - 1] : 0; } lo[i] = Math.max(0, lo[i] - W); hi[i] = Math.min(B.n - 1, hi[i] + W); }
+    for(let i = 1; i < A.n; i++){ if(lo[i] < lo[i - 1]) lo[i] = lo[i - 1]; if(lo[i] > hi[i - 1] + 1) lo[i] = hi[i - 1] + 1; }
+    for(let i = A.n - 2; i >= 0; i--){ if(hi[i] > hi[i + 1]) hi[i] = hi[i + 1]; }
+    lo[0] = 0; hi[A.n - 1] = B.n - 1;
+    for(let i = 0; i < A.n; i++) if(hi[i] < lo[i]) hi[i] = lo[i];
+    const slowF = new Float32Array(B.n); for(let r = 0; r < B.n; r++) slowF[r] = pen * giveAt[r];
+    const wf = refDTW(A, B, lam, slowF, pen, {lo, hi});
+    /* the first recording frame to reach each reference frame */
+    const first = new Float64Array(B.n).fill(NaN);
+    wf.path.forEach(([i, r]) => { if(isNaN(first[r])) first[r] = i; });
+    let last = 0; for(let r = 0; r < B.n; r++){ if(isNaN(first[r])) first[r] = last; last = first[r]; }
+    const at = tRef => { const x = Math.max(0, Math.min(B.n - 1, tRef / hop)), a = Math.floor(x), b = Math.min(B.n - 1, a + 1), f = x - a;
+      return (i0 + first[a] + f * (first[b] - first[a])) * hop; };
+    const t = new Float64Array(L);
+    for(let j = 0; j < L; j++) t[j] = at(bt[j]);
+    /* the tempo found against the tempo expected, bar by bar: where the
+       player took more (or less) time than the reference */
+    return {t, plan, bt, scale: sc, cost: wf.total / Math.max(1, wf.path.length)};
   }
 
   /* everything, start to finish */

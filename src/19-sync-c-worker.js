@@ -115,12 +115,20 @@ function syncScoreFromMusicXml(xml){
       if(low != null) bas[((low % 12) + 12) % 12] = 1;
       chords.push({template: tre.map(v => Math.sqrt(v)).concat(bas.map(v => v * 0.8)), beats: 1, at: u, root: low == null ? null : ((low % 12) + 12) % 12, harmonics: true, on, ons});
     }
-    barTpl.set(k, {beats: n, chords, number: (tl.measures[k] || {}).number});
+    /* the bar's own notes, as the score would sound them: where, how long
+       (the pedal's length where the pedal is marked), how loud, and a
+       fermata — what the engine plays through as its reference */
+    const notes = list.map(e => [+e.inBar.toFixed(4), +Math.max(0.05, e.held || e.d || 0.1).toFixed(4), e.midi, +(e.vel || 0.6).toFixed(2), e.fermata ? 1 : 0]);
+    const q0 = (tl.perf[i] || {}).q0 || 0;
+    let bpm = null; (tl.tempos || []).forEach(t => { if(t.q <= q0 + 1e-6) bpm = t.bpm; });
+    const info = (tl.barInfo || [])[k] || {};
+    barTpl.set(k, {beats: n, chords, number: (tl.measures[k] || {}).number, notes, len, bpm, words: info.words || '', tempoWord: info.tempoWord || null});
   });
   const build = (order, how) => {
     const bars = order.map((k, i) => ({i, k, number: (tl.measures[k] || {}).number, beats: quartersOf(k), fermata: /fermata/i.test(((tl.barInfo || [])[k] || {}).words || '')}));
     const u = syncFormFromBars(bars, {how});
-    return {bars: order.map(k => ({beats: barTpl.get(k).beats, chords: barTpl.get(k).chords, k, number: barTpl.get(k).number})),
+    return {bars: order.map(k => { const t = barTpl.get(k);
+        return {beats: t.beats, chords: t.chords, k, number: t.number, notes: t.notes, len: t.len, bpm: t.bpm, words: t.words, tempoWord: t.tempoWord}; }),
       beats: u.beats, measureBeats: u.measureBeats || null, sections: [], singlePass: true,
       tempoHint: tl.bpm || 96, how, form: syncFormOf(u), order: order.slice()};
   };
