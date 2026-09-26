@@ -123,7 +123,7 @@ function openQuickLog(personId, opts){
       return;
     }
     m.remove();
-    if(parseHash().name === 'people') rerender();
+    if(parseHash().name === 'people' || (typeof identityTabNow === 'function' && identityTabNow() === 'people')) rerender();
   }
   m.querySelector('#qlSave').onclick = () => save(false);
   m.querySelector('#qlMore').onclick = () => save(true);

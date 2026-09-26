@@ -5,6 +5,7 @@
    ============================================================ */
 /* thin line icons, 24×24, drawn in currentColor */
 const NAV_ICONS = {
+  identityRoom: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/><path d="M17.5 4.5l1.5-1.5M6.5 4.5 5 3"/></svg>',
   tree: '<svg viewBox="0 0 24 24"><path d="M12 21v-8"/><path d="M12 13 7.5 9.5"/><path d="M12 15l4.5-3.5"/><circle cx="12" cy="6.5" r="3"/><circle cx="6.5" cy="8.5" r="2"/><circle cx="17.5" cy="10.5" r="2"/><path d="M8 21h8"/></svg>',
   /* A rose, not a ring: Values is already a needle inside a circle, and at
      24px the two would read as the same object. This one is the star alone —
@@ -83,6 +84,7 @@ const NAV_PAGES = {
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
+  identityRoom:{label:'Identity',       short:'Identity', ico:NAV_ICONS.identityRoom, route:'#/identity'},
   tree:     {label:'Knowledge Tree',   short:'Tree',     ico:NAV_ICONS.tree,     route:'#/tree'},
   /* the room is called Repertoire; its address stays #/score so no link to
      it, and nothing kept in it, has to change */
@@ -108,8 +110,8 @@ const NAV_PAGES = {
 const NAV_TOP = ['today'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','score','jazz','songwriting','japanese'],
-  identity: ['values','journals','tree','people','study'],
+  create:   ['content','projects','score','jazz','songwriting','japanese'],
+  identity: ['identityRoom','journals','tree','study'],
   standalone:[],
 };
 const NAV_ZONES = [
@@ -128,10 +130,10 @@ const NAV_ZONE_IDS = [...NAV_ZONES.map(z => z.id), 'standalone'];
    sidebar. Timeline and the Library are both views of Journals. */
 /* `compass` joins these: the address still answers — it redirects to the
    Review tab — but it is not a room to be listed or dragged into a zone. */
-const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace','compass','planning','time'];
+const NAV_UNLISTED = ['import','settings','writing','timeline','commonplace','compass','planning','time','people','values','skills','finance'];
 /* pages that are placed by hand and must never be swept into a zone */
 const NAV_FIXED = new Set([...NAV_TOP, ...NAV_PINNED, ...NAV_UNLISTED]);
-const MOBILE_PRIMARY = ['today','content','journals','values'];
+const MOBILE_PRIMARY = ['today','content','journals','identityRoom'];
 function navConfig(){
   if(!S.settings.nav) S.settings.nav = JSON.parse(JSON.stringify(NAV_DEFAULT));
   const n = S.settings.nav;
@@ -164,7 +166,7 @@ function navConfig(){
 }
 const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
-function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'values', home:'compass', rhythm:'today', lifetape:'today', planning:'today', time:'today'}[name] || name; }
+function activePageKey(){ const {name} = parseHash(); return {stage:'timeline', value:'identityRoom', values:'identityRoom', people:'identityRoom', skills:'identityRoom', finance:'identityRoom', identity:'identityRoom', home:'compass', rhythm:'today', lifetape:'today', planning:'today', time:'today'}[name] || name; }
 function navLink(key, zoneAccent){ const p = NAV_PAGES[key]; return `<a href="${p.route}" data-page="${key}" data-tip="${esc(p.label)}" style="--z:${zoneAccent||'var(--terra)'}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.label)}</span>${key === 'today' ? '<span class="nav-badge" hidden></span>' : ''}</a>`; }
 /* The clock stands in the foot of the sidebar and takes its shape from it, so
    whatever opens or closes the sidebar has to tell the clock — otherwise it
