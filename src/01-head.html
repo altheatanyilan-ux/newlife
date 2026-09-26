@@ -515,6 +515,8 @@ html[data-motion] .rv.in{transform:none}
 .inp:focus,.ta:focus,.sel:focus{background:var(--surface-2);border-color:var(--page-accent);
   box-shadow:inset 0 1px 4px rgba(0,0,0,.25)}
 .ta{min-height:96px;resize:vertical;line-height:1.6}
+/* a habit's boxes start at the size of what is in them and grow as you write */
+.ta.hb-grow{min-height:0;resize:none;overflow:hidden}
 /* The native dropdown is painted by the browser from the option's own colours,
    and an option inherits them from the select. Once the select went
    transparent at rest, every dropdown in the house opened as a near-black
@@ -559,6 +561,8 @@ details .body{padding:4px 0 18px}
 /* Inline editing */
 .ed{cursor:text;border-radius:6px;transition:background .2s var(--ease),box-shadow .2s var(--ease);position:relative;display:inline-block;min-width:1.5em}
 .ed.ed-multi{display:block;width:100%}
+/* what was written on two lines reads on two lines */
+.ed.ed-multi[data-md="0"]:not(.editing){white-space:pre-wrap}
 .ed:hover{background:rgba(176,137,104,.07)}
 .ed .ph{color:var(--faint);font-style:italic;font-family:var(--quote)}
 .ed.editing{background:var(--surface-2);box-shadow:inset 0 1px 6px rgba(0,0,0,.3);padding:2px 6px;margin:-2px -6px}

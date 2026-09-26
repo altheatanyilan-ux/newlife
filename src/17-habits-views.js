@@ -83,9 +83,10 @@ function habDashboardHTML(){
     </div>
     ${hs.length ? `<div class="hb-grid">${hs.map(habCardHTML).join('')}</div>`
       : `<div class="empty">Nothing here yet. ${habList().length ? 'Nothing matches those filters.' : 'A habit is a ritual, not a rule — start with one you could keep on your worst day.'}</div>`}
-    ${habList({archived:true}).length ? `<details class="hb-arch"><summary><span class="sc">Archived</span>
-      <span class="mono faint">${habList({archived:true}).length}</span></summary>
-      <div class="hb-archlist">${habList({archived:true}).map(h => `<div class="row between hb-archrow">
+    ${habRetiredHTML()}
+    ${habList({archived:true}).filter(h => !h.retired).length ? `<details class="hb-arch"><summary><span class="sc">Archived</span>
+      <span class="mono faint">${habList({archived:true}).filter(h => !h.retired).length}</span></summary>
+      <div class="hb-archlist">${habList({archived:true}).filter(h => !h.retired).map(h => `<div class="row between hb-archrow">
         <span>${esc(h.icon || '◍')} ${esc(h.name)}</span>
         <button class="tbtn" data-hbrestore="${h.id}">restore</button></div>`).join('')}</div></details>` : ''}`;
 }
@@ -117,8 +118,35 @@ function habCardHTML(h){
     ${(h.links.values || []).length ? `<div class="hb-vals">${(h.links.values || []).map(id =>
       byId(S.values, id)).filter(Boolean).map(v => `<span class="hb-val" style="--c:${v.color}">${esc(v.name)}</span>`).join('')}</div>` : ''}
     ${r != null ? `<div class="hb-rate mono">${r}% over thirty days${t.dir !== 'stable' ? ` · ${t.dir === 'up' ? 'improving ↑' : 'slipping ↓'}` : ''}</div>` : ''}
-    ${due && !kept ? `<button class="btn sm hb-checkin" data-hbcheck="${h.id}">Check in</button>` : ''}
+    ${habRetireReady(h) ? habRetireOfferHTML(h, st) : due && !kept ? `<button class="btn sm hb-checkin" data-hbcheck="${h.id}">Check in</button>` : ''}
   </div>`;
+}
+/* the offer, on the card and in the habit's own panel */
+function habRetireOfferHTML(h, st = habStreak(h)){
+  const br = habIsBreaking(h);
+  return `<div class="hb-retire">
+    <div class="hb-rline">${st.cur} days ${br ? 'clean' : 'in a row'}. ${br ? 'It may have let go of you.' : 'It may be yours now.'}</div>
+    <div class="row" style="gap:6px;flex-wrap:wrap">
+      <button class="btn sm primary" data-hbretire="${h.id}">Retire it — it keeps itself</button>
+      <button class="tbtn" data-hbretirelater="${h.id}">not yet</button></div></div>`;
+}
+/* the habits that are yours now: out of the daily lists, never out of the record */
+function habRetiredHTML(){
+  const hs = habRetiredList();
+  if(!hs.length) return '';
+  const T = today();
+  return `<details class="hb-yours" open><summary><span class="sc">Yours now</span>
+      <span class="mono faint">${hs.length} retired · they keep themselves</span></summary>
+    <div class="hb-yourslist">${hs.map(h => { const r = h.retired, since = daysBetween(r.at.slice(0, 10), T);
+      return `<div class="hb-yrow" style="--c:${esc(h.color || (habIsBreaking(h) ? 'var(--terra)' : 'var(--sage)'))}">
+        <span class="hb-yface">${habFaceHTML(h, habIsBreaking(h))}</span>
+        <div class="hb-ymid"><button class="hb-name" data-hbopen="${h.id}">${esc(h.name)}</button>
+          <div class="mono faint hb-ysub">retired ${esc(fmtDate(r.at.slice(0, 10), 'med'))} after ${r.run} days${since ? ` · ${since} day${since === 1 ? '' : 's'} on its own` : ''}${(r.checks || []).length ? ` · looked in on ${r.checks.length}×` : ''}</div>
+          ${r.note ? `<div class="hb-ynote">${esc(r.note)}</div>` : ''}</div>
+        <div class="hb-yact">${habRetiredDue(h, T) ? `<span class="mono faint">still yours?</span>
+          <button class="tbtn" data-hbheld="${h.id}">yes, it holds</button>` : ''}
+          <button class="tbtn" data-hbunretire="${h.id}">track it again</button></div></div>`; }).join('')}</div>
+    <div class="hb-quote">“${esc(HAB_QUOTES.retire[1])}” <cite>${esc(HAB_QUOTES.retire[0])}</cite></div></details>`;
 }
 
 /* ---------- today ---------- */
@@ -131,14 +159,18 @@ function habTodayHTML(){
     .map(t => [t, open.filter(h => (h.timeOfDay || 'anytime') === t)]);
   const loose = open.filter(h => !TOD.includes(h.timeOfDay || 'anytime'));
   if(loose.length) groups.push(['anytime', loose]);
+  /* the parts of the day side by side, as wide as the page allows: a
+     morning column, an evening column, and what is already kept at the end */
   return `<div class="hb-focus">
     ${habAccountHTML(T)}
+    <div class="hb-tcols">
     ${open.length ? groups.map(([t, hs]) => `<div class="hb-tgroup">
       <div class="hb-tlabel mono">${esc(t)}</div>
       ${hs.map(habTodayRowHTML).join('')}</div>`).join('')
       : `<div class="empty hb-quiet">Every ritual honoured. The day's structure holds.</div>`}
     ${kept.length ? `<div class="hb-tgroup done"><div class="hb-tlabel mono">kept</div>
       ${kept.map(habTodayRowHTML).join('')}</div>` : ''}
+    </div>
     <div class="hb-quote">“${esc(HAB_QUOTES.ritual[1])}” <cite>${esc(HAB_QUOTES.ritual[0])}</cite></div>
   </div>`;
 }

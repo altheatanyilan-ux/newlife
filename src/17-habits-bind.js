@@ -185,21 +185,25 @@ function habPanelHTML(h){
     <div class="hb-phead">
       <span class="hb-pface">${habFaceHTML(h, br)}</span>
       <div style="min-width:0;flex:1">
-        <input class="inp pd-title" id="hpName" value="${esc(h.name)}">
+        <textarea class="inp pd-title hb-grow hb-oneline" rows="1" id="hpName">${esc(h.name)}</textarea>
         <div class="mono hb-psub">${habKindMark(br, '')} ${br ? 'breaking' : 'building'} · ${esc(h.category)} ·
           ${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</div>
       </div>
       <div class="hb-pstreak">${habRunMark(br)} ${st.cur}</div>
     </div>
+    ${h.retired ? `<div class="hb-retire on"><div class="hb-rline">Retired ${esc(fmtDate(h.retired.at.slice(0, 10), 'med'))} after ${h.retired.run} days — it keeps itself now.</div>
+      <button class="tbtn" data-hbunretire="${h.id}">track it again</button></div>`
+      : habRetireReady(h) ? habRetireOfferHTML(h, st) : ''}
     <div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0">
       <button class="btn sm primary" id="hpCheck">Check in</button>
       <button class="btn sm ghost" id="hpEdit">Edit fields</button>
-      <button class="btn sm ghost" id="hpArchive">${h.archived ? 'Restore' : 'Archive'}</button>
+      ${!h.archived && st.cur >= HAB_RETIRE_DAYS && !habRetireReady(h) ? `<button class="btn sm ghost" data-hbretire="${h.id}">Retire</button>` : ''}
+      ${h.retired ? '' : `<button class="btn sm ghost" id="hpArchive">${h.archived ? 'Restore' : 'Archive'}</button>`}
       <button class="btn sm ghost danger" id="hpDel">Delete</button>
     </div>
 
     ${sec('why', `
-      <div class="hb-ident big">${ed(`${path}.identity`, {ph:'I am someone who…'})}</div>
+      <div class="hb-ident big">${ed(`${path}.identity`, {multi:true, ph:'I am someone who…'})}</div>
       <div class="hb-coach">${esc(HAB_QUOTES.identity[1])} <cite>${esc(HAB_QUOTES.identity[0])}</cite></div>
       <div class="field"><label>Why this matters</label>${ed(`${path}.why`, {multi:true, ph:'the reason underneath the reason'})}</div>
       <div class="field"><label>What it looks like fully lived</label>${ed(`${path}.vision`, {multi:true, ph:'see the room, the hour, the light'})}</div>
@@ -212,11 +216,11 @@ function habPanelHTML(h){
         <div><div class="k mono">how often</div><div class="hb-freq">${esc(habitFreqLabel(h))}</div></div>
         <div><div class="k mono">time of day</div><div>${esc(h.timeOfDay || 'anytime')}${h.specificTime ? ` · ${esc(h.specificTime)}` : ''}</div></div>
       </div>
-      <div class="field"><label>The cue</label>${ed(`${path}.cue`, {ph:'After I pour the coffee…'})}</div>
-      <div class="field"><label>The set-up</label>${ed(`${path}.environment`, {ph:'At the desk, phone in another room, timer set'})}</div>
+      <div class="field"><label>The cue</label>${ed(`${path}.cue`, {multi:true, ph:'After I pour the coffee…'})}</div>
+      <div class="field"><label>The set-up</label>${ed(`${path}.environment`, {multi:true, ph:'At the desk, phone in another room, timer set'})}</div>
       ${!br ? `<div class="grid c2" style="gap:10px">
-        <div class="field"><label>Before</label>${ed(`${path}.preRitual`, {ph:'light the candle, close the door'})}</div>
-        <div class="field"><label>After</label>${ed(`${path}.postRitual`, {ph:'one sentence about what came'})}</div></div>
+        <div class="field"><label>Before</label>${ed(`${path}.preRitual`, {multi:true, ph:'light the candle, close the door'})}</div>
+        <div class="field"><label>After</label>${ed(`${path}.postRitual`, {multi:true, ph:'one sentence about what came'})}</div></div>
         ${h.stackAfter && byId(S.habits, h.stackAfter) ? `<div class="hb-stack mono">→ ${esc(byId(S.habits, h.stackAfter).name)} → <b>${esc(h.name)}</b> →</div>` : ''}` : ''}`)}
 
     ${sec('how it is going', `
@@ -230,7 +234,7 @@ function habPanelHTML(h){
       <div class="hb-msrow">${h.milestones.map(m => `<span class="hb-ms${m.reached ? ' on' : ''}" title="${m.reached ? 'reached ' + esc(fmtDate((m.reachedAt||'').slice(0,10),'med')) : `${Math.max(0, m.days - st.cur)} days away`}">${m.days}</span>`).join('')}</div>
       ${!br && h.progression.length ? `<div class="k mono" style="margin-top:10px">the plan</div>
         <div class="hb-prog">${h.progression.map((x, i) => `<div class="hb-progrow">
-          <span class="mono">week ${x.week}</span>${ed(`${path}.progression.${i}.target`, {ph:'what it is by then'})}
+          <span class="mono">week ${x.week}</span>${ed(`${path}.progression.${i}.target`, {multi:true, ph:'what it is by then'})}
           <button class="del-x inline" data-hpprogdel="${i}">×</button></div>`).join('')}</div>` : ''}
       ${!br ? `<button class="tbtn" id="hpProgAdd">+ a week to the plan</button>` : ''}`, true)}
 
@@ -248,8 +252,8 @@ function habPanelHTML(h){
           <span class="hb-tint" title="how strongly it pulls">${[1,2,3,4,5].map(n =>
             `<button class="${tr.intensity >= n ? 'on' : ''}" data-hptrigint="${tr.id}:${n}"></button>`).join('')}</span>
           <button class="del-x inline" data-hptrigdel="${tr.id}">×</button></div>
-        ${ed(`${path}.triggers.${i}.description`, {ph:'when I feel… / after… / whenever…'})}
-        <div class="hb-tstrat">${ed(`${path}.triggers.${i}.strategy`, {ph:'and what I do about it'})}</div>
+        ${ed(`${path}.triggers.${i}.description`, {multi:true, ph:'when I feel… / after… / whenever…'})}
+        <div class="hb-tstrat">${ed(`${path}.triggers.${i}.strategy`, {multi:true, ph:'and what I do about it'})}</div>
       </div>`).join('') || '<div class="pk-empty">Nothing mapped yet. Naming the trigger is most of the work.</div>'}</div>
       <button class="tbtn" id="hpTrigAdd">+ trigger</button>`)
       + sec('the urges that did not win', `
@@ -259,9 +263,9 @@ function habPanelHTML(h){
         <span class="hb-unote">${esc(u.note || '')}</span></div>`).join('')}</div>`
         : '<div class="pk-empty">Nothing logged. Every resisted urge belongs here — it is the evidence the new self-image is forming.</div>'}`)
     : sec('the two sizes of it', `
-      <div class="field"><label>On the worst day</label>${ed(`${path}.min`, {ph:'sit on the mat for two minutes'})}
+      <div class="field"><label>On the worst day</label>${ed(`${path}.min`, {multi:true, ph:'sit on the mat for two minutes'})}
         <div class="faint" style="font-size:.76rem">Small enough that missing it would be a decision, not an accident.</div></div>
-      <div class="field"><label>On a good one</label>${ed(`${path}.ideal`, {ph:'thirty minutes'})}</div>
+      <div class="field"><label>On a good one</label>${ed(`${path}.ideal`, {multi:true, ph:'thirty minutes'})}</div>
       <div class="grid c2" style="gap:10px">
         <div class="field"><label>Best ever</label><div class="row" style="gap:6px">${ed(`${path}.personalBest.value`, {cls:'mono', ph:'—'})}
           ${ed(`${path}.personalBest.unit`, {cls:'mono', ph:'minutes'})}</div></div>
@@ -269,7 +273,7 @@ function habPanelHTML(h){
       </div>`)}
 
     ${sec('what keeps it going', `
-      <div class="field"><label>What follows it</label>${ed(`${path}.reward`, {ph:'fifteen minutes of reading'})}</div>
+      <div class="field"><label>What follows it</label>${ed(`${path}.reward`, {multi:true, ph:'fifteen minutes of reading'})}</div>
       <div class="grid c2" style="gap:10px">
         <div class="field"><label>Who knows</label><select class="sel" id="hpAcc">${['self','partner','public'].map(k =>
           `<option value="${k}" ${h.accountability === k ? 'selected' : ''}>${k === 'self' ? 'just me' : k === 'partner' ? 'one other person' : 'out loud'}</option>`).join('')}</select></div>
@@ -298,10 +302,12 @@ function habPanelHTML(h){
 
 function bindHabitPanel(p, h){
   const path = `habits.#${h.id}`;
-  p.querySelector('#hpName').oninput = debounce(function(){ h.name = this.value; saveNow(); rerenderPlanBody(); }, 350);
+  habGrow(p);
+  p.querySelector('#hpName').oninput = debounce(function(){ h.name = this.value.replace(/\s*\n\s*/g, ' '); saveNow(); rerenderPlanBody(); }, 350);
   p.querySelector('#hpCheck').onclick = () => openHabitCheckIn(h.id);
   p.querySelector('#hpEdit').onclick = () => openHabitModal(h.id);
-  p.querySelector('#hpArchive').onclick = () => { h.archived = !h.archived; saveNow(); sound('click');
+  habBindRetire(p, () => { closePanel(); rerenderPlanBody(); });
+  const pArch = p.querySelector('#hpArchive'); if(pArch) pArch.onclick = () => { h.archived = !h.archived; saveNow(); sound('click');
     toast(h.archived ? 'Archived. The history is kept.' : 'Back among the living.'); closePanel(); rerenderPlanBody(); };
   p.querySelector('#hpDel').onclick = () => { const days = Object.values(S.habitLog).filter(l => l[h.id]).length;
     closePanel();
@@ -335,6 +341,39 @@ function bindHabitPanel(p, h){
     t.intensity = +n; saveNow(); habRedraw(h); });
 }
 
+/* ---------- retiring: the offer, "not yet", the monthly look-in, and back ---------- */
+function habRetireModal(h, after){
+  const st = habStreak(h), br = habIsBreaking(h);
+  const m = openModal(`<h2>Retire ${esc(h.name)}</h2>
+    <p class="serif">${st.cur} days ${br ? 'clean' : 'in a row'}. A habit that holds this long may not need a box to tick any more —
+      it is becoming something you are, not something you do. Retiring it takes it off the daily lists and the counts.
+      Its history stays, and if it ever slips you can bring it back to tracking in one press.</p>
+    <div class="hb-coach">${esc(HAB_QUOTES.m21[1])} <cite>${esc(HAB_QUOTES.m21[0])}</cite></div>
+    <div class="field" style="margin-top:12px"><label>What changed (optional)</label>
+      <textarea class="ta hb-grow" rows="3" id="hrNote" placeholder="what it is like now, in your own words — to read if it ever slips"></textarea></div>
+    <p class="faint sm">Not sure? Keep tracking it. Many habits take two or three months to settle; there is no prize for retiring early.</p>
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px">
+      <button class="btn ghost" id="hrLater">Not yet</button>
+      <button class="btn primary" id="hrGo">Retire it</button></div>`, 'narrow');
+  habGrow(m);
+  m.querySelector('#hrLater').onclick = () => { habRetireLater(h); saveNow(); m.remove(); toast('Kept on the list. It will ask again in three weeks.'); after && after(); };
+  m.querySelector('#hrGo').onclick = () => { habRetire(h, m.querySelector('#hrNote').value.trim()); saveNow(); m.remove(); sound('save');
+    toast(`${h.name} is yours now. It is off the daily lists; its history stays.`); after && after(); };
+}
+function habBindRetire(root, after){
+  $$('[data-hbretire]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const h = byId(S.habits, b.dataset.hbretire); if(h) habRetireModal(habDefaults(h), after); });
+  $$('[data-hbretirelater]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const h = byId(S.habits, b.dataset.hbretirelater); if(!h) return;
+    habRetireLater(h); saveNow(); toast('Kept on the list. It will ask again in three weeks.'); after && after(); });
+  $$('[data-hbunretire]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const h = byId(S.habits, b.dataset.hbunretire); if(!h) return;
+    habUnretire(h); saveNow(); sound('click'); toast(`${h.name} is back on the list. Nothing was lost.`); after && after(); });
+  $$('[data-hbheld]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const h = byId(S.habits, b.dataset.hbheld); if(!h || !h.retired) return;
+    (h.retired.checks = h.retired.checks || []).push({at: new Date().toISOString(), held: true}); saveNow(); sound('click'); after && after(); });
+}
+
 /* ---------- the room's own wiring ---------- */
 function bindHabRoom(root){
   $$('[data-hbview]', root).forEach(b => b.onclick = () => habSetView(b.dataset.hbview));
@@ -351,6 +390,7 @@ function bindHabRoom(root){
   $$('[data-hbcheck]', root).forEach(b => b.onclick = ev => { ev.stopPropagation(); openHabitCheckIn(b.dataset.hbcheck); });
   $$('[data-hbcard]', root).forEach(c => c.addEventListener('click', ev => {
     if(ev.target.closest('button')) return; openHabitPanel(c.dataset.hbcard); }));
+  habBindRetire(root, rerenderPlanBody);
   $$('[data-hbrestore]', root).forEach(b => b.onclick = () => {
     const h = byId(S.habits, b.dataset.hbrestore); if(!h) return;
     h.archived = false; saveNow(); sound('click'); rerenderPlanBody(); });

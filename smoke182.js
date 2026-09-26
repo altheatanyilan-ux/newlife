@@ -1,4 +1,4 @@
-/* smoke182 — Today's buttons on one line, and the sacred space in two views.
+/* smoke182 — Today's buttons in one bar, and the sacred space in two views.
 
    Three complaints, one screenshot:
 
@@ -83,15 +83,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  and it is one rule for every element, not a list of them',
      Object.values(others), ['none','none','none','none']);
 
-  console.log('\n2. the view switch and the jumps share a line');
+  /* Later asked the other way: "display them in a new second line below
+     that line instead for easier navigation". One sticky bar still holds
+     both, the index on the line under the switch. */
+  console.log('\n2. the view switch and the jumps share one bar, the jumps on the second line');
   await p.evaluate(() => { setTodayView('in'); rerender(); }); await p.waitForTimeout(1300);
   const bar = await box('.today-bar'), sw = await box('.today-switch'), jump = await box('.today-jump');
   yes('there is one bar holding both', bar && sw && jump, JSON.stringify({bar, sw, jump}));
-  yes('  the jumps sit beside the switch, not under it', jump.x > sw.x + sw.w - 4,
-      `switch ends ${sw.x + sw.w}, jumps start ${jump.x}`);
-  yes('  on the same line', Math.abs((jump.y + jump.h/2) - (sw.y + sw.h/2)) < 10,
-      `switch mid ${sw.y + sw.h/2}, jumps mid ${jump.y + jump.h/2}`);
-  yes('  and the bar is no taller than one row of buttons', bar.h < 60, bar.h + 'px');
+  yes('  the jumps sit under the switch, on a line of their own', jump.y >= sw.y + sw.h - 1,
+      `switch ends ${sw.y + sw.h}, jumps start ${jump.y}`);
+  yes('  starting at the same left edge', Math.abs(jump.x - sw.x) < 4, `switch ${sw.x}, jumps ${jump.x}`);
+  yes('  and the bar is no taller than two rows of buttons', bar.h < 100, bar.h + 'px');
   /* both still do what they did */
   await p.click('.today-switch button[data-tview="do"]'); await p.waitForTimeout(1100);
   is('  the switch still switches', await p.evaluate(() => S.settings.todayView), 'do');

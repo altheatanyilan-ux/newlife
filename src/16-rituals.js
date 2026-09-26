@@ -24,12 +24,24 @@ function markHabit(h, level, note=''){ const T = today(); S.habitLog[T] = S.habi
    the actual mechanism rather than willpower; and what it costs you, to read
    when you are deciding. It has no frequency, because a thing you are not
    doing is not due on Tuesday. */
+/* Every box under a habit takes as much as you have to say: a textarea that
+   grows as you write. The name is one too, so a long one wraps rather than
+   scrolling out of sight, but Enter does not start a new line in it. */
+function habGrow(root){
+  root.querySelectorAll('textarea.hb-grow').forEach(t => {
+    if(t._hbGrow) return; t._hbGrow = true;
+    const fit = () => { t.style.height = 'auto'; t.style.height = (t.scrollHeight + 2) + 'px'; };
+    t.addEventListener('input', fit);
+    if(t.classList.contains('hb-oneline')) t.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); t.blur(); } });
+    requestAnimationFrame(fit);
+  });
+}
 const HABIT_KINDS = [
   ['positive', 'Building', 'Something to do more of. Kept on a rhythm, and it counts as done.'],
   ['negative', 'Breaking', 'Something to do less of, or not at all. Counted as days since, not as days done.'],
 ];
 function habitDefaults(){
-  return {id:uid(), name:'', freq:{type:'daily',days:[],count:3}, timeOfDay:'morning',
+  return {id:uid(), createdAt:new Date().toISOString(), name:'', freq:{type:'daily',days:[],count:3}, timeOfDay:'morning',
     dimension:'physical', links:{values:[],skills:[]},
     min:'', ideal:'', prompt:'', negative:false, archived:false, stackAfter:null,
     relational:'', standard:'', trigger:'', instead:'', cost:'', order:S.habits.length};
@@ -58,14 +70,14 @@ function openHabitModal(id){
     <div class="row" id="hCount"><span class="mono">how many times</span><input class="inp" type="number" min="1" max="31" id="hCountN" value="${h.freq.count||3}" style="width:80px"></div>
     <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Minimum version</label><input class="inp" id="hMin" value="${esc(h.min)}" placeholder="1 pushup"></div>
-      <div class="field"><label>Ideal version</label><input class="inp" id="hIdeal" value="${esc(h.ideal)}" placeholder="30-minute workout"></div>
+      <div class="field"><label>Minimum version</label><textarea class="ta hb-grow" rows="1" id="hMin" placeholder="1 pushup">${esc(h.min)}</textarea></div>
+      <div class="field"><label>Ideal version</label><textarea class="ta hb-grow" rows="1" id="hIdeal" placeholder="30-minute workout">${esc(h.ideal)}</textarea></div>
     </div>
     <div class="field"><label>Stack after</label><select class="sel" id="hStack"><option value="">—</option>${S.habits.filter(x=>x.id!==h.id&&!x.archived&&!x.negative).map(x=>`<option value="${x.id}" ${h.stackAfter===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
     <div class="grid c2" style="gap:10px">
-      <div class="field"><label>The cue</label><input class="inp" id="hCue" value="${esc(h.cue || '')}" placeholder="After I pour the coffee…">
+      <div class="field"><label>The cue</label><textarea class="ta hb-grow" rows="1" id="hCue" placeholder="After I pour the coffee…">${esc(h.cue || '')}</textarea>
         <div class="faint" style="font-size:.74rem">A ritual hangs off something that already happens.</div></div>
-      <div class="field"><label>The set-up</label><input class="inp" id="hEnv" value="${esc(h.environment || '')}" placeholder="desk, phone in another room"></div>
+      <div class="field"><label>The set-up</label><textarea class="ta hb-grow" rows="1" id="hEnv" placeholder="desk, phone in another room">${esc(h.environment || '')}</textarea></div>
     </div>
     <!-- A habit that is really a number of minutes is better kept by the clock
          than by a tick: the tracked time either reaches it or it does not, and
@@ -79,7 +91,7 @@ function openHabitModal(id){
       <div class="field"><label>Minutes a day</label>
         <input class="inp" type="number" min="1" max="1440" id="hTimeMins" value="${h.timeMins || ''}" placeholder="30"></div>
     </div>
-    <div class="field"><label>Micro-journal prompt (optional)</label><input class="inp" id="hPrompt" value="${esc(h.prompt)}" placeholder="How was the run?"></div>
+    <div class="field"><label>Micro-journal prompt (optional)</label><textarea class="ta hb-grow" rows="1" id="hPrompt" placeholder="How was the run?">${esc(h.prompt)}</textarea></div>
     <div class="field"><label>Relational ritual (optional)</label><select class="sel" id="hRelational"><option value="">not relational</option>
       <option value="reachout" ${h.relational==='reachout'?'selected':''}>reach out to one person</option>
       <option value="gratitude" ${h.relational==='gratitude'?'selected':''}>gratitude for a person</option>
@@ -87,13 +99,13 @@ function openHabitModal(id){
 
   const breaking = () => `
     <div class="field"><label>The standard</label>
-      <input class="inp" id="hStandard" value="${esc(h.standard)}" placeholder="no scrolling after ten">
+      <textarea class="ta hb-grow" rows="1" id="hStandard" placeholder="no scrolling after ten">${esc(h.standard)}</textarea>
       <div class="faint" style="font-size:.76rem;margin-top:4px">One line, specific enough that you always know whether today counted as a slip. Not a minimum and an ideal — a habit you are breaking has one line, and you are on one side of it or the other.</div></div>
     <div class="field"><label>What sets it off</label>
-      <input class="inp" id="hTrigger" value="${esc(h.trigger)}" placeholder="tired, alone, phone within reach">
+      <textarea class="ta hb-grow" rows="1" id="hTrigger" placeholder="tired, alone, phone within reach">${esc(h.trigger)}</textarea>
       <div class="faint" style="font-size:.76rem;margin-top:4px">The state or the situation it follows. Naming it is most of the work.</div></div>
     <div class="field"><label>What I do instead</label>
-      <input class="inp" id="hInstead" value="${esc(h.instead)}" placeholder="put the phone in the other room and read">
+      <textarea class="ta hb-grow" rows="1" id="hInstead" placeholder="put the phone in the other room and read">${esc(h.instead)}</textarea>
       <div class="faint" style="font-size:.76rem;margin-top:4px">A habit is easier to replace than to delete.</div></div>
     <div class="field"><label>What it costs me</label>
       <textarea class="ta" id="hCost" style="min-height:56px" placeholder="what it actually takes, written plainly">${esc(h.cost)}</textarea>
@@ -102,24 +114,22 @@ function openHabitModal(id){
       <textarea class="ta" id="hProtocol" style="min-height:56px" placeholder="1) Name it aloud. 2) Five breaths. 3) Phone in the drawer. 4) Open the book.">${esc(h.protocol || '')}</textarea>
       <div class="faint" style="font-size:.76rem;margin-top:4px">Written now, in the calm, because the moment you need it is the moment you cannot write it.</div></div>
     <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
-    <div class="field"><label>Micro-journal prompt (optional)</label><input class="inp" id="hPrompt" value="${esc(h.prompt)}" placeholder="What was going on just before?"></div>`;
+    <div class="field"><label>Micro-journal prompt (optional)</label><textarea class="ta hb-grow" rows="1" id="hPrompt" placeholder="What was going on just before?">${esc(h.prompt)}</textarea></div>`;
 
   const m = openModal(`<h2>${id?'Edit habit':'A new habit'}</h2><div class="stack">
     <div class="field"><label>Which kind is this?</label>${kindRow()}</div>
-    <div class="field"><label>Name</label><input class="inp" id="hName" value="${esc(h.name)}"></div>
+    <div class="field"><label>Name</label><textarea class="ta hb-grow hb-oneline" rows="1" id="hName">${esc(h.name)}</textarea></div>
     <!-- Maltz's point, asked at the moment of creation rather than buried in a
          panel: a habit that does not follow from who you take yourself to be
          is a rule, and rules are kept with willpower until the willpower runs
          out. Optional, because forcing it would make it glib. -->
     <div class="field"><label>${neg ? 'I am no longer someone who…' : 'I am someone who…'}</label>
-      <input class="inp" id="hIdentity" value="${esc(h.identity || '')}"
-        placeholder="${neg ? 'numbs with a feed. I am someone who sits with the quiet.' : 'begins each day in stillness.'}">
+      <textarea class="ta hb-grow" rows="1" id="hIdentity"
+        placeholder="${neg ? 'numbs with a feed. I am someone who sits with the quiet.' : 'begins each day in stillness.'}">${esc(h.identity || '')}</textarea>
       <div class="hb-coach sm">${esc(HAB_QUOTES.identity[1])} <cite>${esc(HAB_QUOTES.identity[0])}</cite></div></div>
-    <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Area of life</label><select class="sel" id="hCat">${HAB_CATS.map(c =>
-        `<option value="${c}" ${(h.category || 'health') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-      <div class="field"><label>Why it matters</label><input class="inp" id="hWhy" value="${esc(h.why || '')}" placeholder="the reason under the reason"></div>
-    </div>
+    <div class="field"><label>Area of life</label><select class="sel" id="hCat">${HAB_CATS.map(c =>
+      `<option value="${c}" ${(h.category || 'health') === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+    <div class="field"><label>Why it matters</label><textarea class="ta hb-grow" rows="2" id="hWhy" placeholder="the reason under the reason">${esc(h.why || '')}</textarea></div>
     <div id="hBody" class="stack">${neg ? breaking() : building()}</div>
     <div class="field"><label>Linked values</label><div class="deps">${S.values.map(v=>`<span class="chip click ${h.links.values.includes(v.id)?'on':''}" style="--c:${v.color}" data-lv="${v.id}">${esc(v.name.split(' ')[0])}</span>`).join('')}</div></div>
     <div class="field" id="hSkillField"><label>Linked skills</label><div class="deps">${S.skills.map(v=>`<span class="chip click ${h.links.skills.includes(v.id)?'on':''}" style="--c:var(--ment)" data-lsk="${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
@@ -154,6 +164,7 @@ function openHabitModal(id){
     else { h.cue = g('#hCue') ?? h.cue; h.environment = g('#hEnv') ?? h.environment; }
   };
   const bindBody = () => {
+    habGrow(m);
     const f = m.querySelector('#hFreq'); if(f){ updFreq(); f.onchange = updFreq; }
     m.querySelectorAll('[data-day]').forEach(b => b.onclick = () => b.classList.toggle('primary'));
   };
@@ -180,7 +191,7 @@ function openHabitModal(id){
 
   m.querySelectorAll('[data-lv],[data-lsk]').forEach(c => c.onclick = () => c.classList.toggle('on'));
   m.querySelector('#hSave').onclick = () => {
-    h.name = m.querySelector('#hName').value.trim(); if(!h.name) return;
+    h.name = m.querySelector('#hName').value.replace(/\s*\n\s*/g, ' ').trim(); if(!h.name) return;
     readBody();
     h.identity = m.querySelector('#hIdentity').value.trim();
     h.category = m.querySelector('#hCat').value;

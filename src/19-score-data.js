@@ -127,35 +127,28 @@ function scoreFamiliarDoubt(x){
   return '';
 }
 
+/* Four periods, and only four: a filter with a dozen shades of "modern" is
+   one nobody uses. Everything since Debussy — impressionism, jazz, film,
+   minimalism — is the 20th century here. */
 const SCORE_PERIODS = [
-  ['medieval',     'Medieval'],
-  ['renaissance',  'Renaissance'],
-  ['baroque',      'Baroque'],
-  ['classical',    'Classical'],
-  ['romantic',     'Romantic'],
-  ['impressionist','Impressionist'],
-  ['modern',       'Modern'],
-  ['contemporary', 'Contemporary'],
-  ['jazz',         'Jazz'],
-  ['traditional',  'Folk and traditional'],
-  ['screen',       'Film and game'],
-  ['other',        'Something else']];
+  ['baroque',   'Baroque'],
+  ['classical', 'Classical'],
+  ['romantic',  'Romantic'],
+  ['twentieth', '20th century']];
+/* the periods the room used to offer, and where each one goes now; what a
+   piece was called before is kept beside it (periodWas), never thrown away */
+const SCORE_PERIOD_OLD = {medieval: 'baroque', renaissance: 'baroque', impressionist: 'twentieth', modern: 'twentieth',
+  contemporary: 'twentieth', jazz: 'twentieth', screen: 'twentieth', traditional: null, other: null};
 const scorePeriodName = k => (SCORE_PERIODS.find(v => v[0] === k) || [,''])[1];
 /* A first guess from the composer's name, for the hundred or so names that
    account for most of what anybody imports. It is a guess and says so: the
    period is stored only once you have looked at it, so a wrong guess is never
    silently written down as a fact. */
 const SCORE_PERIOD_BY_NAME = [
-  [/machaut|hildegard|perotin|landini/i, 'medieval'],
-  [/palestrina|byrd|tallis|josquin|dowland|gesualdo|victoria|monteverdi/i, 'renaissance'],
   [/bach|handel|h(ä|ae)ndel|vivaldi|scarlatti|telemann|purcell|rameau|couperin|corelli|albinoni|pachelbel|buxtehude/i, 'baroque'],
   [/mozart|haydn|clementi|salieri|boccherini|czerny|kuhlau|diabelli|burgm(ü|ue)ller/i, 'classical'],
   [/beethoven|schubert|chopin|schumann|brahms|liszt|mendelssohn|tchaikovsky|grieg|dvo(ř|r)(á|a)k|rachmanin|wagner|verdi|paganini|rossini|bruckner|mahler|franck|faur(é|e)|saint-sa(ë|e)ns|bizet|borodin|mussorgsky|rimsky|sibelius|elgar|albéniz|albeniz|granados|smetana|field|alkan|moszkowski|scriabin/i, 'romantic'],
-  [/debussy|ravel|satie|delius|respighi|griffes/i, 'impressionist'],
-  [/bart(ó|o)k|stravinsky|prokofiev|shostakovich|hindemith|schoenberg|sch(ö|oe)nberg|berg|webern|poulenc|milhaud|gershwin|copland|villa-lobos|janáček|janacek|kod(á|a)ly|ives|britten|barber|messiaen|piazzolla/i, 'modern'],
-  [/glass|reich|p(ä|ae)rt|adams|ligeti|takemitsu|gubaidulina|kapustin|einaudi|yiruma|sakamoto|richter|(ó|o)lafur|arnalds/i, 'contemporary'],
-  [/ellington|monk|parker|coltrane|evans|peterson|brubeck|jobim|hancock|corea|tatum|powell|garner|silver|mingus|shorter|joplin/i, 'jazz'],
-  [/williams|zimmer|shore|elfman|morricone|hisaishi|uematsu|shimomura|kondo|desplat|g(ó|o)ransson/i, 'screen']];
+  [/debussy|ravel|satie|delius|respighi|griffes|bart(ó|o)k|stravinsky|prokofiev|shostakovich|hindemith|schoenberg|sch(ö|oe)nberg|berg|webern|poulenc|milhaud|gershwin|copland|villa-lobos|janáček|janacek|kod(á|a)ly|ives|britten|barber|messiaen|piazzolla|glass|reich|p(ä|ae)rt|adams|ligeti|takemitsu|gubaidulina|kapustin|einaudi|yiruma|sakamoto|richter|(ó|o)lafur|arnalds|ellington|monk|parker|coltrane|evans|peterson|brubeck|jobim|hancock|corea|tatum|powell|garner|silver|mingus|shorter|joplin|williams|zimmer|shore|elfman|morricone|hisaishi|uematsu|shimomura|kondo|desplat|g(ó|o)ransson/i, 'twentieth']];
 function scorePeriodGuess(composer){
   const n = String(composer || '').trim();
   if(!n) return null;
@@ -173,6 +166,8 @@ function scoreDefaults(x){
   /* Null until you say so, which is different from 'other': null means nobody
      has decided and the guess stands, 'other' means you looked and none of
      them fitted. */
+  if(x.period && !SCORE_PERIODS.some(v => v[0] === x.period) && x.period in SCORE_PERIOD_OLD){
+    x.periodWas = x.periodWas || x.period; x.period = SCORE_PERIOD_OLD[x.period]; }
   x.period = SCORE_PERIODS.some(v => v[0] === x.period) ? x.period : null;
   /* How well you know it, said by you. Nothing in the room writes this: it
      is the one thing here only the person at the piano can know. */

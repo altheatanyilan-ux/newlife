@@ -258,12 +258,12 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
     cats.comps, ['any composer', 'no composer named (1)', 'Fryderyk Chopin (1)', 'Thelonious Monk (1)']);
   /* guessed from the name, and the guess is not written down as a fact */
   is('  the period is guessed from the composer', cats.guessed,
-    [['Fryderyk Chopin', null, 'romantic'], ['Thelonious Monk', null, 'jazz'], ['', null, null]]);
+    [['Fryderyk Chopin', null, 'romantic'], ['Thelonious Monk', null, 'twentieth'], ['', null, null]]);
   yes('  and the menu offers both of them',
-    /Romantic/.test(cats.pers.join('|')) && /Jazz/.test(cats.pers.join('|')), JSON.stringify(cats.pers));
+    /Romantic/.test(cats.pers.join('|')) && /20th century/.test(cats.pers.join('|')), JSON.stringify(cats.pers));
   const filtered = await p.evaluate(async () => {
     const sel = document.querySelector('#scinvPeriod');
-    sel.value = 'jazz'; sel.onchange();
+    sel.value = 'twentieth'; sel.onchange();
     await new Promise(r => setTimeout(r, 700));
     return [...document.querySelectorAll('.sc-invrow .sc-invname b')].map(n => n.textContent.trim());
   });

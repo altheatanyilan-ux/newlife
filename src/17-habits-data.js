@@ -77,6 +77,7 @@ const HAB_QUOTES = {
   ritual:     ['Loehr & Schwartz', 'Positive energy rituals are the key to full engagement and sustained high performance.'],
   slip:       ['Maltz, adapted', 'Negative feedback is not failure — it is information. The servo-mechanism corrects course.'],
   m21:        ['Maltz', 'It usually requires a minimum of about 21 days to effect any perceptible change in a mental image.'],
+  retire:     ['William James', 'The more of the details of our daily life we can hand over to the effortless custody of automatism, the more our higher powers of mind will be set free for their own proper work.'],
   m60:        ['Loehr & Schwartz', 'The thirty-to-sixty-day acquisition period requires precision and specificity.'],
   plateau:    ['Leonard', 'You must love the plateau.'],
 };
@@ -184,7 +185,10 @@ function habDue(h, d){ return habIsBreaking(h) ? true : habitDue(h, d); }
    a day nobody recorded is not a slip, only an unrecorded day. */
 function habStreak(h, upto = today()){
   let cur = 0, best = 0, run = 0, total = 0;
-  const start = h.createdAt ? h.createdAt.slice(0,10) : addDays(upto, -400);
+  /* from the day it was made, or from its first check-in if that is earlier
+     (a day filled in afterwards still counts) */
+  const born = habBorn(h);
+  const start = born ? born : addDays(upto, -400);
   const days = [];
   for(let d = upto; d >= start && days.length < 400; d = addDays(d, -1)) days.push(d);
   const ordered = days.slice().reverse();
@@ -253,6 +257,63 @@ function habEnergyBalance(day = today()){
   });
   return out;
 }
+
+/* ---------- retiring a habit ----------
+   A habit tracked forever is still a rule. The point of keeping one is that
+   one day it keeps itself — you walk at dusk because that is what you do,
+   not because a box is waiting. So once a habit has held for 21 days in a
+   row (Maltz's "minimum of about 21 days"; for a habit being broken, 21 days
+   clean), the room offers to retire it. It is an offer, never automatic:
+   some take far longer than 21 days to become yours, and "not yet" asks
+   again three weeks later.
+
+   Retiring takes it out of every daily list, count and reminder (it is
+   stored as archived, which everything already respects) and puts it among
+   the habits that are yours now, with the day and the run it took. Nothing
+   is deleted: its history stays, and if it slips you bring it back to
+   tracking with one press. Every retirement is kept in h.retirements. */
+const HAB_RETIRE_DAYS = 21;
+/* the first day there is any record of it: when it was made, or failing that
+   (habits from before that was written down) its first check-in */
+function habBorn(h){
+  let first = h.createdAt ? h.createdAt.slice(0, 10) : null;
+  Object.keys(S.habitLog || {}).forEach(day => { if(S.habitLog[day] && S.habitLog[day][h.id] && (!first || day < first)) first = day; });
+  /* a habit with neither is of unknown age */
+  return first;
+}
+function habRetireReady(h, d = today()){
+  if(!h || h.archived) return false;
+  /* three weeks of it, not three weeks of a habit nobody has looked at: a
+     habit being broken counts unrecorded days as clean, so without this a new
+     one would be offered retirement the day it was made */
+  const born = habBorn(h);
+  if(!born || daysBetween(born, d) < HAB_RETIRE_DAYS) return false;
+  if(habStreak(h, d).cur < HAB_RETIRE_DAYS) return false;
+  return !h.retireAskAfter || h.retireAskAfter <= d;
+}
+function habRetire(h, note = ''){
+  const st = habStreak(h);
+  h.retired = {at: new Date().toISOString(), run: st.cur, total: st.total, note: String(note || ''), checks: []};
+  h.retirements = Array.isArray(h.retirements) ? h.retirements : [];
+  h.retirements.push({at: h.retired.at, run: st.cur});
+  h.archived = true;
+  delete h.retireAskAfter;
+}
+function habRetireLater(h){ h.retireAskAfter = addDays(today(), HAB_RETIRE_DAYS); }
+/* back to being tracked: it slipped, or you want to watch it again */
+function habUnretire(h){
+  if(h.retired && Array.isArray(h.retirements)){ const last = h.retirements[h.retirements.length - 1];
+    if(last && last.at === h.retired.at) last.back = new Date().toISOString(); }
+  h.retired = null; h.archived = false;
+}
+/* a retired habit is looked in on once a month: still yours? */
+function habRetiredDue(h, d = today()){
+  if(!h.retired) return false;
+  const checks = h.retired.checks || [];
+  const last = checks.length ? checks[checks.length - 1].at.slice(0, 10) : h.retired.at.slice(0, 10);
+  return daysBetween(last, d) >= 30;
+}
+function habRetiredList(){ return (S.habits || []).filter(h => h.archived && h.retired).map(habDefaults); }
 
 /* ---------- reading the list ---------- */
 function habList({archived = false} = {}){
