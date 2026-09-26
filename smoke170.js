@@ -61,7 +61,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('the sidebar no longer offers it as a room', await p.evaluate(() =>
     ![...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === '#/house')));
   yes('  and the rest of the list is untouched', await p.evaluate(() =>
-    ['#/today','#/planning','#/values','#/people','#/skills']
+    /* the sidebar as it is now: Planning inside Today, Values, People and
+       the Skill Tree inside the Identity room */
+    ['#/today','#/projects','#/identity','#/journals']
       .every(h => [...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === h))));
   /* anything still pointing at the old address lands where the house went */
   await p.evaluate(() => { location.hash = '#/house/garden'; });

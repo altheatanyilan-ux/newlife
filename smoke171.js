@@ -102,7 +102,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   for(const [sel, want, said] of [
     ['.zone-books .rm-shelf-box',  '#/journals/library',       'the shelf opens the library'],
     ['.zone-band .hm-drum',        '#/projects',               'the band opens your projects'],
-    ['.obj-medicine .hm-drawer',   '#/values',                 'the medicine cupboard opens your values'],
+    ['.obj-medicine .hm-drawer',   '#/identity/values',        'the medicine cupboard opens your values'],
     ['.zone-nook .hm-chair-back',  '#/journals/reflection',    'the nook opens the reflections'],
     ['.zone-synch .hm-board',      '#/journals/synchronicity', 'the wall opens the coincidences'],
   ]){ await room(); is(said, await press(sel), want); }

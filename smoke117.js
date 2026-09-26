@@ -104,7 +104,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   }
 
   console.log('\n5. a rename still saves without confirming anything');
-  await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(1700);
+  /* Today remembers its view, and Planning is one of them now: ask for Execution */
+  await p.evaluate(() => { setTodayView('do'); location.hash = '#/today'; }); await p.waitForTimeout(1700);
+  await p.evaluate(() => { const d = document.querySelector('#t-tasks'); if(d && !d.open) d.open = true; }); await p.waitForTimeout(400);
   const id = await p.evaluate(() => document.querySelector('.task-row').dataset.taskrow);
   await p.hover('.task-row'); await p.waitForTimeout(300);
   await p.click('.task-row .task-pen'); await p.waitForTimeout(500);

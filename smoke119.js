@@ -26,8 +26,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { location.hash = '#/journals'; }); await p.waitForTimeout(1700);
   const views = await p.$$eval('[data-jrview]', n => n.map(x => x.dataset.jrview));
   /* a fourth joined them afterwards: the Compass was retired into the Lived
-     Record as the Review tab (smoke144). The Library is still the third. */
-  is('the views, in order', views.join(','), 'entries,timeline,library,review');
+     Record as the Review tab (smoke144) — and later moved on to be one of
+     Today's views. The Library is still the third. */
+  is('the views, in order', views.join(','), 'entries,timeline,library');
   await p.click('[data-jrview="library"]'); await p.waitForTimeout(1800);
   is('clicking it goes there', await p.evaluate(() => location.hash), '#/journals/library');
   yes('  the Library really renders', !!(await p.$('.media-kind-row')));

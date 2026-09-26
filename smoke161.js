@@ -98,7 +98,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.mouse.move(one.x, one.y); await p.waitForTimeout(120);
   await p.mouse.down(); await p.waitForTimeout(70); await p.mouse.up();
   await p.waitForTimeout(700);
-  is('a quick click opens that value', await p.evaluate(() => location.hash), '#/value/' + one.id);
+  /* Values live in the Identity room now, at its own address */
+  is('a quick click opens that value', await p.evaluate(() => location.hash), '#/identity/values/' + one.id);
 
   await values();
   await p.evaluate(() => { document.querySelector('#solarBox').scrollIntoView({block: 'center'}); });

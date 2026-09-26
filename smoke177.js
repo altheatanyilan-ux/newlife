@@ -122,11 +122,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       S.dailyRhythm[d] = {wakeTime: '07:10', sleepTime: '23:20', blocks: []};
     }
     S.checkins['2026-07-04'] = {intention: 'an older day', mood: 'open'};
-    saveNow(); location.hash = '#/journals/review';
+    saveNow(); location.hash = '#/today/review';
   });
   await p.waitForTimeout(1600);
   const tab = await p.evaluate(() => ({
-    onReview: /journals\/review/.test(location.hash),
+    onReview: /today\/review/.test(location.hash),
     section: !!document.querySelector('#rvDays'),
     months: [...document.querySelectorAll('.day-month')].map(m => m.dataset.month),
     firstOpen: document.querySelector('.day-month')?.open === true,

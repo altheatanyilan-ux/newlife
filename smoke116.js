@@ -21,16 +21,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const go = async h => { await p.evaluate(x => { location.hash = x; }, h); await p.waitForTimeout(1700); };
 
   console.log('\n1. Statistics fills the page');
+  /* Statistics lives in Today's Review view now; the old address still leads there */
   await go('#/planning/stats');
-  const w = await p.evaluate(() => ({room: Math.round(document.querySelector('.pl-stats-room').getBoundingClientRect().width),
-    page: Math.round(document.querySelector('.plan-page').getBoundingClientRect().width)}));
-  is('as wide as the page it is in', w.room, w.page);
+  is('the old address leads to Today → Review, where Statistics is', await p.evaluate(() => location.hash), '#/today/review');
+  const w = await p.evaluate(() => ({room: Math.round(document.querySelector('#rvStats').getBoundingClientRect().width),
+    page: Math.round(document.querySelector('.today-room').getBoundingClientRect().width)}));
+  yes('as wide as the page it is in', Math.abs(w.room - w.page) <= 40, JSON.stringify(w));
   yes('  which is far more than the reading column', w.room > 900, JSON.stringify(w));
 
   console.log('\n2. an address is where you arrived, not a standing order');
   await go('#/planning/today');
   is('it opens on the span named', await title(), 'Today');
-  is('  and the address is spent', await p.evaluate(() => location.hash), '#/planning');
+  /* Planning is Today's Tasks view now, so the address it settles on is that view's */
+  is('  and the address is spent', await p.evaluate(() => location.hash), '#/today/tasks');
   const listId = await p.evaluate(() => planLists().find(l => l.id !== 'inbox').id);
   const listName = await p.evaluate(i => planList(i).name, listId);
   await p.click(`[data-plsel="list:${listId}"]`); await p.waitForTimeout(1400);
@@ -48,12 +51,13 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   }
 
   console.log('\n2c. and the room addresses still work');
+  /* the rooms are Today's views now: the switch at the top of Today */
   await go('#/planning/habits');
-  is('habits opens', await p.evaluate(() => planRoom()), 'habits');
-  await p.click('[data-plroom="tasks"]'); await p.waitForTimeout(1300);
-  is('  and you can leave it again', await p.evaluate(() => planRoom()), 'tasks');
+  is('habits opens', await p.evaluate(() => todayView()), 'habits');
+  await p.click('.today-switch [data-tview="tasks"]'); await p.waitForTimeout(1300);
+  is('  and you can leave it again', await p.evaluate(() => todayView()), 'tasks');
   await p.evaluate(() => rerender()); await p.waitForTimeout(1000);
-  is('  without being dragged back', await p.evaluate(() => planRoom()), 'tasks');
+  is('  without being dragged back', await p.evaluate(() => todayView()), 'tasks');
 
   console.log('\n3. every selection opens on the matrix');
   await p.evaluate(() => { planSetView('calendar'); }); await p.waitForTimeout(1200);

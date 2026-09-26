@@ -24,11 +24,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('it is gone from the sidebar', await p.evaluate(() =>
     !document.querySelector('#sidebar a[data-page="compass"]')));
   await go('#/compass');
-  is('  and its address lands on the Review tab', await p.evaluate(() => location.hash), '#/journals/review');
-  is('  the Lived Record now has four tabs', await p.$$eval('[data-jrview]', n => n.length), 4);
-  is('  the fourth being the Review', await p.evaluate(() =>
-    [...document.querySelectorAll('[data-jrview]')].map(x => x.dataset.jrview).join(',')), 'entries,timeline,library,review');
-  is('  and the banner names it', await p.evaluate(() => document.querySelector('h1')?.textContent), 'Review');
+  /* The Review was the Lived Record's fourth tab for a while; it is one of
+     Today's views now, and the Compass's old address leads there. */
+  is('  and its address lands on the Review', await p.evaluate(() => location.hash), '#/today/review');
+  is('  which is one of Today\'s views', await p.evaluate(() => todayView()), 'review');
+  yes('  and the Lived Record keeps its three tabs', await p.evaluate(async () => { location.hash = '#/journals'; await new Promise(r => setTimeout(r, 1200));
+    const t = [...document.querySelectorAll('[data-jrview]')].map(x => x.dataset.jrview).join(','); location.hash = '#/today/review'; await new Promise(r => setTimeout(r, 1200)); return t === 'entries,timeline,library'; }));
   yes('the charts came with it — the week of sleep',
       await p.evaluate(() => !!document.querySelector('.rv-dash .wk-bars')));
   yes('  the long view', await p.evaluate(() => /The long view/.test(document.querySelector('.rv-dash')?.textContent || '')));
@@ -42,7 +43,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n2. a review reads the period before it asks anything');
   await p.evaluate(() => { S.reviewEntries = []; saveNow(); });
-  await go('#/journals/review');
+  await go('#/today/review');
   yes('there is a way to start one', await p.evaluate(() => !!document.querySelector('#rvNew')));
   is('  and three shortcuts past the first question', await p.$$eval('[data-rvquick]', n => n.length), 3);
   await p.evaluate(() => document.querySelector('#rvNew').click()); await p.waitForTimeout(500);
@@ -111,7 +112,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  and drops the link', orphan.journalId, null);
 
   console.log('\n5. the list of them');
-  await go('#/journals/review');
+  await go('#/today/review');
   is('the review is listed', await p.$$eval('.rv-entry', n => n.length), 1);
   yes('  with a strip of the numbers', await p.evaluate(() => !!document.querySelector('.rv-strip')));
   yes('  and it can be opened again to add to',
@@ -119,7 +120,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { for(let i = 0; i < 3; i++){ const r = reviewRange('day', addDays(today(), -i - 1));
       reviewEntries().push({id:uid(), period:'day', from:r.from, to:r.to, label:reviewLabel('day', r.from, r.to),
         stats:{}, reflections:[], overall:'x', createdAt:new Date().toISOString()}); } saveNow(); });
-  await go('#/journals/review');
+  await go('#/today/review');
   is('  and more of them, all four', await p.$$eval('.rv-entry', n => n.length), 4);
   yes('  filtered by the stretch they cover', await p.evaluate(() => !!document.querySelector('[data-rvfilter="day"]')));
   await p.evaluate(() => document.querySelector('[data-rvfilter="day"]').click()); await p.waitForTimeout(900);

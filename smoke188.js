@@ -125,7 +125,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return row ? !!row.querySelector('.pt-do') : 'no row'; }, agreed), false);
 
   console.log('\n6. carried-over work is either kind of missed day, and comes forward as a plan');
-  await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1600);
+  await p.evaluate(() => { setTodayView('do'); location.hash = '#/today'; rerender(); const d = document.querySelector('#t-tasks'); if(d) d.open = true; }); await p.waitForTimeout(1600);
   const carried = await p.evaluate(() => {
     const el = [...document.querySelectorAll('.mono')].find(x => /carried over/.test(x.textContent));
     return el ? el.textContent : ''; });

@@ -19,7 +19,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 /* the seven, and the rooms that still open with a banner */
 const BARE = [['Planning','#/planning'], ['Content Studio','#/writing'], ['Projects','#/projects'],
               ['Finance','#/finance'], ['Skill Tree','#/skills'], ['Values','#/values'], ['People','#/people']];
-const KEPT = ['#/compass', '#/journals', '#/commonplace', '#/timeline', '#/settings'];
+/* #/compass leads to Today's Review view now, which has no banner */
+const KEPT = ['#/journals', '#/commonplace', '#/timeline', '#/settings'];
 
 (async () => {
   const b = await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});

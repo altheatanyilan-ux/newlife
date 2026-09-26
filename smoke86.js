@@ -23,7 +23,8 @@ const { chromium } = require('playwright');
 /* Seven rooms had their banner taken off them — Planning, Content Studio,
    Projects, Finance, Skill Tree, Values and People — so there is nothing left
    there to bloom. These are the ones that still open with one. */
-const ROUTES = ['#/compass','#/journals','#/commonplace','#/timeline','#/settings'];
+/* #/compass is not among them: the Compass became the Review, a view of Today with no banner */
+const ROUTES = ['#/journals','#/commonplace','#/timeline','#/settings'];
 /* and these must have no banner at all, nor anything that grew on it */
 const BARE = ['#/planning','#/writing','#/projects','#/finance','#/skills','#/values','#/people'];
 let fails = 0;

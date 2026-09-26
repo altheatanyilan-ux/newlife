@@ -285,8 +285,14 @@ function bindFocusDock(dock){
   if(jump) jump.onclick = ev => {
     ev.preventDefault();
     S._todayJump = jump.dataset.fdjump;
-    /* the tasks live on the execution half */
+    /* the tasks live on the execution half. From another of Today's views
+       (#/today/tasks, where Planning is) choosing it changes the address, and
+       that navigation's own render is the one that finds the row — drawing
+       now as well spent the jump on a page about to be replaced, and left
+       you at the top */
+    const was = location.hash;
     if(typeof setTodayView === 'function') setTodayView('do');
+    if(location.hash !== was) return;
     if(parseHash().name === 'today') rerender(); else navigate('#/today');
   };
 

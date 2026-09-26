@@ -63,7 +63,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n1. hidden means hidden');
   /* go somewhere else and come back, so the Back button has a reason to exist
      and then stops having one */
-  await p.evaluate(() => { location.hash = '#/planning'; }); await p.waitForTimeout(1300);
+  /* (Planning is part of Today now, which is home — so somewhere else) */
+  await p.evaluate(() => { location.hash = '#/projects'; }); await p.waitForTimeout(1300);
   const away = await box('.back-btn');
   yes('away from home the Back button is there', away && away.w > 0, JSON.stringify(away));
   await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(1600);
