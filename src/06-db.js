@@ -74,6 +74,9 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
      on the score row; 19-sync-d-page.js). Personal copies for practice:
      never in a backup, never on the second machine, never uploaded. */
   scoreAudio:     'id, scoreId',
+  /* Voice memos from the Songwriting Studio (19-sng-e-state.js): Blobs, on
+     this device only, like the recordings above. */
+  sngAudio:       'id',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -96,7 +99,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
@@ -185,7 +188,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(16).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings (a new store; nothing existing changes)
+db.version(17).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -338,7 +341,7 @@ function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) r
    cleared and replaced by them. That is not a gap in the backup so much as an
    honest statement of what a text file can hold; the recordings stay where
    they are, and a restore does not silently delete them. */
-const BINARY_STORES = ['jaAudio', 'jazzAudio', 'scoreAudio'];
+const BINARY_STORES = ['jaAudio', 'jazzAudio', 'scoreAudio', 'sngAudio'];
 const textTables = () => db.tables.filter(t => !BINARY_STORES.includes(t.name));
 async function readAllStores(){ const rows = {}; for(const t of textTables()) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){

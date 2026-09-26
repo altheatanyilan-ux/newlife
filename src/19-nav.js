@@ -56,6 +56,9 @@ const NAV_ICONS = {
   /* a stave with a note sitting on it — the room is notation, not an instrument */
   score:    '<svg viewBox="0 0 24 24"><path d="M3 7h18M3 10.5h18M3 14h18M3 17.5h18"/><circle cx="9" cy="15.6" r="2.1" fill="currentColor" stroke="none"/><path d="M11.1 15.6V6.6l6 1.6"/></svg>',
   jazz:     '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 6v7M11 6v7M15 6v7M19 6v7"/></svg>',
+  /* a quaver and a line of writing under it: words and music, which is
+     what the room is for */
+  songwriting: '<svg viewBox="0 0 24 24"><path d="M10 15.5V5.2l7-1.7v10"/><circle cx="8" cy="15.6" r="2"/><circle cx="15" cy="13.6" r="2"/><path d="M4 20.5h16"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
   /* a clock face with one hand, because the room is about where the hours
      went rather than about what time it is */
@@ -84,6 +87,7 @@ const NAV_PAGES = {
   score:    {label:'Repertoire',        short:'Repertoire', ico:NAV_ICONS.score,  route:'#/score'},
   jazz:     {label:'Jazz Studio',      short:'Jazz',     ico:NAV_ICONS.jazz,     route:'#/jazz'},
   japanese: {label:'Japanese Studio',  short:'日本語',    ico:NAV_ICONS.japanese, route:'#/japanese'},
+  songwriting:{label:'Songwriting Studio', short:'Songs', ico:NAV_ICONS.songwriting, route:'#/songwriting'},
   time:     {label:'Time tracking',    short:'Time',     ico:NAV_ICONS.time,     route:'#/today/time'},
   timeline: {label:'Timeline',         short:'Timeline', ico:NAV_ICONS.timeline, route:'#/journals/timeline'},
 };
@@ -102,7 +106,7 @@ const NAV_PAGES = {
 const NAV_TOP = ['today'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','finance','skills','score','jazz','japanese'],
+  create:   ['content','projects','finance','skills','score','jazz','songwriting','japanese'],
   identity: ['values','journals','people','study'],
   standalone:[],
 };
@@ -146,6 +150,12 @@ function navConfig(){
   /* drop anything unknown or hand-placed, and de-duplicate across zones */
   const seen = new Set();
   NAV_ZONE_IDS.forEach(z => { n[z] = n[z].filter(k => known.has(k) && !NAV_FIXED.has(k) && !seen.has(k) && seen.add(k)); });
+  /* a room added since this arrangement was saved goes where it would have
+     been by default, not into the loose pile at the bottom */
+  Object.keys(NAV_PAGES).forEach(k => { if(NAV_FIXED.has(k) || seen.has(k)) return;
+    const z = NAV_ZONE_IDS.find(zz => (NAV_DEFAULT[zz] || []).includes(k)); if(!z || z === 'standalone') return;
+    const after = (NAV_DEFAULT[z] || []).slice(0, NAV_DEFAULT[z].indexOf(k)).reverse().find(p => n[z].includes(p));
+    n[z].splice(after ? n[z].indexOf(after) + 1 : n[z].length, 0, k); seen.add(k); });
   /* a page nobody placed still has to be reachable */
   Object.keys(NAV_PAGES).forEach(k => { if(!NAV_FIXED.has(k) && !seen.has(k)){ n.standalone.push(k); seen.add(k); } });
   return n;

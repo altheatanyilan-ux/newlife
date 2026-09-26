@@ -8597,6 +8597,172 @@ html[data-theme="dark"] .sc-nb-chart{--nb-s1:#3987e5;--nb-s2:#d95926;--nb-t:#c3c
 .sc-logsec{display:flex;align-items:center;gap:6px;font-size:.8rem}
 .sc-prints{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .sc-prints .btn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+/* ---------- the Songwriting Studio (19-sng-*.js) ----------
+   Quiet by design: the site's cards and type, one accent, a thin line
+   between things. Colour is used only where it says something — how lit a
+   stage is, a chord's function, a note's role on the keyboard. */
+.sng-page{--sng-t:#7f916a;--sng-pd:#b08968;--sng-d:#5c7c8a;--sng-out:#8a7f9e;--sng-warm:#c9a96e}
+html[data-theme="dark"] .sng-page{--sng-t:#9db287;--sng-pd:#caa384;--sng-d:#86a6b3;--sng-out:#aea3c2;--sng-warm:#d9bc84}
+.sng-head{display:flex;align-items:flex-start;gap:16px;justify-content:space-between}
+.sng-lede{max-width:70ch;margin:4px 0 0}
+.sng-ring{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:inherit;flex:none}
+.sng-ring circle{fill:var(--line)}.sng-ring circle.on{fill:var(--page-accent,var(--sng-t))}
+.sng-ring text{font:600 15px var(--serif,Georgia);fill:currentColor}
+.sng-tabs{margin:14px 0 12px;flex-wrap:wrap}
+.sng-body{display:flex;flex-direction:column;gap:12px}
+/* the house makes every select and input a full-width block; in a tool row
+   they sit inline, as wide as what they hold */
+.sng-page select.inp{width:auto;max-width:100%;display:inline-block;padding-right:28px}
+.sng-page .sng-row>.inp,.sng-page .sng-row label .inp,.sng-page .sng-grid2 .inp{width:auto;flex:0 1 auto;min-width:0}
+.sng-page .sng-row>input.inp:not([type]),.sng-page .sng-row>input.inp[type="text"]{flex:1 1 180px}
+.sng-page .sng-card-h select.inp{flex:0 0 auto}
+.sng-page input.sng-bpm{width:5.4em;flex:0 0 auto}
+.sng-body .card{padding:14px 16px}
+.sng-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:6px 0}
+.sng-card-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.sng-card-h h2{margin:0;font-size:1.3rem}
+.sng-big{font-size:1.15rem}
+.sng-note{font-size:.78rem;margin:0}
+.sng-today{display:flex;flex-direction:column;gap:12px}
+.sng-morning.done{border-left:3px solid var(--sng-t)}
+.sng-next{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.sng-next p{margin:4px 0}
+.sng-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.sng-stat{text-align:center;display:flex;flex-direction:column;gap:2px}
+.sng-stat b{font-size:1.5rem;font-weight:400}
+.sng-badges{display:flex;flex-wrap:wrap;gap:6px}
+.sng-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.sng-room{display:flex;flex-direction:column;gap:3px;padding:12px 14px;border-radius:var(--radius);border:1px solid var(--line);text-decoration:none;color:inherit;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sng-warm) calc(var(--lit,0)*38%),var(--surface)),var(--surface));transition:transform .15s,box-shadow .15s}
+.sng-room:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.sng-room.done{border-color:color-mix(in srgb,var(--sng-warm) 70%,var(--line))}
+.sng-room.capstone{border-style:dashed}
+.sng-room-n{font-size:.72rem;opacity:.7}.sng-room-t{font-size:1.05rem}.sng-room-s{font-size:.78rem}
+.sng-room-bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:6px}.sng-room-bar i{display:block;height:100%;background:var(--sng-warm)}
+.sng-stage-t{margin:10px 0 2px}.sng-promise{font-style:italic;margin:2px 0}
+.sng-exlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
+.sng-ex{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:9px 12px;border:0;border-bottom:1px solid var(--line);
+  text-decoration:none;color:inherit;background:none;text-align:left;cursor:pointer;font:inherit}
+.sng-ex:last-child{border-bottom:0}.sng-ex:hover,.sng-ex.on{background:color-mix(in srgb,var(--page-accent,#3d6fd1) 6%,transparent)}
+.sng-ex.done .mono:first-child{color:var(--sng-t)}
+.sng-ex-t{display:flex;flex-direction:column;min-width:0}.sng-ex-t .muted{font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sng-stagesong{border-style:dashed}
+.sng-exnav{display:flex;gap:6px;align-items:center}
+.sng-exercise h4{margin:14px 0 4px;font:600 .72rem/1 var(--sans,system-ui);letter-spacing:.08em;text-transform:uppercase;opacity:.65}
+.sng-steps{margin:0;padding-left:1.3em}.sng-steps li{margin:3px 0}
+.sng-constraint{font-size:.85rem;opacity:.85}
+.sng-fields{display:flex;flex-direction:column;gap:8px}
+.sng-field{display:flex;flex-direction:column;gap:3px;margin:6px 0}.sng-field>span{font-size:.8rem;opacity:.8}
+.sng-ta{width:100%;resize:vertical;font-family:var(--serif,Georgia);line-height:1.5}
+.sng-check{display:flex;gap:8px;align-items:baseline;margin:10px 0;font-size:.9rem}
+.sng-versions{margin-top:8px}.sng-version{padding:6px 0;border-top:1px solid var(--line)}
+.sng-onboard{max-width:640px}.sng-onboard h3{margin:16px 0 4px;font-size:1rem}.sng-sources{font-size:.78rem;margin-top:16px}
+.sng-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.sng-tool{display:flex;flex-direction:column;gap:4px;padding:14px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);text-decoration:none;color:inherit}
+.sng-tool:hover{border-color:color-mix(in srgb,var(--page-accent,#3d6fd1) 40%,var(--line))}
+.sng-tool-i{font-size:1.2rem;opacity:.8}.sng-tool .muted{font-size:.8rem}
+.sng-toolhead{display:flex;align-items:center;gap:12px}.sng-toolhead h2{margin:0;font-size:1.3rem}
+.sng-tool-body{display:flex;flex-direction:column;gap:12px}
+.sng-seeds{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.sng-seed-c{font-family:var(--serif,Georgia);white-space:pre-wrap;margin:4px 0}
+/* object writing */
+.sng-ow-prompt{font-size:1.6rem;text-align:center;border:0;border-bottom:1px solid var(--line);background:none;width:100%;margin:6px 0}
+.sng-ow-clock{font-size:1.2rem}
+.sng-ow-desk{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:12px}
+.sng-ow-page{min-height:320px;font-family:var(--serif,Georgia);font-size:1.02rem;line-height:1.7;resize:vertical}
+.sng-ow-page.stopped{opacity:.8;background:color-mix(in srgb,var(--sng-warm) 8%,var(--surface))}
+.sng-senses{display:flex;flex-direction:column;gap:4px}.sng-senses .muted{font-size:.74rem}
+/* the Chord Lab */
+.sng-lab{display:flex;flex-direction:column;gap:12px}
+.sng-palette{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.sng-chip{display:flex;flex-direction:column;align-items:flex-start;min-width:62px;padding:6px 10px;border-radius:8px;border:1px solid var(--line);
+  background:var(--surface);cursor:pointer;font:inherit;border-left:3px solid var(--c,var(--line))}
+.sng-chip b{font-family:var(--serif,Georgia);font-weight:400;font-size:1rem}.sng-chip span{font-size:.72rem;opacity:.7}
+.sng-chip.fn-t{--c:var(--sng-t)}.sng-chip.fn-pd{--c:var(--sng-pd)}.sng-chip.fn-d{--c:var(--sng-d)}.sng-chip.outside{--c:var(--sng-out)}
+.sng-chip:hover{background:color-mix(in srgb,var(--c) 10%,var(--surface))}
+.sng-prog{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.sng-bar{position:relative;padding:10px;border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;cursor:pointer;background:var(--surface)}
+.sng-bar b{font-family:var(--serif,Georgia);font-weight:400;font-size:1.15rem}.sng-bar span{font-size:.74rem;opacity:.7}
+.sng-bar.now{border-color:var(--page-accent,#3d6fd1);box-shadow:inset 0 0 0 1px var(--page-accent,#3d6fd1)}
+.sng-bar-x{position:absolute;top:4px;right:4px;display:flex;gap:2px;opacity:0;transition:opacity .15s}.sng-bar:hover .sng-bar-x,.sng-bar:focus-within .sng-bar-x{opacity:1}
+.sng-lane{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px;margin-top:4px}
+.sng-lane-c{font-size:.7rem;opacity:.75;padding:0 4px}
+.sng-bpm{width:4.2em}
+.sng-feel{margin:4px 0 8px}
+.sng-styles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:260px;overflow:auto;padding:2px}
+.sng-style{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer;font:inherit;text-align:left}
+.sng-style.on{border-color:var(--page-accent,#3d6fd1);background:color-mix(in srgb,var(--page-accent,#3d6fd1) 7%,var(--surface))}
+.sng-style b{font-weight:500;font-size:.86rem}
+.sng-grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 16px;align-items:center}
+.sng-grid2 label{display:flex;align-items:center;gap:8px;font-size:.84rem;flex-wrap:wrap}
+.sng-layer{display:flex;align-items:center;gap:4px}.sng-layer input{width:90px}
+.sng-six-row{display:grid;grid-template-columns:minmax(0,190px) auto minmax(0,1fr) auto;gap:6px;align-items:center;margin:4px 0}
+/* the keyboard */
+.sng-keys{position:relative;height:84px;border-radius:6px;overflow:hidden;background:var(--line);margin:6px 0}
+.sng-keys i{position:absolute;top:0;display:block}
+.sng-keys i.w{height:100%;background:#fdfcf8;border-right:1px solid rgba(0,0,0,.14)}
+.sng-keys i.b{height:58%;background:#2b2a28;z-index:1;border-radius:0 0 3px 3px}
+.sng-keys i.on.w{background:color-mix(in srgb,var(--page-accent,#3d6fd1) 45%,#fff)}.sng-keys i.on.b{background:color-mix(in srgb,var(--page-accent,#3d6fd1) 75%,#000)}
+.sng-keys i.r-chord{box-shadow:inset 0 -10px 0 var(--sng-t)}.sng-keys i.r-tension{box-shadow:inset 0 -10px 0 var(--sng-d)}
+.sng-keys i.r-colour{box-shadow:inset 0 -10px 0 var(--sng-warm)}.sng-keys i.r-avoid{box-shadow:inset 0 -10px 0 #b0705e}
+.sng-keys em{position:absolute;bottom:2px;left:2px;font:9px ui-monospace,monospace;color:#777;font-style:normal}
+.sng-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.7rem}.sng-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.sng-legend .r-chord{background:var(--sng-t)}.sng-legend .r-tension{background:var(--sng-d)}.sng-legend .r-colour{background:var(--sng-warm)}.sng-legend .r-avoid{background:#b0705e}
+/* the Groove Maker's grid */
+.sng-grid{overflow-x:auto;padding-bottom:4px}
+.sng-grid-row{display:grid;grid-template-columns:5.5em repeat(var(--steps),minmax(14px,1fr));gap:2px;align-items:center;margin:2px 0;min-width:calc(5.5em + var(--steps) * 16px)}
+.sng-grid-row>span{font-size:.72rem;opacity:.75;overflow:hidden;text-overflow:ellipsis}
+.sng-step{height:22px;border:0;border-radius:3px;background:color-mix(in srgb,var(--line) 70%,transparent);cursor:pointer;padding:0}
+.sng-step.beat{background:var(--line)}.sng-step.on{background:var(--page-accent,#3d6fd1)}
+/* the Chord-Scale Map */
+.sng-csm{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:8px 0}
+.sng-csm-c{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.sng-csm-c.on{border-color:var(--page-accent,#3d6fd1)}.sng-csm-c b{font-family:var(--serif,Georgia);font-weight:400;font-size:1.1rem}.sng-csm-c .muted{font-size:.72rem}
+/* the melody tools */
+.sng-deg{min-width:2.2em}.sng-deg.hi{opacity:.8}
+.sng-roll{position:relative;display:grid;grid-template-rows:repeat(var(--rows),minmax(7px,1fr));height:calc(var(--rows) * 9px);min-height:150px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface);margin:8px 0}
+.sng-roll-row{border-bottom:1px solid color-mix(in srgb,var(--line) 50%,transparent);position:relative}.sng-roll-row.blk{background:color-mix(in srgb,var(--line) 35%,transparent)}
+.sng-roll-row.out{background:repeating-linear-gradient(45deg,transparent 0 4px,color-mix(in srgb,#b0705e 10%,transparent) 4px 6px)}
+.sng-roll-row em{position:absolute;left:3px;font:9px ui-monospace,monospace;opacity:.6;font-style:normal;line-height:1}
+.sng-roll-bar{position:absolute;top:0;bottom:0;border-left:1px solid var(--line)}.sng-roll-bar span{position:absolute;top:2px;left:4px;font:10px var(--serif,Georgia);opacity:.6}
+.sng-roll-n{position:absolute;border:0;border-radius:3px;background:var(--page-accent,#3d6fd1);padding:0;cursor:pointer;min-height:5px}
+.sng-roll-n.locked{background:var(--sng-warm)}.sng-roll-n.out{background:#b0705e}
+.sng-locks{display:flex;flex-wrap:wrap;gap:3px}.sng-locks .tbtn{font-size:.7rem;padding:1px 5px}
+.sng-controls summary{cursor:pointer;margin:6px 0}
+.sng-comply{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;margin:6px 0}.sng-comply .ok{color:var(--sng-t)}.sng-comply .no{opacity:.6}
+.sng-why summary{cursor:pointer}.sng-why ol,.sng-why ul{font-size:.84rem;margin:6px 0;padding-left:1.3em}
+/* the lyric sheet */
+.sng-sec .sng-card-h{align-items:center}
+.sng-lines{display:flex;flex-direction:column;gap:4px}
+.sng-line{display:grid;grid-template-columns:minmax(0,1fr) auto 2em;gap:8px;align-items:center;padding-left:6px;border-left:2px solid transparent}
+.sng-line.power{border-left-color:var(--sng-warm)}.sng-line.trigger{border-left-color:var(--sng-d)}
+.sng-line .inp{font-size:1rem}
+.sng-syl{display:flex;flex-wrap:wrap;gap:1px;max-width:260px}.sng-syl button{border:0;background:none;font:12px ui-monospace,monospace;padding:0 1px;cursor:pointer;opacity:.45}
+.sng-syl button.on{opacity:1;font-weight:700;color:var(--page-accent,#3d6fd1)}
+.sng-meter{display:inline-block;width:110px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.sng-meter i{display:block;height:100%;background:var(--sng-t)}
+.sng-ref{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.78rem}
+.sng-rhymes{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.sng-wordlist{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}.sng-wordlist .chip{cursor:pointer}
+/* songs */
+.sng-songtitle{font-size:1.5rem;border:0;border-bottom:1px solid var(--line);background:none;width:100%;margin-bottom:8px}
+.sng-sdsec{padding:8px 0;border-top:1px solid var(--line)}.sng-sdsec:first-of-type{border-top:0}
+.sng-rewrite ul{list-style:none;padding:0;margin:0}.sng-rewrite li{padding:5px 0;border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent);display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+.sng-auto{font-size:.74rem;padding:1px 7px;border-radius:99px;border:1px solid var(--line)}.sng-auto.ok{color:var(--sng-t)}.sng-auto.no{color:#b0705e}
+.sng-version pre{white-space:pre-wrap;font-size:.86rem;margin:4px 0}
+.sng-ten-list{padding-left:1.3em;margin:4px 0}.sng-ten-list li{margin:2px 0}.sng-ten-list li.done .tbtn{text-decoration:line-through;opacity:.6}.sng-ten-list li.now .tbtn{font-weight:600}
+.sng-ten-list .tbtn{text-align:left;white-space:normal}
+.sng-shelf{display:flex;flex-wrap:wrap;gap:8px}
+.sng-spine{display:flex;flex-direction:column;justify-content:space-between;width:120px;height:150px;padding:10px;border-radius:4px;border:1px solid var(--line);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--sng-warm) 22%,var(--surface)) 0 8px,var(--surface) 8px);text-decoration:none;color:inherit}
+.sng-block-t{font-size:1.4rem;margin:8px 0}
+.sng-met{max-width:620px}
+@media (max-width:700px){
+  .sng-head{flex-direction:column}.sng-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sng-ow-desk{grid-template-columns:1fr}.sng-senses{flex-direction:row;flex-wrap:wrap}
+  .sng-line{grid-template-columns:minmax(0,1fr) 2em}.sng-syl{grid-column:1/-1;max-width:none}
+  .sng-six-row{grid-template-columns:minmax(0,1fr) auto}.sng-six-row .inp[data-sixnote],.sng-six-row .inp[data-gensixnote]{grid-column:1/-1}
+  .sng-next{flex-direction:column;align-items:flex-start}.sng-ex{grid-template-columns:2.6em minmax(0,1fr)}.sng-ex>.mono:last-child{display:none}
+}
 /* recordings synced to the piece (19-sync-d-page.js). The strip is one cell a
    bar, in the order played; its colour says how sure the placing is, and the
    legend and each cell's label say it in words too. */
