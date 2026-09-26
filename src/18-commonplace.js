@@ -631,6 +631,7 @@ function openMediaPanel(id){
       <span class="mono">by</span><span style="flex:1;min-width:8em">${ed(`entries.#${e.id}.extra.creator`,{ph:'who made it'})}</span>
       <span class="mono">year</span>${ed(`entries.#${e.id}.extra.year`,{ph:'—',cls:'mono'})}
     </div>
+    ${typeof treeFeedsHTML === 'function' ? treeFeedsHTML(e.id) : ''}
     <div class="row" style="gap:10px;flex-wrap:wrap;margin-bottom:10px">
       <select class="sel" style="width:auto" id="mpStatus">${MEDIA_STATUS.map(s=>`<option value="${s}" ${x.status===s?'selected':''}>${MEDIA_STATUS_LABEL[s]}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="mpKind">${Object.entries(MEDIA_KINDS).map(([kk,v])=>`<option value="${kk}" ${x.kind===kk?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
@@ -668,7 +669,7 @@ function openMediaPanel(id){
       <input class="inp mono" id="mpTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #craft" list="tagList2"><datalist id="tagList2">${allTags().map(([t])=>`<option value="#${esc(t)}">`).join('')}</datalist></div>
 
     ${moreSection(`<div class="danger-zone"><span>This removes the work, its quotes, and everything you wrote about it.</span><button class="btn sm ghost danger" id="mpDel">Delete this entry</button></div>`)}`, 'media-panel');
-  p.querySelector('#mpStatus').onchange = ev => { x.status = ev.target.value; if(x.status==='finished' && !x.finishedAt) x.finishedAt = today(); if(x.status==='progress' && !x.startedAt) x.startedAt = today(); saveNow(); reopen(); };
+  p.querySelector('#mpStatus').onchange = ev => { const was = x.status; x.status = ev.target.value; if(x.status==='finished' && was!=='finished' && typeof treeLibraryPrompt === 'function') setTimeout(() => treeLibraryPrompt(e), 300); if(x.status==='finished' && !x.finishedAt) x.finishedAt = today(); if(x.status==='progress' && !x.startedAt) x.startedAt = today(); saveNow(); reopen(); };
   p.querySelector('#mpKind').onchange = ev => { x.kind = ev.target.value; saveNow(); reopen(); };
   p.querySelectorAll('[data-res]').forEach(b => b.onclick = () => { x.resonanceLevel = (x.resonanceLevel===b.dataset.res) ? null : b.dataset.res; saveNow(); sound('click'); reopen(); });
   p.querySelector('#mpAddQ').onclick = () => { x.quotes.push({id:uid(), text:'', where:'', why:''}); saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelectorAll('#panel .passage-q .ed'); n.length && beginEdit(n[n.length-1]); },60); };

@@ -5,6 +5,7 @@
    ============================================================ */
 /* thin line icons, 24×24, drawn in currentColor */
 const NAV_ICONS = {
+  tree: '<svg viewBox="0 0 24 24"><path d="M12 21v-8"/><path d="M12 13 7.5 9.5"/><path d="M12 15l4.5-3.5"/><circle cx="12" cy="6.5" r="3"/><circle cx="6.5" cy="8.5" r="2"/><circle cx="17.5" cy="10.5" r="2"/><path d="M8 21h8"/></svg>',
   /* A rose, not a ring: Values is already a needle inside a circle, and at
      24px the two would read as the same object. This one is the star alone —
      four long points to the cardinals, four short ones between, and the north
@@ -82,6 +83,7 @@ const NAV_PAGES = {
   values:   {label:'Values',           short:'Values',   ico:NAV_ICONS.values,   route:'#/values'},
   skills:   {label:'Skill Tree',       short:'Skills',   ico:NAV_ICONS.skills,   route:'#/skills'},
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
+  tree:     {label:'Knowledge Tree',   short:'Tree',     ico:NAV_ICONS.tree,     route:'#/tree'},
   /* the room is called Repertoire; its address stays #/score so no link to
      it, and nothing kept in it, has to change */
   score:    {label:'Repertoire',        short:'Repertoire', ico:NAV_ICONS.score,  route:'#/score'},
@@ -107,7 +109,7 @@ const NAV_TOP = ['today'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
   create:   ['content','projects','finance','skills','score','jazz','songwriting','japanese'],
-  identity: ['values','journals','people','study'],
+  identity: ['values','journals','tree','people','study'],
   standalone:[],
 };
 const NAV_ZONES = [

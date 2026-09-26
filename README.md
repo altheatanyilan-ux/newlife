@@ -67,6 +67,33 @@ Four rooms no longer have a door of their own, because they stopped being separa
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages (each printed on its own uploaded images), formative events, retrospective values, soundtrack, artifacts, letters |
 | `#/settings` | Theme, ambient sound, felt time, landing page, sidebar zones, the Import Station, export/import/clear |
 | `#/study` | The **Study Deck**, built to Anki's shape so a deck can go back and forth: notes and note types (Basic, reversed, optional reversed, type-in, Cloze, Image Occlusion), cards per template, nested decks with option presets, and an add-only review log. FSRS schedules by default (the reference ts-fsrs, inlined), with SM-2 on request; the queue follows Anki's order and limits. Cards are drawn in a sandboxed frame, and a note type's own JavaScript is off unless you turn it on. `add`, `browse` (Anki's search syntax, bulk edits, find and replace), `stats` (every graph with its numbers, true retention), `import` (.apkg and .colpkg from any Anki version, CSV, JSON) and `tools` (postpone, advance, flatten, load balance, easy days, a break, siblings, rescheduling, an FSRS optimiser fitted to your reviews, a simulator) — every tool previews its effect and can be undone |
+| `#/tree` | The **Knowledge Tree**: a personal wiki for a lifelong inquiry. Every page has one home (root → branch → point), a position held at a stated confidence, and the question that would change your mind. See *Knowledge Tree* below |
+
+## Knowledge Tree
+
+A wiki that grows as a tree. Every page has one parent — a **root** (one of the great questions), a **branch** under it, a **point** under that — and a point cannot be saved without one. Links in the text are for getting about; **grafts** are for reasoning. Library, Journal and Writing entries are never copied in: the Tree keeps references to them, and each shows a *Feeds:* line in its own room.
+
+**Links**
+
+| Write | Goes to |
+|---|---|
+| `[[Title]]` | a page — blue if it exists (old titles and aliases resolve), red if not; a red link starts a new stub with the title filled in |
+| `[[Title\|shown as]]` | the same page, with other words on it |
+| `[[library:Title]]` | a work in the Library |
+| `[[journal:2025-03-01]]` | what the Journal holds for that day |
+| `[[writing:Title]]` | a piece in the Writing Studio |
+
+Typing `[[` offers matching titles and aliases, so a page is found before it is made twice. Renaming a page keeps the old title as an alias. *What links here* is read from the links table, which is rebuilt from a page's text each time it is saved.
+
+**Grafts** join two pages with a kind and a reason (the reason is required): *supports*, *contradicts*, *extends*, *echoes* (the same shape somewhere else), *raises* (opens a question). Open contradictions are listed under **Tensions**, where each can be marked resolved with a note on how. **Gaps** lists red links, points with no leaf (citation needed), branches with no position, positions with no open question, and branches where every graft agrees.
+
+**Add-only records.** A position (what you hold, and how sure, 0–100) is never edited: *Revise position* adds a new one and the old stays on the record, drawn with the rest as a line of confidence over time. A **sealed prediction** is hashed with SHA-256 when it is saved (crypto.subtle where the browser has it, otherwise a built-in implementation that gives the same digest) and cannot change afterwards; it is resolved true or false once. Both are enforced in code: the rows are frozen, there is no function that edits or deletes them, and the save refuses to rewrite or drop one and puts it back.
+
+**Tending.** One card a day: a page due to resurface (3 days, 2 weeks, 2 months, 6 months, a year — *still hold*, *revise* or *doubt*), else the oldest capture in the inbox, else the branch left untended longest. Now and then a page shows what you believed a year ago beside what you hold now. **Experiments** record trials, hits and the chance rate, and show the hit rate, the misses and the exact one-sided binomial p-value. **Proof** shows calibration: the Brier score and how often you were right at each level of confidence. Each week's growth (new pages, red links turned blue, revised positions, pruned branches, open tensions) is worked out when the site opens.
+
+**Backup.** The whole-database export carries every Tree store; the Tree can also be exported and imported on its own (an import adds what is missing and never overwrites). The Tree's home warns gently when the last export is more than thirty days old.
+
+**Keys.** `Alt+K` anywhere (outside a text field): quick capture into the Tree's inbox. `Ctrl/⌘+Enter` keeps the capture. In a Tree text box, `[[` opens the page list; `↑ ↓` move, `Enter` or `Tab` completes, `Esc` closes.
 
 ## The day
 

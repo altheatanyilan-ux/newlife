@@ -92,6 +92,21 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   sdRevlog:       'id, cardId',
   sdMisc:         'id',
   sdMedia:        'id, filename',
+  /* The Knowledge Tree (19-tree-*.js). Ordinary state stores, saved with
+     the rest. Slugs and aliases are unique in code, not by index (the
+     fallback database cannot open a '&' index). Positions and predictions
+     are add-only: persist() refuses to rewrite or drop a row once written
+     (treeGuard, 19-tree-a-model.js). */
+  treeNodes:       'id, slug, kind, parentId, status, updatedAt, lastTendedAt',
+  treeAliases:     'id, alias, nodeId',
+  treeLinks:       'id, fromId, toSlug, toRoom',
+  treeGrafts:      'id, fromId, toId, type',
+  treePositions:   'id, nodeId, date',
+  treeLeaves:      'id, nodeId, entryId, room',
+  treeInbox:       'id, createdAt',
+  treeReviews:     'id, nodeId, dueAt',
+  treePredictions: 'id, nodeId, createdAt, resolvedAt',
+  treeExperiments: 'id, nodeId, date',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -114,8 +129,8 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -203,7 +218,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(18).stores(DB_SCHEMA);   // v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(19).stores(DB_SCHEMA);   // v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -382,6 +397,8 @@ let lastWritten = {}; let saving = null; let queued = null;
    goes to the disk and what we claim went to the disk are the same thing. */
 async function persist(){
   const rows = stateToStores(S);
+  /* the Knowledge Tree's add-only records: what was written stays written */
+  if(typeof treeGuard === 'function') treeGuard(rows, lastWritten);
   const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
   const dirty = Object.keys(rows).filter(k => shot[k] !== lastWritten[k]);
   if(!dirty.length) return;

@@ -282,6 +282,7 @@ function entryCard(e, {clamp:cl=true, tools=true}={}){
     ${entryExtraHTML(e)}
     ${tagChips(e)}
     <div class="links">${linkChips(e)}</div>
+    ${typeof treeFeedsHTML === 'function' ? treeFeedsHTML(e.id) : ''}
     ${tools && typeof ctJournalBridge === 'function' ? ctJournalBridge(e) : ''}
   </article>`;
 }

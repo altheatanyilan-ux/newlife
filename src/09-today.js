@@ -398,6 +398,7 @@ routes.today = function(root, params = []){
          than the whole queue, because the whole queue is how a study habit
          dies. -->
     ${studyTodayHTML(T)}
+    ${typeof treeTodayHTML === 'function' ? treeTodayHTML() : ''}
 
     <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
       <summary><span class="sc" style="margin:0">Today's habits</span>

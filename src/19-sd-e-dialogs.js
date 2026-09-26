@@ -319,6 +319,18 @@ document.addEventListener('click', e => {
   const [sourceType, sourceId, label] = b.dataset.sxremember.split('|');
   openRememberModal({sourceType, sourceId, sourceLabel: label, front: studySelection() || label || ''});
 });
+/* The older buttons across the house (the ◆ on entries, values, tarot cards…)
+   carry data-sdpin and what to fill the card with. One delegated listener,
+   because they appear in a dozen rooms and half of them redraw on their own.
+   What is selected beats what the button guessed. */
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('[data-sdpin]'); if(!b) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const [sourceType, sourceId] = b.dataset.sdpin.split('|');
+  const picked = studySelection();
+  openRememberModal({sourceType, sourceId: sourceId || null, front: picked || b.dataset.sdfront || '', back: picked ? '' : (b.dataset.sdback || ''),
+    sourceLabel: b.dataset.sdsay || '', sourceGo: location.hash});
+}, true);
 function studySelection(){
   try { const sel = window.getSelection(); if(!sel || sel.isCollapsed) return ''; const n = sel.anchorNode;
     if(n && n.parentElement && n.parentElement.closest('input, textarea, .ed.editing')) return ''; return String(sel).trim(); } catch(e){ return ''; }

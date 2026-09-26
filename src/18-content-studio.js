@@ -26,7 +26,7 @@ function wsPieceBarHTML(proj){
     <span class="wpb-sep">·</span><span>${esc(contentDestName(c.dest))}</span>
     ${c.scheduled ? `<span class="wpb-sep">·</span><span class="${pieceOverdue(proj) ? 'late' : ''}">◷ ${esc(fmtDate(c.scheduled, 'short'))}</span>` : ''}
     <a class="wpb-back" href="#/content" id="wpbBack">Back to Content →</a>
-  </div>`;
+  </div>${typeof treeFeedsHTML === 'function' ? treeFeedsHTML(proj.id) : ''}`;
 }
 function bindWsPieceBar(root, proj){
   const stage = root.querySelector('#wpbStage');

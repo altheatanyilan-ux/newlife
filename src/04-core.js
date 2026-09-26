@@ -203,7 +203,7 @@ function tagChips(e, {link=true}={}){ const t = entryTags(e); return t.length ? 
 const KEY = 'lifeinstrument.v1';
 let S = null;
 /* persistence lives in db.js (Dexie schema + load/save/backup) */
-function migrate(){ if(S.settings && ['map','home','compass'].includes(S.settings.home)) S.settings.home = 'today'; wipeDemoData(); /* There was a clause here that read `if(S.rehearsal && !S.rehearsal){ S.rehearsal
+function migrate(){ if(S.settings && ['map','home','compass'].includes(S.settings.home)) S.settings.home = 'today'; wipeDemoData(); if(typeof treeEnsure === 'function') treeEnsure(); /* There was a clause here that read `if(S.rehearsal && !S.rehearsal){ S.rehearsal
    = S.rehearsal; } delete S.rehearsal;` — a rename migration whose two sides had
    been collapsed onto one name by some past search-and-replace. The condition could
    never be true, so all that survived of it was an unconditional delete, and it ran

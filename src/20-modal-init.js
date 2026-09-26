@@ -187,6 +187,8 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
        it here writes the change back into the review it came from */
     if(e.extra?.fromReview && typeof reviewSyncFromJournal === 'function') reviewSyncFromJournal(e.id);
     saveNow();
+    /* the Knowledge Tree may recognise a page in what was written; it offers, it does not attach */
+    if(typeof treeAfterEntrySave === 'function') setTimeout(() => treeAfterEntrySave(existing || e), 400);
     /* a quote that names a work is a passage of that work, so the work is told
        — after the entry exists, because the passage points back at its id */
     if(e.type === 'quote' && typeof attachQuoteToMedia === 'function')
