@@ -84,6 +84,9 @@ function jazzPianoInHTML(){
         : '<p class="faint">Nothing learned yet. The tuning, the stretch of the strings and the sound of each note are picked up as you play — nothing to calibrate.</p>'}
     </section>
 
+    ${(() => { const ps = ((jazzState().compose || {}).pieces || []).filter(p => p.xml);
+      const notes = ps.reduce((n, p) => n + ((p.xml.match(/<note[ >]/g) || []).length), 0), fixed = ps.reduce((n, p) => n + (p.edits || []).length, 0);
+      return ps.length ? `<section class="li-card"><h2 class="serif">How much Compose needed correcting</h2><p>${fixed} hand correction${fixed === 1 ? '' : 's'} across ${ps.length} piece${ps.length === 1 ? '' : 's'} (${notes} written notes${notes ? `, ${Math.round(100 * fixed / notes)}%` : ''}).</p></section>` : ''; })()}
     <section class="li-card">
       <h2 class="serif">How well does it hear my piano?</h2>
       <p class="faint">A recording of your piano and the MusicXML of what you played in it. The recording is read here and let go; nothing is stored but the numbers.</p>
@@ -131,6 +134,7 @@ function listenHarnessRowHTML(h){
         ${h.chords.mid ? `<br><span class="faint">middle register: ${pc(h.chords.mid.right / h.chords.mid.n)} of ${h.chords.mid.n}</span>` : ''}</td></tr>
       <tr><th>Latency</th><td>${h.latencyMs} ms after the attack <span class="faint">(${h.computeMs} ms of it arithmetic)</span></td></tr>
       <tr><th>Timing</th><td>onsets ${h.onsetMs >= 0 ? '+' : ''}${h.onsetMs} ms from where the notes were played, on average</td></tr>
+      ${h.tx ? `<tr><th>Transcribed, told nothing</th><td>${h.tx.error ? esc(h.tx.error) : `${cell(h.tx.all)}<br><span class="faint">bass ${cell(h.tx.reg.bass)} · middle ${cell(h.tx.reg.middle)} · treble ${cell(h.tx.reg.treble)} · ${(h.tx.ms / 1000).toFixed(1)} s for ${h.duration} s</span>`}</td></tr>` : ''}
     </tbody></table>
     ${h.worst && h.worst.length ? `<div class="faint">Hardest notes: ${h.worst.map(w => `${esc(w.name)} (${w.missed} of ${w.n} missed)`).join(', ')}</div>` : ''}
   </div>`;
@@ -230,6 +234,18 @@ async function listenHarnessRun(audioFile, xmlFile, opts, step){
     latencyMs: Math.round(105 + 1024 / audio.sr * 1000 + A.computeMs),
     onsetMs: errs.length ? Math.round(errs.reduce((a, b) => a + b, 0) / errs.length * 1000) : 0, worst};
   if(!h.chords.mid || !h.chords.mid.n) delete h.chords.mid;
+  /* the Transcribe Engine on the same take, told nothing: what Compose would write down */
+  if(typeof txTranscribe === 'function'){
+    say('Transcribing it, told nothing…', 0.985);
+    try {
+      const tx = await txTranscribe(audio.pcm.slice(), audio.sr, {});
+      const tA = T0(), tR = {bass: T0(), middle: T0(), treble: T0()}, tu = new Set();
+      notes.forEach(n => { const k = tx.notes.findIndex((x, i) => !tu.has(i) && x.pitch === n.midi && Math.abs(x.onset - n.t) <= 0.05);
+        if(k >= 0){ tu.add(k); tA.tp++; tR[regOf(n.midi)].tp++; } else { tA.fn++; tR[regOf(n.midi)].fn++; } });
+      tx.notes.forEach((x, i) => { if(tu.has(i)) return; tA.fp++; tR[regOf(x.pitch)].fp++; });
+      h.tx = {all: prf(tA), reg: {bass: prf(tR.bass), middle: prf(tR.middle), treble: prf(tR.treble)}, ms: tx.ms, where: tx.where};
+    } catch(e){ h.tx = {error: String(e.message || e)}; }
+  }
   return h;
 }
 

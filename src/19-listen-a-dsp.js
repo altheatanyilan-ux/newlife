@@ -248,14 +248,14 @@ function ldCreate(sr, opts){
       const a = flux[m - 3], b = flux[m - 2], c = flux[m - 1];
       const recent = flux.slice(Math.max(0, m - 24), m - 2).sort((x, y) => x - y);
       const med = recent.length ? recent[recent.length >> 1] : 0;
-      const thr = Math.max(floorFlux * 1.5 + (o.minFlux || 3.5), med * 1.4 + 3);
+      const thr = Math.max(floorFlux * 1.5 + (o.minFlux || 3.5), med * (o.medK || 1.4) + (o.medAdd != null ? o.medAdd : 3));
       const tEnd = fluxT[m - 2];
       if(o.trace) o.trace.push([+(tEnd / sr).toFixed(3), +b.toFixed(1), +thr.toFixed(1), +floorFlux.toFixed(1), +med.toFixed(1)]);
       /* just after a strong attack, a much weaker spike is that attack still
          blooming (partials arriving at different speeds, the room answering)
          and not a new key */
-      const masked = (tEnd - lastOnset) < 0.09 * sr && b < lastFlux * 0.5;
-      if(b > a && b >= c && b > thr && (tEnd - lastOnset) > 0.045 * sr && !masked){
+      const masked = (tEnd - lastOnset) < (o.maskSec != null ? o.maskSec : 0.09) * sr && b < lastFlux * (o.maskRatio != null ? o.maskRatio : 0.5);
+      if(b > a && b >= c && b > thr && (tEnd - lastOnset) > (o.refractory != null ? o.refractory : 0.045) * sr && !masked){
         lastFlux = b;
         /* the attack sits in the newest part of the frame that jumped */
         const t0 = Math.round(tEnd - o.hop * 1.5 + o.onsetBias * sr);
@@ -506,9 +506,9 @@ function ldEstimate(c){
      them, and rises with them; an echo of their partials does neither */
   let topSal = notes.reduce((m, x) => Math.max(m, x.sal || 0), 0), topB = notes.reduce((m, x) => Math.max(m, x.Sb || 0), 0);
   const rises = () => { const r = notes.map(x => x.R).sort((a, b) => a - b); return r.length ? r[r.length >> 1] : 0; };
-  for(let iter = 0; iter < 10; iter++){
+  for(let iter = 0; iter < (eo.maxNotes || 10); iter++){
     let best = null;
-    const rNeedNow = notes.length ? Math.max(6, rises() * 0.6) : 3;
+    const rNeedNow = notes.length ? Math.max(eo.riseMin != null ? eo.riseMin : 6, rises() * (eo.riseK != null ? eo.riseK : 0.6)) : 3;
     for(let p = 21; p <= 108; p++){
       if(taken.has(p)) continue;
       const sc = score(p, work, notes.length > 0);
@@ -522,7 +522,7 @@ function ldEstimate(c){
       if(p < 48 && sc.lowHits < 2) continue;
       if(sc.Sb < Math.max(ACCEPT, topB - (eo.relDb != null ? eo.relDb : 15))) continue;
       /* and on average across its partials, not only its best few */
-      if(notes.length && sc.S < Math.max(10, top - 18)) continue;
+      if(notes.length && sc.S < Math.max(eo.sMin != null ? eo.sMin : 10, top - (eo.sRel != null ? eo.sRel : 18))) continue;
       if(sc.sal <= 0) continue;
       /* every test is applied before choosing, so that one strong candidate
          failing the last of them does not end the search for the others */

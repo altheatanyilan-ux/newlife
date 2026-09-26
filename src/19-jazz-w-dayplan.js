@@ -78,8 +78,15 @@ function jazzStudentState(date){
     times[id] = practisedDays.size;
     const lastSess = sessions.filter(s => (s.activities || []).some(a => a.exerciseId === id)).map(s => s.day).sort().pop();
     const last = [r.lastAt, lastSess].filter(Boolean).sort().pop() || null;
+    /* what the piano input heard (19-listen-e-feedback.js): a key that failed its last
+       heard attempt is not counted as got, and a run of weak attempts lowers the comfort
+       the plan works from — so what you actually stumble on comes round sooner */
+    const heard = typeof lfHeardSummary === 'function' ? lfHeardSummary(id) : null;
+    const weak = new Set(heard ? heard.weakKeys : []);
+    const said = jazzComfortOf(id);
     progress[id] = {completedKeys: jazzExGot(id), totalKeys: jazzExUnits(id), lastPracticed: last,
-      comfortLevel: jazzComfortOf(id), keys: JAZZ_KEY_NAMES.filter(k => r.keys[k]), timesPractised: times[id]};
+      comfortLevel: said && heard && heard.accuracy < 80 ? Math.max(1, said - 1) : said,
+      keys: JAZZ_KEY_NAMES.filter(k => r.keys[k] && !weak.has(k)), timesPractised: times[id], heard};
   });
   const track = typeof jazzTodaysTrack === 'function' && stage ? jazzTodaysTrack(stage) : null;
   return {currentStageId: sid === 'P0' ? 0 : /^\d+$/.test(sid) ? +sid : sid,

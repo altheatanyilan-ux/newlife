@@ -51,10 +51,12 @@ function listenState(){
 
 /* ---------- the bus ---------- */
 const _li = {subs: new Set(), recent: [], active: null, midi: null, mic: null, expect: null, verifySubs: new Set(),
-  app: [], leakCount: 0, heardCount: 0, leakWarned: false, levelSubs: new Set(), level: null};
+  app: [], leakCount: 0, heardCount: 0, leakWarned: false, levelSubs: new Set(), level: null, pedalSubs: new Set()};
 function listenOn(fn){ _li.subs.add(fn); return () => _li.subs.delete(fn); }
 function listenOnVerify(fn){ _li.verifySubs.add(fn); return () => _li.verifySubs.delete(fn); }
 function listenOnLevel(fn){ _li.levelSubs.add(fn); return () => _li.levelSubs.delete(fn); }
+/* the sustain pedal, from a MIDI keyboard (controller 64): {t, down} */
+function listenOnPedal(fn){ _li.pedalSubs.add(fn); return () => _li.pedalSubs.delete(fn); }
 function listenNow(){ return performance.now() / 1000; }
 function listenEmit(ev){
   _li.recent.push(ev); if(_li.recent.length > 64) _li.recent.shift();
@@ -100,6 +102,9 @@ async function listenMidiStart(){
       open.set(a, ev); listenEmit(ev); listenMidiVerify(ev);
     } else if(hi === 0x80 || (hi === 0x90 && b === 0)){
       const ev = open.get(a); if(ev){ ev.offset = t; open.delete(a); }
+    } else if(hi === 0xb0 && a === 64){
+      const p = {t, down: b >= 64};
+      _li.pedalSubs.forEach(f => { try { f(p); } catch(e){} });
     }
   }; };
   inputs.forEach(hook);

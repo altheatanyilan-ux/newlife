@@ -10926,6 +10926,83 @@ html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
   .an-side{position:static;max-height:none}
 }
 @media print{.an-side,.an-layer,.an-notes,.an-red,.an-sel,#scStudy{display:none !important}}
+
+/* ---- Piano input: the Play it strip, Compose, Ear and reading ---- */
+.lf-panel{margin-top:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:10px 14px;display:flex;flex-direction:column;gap:8px}
+.lf-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lf-t{font-size:1.05rem;font-weight:400}
+.lf-src{font-size:.78rem;display:inline-flex;align-items:center;gap:6px}
+.lf-opts label{font-size:.78rem;color:var(--muted);display:inline-flex;align-items:center;gap:5px}
+.lf-seg,.li-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.lf-seg button{background:none;border:none;padding:4px 11px;font:inherit;font-size:.78rem;color:var(--muted);cursor:pointer}
+.lf-seg button.on{background:var(--surface-2);color:var(--text)}
+.lf-live{font-size:.84rem;display:flex;gap:12px;flex-wrap:wrap;min-height:1.4em}
+.lf-kbd:empty{display:none}
+.lf-keys{width:100%;max-width:560px;height:auto;display:block}
+.lf-k.w{fill:#fbf8f1;stroke:#b9b1a2;stroke-width:.8}
+.lf-k.b{fill:#2e2a25;stroke:#2e2a25}
+.lf-k.exp{stroke:#3f6b8a;stroke-width:2.2}
+.lf-k.w.ok{fill:#9fd0ad}.lf-k.b.ok{fill:#3f8f5a}
+.lf-k.w.bad{fill:#eeaaa2}.lf-k.b.bad{fill:#c0463a}
+.lf-k.w.out{fill:#f1dcaa}.lf-k.b.out{fill:#a8812e}
+.lf-k.miss{animation:lf-pulse 1s ease-in-out infinite}
+@keyframes lf-pulse{50%{fill:#cfe0ec}}
+@media (prefers-reduced-motion:reduce){.lf-k.miss{animation:none;fill:#cfe0ec}}
+.lf-layer{position:absolute;inset:0;pointer-events:none;z-index:3}
+.lf-m{position:absolute;width:13px;height:11px;margin:-5px 0 0 -1px;border-radius:50%;box-shadow:0 0 0 2px currentColor;opacity:.9}
+.lf-m.ok{color:#3f8f5a;background:rgba(63,143,90,.25)}
+.lf-m.bad{color:#c0463a;background:rgba(192,70,58,.25)}
+.lf-m.miss{color:#9a958c;background:rgba(154,149,140,.2)}
+.lf-m.retry{color:#b08a3e;background:rgba(176,138,62,.22)}
+.lf-ghost{position:absolute;width:9px;height:7px;margin:-3px 0 0 0;border-radius:50%;background:#c0463a;opacity:.75;transform:rotate(-20deg)}
+.lf-cursor{position:absolute;width:26px;border-radius:6px;background:rgba(63,107,138,.12);box-shadow:inset 0 0 0 1px rgba(63,107,138,.35)}
+.lf-tick{position:absolute;width:2px;height:10px;margin-left:4px;border-radius:1px}
+.lf-tick.good{background:#3f8f5a}.lf-tick.fair{background:#b08a3e}.lf-tick.far{background:#c0463a}
+.lf-score{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;border-top:1px solid var(--line);padding-top:10px}
+.lf-big{display:flex;flex-direction:column;align-items:center;min-width:70px}
+.lf-big b{font-family:var(--serif);font-size:1.6rem;font-weight:400;line-height:1.1}
+.lf-big span{font-size:.68rem;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.lf-lines{flex:1 1 260px;font-size:.86rem}
+.lf-lines p{margin:0 0 4px}
+.lf-earned{color:var(--sage)}
+.lf-btns{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.lf-dens{width:160px;height:30px}
+.lf-dens rect{fill:var(--page-accent);opacity:.6}
+.lf-lastline{margin:0;font-size:.78rem}
+.jz-heard{text-align:center;color:var(--sage);font-size:.9rem;display:flex;gap:6px;align-items:center;justify-content:center}
+.cp-page,.dr-page{max-width:1000px}
+.cp-big{min-width:120px}
+.cp-say,.dr-say{font-size:.86rem;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.cp-chk{font-size:.8rem;color:var(--muted);display:inline-flex;gap:5px;align-items:center}
+.cp-meter{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;max-width:320px}
+.cp-meter i{display:block;height:100%;width:0;background:var(--sage);transition:width .08s linear}
+.cp-prog{position:relative;height:22px;border-radius:6px;background:var(--surface-2);overflow:hidden;max-width:480px}
+.cp-prog i{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--page-accent) 30%,transparent)}
+.cp-prog span{position:relative;font-size:.74rem;font-family:var(--mono);padding:0 8px;line-height:22px}
+.cp-tip{margin:0;font-size:.76rem}
+.cp-takes{display:flex;flex-direction:column;gap:4px}
+.cp-take{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font-size:.84rem}
+.cp-take.in{border-color:color-mix(in srgb,var(--page-accent) 50%,var(--line));background:color-mix(in srgb,var(--page-accent) 5%,var(--surface))}
+.cp-title{font-size:1.2rem;border:none;background:none;padding:2px 0;min-width:0;flex:1 1 200px}
+.cp-opts label{font-size:.78rem;color:var(--muted);display:inline-flex;align-items:center;gap:5px}
+.cp-opts .li-seg button{background:none;border:none;padding:4px 11px;font:inherit;font-size:.78rem;color:var(--muted);cursor:pointer}
+.cp-opts .li-seg button.on{background:var(--surface-2);color:var(--text)}
+.cp-score{cursor:crosshair}
+.cp-selmark{position:absolute;width:16px;height:14px;margin:-6px 0 0 -2px;border-radius:50%;box-shadow:0 0 0 2px #3f6b8a;background:rgba(63,107,138,.15);pointer-events:none;z-index:3}
+.cp-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.82rem;padding:6px 0;border-bottom:1px solid var(--line)}
+.cp-out{padding-top:4px}
+.dr-card p{margin:0 0 8px}
+.dr-result{display:flex;gap:14px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px;margin-top:8px}
+.dr-rows{display:flex;gap:4px;flex-wrap:wrap;align-items:center;flex:1 1 260px}
+.dr-n{display:inline-flex;flex-direction:column;align-items:center;padding:2px 7px;border-radius:6px;font-family:var(--mono);font-size:.8rem;border:1px solid var(--line)}
+.dr-n.ok{background:rgba(63,143,90,.14);border-color:rgba(63,143,90,.4)}
+.dr-n.bad{background:rgba(192,70,58,.12);border-color:rgba(192,70,58,.4)}
+.dr-n.miss{color:var(--muted);border-style:dashed}
+.dr-n small{font-size:.66rem;color:#c0463a}
+.dr-lines{display:flex;flex-direction:column;gap:6px;margin:6px 0}
+.dr-hist{display:flex;flex-direction:column;gap:3px}
+.dr-hrow{display:flex;gap:12px;font-size:.82rem;align-items:baseline}
+@media (max-width:600px){.lf-panel{padding:10px}.lf-opts{gap:6px}}
 </style>
 
 </head>

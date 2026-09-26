@@ -346,6 +346,9 @@ function jzlListen(onNote){
     const m = held.get(k); held.delete(k); onNote(m, false, performance.now(), 'keys'); };
   addEventListener('keydown', kd); addEventListener('keyup', ku);
   const off = [];
+  /* an acoustic piano through the microphone, when it is listening (19-listen-b-live.js) */
+  if(typeof listenOn === 'function') off.push(listenOn(ev => { if(ev.source !== 'mic') return;
+    onNote(ev.pitch, true, ev.onset * 1000, 'mic'); setTimeout(() => onNote(ev.pitch, false, performance.now(), 'mic'), 400); }));
   _jzlCleanup = () => { removeEventListener('keydown', kd); removeEventListener('keyup', ku); _jzlSink = null;
     off.forEach(f => { try { f(); } catch(e){} }); _jzlCleanup = null; };
   return f => off.push(f);
@@ -356,10 +359,14 @@ function jzlInputHTML(){
   return `<div class="jzl-input">
     ${names.length ? `<span class="mono jzl-midi on">MIDI: ${esc(names.join(', '))}</span>`
       : `<button class="btn sm ghost" data-jzlmidi>🎹 connect a MIDI keyboard</button>`}
+    ${typeof listenActive === 'function' && listenActive() === 'mic' ? '<span class="mono jzl-midi on"><span class="li-dot"></span> hearing the piano</span>'
+      : typeof listenStart === 'function' ? '<button class="btn sm ghost" data-jzlmic>🎤 listen to an acoustic piano</button>' : ''}
     <span class="faint">or press the keys on the screen, or use the computer keyboard —
       <span class="mono">A W S E D F T G Y H U J K</span> from middle C, <span class="mono">Z</span>/<span class="mono">X</span> for the octave.</span></div>`;
 }
 function jzlBindInput(host, then){
+  const mic = host.querySelector('[data-jzlmic]');
+  if(mic) mic.onclick = async () => { try { await listenStart({source: 'mic'}); toast('Listening through the microphone. Nothing leaves this device.'); } catch(e){ toast(e.message || 'The microphone could not be opened.'); } then && then(); };
   const b = host.querySelector('[data-jzlmidi]');
   if(b) b.onclick = async () => {
     try { await jazzMidiConnect(); const n = jazzMidiNames();

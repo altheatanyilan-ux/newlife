@@ -54,7 +54,7 @@ async function jazzEngrave(box, xml){
     osmd.zoom = 1.05;
     osmd.render();
     /* kept on its box, for whatever lights up its bars (the band) */
-    box._jzOsmd = osmd;
+    box._jzOsmd = osmd; box._jzXml = xml;
     jazzPlayBarFor(box, xml, osmd);
     return osmd;
   } catch(e){
@@ -122,7 +122,8 @@ routes.jazz = function(root, params){
     repertoire: ['jazzRepertoireHTML', 'bindJazzRepertoire'], analysis: ['jazzAnalysisHTML', 'bindJazzAnalysis'],
     playalong: ['jazzPlayAlongHTML', 'bindJazzPlayAlong'], record: ['jazzRecordHTML', 'bindJazzRecord'],
     audiation: ['jazzAudiationHTML', 'bindJazzAudiation'], mindset: ['jazzMindsetHTML', 'bindJazzMindset'],
-    journal: ['jazzJournalHTML', 'bindJazzJournal'], piano: ['jazzPianoInHTML', 'bindJazzPianoIn']};
+    journal: ['jazzJournalHTML', 'bindJazzJournal'], piano: ['jazzPianoInHTML', 'bindJazzPianoIn'],
+    compose: ['jazzComposeHTML', 'bindJazzCompose'], ear: ['jazzEarHTML', 'bindJazzEar']};
   if(want && v3Rooms[want]){
     const [draw, bind] = v3Rooms[want];
     const rest = (params || []).slice(1);
@@ -246,6 +247,8 @@ function jazzRoadHTML(){
       <button class="tbtn" data-jzgo="#/jazz/listen">\u{1f3a7} Listening</button>
       <button class="tbtn" data-jzgo="#/jazz/record">\u{1f399}️ Record</button>
       <button class="tbtn" data-jzgo="#/jazz/piano">\u{1f3b9} Piano input</button>
+      <button class="tbtn" data-jzgo="#/jazz/compose">\u270e Play to compose</button>
+      <button class="tbtn" data-jzgo="#/jazz/ear">\u{1f3bc} Ear and reading</button>
       <button class="tbtn" data-jzgo="#/jazz/journal">\u{1f4d3} Journal</button>
       <button class="tbtn" data-jzgo="#/jazz/audiation">\u{1f442} Audiation</button>
       <button class="tbtn" data-jzgo="#/jazz/mindset">\u{1f9d8} Mindset</button>
@@ -447,6 +450,7 @@ function jazzExerciseHTML(id){
             ${jazzIsMultiExample(ex) ? `<div class="jz-ex-tabs" id="jzExTabs"></div>` : ''}
             <div class="jz-score" id="jzScore"></div></div>
           ${jazzIsMultiExample(ex) ? '' : jazzScoreToolsHTML(id)}
+          ${typeof lfPanelHTML === 'function' ? lfPanelHTML(id) : ''}
           ${!single && typeof jazzBackingHTML === 'function' ? jazzBackingHTML(id) : ''}`
           : `<div class="jz-stage-box">${jazzV3MainTextHTML(ex)}</div>`}
         ${jazzV3YouTubeHTML(ex)}
@@ -595,6 +599,7 @@ function bindJazzExercise(root, id){
   draw();
   bindJazzTips(root);
   bindJazzScoreTools(root, id);
+  try { if(typeof bindLfPanel === 'function') bindLfPanel(root, id); } catch(e){ console.warn('the listening strip did not bind', e); }
   /* the band: a rhythm section under the exercise, in any key */
   try { if(typeof bindJazzBacking === 'function') bindJazzBacking(root, id); } catch(e){ console.warn('the band did not bind', e); }
   $$('[data-jzint]', root).forEach(b => b.onclick = () => {

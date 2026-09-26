@@ -127,6 +127,7 @@ function jazzCardHTML(){
       ${jazzAccuracyHTML(ex)}
       <div class="jz-stage-box"><div class="jz-score" id="jzCardScore"></div></div>
       ${card.toKey ? `<div class="jz-stage-box"><div class="jz-score" id="jzCardScore2"></div></div>` : ''}
+      ${f.heard ? `<p class="jz-heard"><span class="li-dot"></span> Heard it — ${f.heard.seconds.toFixed(1)} s from the card to the right notes.</p>` : ''}
       <p class="jz-chow">Did you have it?</p>
       <div class="row" style="gap:8px;justify-content:center;flex-wrap:wrap">
         <button class="btn ghost danger" data-jzg="couldnt">✗ Couldn’t</button>
@@ -169,6 +170,7 @@ function bindJazzCard(root){
   const drawn = (k) => { const x = jazzScoreFor(card.exerciseId, ex, k, {interval: card.interval});
     /* an exercise with several examples answers with its first */
     return x && x.documents ? (x.documents[0] || {}).mxl : x; };
+  if(!f.shown && ex && typeof lfFlashHook === 'function') lfFlashHook(root, card, ex, drawn);
   if(f.shown && ex){ const xml = drawn(card.key);
     if(xml) jazzEngrave(root.querySelector('#jzCardScore'), xml);
     /* a card about moving between two keys has to show both of them, or the
@@ -180,7 +182,7 @@ function bindJazzCard(root){
     jazzGrade(card.exerciseId, card.key, how, f.seconds);
     f.got[how] = (f.got[how] || 0) + 1;
     sound(how === 'nailed' ? 'success' : 'click');
-    f.at++; f.shown = false; f.from = Date.now(); f.seconds = null;
+    f.at++; f.shown = false; f.from = Date.now(); f.seconds = null; f.heard = null;
     if(f.at >= f.cards.length){ jazzEndSession(true); return; }
     rerender();
   });

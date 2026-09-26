@@ -115,6 +115,7 @@ function syncRecordingsHTML(x){
     </div>` : ''}
     <div class="sy-actions">
       <button class="btn sm primary" data-syadd ${job && !job.error ? 'disabled' : ''}>＋ Sync a recording</button>
+      ${typeof txMicRecord === 'function' ? `<button class="btn sm" data-symic ${job && !job.error ? 'disabled' : ''} title="play it on the piano here; the microphone take is matched to the score like any recording, and kept as its rubato profile">${_syncMic ? '■ Stop — and follow it' : '● Record a performance'}</button>` : ''}
       <button class="tbtn" data-syimport title="a map exported from here, on this machine or another">⇧ load a map</button>
     </div>
     <input type="file" hidden data-syfile accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg,.oga,.opus,.webm,.aif,.aiff">
@@ -194,7 +195,24 @@ function syncPaintJob(x){
   const bar = box.querySelector('.sy-prog i'); if(bar) bar.style.width = Math.round(100 * Math.max(0.03, Math.min(1, job.fraction || 0))) + '%';
 }
 
+/* a performance played here, through the microphone, becomes a recording like any other:
+   aligned to the score, its timing and dynamics kept as the performance memory (its rubato profile) */
+let _syncMic = null;
+async function syncMicToggle(x){
+  if(!_syncMic){
+    try { if(typeof listenActive === 'function' && listenActive() === 'mic') await listenStop();
+      _syncMic = await txMicRecord(); toast('Recording — play the piece. Press Stop when you finish.'); }
+    catch(e){ _syncMic = null; toast(e.message || 'The microphone could not be opened.'); }
+    syncPaint(x); return;
+  }
+  const m = _syncMic; _syncMic = null;
+  const got = await m.stop();
+  if(got.pcm.length < got.sr * 5){ toast('That was only a few seconds — too little to follow.'); syncPaint(x); return; }
+  const file = new File([txWav(got.pcm, got.sr)], `Played here, ${new Date().toLocaleString()}.wav`, {type: 'audio/wav'});
+  await syncRecordingAdd(x, file);
+}
 function bindSyncRecordings(root, x){
+  $$('[data-symic]', root).forEach(b => b.onclick = () => syncMicToggle(x));
   const file = root.querySelector('[data-syfile]'), mapFile = root.querySelector('[data-symapfile]'), refile = root.querySelector('[data-syrefile]');
   const add = root.querySelector('[data-syadd]');
   if(add) add.onclick = () => file && file.click();
