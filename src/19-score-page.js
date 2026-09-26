@@ -1177,6 +1177,10 @@ function scorePlayCfg(x){
       if(x.ensembleSettings){ x.ensembleSettings.countInBars = +v.countIn || 0;
         x.ensembleSettings.tempoPercent = v.pct != null ? Math.round(+v.pct) : 100; }
       saveNow(); }},
+    /* a recording synced to the piece can lend its timing and dynamics (19-sync-e-memory.js) */
+    timings: () => (x.recordings || []).filter(r => r.map).map(r => ({id: r.id, name: r.name, dyn: !!r.memory})),
+    timingFor: (id, tl, bpm) => { const r = (x.recordings || []).find(v => v.id === id); if(!r || typeof syncTiming !== 'function') return null;
+      try { return {map: syncTiming(r, tl, bpm), velOf: syncVelOf(r, tl)}; } catch(e){ console.warn('timing', e); return null; } },
     /* the play bar's click and count-in follow the piece's metronome */
     accent: {get: () => x.metronome.accent !== false, set: v => scoreSetAccent(x, v)},
     swing: false});

@@ -706,7 +706,9 @@ function scorePlayer(tl, opts){
   let ctx = null, out = null, timer = null, running = false, paused = false, waiting = null;
   let anchorT = 0, anchorQ = 0, idx = 0, clickQ = 0, endQ = 0, startQ = 0, prevT = null, prevQ = 0, gateAt = 0;
   let ci = null;
-  let map = plxTempoMap(tl, o);
+  /* a performance's timing (19-sync-e-memory.js) in place of the score's
+     tempo map: the same T/Q/bpmAt shape, beat by beat as it was played */
+  let map = o.timing || plxTempoMap(tl, o);
   const factor = () => (o.bpm ? o.bpm / map.first : 1);
   const bpmAt = q => map.bpmAt(q) * factor();
   const secs = (qa, qb) => qb <= qa ? 0 : (map.T(qb) - map.T(qa)) / factor();
@@ -798,7 +800,9 @@ function scorePlayer(tl, opts){
       const waitHold = o.fermata === 'wait' && e.fermata ? 6 : 0;
       const d = e.grace ? 0.07 : Math.max(0.04, secs(sw.q, sw.q + sw.d) * (e.staccato ? 0.45 : e.tenuto ? 1 : 0.94));
       const held = Math.max(d, waitHold, e.held ? secs(e.q, e.q + e.held) : 0);
-      voice(e, gainFor(e), Math.max(0, t0), waitHold ? Math.max(d, waitHold) : d, held);
+      /* the performer's dynamics, where there is a memory of them */
+      const pv = o.velOf && !e.chord ? o.velOf(e) : null;
+      voice(pv != null ? Object.assign({}, e, {vel: pv}) : e, gainFor(e), Math.max(0, t0), waitHold ? Math.max(d, waitHold) : d, held);
     }
   };
   const seek = q => {
@@ -861,7 +865,7 @@ function scorePlayer(tl, opts){
       if(k === 'bpm' || k === 'swing' || k === 'overrides' || k === 'fermata'){
         const q = running ? api.position() : null;
         o[k] = v;
-        if(k === 'overrides' || k === 'fermata') map = plxTempoMap(tl, o);
+        if((k === 'overrides' || k === 'fermata') && !o.timing) map = plxTempoMap(tl, o);
         if(running && !waiting){ anchorQ = q; anchorT = Math.max(ctx.currentTime, anchorT); prevT = null; }
         return;
       }
@@ -983,6 +987,7 @@ function scorePlayBarHTML(opts){
         <option value="0">none</option><option value="1">1 bar</option><option value="2">2 bars</option></select></label>
       <button class="tbtn" data-plxopt="loop" title="play it round again (L)">🔁 loop</button>
       <button class="tbtn" data-plxpick title="tap the first bar of the loop, then the last">set loop…</button>
+      <label class="mono plx-sel" data-plxtimingwrap hidden title="the score's own tempo marks, or the timing and dynamics of a recording synced to it">timing <select class="sel sm" data-plxtiming aria-label="whose timing"></select></label>
       <label class="mono plx-sel">click <select class="sel sm" data-plxclick aria-label="metronome click while it plays">
         <option value="off">off</option><option value="beats">beats</option><option value="downbeats">downbeats</option></select></label>
       <label class="plx-vol" title="how loud"><span class="mono">volume</span><input type="range" min="0" max="100" step="1" data-plxvol aria-label="volume"></label>
@@ -1068,6 +1073,12 @@ function scorePlayAttach(bar, cfg){
     $$('[data-plxopt]', bar).forEach(b => { const k = b.dataset.plxopt; b.classList.toggle('on', !!saved[k]); b.setAttribute('aria-pressed', saved[k] ? 'true' : 'false'); });
     const cnt = $b('[data-plxcount]'); if(cnt) cnt.value = String(+saved.countIn || 0);
     const clk = $b('[data-plxclick]'); if(clk) clk.value = saved.click || 'off';
+    const tw = $b('[data-plxtimingwrap]'), ts = $b('[data-plxtiming]');
+    if(tw && ts){ const list = cfg.timings ? cfg.timings() || [] : [];
+      tw.hidden = !list.length;
+      if(list.length){ if(saved.timing && !list.some(x => x.id === saved.timing)) saved.timing = '';
+        ts.innerHTML = `<option value="">as written</option>` + list.map(x => `<option value="${esc(x.id)}">as ${esc(x.name)} played it${x.dyn ? '' : ' (timing)'}</option>`).join('');
+        ts.value = saved.timing || ''; } }
     const vol = $b('[data-plxvol]'); if(vol) vol.value = Math.round((saved.volume == null ? 0.9 : saved.volume) * 100);
     const pk = $b('[data-plxpick]');
     if(pk){ pk.classList.toggle('on', !!picking || !!saved.loopRange);
@@ -1227,7 +1238,9 @@ function scorePlayAttach(bar, cfg){
       const [a, z] = rangeIdx();
       if(player) player.stop();
       const mix = cfg.mix ? cfg.mix(t) || {} : {};
-      player = scorePlayer(t, {bpm: bpmNow(), swing: saved.swing ? (typeof saved.swing === 'number' ? saved.swing : 0.64) : 0,
+      const perf = saved.timing && cfg.timingFor ? cfg.timingFor(saved.timing, t, scoreBpm()) : null;
+      player = scorePlayer(t, {bpm: bpmNow(), swing: perf ? 0 : saved.swing ? (typeof saved.swing === 'number' ? saved.swing : 0.64) : 0,
+        timing: perf && perf.map, velOf: perf && perf.velOf,
         from: a, to: z, loop: saved.loop, countIn: +saved.countIn || 0, click: saved.click === 'off' ? false : saved.click,
         chords: !!saved.chords, accent: accentOn(), volume: saved.volume == null ? 0.9 : saved.volume,
         muted: new Set(saved.muted.concat(mix.muted || [])), volumes: mix.volumes || {},
@@ -1290,6 +1303,8 @@ function scorePlayAttach(bar, cfg){
     /* a place lit from outside the player — a recording being listened to
        (19-sync-d-page.js): q in the written timeline, still = dimmed */
     showAt(q, still){ if(!tlSafe()) return; if(q == null){ clearHl(); where(-1); return; } paintAt(q, !!still); },
+    /* whose timing plays: '' the score's, or a recording's id */
+    setTiming(id){ saved.timing = id || ''; save(); paintOpts(); if(player && player.running){ const q = player.position(); ctl.play(q); } },
     get picking(){ return !!picking; },
     get player(){ return player; }, get timeline(){ return tl; }, get saved(){ return saved; },
     tempoPct: () => pctNow(), bpm: () => bpmNow(), scoreBpm: () => scoreBpm(),
@@ -1326,6 +1341,8 @@ function scorePlayAttach(bar, cfg){
   const pctIn = $b('[data-plxpct]');
   if(pctIn){ pctIn.oninput = () => setPct(+pctIn.value, true); pctIn.onchange = () => save(); }
   const cnt = $b('[data-plxcount]'); if(cnt) cnt.onchange = () => { saved.countIn = +cnt.value || 0; save(); };
+  const tsel = $b('[data-plxtiming]');
+  if(tsel) tsel.onchange = () => ctl.setTiming(tsel.value);
   const clk = $b('[data-plxclick]');
   if(clk) clk.onchange = () => { saved.click = clk.value; save();
     if(player && player.running){ const q = player.position(); ctl.play(q); } };

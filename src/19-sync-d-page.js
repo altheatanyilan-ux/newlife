@@ -149,6 +149,10 @@ function syncRecHTML(x, r){
     <div class="sy-legend mono"><span><i class="sy-cell sure"></i>${count.sure} sure</span>
       ${count.fair ? `<span><i class="sy-cell fair"></i>${count.fair} fairly sure</span>` : ''}
       ${count.guess ? `<span><i class="sy-cell guess"></i>${count.guess} guessed</span>` : ''}</div>
+    ${r.memory ? `<div class="sy-memory"><span class="mono faint">performance memory — every beat's timing, ${r.memory.notes || 0} notes' dynamics</span>${(() => { try { const tl = syncTimelineOf(x); return tl ? syncMemoryChartHTML(r, tl) : ''; } catch(e){ return ''; } })()}
+      <div class="sy-rec-tools"><button class="btn sm" data-syperf="${esc(r.id)}" title="the score's own notes, at this performance's timing and dynamics — mute parts in the play bar to hear one alone">▶ Play the score as recorded</button>
+        <button class="tbtn" data-symidi="${esc(r.id)}" title="a MIDI file of the score with this performance's timing and dynamics">⇩ MIDI as played</button></div></div>`
+      : `<div class="sy-memory"><button class="tbtn" data-symemory="${esc(r.id)}">Build the performance memory</button> <span class="muted">timing and dynamics for every note, to play the score back as it was played</span></div>`}
     <div class="sy-missing" hidden>Its audio is not on this device. <button class="tbtn" data-syrefind="${esc(r.id)}">choose the file…</button></div>
     <div class="sy-rec-tools">
       <button class="btn sm${on ? ' primary' : ''}" data-sylisten="${esc(r.id)}" aria-pressed="${on ? 'true' : 'false'}">${on ? '■ Stop' : '▶ Listen along'}</button>
@@ -229,6 +233,12 @@ function bindSyncRecordings(root, x){
     a.download = `${(x.title + ' - ' + r.name).replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-') || 'recording'}.sync.json`;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
   });
+  $$('[data-syperf]', root).forEach(b => b.onclick = () => syncPlayAsRecorded(x, b.dataset.syperf));
+  $$('[data-symidi]', root).forEach(b => b.onclick = () => { const r = (x.recordings || []).find(v => v.id === b.dataset.symidi), tl = syncTimelineOf(x);
+    const bar = syncBar(), muted = bar && bar._plx ? new Set(bar._plx.saved.muted || []) : null;
+    const bytes = r && tl ? syncPerformanceMidi(r, tl, muted) : null; if(!bytes){ toast('That could not be written.'); return; }
+    sngDownload(bytes, `${(x.title + ' - ' + r.name).replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-')}.mid`); });
+  $$('[data-symemory]', root).forEach(b => b.onclick = () => syncBuildMemory(x, b.dataset.symemory, b));
   let refind = null;
   $$('[data-syrefind]', root).forEach(b => b.onclick = () => { refind = b.dataset.syrefind; refile && refile.click(); });
   if(refile) refile.onchange = () => { const f = refile.files && refile.files[0]; refile.value = ''; if(f && refind) syncReattach(x, refind, f); };
@@ -262,15 +272,20 @@ async function syncRecordingAdd(x, file){
     if(!tl || !tl.playable) throw new Error('There are no notes in this score to follow.');
     const score = syncScoreFromMusicXml(tl);
     const id = uid();
-    const res = await syncAlign({pcm: audio.pcm, sr: audio.sr}, score, {pieceId: x.id, recordingId: id, onProgress: (t, f) => step(t, f)});
+    const res = await syncAlign({pcm: audio.pcm, sr: audio.sr}, score, {pieceId: x.id, recordingId: id, keepPcm: true, onProgress: (t, f) => step(t, f != null ? f * 0.9 : null)});
     step('Keeping it…', 0.98);
     const alt = res.diagnostics.alternate, chosen = alt ? (score.alternates || []).find(a => a.how === alt) || score : score;
     const map = syncMapNew(Object.assign({}, res.syncMap, {reading: {how: chosen.how || 'as written', order: chosen.order}}));
     await syncAudioPut(id, x.id, file);
-    (x.recordings = x.recordings || []).push({id, name: file.name.replace(/\.[^.]+$/, '') || 'A recording', file: file.name, size: file.size,
+    const rec = {id, name: file.name.replace(/\.[^.]+$/, '') || 'A recording', file: file.name, size: file.size,
       duration: Math.round(audio.duration * 100) / 100, addedAt: new Date().toISOString(),
       map: JSON.parse(syncMapExport(map)).maps[0], bpm: res.diagnostics.bpm || null,
-      engineMs: Math.round((res.diagnostics.analyseMs || 0) + (res.diagnostics.alignMs || 0))});
+      engineMs: Math.round((res.diagnostics.analyseMs || 0) + (res.diagnostics.alignMs || 0))};
+    /* the performance memory: how loud each note was, where the map puts it */
+    step('Measuring the dynamics, note by note…', 0.9);
+    try { rec.memory = await syncMeasureDynamics(audio.pcm, audio.sr, rec, tl, f => step('Measuring the dynamics, note by note…', 0.9 + 0.08 * f)); }
+    catch(e){ console.warn('dynamics', e); }
+    (x.recordings = x.recordings || []).push(rec);
     saveNow();
     _syncJobs.delete(x.id);
     if(typeof sound === 'function') sound('success');
@@ -394,4 +409,24 @@ function syncListenPaint(){
   $$('[data-sylisten]').forEach(b => { const on = !!_syncListen && _syncListen.rec.id === b.dataset.sylisten;
     b.textContent = on ? '■ Stop' : '▶ Listen along'; b.classList.toggle('primary', on); b.setAttribute('aria-pressed', String(on));
     const card = b.closest('.sy-rec'); if(card) card.classList.toggle('on', on); });
+}
+
+/* the memory for a recording synced before there was one: its audio is
+   decoded again (here, on this device) and measured */
+async function syncBuildMemory(x, id, btn){
+  const r = (x.recordings || []).find(v => v.id === id); if(!r) return;
+  const blob = await syncAudioBlob(id, x.id); if(!blob){ toast('Its audio is not on this device — choose the file first.'); return; }
+  if(btn){ btn.disabled = true; btn.textContent = 'Measuring…'; }
+  try { const a = await syncDecodeForEngine(await blob.arrayBuffer()); const tl = syncTimelineOf(x);
+    r.memory = await syncMeasureDynamics(a.pcm, a.sr, r, tl, f => { if(btn) btn.textContent = `Measuring… ${Math.round(f * 100)}%`; });
+    saveNow(); toast('The performance memory is kept.'); }
+  catch(e){ console.warn(e); toast('The dynamics could not be measured.'); }
+  syncPaint(x);
+}
+/* the score's own notes, at this recording's timing and dynamics, through
+   the play bar (whose part chips choose who is heard) */
+function syncPlayAsRecorded(x, id){
+  syncListenStop();
+  const bar = syncBar(), ctl = bar && bar._plx; if(!ctl){ toast('The player is not ready yet.'); return; }
+  ctl.setTiming(id); ctl.play();
 }
