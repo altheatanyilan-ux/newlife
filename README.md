@@ -66,6 +66,7 @@ Four rooms no longer have a door of their own, because they stopped being separa
 | `#/tag/:name` | Every entry carrying one hashtag |
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages (each printed on its own uploaded images), formative events, retrospective values, soundtrack, artifacts, letters |
 | `#/settings` | Theme, ambient sound, felt time, landing page, sidebar zones, the Import Station, export/import/clear |
+| `#/study` | The **Study Deck**, built to Anki's shape so a deck can go back and forth: notes and note types (Basic, reversed, optional reversed, type-in, Cloze, Image Occlusion), cards per template, nested decks with option presets, and an add-only review log. FSRS schedules by default (the reference ts-fsrs, inlined), with SM-2 on request; the queue follows Anki's order and limits. Cards are drawn in a sandboxed frame, and a note type's own JavaScript is off unless you turn it on. `add`, `browse` (Anki's search syntax, bulk edits, find and replace), `stats` (every graph with its numbers, true retention), `import` (.apkg and .colpkg from any Anki version, CSV, JSON) and `tools` (postpone, advance, flatten, load balance, easy days, a break, siblings, rescheduling, an FSRS optimiser fitted to your reviews, a simulator) — every tool previews its effect and can be undone |
 
 ## The day
 
@@ -185,6 +186,8 @@ A field you are not editing is not a box. At rest, an input is its own text on t
 The tarot card meanings are normalised from Mark McElroy's *A Guide to Tarot Meanings* by way of the [corpora project](https://github.com/dariusk/corpora); everything written at length around them is this house's own. The card pictures are Pamela Colman Smith's illustrations for the deck published by Rider in 1909, in the colours they were printed in; they are in the public domain, published in 1909 with Smith dead since 1951. The scans come from the [@cometpisces/tarot-kit-images](https://www.npmjs.com/package/@cometpisces/tarot-kit-images) package, and `tools/build-tarot-art.py` cuts them down from twenty-one megabytes to the size they are actually drawn at here. The hexagrams follow the King Wen order with the Judgment and Image in the usual English renderings.
 
 Every piano the house plays — a score played back, the Jazz Studio's play-along, chords, voicings and scales heard, the drone, the ambient slow piano — is the [Salamander Grand Piano V3](https://archive.org/details/SalamanderGrandPianoV3), a Yamaha C5 sampled by Alexander Holm and released under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/). The thirty notes in `vendor/salamander/` are the subset the [Tone.js](https://github.com/Tonejs/audio) project hosts, unchanged; `tools/fetch-grand-piano.sh` fetches them again and `build.js` embeds them in `index.html`, so the piano works offline.
+
+The Study Deck carries, inlined and parsed only when it opens: [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) (MIT) for scheduling, [sql.js](https://github.com/sql-js/sql.js) (MIT) to read and write Anki's SQLite collections, [fflate](https://github.com/101arrowz/fflate) (MIT) and [fzstd](https://github.com/101arrowz/fzstd) (MIT) for the zip and zstd around them, and [KaTeX](https://katex.org) (MIT) for maths on cards.
 
 ## Keyboard
 

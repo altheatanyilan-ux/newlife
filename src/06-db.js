@@ -77,6 +77,21 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   /* Voice memos from the Songwriting Studio (19-sng-e-state.js): Blobs, on
      this device only, like the recordings above. */
   sngAudio:       'id',
+  /* The Study Deck, rebuilt on Anki's model (19-sd-*.js). These are written
+     row by row as cards are answered and read only when the deck is opened,
+     never through the state snapshot: a collection of fifty thousand cards
+     and half a million reviews is not something to serialise on every save
+     in the house, or to read at every boot. They are in every backup all the
+     same (exportToJSON), and the media — Blobs — stays out of it like the
+     recordings above. */
+  sdNoteTypes:    'id',
+  sdNotes:        'id, guid, noteTypeId',
+  sdCards:        'id, noteId, deckId, due',
+  sdDecks:        'id',
+  sdPresets:      'id',
+  sdRevlog:       'id, cardId',
+  sdMisc:         'id',
+  sdMedia:        'id, filename',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -99,7 +114,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
@@ -188,7 +203,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(17).stores(DB_SCHEMA);   // v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(18).stores(DB_SCHEMA);   // v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -341,8 +356,11 @@ function migrateEras(){ if(Array.isArray(S.visionEras) && S.visionEras.length) r
    cleared and replaced by them. That is not a gap in the backup so much as an
    honest statement of what a text file can hold; the recordings stay where
    they are, and a restore does not silently delete them. */
-const BINARY_STORES = ['jaAudio', 'jazzAudio', 'scoreAudio', 'sngAudio'];
-const textTables = () => db.tables.filter(t => !BINARY_STORES.includes(t.name));
+const BINARY_STORES = ['jaAudio', 'jazzAudio', 'scoreAudio', 'sngAudio', 'sdMedia'];
+/* written directly, read on demand, backed up explicitly (see above) */
+const DIRECT_STORES = ['sdNoteTypes', 'sdNotes', 'sdCards', 'sdDecks', 'sdPresets', 'sdRevlog', 'sdMisc'];
+const textTables = () => db.tables.filter(t => !BINARY_STORES.includes(t.name) && !DIRECT_STORES.includes(t.name));
+const directTables = () => db.tables.filter(t => DIRECT_STORES.includes(t.name));
 async function readAllStores(){ const rows = {}; for(const t of textTables()) rows[t.name] = await t.toArray(); return rows; }
 async function writeAllStores(rows){
   /* the same rule as persist: serialise before the write, so what is recorded
@@ -425,6 +443,8 @@ const LAST_BACKUP_KEY = 'lastBackupDate';
 async function exportToJSON(){
   await flushSave();
   const data = {}; for(const t of textTables()) data[t.name] = await t.toArray();
+  if(typeof sdFlush === 'function') await sdFlush();
+  for(const t of directTables()) data[t.name] = await t.toArray();
   const payload = {version: 1, exportedAt: new Date().toISOString(), data};
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `backup-${today()}.json`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
@@ -449,6 +469,13 @@ function normaliseBackup(obj){
 async function importBackup(obj){
   const rows = {}; for(const t of textTables()) rows[t.name] = Array.isArray(obj.data[t.name]) ? obj.data[t.name] : [];
   await writeAllStores(rows);
+  /* the Study Deck's own stores come back only when the backup has them: an
+     older backup, from before them, must not empty a collection */
+  if(DIRECT_STORES.some(k => Array.isArray(obj.data[k]))){
+    await db.transaction('rw', directTables(), async tx => { for(const t of directTables()){ const table = tx[t.name] || tx.table(t.name);
+      if(!Array.isArray(obj.data[t.name])) continue; await table.clear(); if(obj.data[t.name].length) await table.bulkPut(obj.data[t.name]); } });
+    if(typeof sdReset === 'function') sdReset();
+  }
   S = storesToState(rows); migrate();
 }
 function daysSinceBackup(){ let d = null; try { d = localStorage.getItem(LAST_BACKUP_KEY); } catch(e){} return d ? daysSince(d) : null; }

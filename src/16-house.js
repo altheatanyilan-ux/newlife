@@ -311,8 +311,7 @@ function mainRoomHTML(){
     && (x.horizon === 'focus' || x.horizon === 'active'));
   /* read, do not build: asking the Study Deck for a count it has never had
      would seed the whole thing for somebody who has never opened it */
-  const cardsDue = (S.study && Array.isArray(S.study.cards))
-    ? S.study.cards.filter(c => c.status === 'active' && (c.due || '') <= today()).length : 0;
+  const cardsDue = typeof sdDueCount === 'function' ? sdDueCount() : ((S.sdSummary && S.sdSummary.due) || 0);
   const stack = clamp(Math.floor(musical / 2), 0, 4);
   const drinks  = (S.entries || []).filter(e => e.type === 'drink').length;
 

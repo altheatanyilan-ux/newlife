@@ -80,7 +80,7 @@ const TIME_LINK_SOURCES = {
   skill:   () => (S.skills || []).filter(s => !s.archived).map(s => [s.id, s.name]),
   vision:  () => (S.visions || []).map(v => [v.id, v.title || v.name || 'a vision']),
   task:    () => (S.tasks || []).filter(t => !t.done).slice(0, 200).map(t => [t.id, t.title]),
-  deck:    () => (S.study && S.study.decks || []).map(d => [d.id, d.name]),
+  deck:    () => ((S.sdSummary && S.sdSummary.decks) || []).map(([id, name]) => [id, name]),
   journal: () => [],
 };
 const timeLinkName = k => ({score:'a score', project:'a project', person:'a person',

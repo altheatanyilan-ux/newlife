@@ -149,6 +149,42 @@ if(osmd){
   out = at > -1 ? out.slice(0, at) + tag + out.slice(at) : out + tag;
 }
 
+/* The Study Deck's libraries, all MIT/Apache and all inlined, none fetched:
+   ts-fsrs (the FSRS scheduler), sql.js (SQLite as WebAssembly — the .wasm
+   carried as base64 — to read Anki's .apkg/.colpkg databases), fflate (zip
+   and deflate), fzstd (zstd, for Anki's newest format) and KaTeX (maths,
+   rendered offline, its fonts folded into its stylesheet as data URLs).
+   Like the engraver they are a payload: text the browser keeps and does not
+   parse until the deck asks for them — the importer only when a deck is
+   imported. */
+let sdLib = null;
+{
+  const nm = f => path.join(__dirname, 'node_modules', f);
+  const read = f => fs.existsSync(nm(f)) ? fs.readFileSync(nm(f), 'utf8') : '';
+  const lib = {
+    fsrs: read('ts-fsrs/dist/index.umd.js'),
+    sqljs: read('sql.js/dist/sql-wasm.js'),
+    wasm: fs.existsSync(nm('sql.js/dist/sql-wasm.wasm')) ? fs.readFileSync(nm('sql.js/dist/sql-wasm.wasm')).toString('base64') : '',
+    fflate: read('fflate/umd/index.js'),
+    fzstd: read('fzstd/umd/index.js'),
+    katex: read('katex/dist/katex.min.js'),
+    katexCss: read('katex/dist/katex.min.css').replace(/url\((fonts\/[^)]+?\.woff2)\)\s*format\("woff2"\)(,\s*url\([^)]+\)\s*format\("[^"]+"\))*/g, (m, f) => {
+      const file = nm('katex/dist/' + f);
+      return fs.existsSync(file) ? `url(data:font/woff2;base64,${fs.readFileSync(file).toString('base64')}) format("woff2")` : m;
+    })
+  };
+  if(Object.values(lib).some(v => v)){
+    const json = JSON.stringify(lib);
+    if(json.includes('</script')) { console.error('BUILD FAILED — a Study Deck library contains a closing script tag.'); process.exit(1); }
+    sdLib = json;
+  }
+}
+if(sdLib){
+  const tag = `<script type="text/plain" id="sdLibSrc">\n${sdLib.replace(/<\//g, '<\\/')}\n<\/script>\n`;
+  const at = out.lastIndexOf('</body>');
+  out = at > -1 ? out.slice(0, at) + tag + out.slice(at) : out + tag;
+}
+
 /* The grand piano: thirty recorded notes of the Salamander Grand Piano V3
    (vendor/salamander, CC BY 3.0 — see its LICENSE.md), in the same kind of
    payload as the engraver: text the browser stores and never parses, turned
@@ -241,6 +277,7 @@ function stampServiceWorker(){
 const build = stampServiceWorker();
 console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}`
   + ` — score engraver: ${osmd ? `OSMD (${(osmd.length/1024).toFixed(0)} KB, parsed on first use)` : 'not installed'}`
+  + ` — study deck libraries: ${sdLib ? `${(sdLib.length/1024).toFixed(0)} KB (FSRS, SQLite, zip, zstd, KaTeX), parsed on first use` : 'not installed'}`
   + ` — grand piano: ${piano ? `${Object.keys(piano).length} samples (${(pianoBytes/1024).toFixed(0)} KB)` : 'not fetched (sh tools/fetch-grand-piano.sh)'}`
   + ` — instruments: ${gm ? `${Object.keys(gm).length} (${gmNotes} samples, ${(gmBytes/1024).toFixed(0)} KB)` : 'not fetched (sh tools/fetch-gm-instruments.sh)'}`
   + ` — orchestra: ${orch ? `${Object.keys(orch.manifest.instruments).length} (${orchFiles} samples, ${(orchBytes/1024).toFixed(0)} KB)` : 'not built (node tools/build-orchestra-lite.js)'}`
