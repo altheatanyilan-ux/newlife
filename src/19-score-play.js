@@ -574,6 +574,8 @@ function plxDrum(ctx, dest, midi, t, vel){
    noise rather than a hit. Anything else is the old stand-in. */
 const PLX_METAL = [1, 1.483, 1.932, 2.546, 2.63, 3.897];
 function plxKit(ctx, dest, midi, t, vel, dur){
+  /* the recorded kit, where the page carries it and it is loaded */
+  if(typeof orchKitHit === 'function' && orchKitHit(ctx, dest, midi, t, vel, dur)) return;
   const v = Math.max(0.03, Math.min(1, vel == null ? 0.6 : vel));
   const noise = (type, freq, q, peak, decay, attack) => {
     const n = ctx.createBufferSource(); n.buffer = plxNoise(ctx); n.loop = true;
@@ -1190,7 +1192,7 @@ function scorePlayAttach(bar, cfg){
   const soundsFor = t => {
     const muted = new Set(saved.muted);
     const ids = new Set();
-    t.parts.forEach((p, pi) => { if(!muted.has(`p:${pi}`)) ids.add(p.inst === 'drums' ? 'piano' : (p.inst || 'piano')); });
+    t.parts.forEach((p, pi) => { if(!muted.has(`p:${pi}`)) ids.add(p.inst === 'drums' ? 'kit' : (p.inst || 'piano')); });
     if(t.chords) ids.add('piano');
     return [...ids];
   };

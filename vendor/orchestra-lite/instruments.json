@@ -1,0 +1,1970 @@
+{
+ "version": 1,
+ "sampleRate": 22050,
+ "instruments": {
+  "bass-pizz": {
+   "name": "Double bass, pizzicato",
+   "family": "band",
+   "kind": "pitched",
+   "source": "1958 Otto Rubner double bass, D. Smolken",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 31,
+     "tune": 4,
+     "file": "bass-pizz/31.mp3"
+    },
+    {
+     "midi": 38,
+     "tune": 2,
+     "file": "bass-pizz/38.mp3"
+    },
+    {
+     "midi": 41,
+     "tune": 5,
+     "file": "bass-pizz/41.mp3"
+    },
+    {
+     "midi": 45,
+     "tune": -1,
+     "file": "bass-pizz/45.mp3"
+    },
+    {
+     "midi": 48,
+     "tune": 3,
+     "file": "bass-pizz/48.mp3"
+    },
+    {
+     "midi": 52,
+     "tune": -3,
+     "file": "bass-pizz/52.mp3"
+    },
+    {
+     "midi": 55,
+     "tune": 4,
+     "file": "bass-pizz/55.mp3"
+    },
+    {
+     "midi": 57,
+     "tune": 9,
+     "file": "bass-pizz/57.mp3"
+    }
+   ],
+   "range": [
+    31,
+    57
+   ]
+  },
+  "tenor-sax": {
+   "name": "Tenor saxophone",
+   "family": "band",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 44,
+     "tune": 0,
+     "file": "tenor-sax/44.mp3"
+    },
+    {
+     "midi": 50,
+     "tune": 0,
+     "file": "tenor-sax/50.mp3"
+    },
+    {
+     "midi": 56,
+     "tune": 0,
+     "file": "tenor-sax/56.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": 0,
+     "file": "tenor-sax/62.mp3"
+    },
+    {
+     "midi": 68,
+     "tune": 0,
+     "file": "tenor-sax/68.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": 0,
+     "file": "tenor-sax/74.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": 0,
+     "file": "tenor-sax/76.mp3"
+    }
+   ],
+   "range": [
+    44,
+    76
+   ]
+  },
+  "trumpet": {
+   "name": "Trumpet",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 53,
+     "tune": -2,
+     "file": "trumpet/53.mp3"
+    },
+    {
+     "midi": 57,
+     "tune": -5,
+     "file": "trumpet/57.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": -4,
+     "file": "trumpet/60.mp3"
+    },
+    {
+     "midi": 63,
+     "tune": 4,
+     "file": "trumpet/63.mp3"
+    },
+    {
+     "midi": 67,
+     "tune": 2,
+     "file": "trumpet/67.mp3"
+    },
+    {
+     "midi": 70,
+     "tune": 2,
+     "file": "trumpet/70.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": 1,
+     "file": "trumpet/74.mp3"
+    },
+    {
+     "midi": 77,
+     "tune": -4,
+     "file": "trumpet/77.mp3"
+    },
+    {
+     "midi": 81,
+     "tune": 0,
+     "file": "trumpet/81.mp3"
+    },
+    {
+     "midi": 84,
+     "tune": -5,
+     "file": "trumpet/84.mp3"
+    }
+   ],
+   "range": [
+    53,
+    84
+   ]
+  },
+  "trombone": {
+   "name": "Tenor trombone",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 39,
+     "tune": -2,
+     "file": "trombone/39.mp3"
+    },
+    {
+     "midi": 46,
+     "tune": 0,
+     "file": "trombone/46.mp3"
+    },
+    {
+     "midi": 50,
+     "tune": 2,
+     "file": "trombone/50.mp3"
+    },
+    {
+     "midi": 53,
+     "tune": 0,
+     "file": "trombone/53.mp3"
+    },
+    {
+     "midi": 61,
+     "tune": 0,
+     "file": "trombone/61.mp3"
+    },
+    {
+     "midi": 63,
+     "tune": 0,
+     "file": "trombone/63.mp3"
+    }
+   ],
+   "range": [
+    39,
+    63
+   ]
+  },
+  "vibraphone": {
+   "name": "Vibraphone",
+   "family": "band",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 53,
+     "tune": -5,
+     "file": "vibraphone/53.mp3"
+    },
+    {
+     "midi": 57,
+     "tune": -1,
+     "file": "vibraphone/57.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": -1,
+     "file": "vibraphone/60.mp3"
+    },
+    {
+     "midi": 64,
+     "tune": 0,
+     "file": "vibraphone/64.mp3"
+    },
+    {
+     "midi": 67,
+     "tune": 0,
+     "file": "vibraphone/67.mp3"
+    },
+    {
+     "midi": 71,
+     "tune": 0,
+     "file": "vibraphone/71.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": 0,
+     "file": "vibraphone/74.mp3"
+    },
+    {
+     "midi": 77,
+     "tune": 0,
+     "file": "vibraphone/77.mp3"
+    },
+    {
+     "midi": 81,
+     "tune": 0,
+     "file": "vibraphone/81.mp3"
+    },
+    {
+     "midi": 84,
+     "tune": 0,
+     "file": "vibraphone/84.mp3"
+    },
+    {
+     "midi": 88,
+     "tune": 0,
+     "file": "vibraphone/88.mp3"
+    }
+   ],
+   "range": [
+    53,
+    88
+   ]
+  },
+  "violins": {
+   "name": "Violins (section)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 55,
+     "tune": 1,
+     "file": "violins/55.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": -2,
+     "file": "violins/62.mp3"
+    },
+    {
+     "midi": 66,
+     "tune": 11,
+     "file": "violins/66.mp3"
+    },
+    {
+     "midi": 69,
+     "tune": 2,
+     "file": "violins/69.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 0,
+     "file": "violins/72.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": 1,
+     "file": "violins/76.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": 2,
+     "file": "violins/79.mp3"
+    },
+    {
+     "midi": 83,
+     "tune": -3,
+     "file": "violins/83.mp3"
+    },
+    {
+     "midi": 86,
+     "tune": 6,
+     "file": "violins/86.mp3"
+    }
+   ],
+   "range": [
+    55,
+    86
+   ]
+  },
+  "violins-pizz": {
+   "name": "Violins, pizzicato",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 55,
+     "tune": 0,
+     "file": "violins-pizz/55.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": -1,
+     "file": "violins-pizz/62.mp3"
+    },
+    {
+     "midi": 66,
+     "tune": 3,
+     "file": "violins-pizz/66.mp3"
+    },
+    {
+     "midi": 69,
+     "tune": 12,
+     "file": "violins-pizz/69.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 5,
+     "file": "violins-pizz/72.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": 0,
+     "file": "violins-pizz/76.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": 0,
+     "file": "violins-pizz/79.mp3"
+    },
+    {
+     "midi": 83,
+     "tune": -10,
+     "file": "violins-pizz/83.mp3"
+    },
+    {
+     "midi": 86,
+     "tune": -34,
+     "file": "violins-pizz/86.mp3"
+    }
+   ],
+   "range": [
+    55,
+    86
+   ]
+  },
+  "violin-solo": {
+   "name": "Violin (solo)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 55,
+     "tune": -6,
+     "file": "violin-solo/55.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": -31,
+     "file": "violin-solo/60.mp3"
+    },
+    {
+     "midi": 64,
+     "tune": 5,
+     "file": "violin-solo/64.mp3"
+    },
+    {
+     "midi": 67,
+     "tune": -5,
+     "file": "violin-solo/67.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 1,
+     "file": "violin-solo/72.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": 0,
+     "file": "violin-solo/76.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": 5,
+     "file": "violin-solo/79.mp3"
+    },
+    {
+     "midi": 84,
+     "tune": 0,
+     "file": "violin-solo/84.mp3"
+    },
+    {
+     "midi": 88,
+     "tune": -3,
+     "file": "violin-solo/88.mp3"
+    },
+    {
+     "midi": 91,
+     "tune": -34,
+     "file": "violin-solo/91.mp3"
+    },
+    {
+     "midi": 96,
+     "tune": 0,
+     "file": "violin-solo/96.mp3"
+    }
+   ],
+   "range": [
+    55,
+    96
+   ]
+  },
+  "violas": {
+   "name": "Violas (section)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 48,
+     "tune": 0,
+     "file": "violas/48.mp3"
+    },
+    {
+     "midi": 55,
+     "tune": -6,
+     "file": "violas/55.mp3"
+    },
+    {
+     "midi": 59,
+     "tune": 4,
+     "file": "violas/59.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": -7,
+     "file": "violas/62.mp3"
+    },
+    {
+     "midi": 65,
+     "tune": 13,
+     "file": "violas/65.mp3"
+    },
+    {
+     "midi": 69,
+     "tune": -3,
+     "file": "violas/69.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 0,
+     "file": "violas/72.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": -12,
+     "file": "violas/76.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": -14,
+     "file": "violas/79.mp3"
+    },
+    {
+     "midi": 83,
+     "tune": 7,
+     "file": "violas/83.mp3"
+    },
+    {
+     "midi": 86,
+     "tune": -1,
+     "file": "violas/86.mp3"
+    }
+   ],
+   "range": [
+    48,
+    86
+   ]
+  },
+  "violas-pizz": {
+   "name": "Violas, pizzicato",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 48,
+     "tune": 0,
+     "file": "violas-pizz/48.mp3"
+    },
+    {
+     "midi": 52,
+     "tune": 0,
+     "file": "violas-pizz/52.mp3"
+    },
+    {
+     "midi": 55,
+     "tune": -1,
+     "file": "violas-pizz/55.mp3"
+    },
+    {
+     "midi": 59,
+     "tune": -3,
+     "file": "violas-pizz/59.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": -1,
+     "file": "violas-pizz/62.mp3"
+    },
+    {
+     "midi": 65,
+     "tune": 16,
+     "file": "violas-pizz/65.mp3"
+    },
+    {
+     "midi": 69,
+     "tune": -13,
+     "file": "violas-pizz/69.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 10,
+     "file": "violas-pizz/72.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": 3,
+     "file": "violas-pizz/76.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": -9,
+     "file": "violas-pizz/79.mp3"
+    },
+    {
+     "midi": 83,
+     "tune": -9,
+     "file": "violas-pizz/83.mp3"
+    }
+   ],
+   "range": [
+    48,
+    83
+   ]
+  },
+  "celli": {
+   "name": "Cellos (section)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 36,
+     "tune": 0,
+     "file": "celli/36.mp3"
+    },
+    {
+     "midi": 40,
+     "tune": -4,
+     "file": "celli/40.mp3"
+    },
+    {
+     "midi": 43,
+     "tune": -1,
+     "file": "celli/43.mp3"
+    },
+    {
+     "midi": 47,
+     "tune": 0,
+     "file": "celli/47.mp3"
+    },
+    {
+     "midi": 50,
+     "tune": 6,
+     "file": "celli/50.mp3"
+    },
+    {
+     "midi": 53,
+     "tune": -2,
+     "file": "celli/53.mp3"
+    },
+    {
+     "midi": 57,
+     "tune": 0,
+     "file": "celli/57.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": 11,
+     "file": "celli/60.mp3"
+    },
+    {
+     "midi": 64,
+     "tune": -6,
+     "file": "celli/64.mp3"
+    },
+    {
+     "midi": 67,
+     "tune": 1,
+     "file": "celli/67.mp3"
+    },
+    {
+     "midi": 71,
+     "tune": 7,
+     "file": "celli/71.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": -11,
+     "file": "celli/74.mp3"
+    },
+    {
+     "midi": 77,
+     "tune": -13,
+     "file": "celli/77.mp3"
+    }
+   ],
+   "range": [
+    36,
+    77
+   ]
+  },
+  "celli-pizz": {
+   "name": "Cellos, pizzicato",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 36,
+     "tune": 0,
+     "file": "celli-pizz/36.mp3"
+    },
+    {
+     "midi": 40,
+     "tune": -2,
+     "file": "celli-pizz/40.mp3"
+    },
+    {
+     "midi": 43,
+     "tune": 1,
+     "file": "celli-pizz/43.mp3"
+    },
+    {
+     "midi": 47,
+     "tune": 2,
+     "file": "celli-pizz/47.mp3"
+    },
+    {
+     "midi": 50,
+     "tune": 7,
+     "file": "celli-pizz/50.mp3"
+    },
+    {
+     "midi": 53,
+     "tune": -1,
+     "file": "celli-pizz/53.mp3"
+    },
+    {
+     "midi": 57,
+     "tune": 5,
+     "file": "celli-pizz/57.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": 3,
+     "file": "celli-pizz/60.mp3"
+    },
+    {
+     "midi": 64,
+     "tune": -1,
+     "file": "celli-pizz/64.mp3"
+    },
+    {
+     "midi": 67,
+     "tune": 2,
+     "file": "celli-pizz/67.mp3"
+    },
+    {
+     "midi": 71,
+     "tune": 3,
+     "file": "celli-pizz/71.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": 0,
+     "file": "celli-pizz/74.mp3"
+    }
+   ],
+   "range": [
+    36,
+    74
+   ]
+  },
+  "basses": {
+   "name": "Double basses (arco)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 31,
+     "tune": 0,
+     "file": "basses/31.mp3"
+    },
+    {
+     "midi": 34,
+     "tune": -2,
+     "file": "basses/34.mp3"
+    },
+    {
+     "midi": 40,
+     "tune": 1,
+     "file": "basses/40.mp3"
+    },
+    {
+     "midi": 45,
+     "tune": 0,
+     "file": "basses/45.mp3"
+    },
+    {
+     "midi": 49,
+     "tune": -3,
+     "file": "basses/49.mp3"
+    },
+    {
+     "midi": 52,
+     "tune": -2,
+     "file": "basses/52.mp3"
+    },
+    {
+     "midi": 56,
+     "tune": 9,
+     "file": "basses/56.mp3"
+    },
+    {
+     "midi": 59,
+     "tune": -1,
+     "file": "basses/59.mp3"
+    }
+   ],
+   "range": [
+    31,
+    59
+   ]
+  },
+  "harp": {
+   "name": "Harp",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 28,
+     "tune": -19,
+     "file": "harp/28.mp3"
+    },
+    {
+     "midi": 31,
+     "tune": -21,
+     "file": "harp/31.mp3"
+    },
+    {
+     "midi": 35,
+     "tune": -15,
+     "file": "harp/35.mp3"
+    },
+    {
+     "midi": 38,
+     "tune": -5,
+     "file": "harp/38.mp3"
+    },
+    {
+     "midi": 41,
+     "tune": -8,
+     "file": "harp/41.mp3"
+    },
+    {
+     "midi": 45,
+     "tune": -4,
+     "file": "harp/45.mp3"
+    },
+    {
+     "midi": 48,
+     "tune": -3,
+     "file": "harp/48.mp3"
+    },
+    {
+     "midi": 52,
+     "tune": -4,
+     "file": "harp/52.mp3"
+    },
+    {
+     "midi": 55,
+     "tune": -7,
+     "file": "harp/55.mp3"
+    },
+    {
+     "midi": 59,
+     "tune": -9,
+     "file": "harp/59.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": -13,
+     "file": "harp/62.mp3"
+    },
+    {
+     "midi": 65,
+     "tune": -2,
+     "file": "harp/65.mp3"
+    },
+    {
+     "midi": 69,
+     "tune": -13,
+     "file": "harp/69.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": -13,
+     "file": "harp/72.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": -17,
+     "file": "harp/76.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": -7,
+     "file": "harp/79.mp3"
+    },
+    {
+     "midi": 83,
+     "tune": -10,
+     "file": "harp/83.mp3"
+    },
+    {
+     "midi": 86,
+     "tune": -7,
+     "file": "harp/86.mp3"
+    },
+    {
+     "midi": 89,
+     "tune": -6,
+     "file": "harp/89.mp3"
+    },
+    {
+     "midi": 93,
+     "tune": -19,
+     "file": "harp/93.mp3"
+    },
+    {
+     "midi": 98,
+     "tune": -8,
+     "file": "harp/98.mp3"
+    },
+    {
+     "midi": 101,
+     "tune": -29,
+     "file": "harp/101.mp3"
+    }
+   ],
+   "range": [
+    28,
+    101
+   ]
+  },
+  "piccolo": {
+   "name": "Piccolo",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 79,
+     "tune": -17,
+     "file": "piccolo/79.mp3"
+    },
+    {
+     "midi": 84,
+     "tune": -3,
+     "file": "piccolo/84.mp3"
+    },
+    {
+     "midi": 91,
+     "tune": 8,
+     "file": "piccolo/91.mp3"
+    },
+    {
+     "midi": 96,
+     "tune": 7,
+     "file": "piccolo/96.mp3"
+    },
+    {
+     "midi": 103,
+     "tune": 0,
+     "file": "piccolo/103.mp3"
+    }
+   ],
+   "range": [
+    79,
+    103
+   ]
+  },
+  "flute": {
+   "name": "Flute",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 60,
+     "tune": -7,
+     "file": "flute/60.mp3"
+    },
+    {
+     "midi": 64,
+     "tune": -6,
+     "file": "flute/64.mp3"
+    },
+    {
+     "midi": 69,
+     "tune": -4,
+     "file": "flute/69.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 2,
+     "file": "flute/72.mp3"
+    },
+    {
+     "midi": 76,
+     "tune": 5,
+     "file": "flute/76.mp3"
+    },
+    {
+     "midi": 81,
+     "tune": -5,
+     "file": "flute/81.mp3"
+    },
+    {
+     "midi": 84,
+     "tune": -11,
+     "file": "flute/84.mp3"
+    },
+    {
+     "midi": 88,
+     "tune": -1,
+     "file": "flute/88.mp3"
+    },
+    {
+     "midi": 93,
+     "tune": 0,
+     "file": "flute/93.mp3"
+    },
+    {
+     "midi": 96,
+     "tune": 1,
+     "file": "flute/96.mp3"
+    }
+   ],
+   "range": [
+    60,
+    96
+   ]
+  },
+  "oboe": {
+   "name": "Oboe",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 58,
+     "tune": 1,
+     "file": "oboe/58.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": -2,
+     "file": "oboe/62.mp3"
+    },
+    {
+     "midi": 65,
+     "tune": -5,
+     "file": "oboe/65.mp3"
+    },
+    {
+     "midi": 70,
+     "tune": -7,
+     "file": "oboe/70.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": -1,
+     "file": "oboe/74.mp3"
+    },
+    {
+     "midi": 77,
+     "tune": 0,
+     "file": "oboe/77.mp3"
+    },
+    {
+     "midi": 82,
+     "tune": -12,
+     "file": "oboe/82.mp3"
+    },
+    {
+     "midi": 86,
+     "tune": -16,
+     "file": "oboe/86.mp3"
+    },
+    {
+     "midi": 89,
+     "tune": -11,
+     "file": "oboe/89.mp3"
+    }
+   ],
+   "range": [
+    58,
+    89
+   ]
+  },
+  "clarinet": {
+   "name": "Clarinet",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 50,
+     "tune": 5,
+     "file": "clarinet/50.mp3"
+    },
+    {
+     "midi": 53,
+     "tune": 3,
+     "file": "clarinet/53.mp3"
+    },
+    {
+     "midi": 58,
+     "tune": 1,
+     "file": "clarinet/58.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": 5,
+     "file": "clarinet/62.mp3"
+    },
+    {
+     "midi": 65,
+     "tune": 2,
+     "file": "clarinet/65.mp3"
+    },
+    {
+     "midi": 70,
+     "tune": 2,
+     "file": "clarinet/70.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": 3,
+     "file": "clarinet/74.mp3"
+    },
+    {
+     "midi": 77,
+     "tune": 2,
+     "file": "clarinet/77.mp3"
+    },
+    {
+     "midi": 82,
+     "tune": 3,
+     "file": "clarinet/82.mp3"
+    },
+    {
+     "midi": 86,
+     "tune": 0,
+     "file": "clarinet/86.mp3"
+    },
+    {
+     "midi": 90,
+     "tune": 0,
+     "file": "clarinet/90.mp3"
+    }
+   ],
+   "range": [
+    50,
+    90
+   ]
+  },
+  "bassoon": {
+   "name": "Bassoon",
+   "family": "woodwinds",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 34,
+     "tune": 0,
+     "file": "bassoon/34.mp3"
+    },
+    {
+     "midi": 37,
+     "tune": 0,
+     "file": "bassoon/37.mp3"
+    },
+    {
+     "midi": 41,
+     "tune": 0,
+     "file": "bassoon/41.mp3"
+    },
+    {
+     "midi": 46,
+     "tune": 1,
+     "file": "bassoon/46.mp3"
+    },
+    {
+     "midi": 55,
+     "tune": 1,
+     "file": "bassoon/55.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": 0,
+     "file": "bassoon/60.mp3"
+    },
+    {
+     "midi": 63,
+     "tune": 1,
+     "file": "bassoon/63.mp3"
+    },
+    {
+     "midi": 68,
+     "tune": 0,
+     "file": "bassoon/68.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 1,
+     "file": "bassoon/72.mp3"
+    },
+    {
+     "midi": 75,
+     "tune": 0,
+     "file": "bassoon/75.mp3"
+    }
+   ],
+   "range": [
+    34,
+    75
+   ]
+  },
+  "horn": {
+   "name": "French horn",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 33,
+     "tune": -9,
+     "file": "horn/33.mp3"
+    },
+    {
+     "midi": 36,
+     "tune": -8,
+     "file": "horn/36.mp3"
+    },
+    {
+     "midi": 39,
+     "tune": -9,
+     "file": "horn/39.mp3"
+    },
+    {
+     "midi": 43,
+     "tune": 2,
+     "file": "horn/43.mp3"
+    },
+    {
+     "midi": 46,
+     "tune": -4,
+     "file": "horn/46.mp3"
+    },
+    {
+     "midi": 50,
+     "tune": 7,
+     "file": "horn/50.mp3"
+    },
+    {
+     "midi": 53,
+     "tune": -8,
+     "file": "horn/53.mp3"
+    },
+    {
+     "midi": 57,
+     "tune": -4,
+     "file": "horn/57.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": -6,
+     "file": "horn/60.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": 5,
+     "file": "horn/74.mp3"
+    },
+    {
+     "midi": 77,
+     "tune": 1,
+     "file": "horn/77.mp3"
+    }
+   ],
+   "range": [
+    33,
+    77
+   ]
+  },
+  "tuba": {
+   "name": "Tuba",
+   "family": "brass",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 29,
+     "tune": -33,
+     "file": "tuba/29.mp3"
+    },
+    {
+     "midi": 34,
+     "tune": -7,
+     "file": "tuba/34.mp3"
+    },
+    {
+     "midi": 39,
+     "tune": -2,
+     "file": "tuba/39.mp3"
+    },
+    {
+     "midi": 46,
+     "tune": 4,
+     "file": "tuba/46.mp3"
+    },
+    {
+     "midi": 50,
+     "tune": -5,
+     "file": "tuba/50.mp3"
+    },
+    {
+     "midi": 53,
+     "tune": -7,
+     "file": "tuba/53.mp3"
+    },
+    {
+     "midi": 58,
+     "tune": 4,
+     "file": "tuba/58.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": -4,
+     "file": "tuba/62.mp3"
+    }
+   ],
+   "range": [
+    29,
+    62
+   ]
+  },
+  "organ": {
+   "name": "Pipe organ",
+   "family": "keys",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": true,
+   "notes": [
+    {
+     "midi": 24,
+     "tune": 2,
+     "file": "organ/24.mp3"
+    },
+    {
+     "midi": 27,
+     "tune": 4,
+     "file": "organ/27.mp3"
+    },
+    {
+     "midi": 30,
+     "tune": 1,
+     "file": "organ/30.mp3"
+    },
+    {
+     "midi": 33,
+     "tune": 0,
+     "file": "organ/33.mp3"
+    },
+    {
+     "midi": 36,
+     "tune": 2,
+     "file": "organ/36.mp3"
+    },
+    {
+     "midi": 39,
+     "tune": 5,
+     "file": "organ/39.mp3"
+    },
+    {
+     "midi": 42,
+     "tune": 3,
+     "file": "organ/42.mp3"
+    },
+    {
+     "midi": 45,
+     "tune": 0,
+     "file": "organ/45.mp3"
+    },
+    {
+     "midi": 48,
+     "tune": -3,
+     "file": "organ/48.mp3"
+    },
+    {
+     "midi": 51,
+     "tune": -1,
+     "file": "organ/51.mp3"
+    },
+    {
+     "midi": 54,
+     "tune": -1,
+     "file": "organ/54.mp3"
+    },
+    {
+     "midi": 60,
+     "tune": -2,
+     "file": "organ/60.mp3"
+    },
+    {
+     "midi": 63,
+     "tune": -4,
+     "file": "organ/63.mp3"
+    },
+    {
+     "midi": 69,
+     "tune": -1,
+     "file": "organ/69.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": -1,
+     "file": "organ/72.mp3"
+    },
+    {
+     "midi": 78,
+     "tune": 1,
+     "file": "organ/78.mp3"
+    },
+    {
+     "midi": 87,
+     "tune": -2,
+     "file": "organ/87.mp3"
+    },
+    {
+     "midi": 90,
+     "tune": -1,
+     "file": "organ/90.mp3"
+    },
+    {
+     "midi": 96,
+     "tune": -8,
+     "file": "organ/96.mp3"
+    }
+   ],
+   "range": [
+    24,
+    96
+   ]
+  },
+  "harpsichord": {
+   "name": "Harpsichord",
+   "family": "keys",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 30,
+     "tune": 3,
+     "file": "harpsichord/30.mp3"
+    },
+    {
+     "midi": 34,
+     "tune": 4,
+     "file": "harpsichord/34.mp3"
+    },
+    {
+     "midi": 38,
+     "tune": 3,
+     "file": "harpsichord/38.mp3"
+    },
+    {
+     "midi": 42,
+     "tune": -1,
+     "file": "harpsichord/42.mp3"
+    },
+    {
+     "midi": 46,
+     "tune": 10,
+     "file": "harpsichord/46.mp3"
+    },
+    {
+     "midi": 50,
+     "tune": 7,
+     "file": "harpsichord/50.mp3"
+    },
+    {
+     "midi": 56,
+     "tune": 4,
+     "file": "harpsichord/56.mp3"
+    },
+    {
+     "midi": 62,
+     "tune": 2,
+     "file": "harpsichord/62.mp3"
+    },
+    {
+     "midi": 68,
+     "tune": 0,
+     "file": "harpsichord/68.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": 0,
+     "file": "harpsichord/74.mp3"
+    },
+    {
+     "midi": 80,
+     "tune": 1,
+     "file": "harpsichord/80.mp3"
+    },
+    {
+     "midi": 86,
+     "tune": -1,
+     "file": "harpsichord/86.mp3"
+    },
+    {
+     "midi": 88,
+     "tune": 0,
+     "file": "harpsichord/88.mp3"
+    }
+   ],
+   "range": [
+    30,
+    88
+   ]
+  },
+  "glockenspiel": {
+   "name": "Glockenspiel",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 79,
+     "tune": 3,
+     "file": "glockenspiel/79.mp3"
+    },
+    {
+     "midi": 84,
+     "tune": 10,
+     "file": "glockenspiel/84.mp3"
+    },
+    {
+     "midi": 91,
+     "tune": 11,
+     "file": "glockenspiel/91.mp3"
+    },
+    {
+     "midi": 96,
+     "tune": 15,
+     "file": "glockenspiel/96.mp3"
+    },
+    {
+     "midi": 103,
+     "tune": 0,
+     "file": "glockenspiel/103.mp3"
+    },
+    {
+     "midi": 108,
+     "tune": 0,
+     "file": "glockenspiel/108.mp3"
+    }
+   ],
+   "range": [
+    79,
+    108
+   ]
+  },
+  "xylophone": {
+   "name": "Xylophone",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 67,
+     "tune": 11,
+     "file": "xylophone/67.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 12,
+     "file": "xylophone/72.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": 24,
+     "file": "xylophone/79.mp3"
+    },
+    {
+     "midi": 84,
+     "tune": 15,
+     "file": "xylophone/84.mp3"
+    },
+    {
+     "midi": 91,
+     "tune": -7,
+     "file": "xylophone/91.mp3"
+    },
+    {
+     "midi": 96,
+     "tune": -5,
+     "file": "xylophone/96.mp3"
+    },
+    {
+     "midi": 103,
+     "tune": 0,
+     "file": "xylophone/103.mp3"
+    },
+    {
+     "midi": 108,
+     "tune": 0,
+     "file": "xylophone/108.mp3"
+    }
+   ],
+   "range": [
+    67,
+    108
+   ]
+  },
+  "marimba": {
+   "name": "Marimba",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 48,
+     "tune": 4,
+     "file": "marimba/48.mp3"
+    },
+    {
+     "midi": 55,
+     "tune": 0,
+     "file": "marimba/55.mp3"
+    },
+    {
+     "midi": 59,
+     "tune": 3,
+     "file": "marimba/59.mp3"
+    },
+    {
+     "midi": 65,
+     "tune": 0,
+     "file": "marimba/65.mp3"
+    },
+    {
+     "midi": 72,
+     "tune": 5,
+     "file": "marimba/72.mp3"
+    },
+    {
+     "midi": 79,
+     "tune": -2,
+     "file": "marimba/79.mp3"
+    },
+    {
+     "midi": 83,
+     "tune": 1,
+     "file": "marimba/83.mp3"
+    },
+    {
+     "midi": 89,
+     "tune": -1,
+     "file": "marimba/89.mp3"
+    },
+    {
+     "midi": 96,
+     "tune": 7,
+     "file": "marimba/96.mp3"
+    }
+   ],
+   "range": [
+    48,
+    96
+   ]
+  },
+  "tubular-bells": {
+   "name": "Tubular bells",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 60,
+     "tune": 0,
+     "file": "tubular-bells/60.mp3"
+    },
+    {
+     "midi": 70,
+     "tune": -1,
+     "file": "tubular-bells/70.mp3"
+    },
+    {
+     "midi": 74,
+     "tune": -31,
+     "file": "tubular-bells/74.mp3"
+    }
+   ],
+   "range": [
+    60,
+    74
+   ]
+  },
+  "timpani": {
+   "name": "Timpani",
+   "family": "percussion",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "sustain": false,
+   "notes": [
+    {
+     "midi": 37,
+     "tune": 24,
+     "file": "timpani/37.mp3"
+    },
+    {
+     "midi": 40,
+     "tune": -4,
+     "file": "timpani/40.mp3"
+    }
+   ],
+   "range": [
+    37,
+    40
+   ]
+  },
+  "ride": {
+   "name": "Ride cymbal",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "hits": [
+    {
+     "file": "ride/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "ride/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "hihat-closed": {
+   "name": "Hi-hat, closed",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "hits": [
+    {
+     "file": "hihat-closed/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "hihat-closed/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "hihat-open": {
+   "name": "Hi-hat, open",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "hits": [
+    {
+     "file": "hihat-open/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "hihat-open/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "kick": {
+   "name": "Bass drum (kit)",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "hits": [
+    {
+     "file": "kick/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "kick/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "snare": {
+   "name": "Snare drum",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "hits": [
+    {
+     "file": "snare/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "snare/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "cross-stick": {
+   "name": "Cross-stick",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "hits": [
+    {
+     "file": "cross-stick/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "cross-stick/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "crash": {
+   "name": "Crash cymbal",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Virtuosity Drums, Versilian Studios",
+   "hits": [
+    {
+     "file": "crash/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "crash/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "brush-stir": {
+   "name": "Brushes, stirred on the snare",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Swirly Drums, Karoryfer Samples",
+   "hits": [
+    {
+     "file": "brush-stir/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "brush-stir/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "brush-tap": {
+   "name": "Brushes, snare tap",
+   "family": "drums",
+   "kind": "hits",
+   "source": "Swirly Drums, Karoryfer Samples",
+   "hits": [
+    {
+     "file": "brush-tap/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "brush-tap/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "bass-drum": {
+   "name": "Bass drum (orchestral)",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "hits": [
+    {
+     "file": "bass-drum/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "bass-drum/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "snare-orch": {
+   "name": "Snare drum (orchestral)",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "hits": [
+    {
+     "file": "snare-orch/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "snare-orch/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "cymbals": {
+   "name": "Clash cymbals",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "hits": [
+    {
+     "file": "cymbals/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "cymbals/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "sus-cymbal": {
+   "name": "Suspended cymbal",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "hits": [
+    {
+     "file": "sus-cymbal/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "sus-cymbal/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "triangle": {
+   "name": "Triangle",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "hits": [
+    {
+     "file": "triangle/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "triangle/1.mp3",
+     "vel": 1
+    }
+   ]
+  },
+  "tambourine": {
+   "name": "Tambourine",
+   "family": "percussion",
+   "kind": "hits",
+   "source": "Versilian Community Sample Library (VCSL), Versilian Studios",
+   "hits": [
+    {
+     "file": "tambourine/0.mp3",
+     "vel": 0.5
+    },
+    {
+     "file": "tambourine/1.mp3",
+     "vel": 1
+    }
+   ]
+  }
+ }
+}

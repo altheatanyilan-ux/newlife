@@ -164,6 +164,8 @@ function sngTone(ctx, dest, tone, midi, t, dur, vel){
   sngOsc(ctx, 'triangle', hz, t, end, g); const g2 = ctx.createGain(); g2.gain.value = 0.3; g2.connect(g); sngOsc(ctx, 'sine', hz * 2, t, end, g2);
 }
 function sngBass(ctx, dest, midi, t, dur, vel, slide){
+  if(!slide && typeof instrumentNote === 'function' && typeof instrumentReady === 'function' && typeof orchestraAvailable === 'function' && orchestraAvailable()
+    && instrumentReady('acoustic_bass') && instrumentNote(ctx, dest, 'acoustic_bass', midi, t, dur, vel * 0.9, dur, 1)) return;
   const hz = sngHz(midi), end = t + dur + 0.4;
   const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(slide ? 400 : 700, t); f.connect(dest);
   const g = sngEnv(ctx, f, t, 0.006, (slide ? 0.55 : 0.4) * vel, 0.25, slide ? 0.8 : 0.45, 0.08, dur);
@@ -171,7 +173,10 @@ function sngBass(ctx, dest, midi, t, dur, vel, slide){
   if(slide){ o.frequency.setValueAtTime(hz * 1.5, t); o.frequency.exponentialRampToValueAtTime(hz, t + 0.06); }
   if(!slide){ const s = ctx.createGain(); s.gain.value = 0.6; s.connect(g); sngOsc(ctx, 'sine', hz, t, end, s); }
 }
+/* the recorded kit (19-instruments.js) where it is loaded; synthesised otherwise */
+const SNG_KIT_GM = {kick: 36, snare: 38, rimclick: 37, hat: 42, hatOpen: 46, ride: 51, brush: 24, surdo: 41};
 function sngDrum(ctx, dest, voice, t, vel){
+  if(typeof orchKitHit === 'function' && SNG_KIT_GM[voice] && orchKitHit(ctx, dest, SNG_KIT_GM[voice], t, vel * 0.9, 0.3)) return;
   const noise = (len, type, freq, q, peak, dec) => { const src = ctx.createBufferSource(); src.buffer = sngNoiseBuf(ctx);
     const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; if(q) f.Q.value = q;
     const g = ctx.createGain(); g.gain.setValueAtTime(peak * vel, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
@@ -235,6 +240,8 @@ function sngGroove(opts){
   const api = {
     start(){
       ctx = sngCtx(); if(!ctx) return false;
+      /* the recorded kit and bass, decoded in the background: the first bars may be synthesised */
+      if(typeof instrumentsLoad === 'function') try { instrumentsLoad(['kit', 'acoustic_bass']); } catch(e){}
       sngStopAll(); _sngNow = api;
       bus = ctx.createGain(); bus.gain.value = 0.85; bus.connect(ctx.destination);
       ['chords', 'bass', 'drums'].forEach(k => { gains[k] = ctx.createGain(); gains[k].gain.value = o.mute[k] ? 0 : (o.vol[k] == null ? 0.8 : o.vol[k]); gains[k].connect(bus); });

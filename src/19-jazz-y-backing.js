@@ -420,7 +420,7 @@ async function jzbStart(root, id){
   const tl = jazzBackingTimeline(plan);
   if(!tl.playable || !tl.choruses.length){ toast('There is nothing here for a band to play under.'); return false; }
   if(go){ go.textContent = 'Loading sounds…'; go.classList.add('loading'); }
-  try { if(typeof instrumentsLoad === 'function') await instrumentsLoad(['piano', 'acoustic_bass']); } catch(e){}
+  try { if(typeof instrumentsLoad === 'function') await instrumentsLoad(['piano', 'acoustic_bass', 'kit']); } catch(e){}
   if(go) go.classList.remove('loading');
   if(!root.isConnected) return false;
   if(typeof scorePlayStopAll === 'function') scorePlayStopAll();

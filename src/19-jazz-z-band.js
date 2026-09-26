@@ -154,7 +154,7 @@ function jzbcSpeak(key){
 async function jzbcPlayCard(root){
   const f = jazzUi().flash; if(!f) return;
   const card = f.cards[f.at]; const b = jazzBandCardSettings();
-  try { if(typeof instrumentsLoad === 'function') await instrumentsLoad(['piano', 'acoustic_bass']); } catch(e){}
+  try { if(typeof instrumentsLoad === 'function') await instrumentsLoad(['piano', 'acoustic_bass', 'kit']); } catch(e){}
   const built = jzbcCardTimeline(card, b);
   const ctx = typeof plxAudioCtx === 'function' ? plxAudioCtx() : null; if(!ctx) return;
   _jzbc.ctx = ctx;
@@ -286,9 +286,14 @@ function jazzTunePlaySettings(t){
   const d = {bpm: typeof jazzTempoOf === 'function' ? jazzTempoOf(t) : 120, choruses: 2, trading: false,
     bassStyle: style === 'bossa' ? 'two_feel' : ballad ? 'two_feel' : 'walking',
     drumStyle: style === 'bossa' ? 'bossa' : ballad ? 'ballad' : 'swing', comping: 'charleston',
-    melody: 0.6, showMelody: true, countIn: 1, swingRatio: 0.62};
-  all[t.id] = Object.assign(d, all[t.id] || {});
-  return all[t.id];
+    melody: 0.6, showMelody: true, countIn: 1, swingRatio: 0.62,
+    soloist: 'sax', soloDensity: 'medium', soloOutside: 1, soloSeed: 1, soloVol: 0.85};
+  /* filled in where it is kept, never replaced: the settings panel holds
+     this very object, and a copy put in its place would leave every later
+     change (the bass, the drums, the comping) written somewhere nobody reads */
+  const cur = all[t.id] = all[t.id] && typeof all[t.id] === 'object' ? all[t.id] : {};
+  Object.keys(d).forEach(k => { if(cur[k] === undefined) cur[k] = d[k]; });
+  return cur;
 }
 /* the chart's bars in the shape the band reads: the chords that change in
    each bar, moved to the key it is played in */
@@ -365,6 +370,13 @@ function jazzTuneTimeline(t, key, s){
       for(let x = 0; x < bpb * 2; x++){ if(rnd() < 0.45) events.push({q: b.q0 + x / 2, d: 0.2, midi: rnd() < 0.7 ? 38 : 36, vel: 0.35 + rnd() * 0.3,
         part: 2, staff: 1, voice: '2', inBar: x / 2, perf: b.i, perc: true, kit: true}); } });
     add(jzbComp(sb, s.comping, rnd), 3, null, band);
+    /* the soloist, in the solo choruses (19-jazz-zz-solo.js) */
+    if(kind === 'solo' && s.soloist && s.soloist !== 'none' && typeof jzsSolo === 'function'){
+      const keyPc = jzsKeyPc(key);
+      const line = jzsSolo(sb.map(b => Object.assign({}, b, {trade: perf[b.i].trade === 'drums' ? 'drums' : null})),
+        {inst: s.soloist, density: s.soloDensity, outside: s.soloOutside, keyPc, rnd: jzbRand(`${t.id}|${key}|${ci}|solo|${s.soloSeed || 1}`)});
+      line.forEach(n => { const b = barOf(n.q); events.push({q: n.q, d: n.d, midi: n.midi, vel: n.vel, part: 4, staff: 1, voice: '4', inBar: n.q - b.q0, perf: b.i, why: n.why, sym: n.sym}); });
+    }
     /* the melody in the head, moved to the key */
     if(mel && kind !== 'solo') mel.events.forEach(e => { if(e.chord || e.perf >= sb.length) return;
       events.push(Object.assign({}, e, {q: sb[e.perf].q0 + e.inBar, midi: e.midi + semis, part: 0, perf: sb[e.perf].i})); });
@@ -372,7 +384,8 @@ function jazzTuneTimeline(t, key, s){
     Q += bars.length * bpb;
   });
   events.sort((a, b) => a.q - b.q || a.part - b.part || a.midi - b.midi);
-  return {parts: [{name: 'Melody', inst: 'flute', staves: 1}, {name: 'Bass', inst: 'acoustic_bass'}, {name: 'Drums', inst: 'drums'}, {name: 'Comping', inst: 'piano'}],
+  return {parts: [{name: 'Melody', inst: 'flute', staves: 1}, {name: 'Bass', inst: 'acoustic_bass'}, {name: 'Drums', inst: 'drums'}, {name: 'Comping', inst: 'piano'},
+      {name: 'Soloist', inst: s.soloist && s.soloist !== 'none' ? s.soloist : 'piano'}],
     measures: [], perf, events, tempos: [{q: 0, bpm: s.bpm}], length: Q, choruses, playable: true, form, bpb, hasMelody: !!mel};
 }
 const _jzbt = {run: null};
@@ -395,12 +408,20 @@ function jazzTunePlayHTML(t){
       <label class="mono jzb-f">comping <select class="sel sm" id="jzbtComp">${opt(JZB_COMP, s.comping)}</select></label>
       <label class="mono jzb-f">count-in <select class="sel sm" id="jzbtCount">${opt([[0, 'none'], [1, '1 bar'], [2, '2 bars']], s.countIn)}</select></label>
     </div>
+    <div class="jzb-row" title="an improvised solo over the changes in the solo choruses, made by rule from the scale each chord allows">
+      <label class="mono jzb-f">soloist <select class="sel sm" id="jzbtSolo">${opt(JZS_SOLOISTS, s.soloist)}</select></label>
+      ${s.soloist && s.soloist !== 'none' ? `<label class="mono jzb-f">lines <select class="sel sm" id="jzbtSoloDen">${opt(JZS_DENSITY, s.soloDensity)}</select></label>
+      <label class="mono jzb-f">inside ↔ outside <input type="range" min="0" max="4" id="jzbtSoloOut" value="${s.soloOutside}"></label>
+      <button class="tbtn" id="jzbtSoloNew" title="the same rules, another solo">a new solo</button>
+      <button class="tbtn" id="jzbtSoloShow">${_jzbt.showSolo ? 'hide the solo' : 'show the solo'}</button>` : ''}
+    </div>
+    ${_jzbt.showSolo && s.soloist && s.soloist !== 'none' ? jzsExplainHTML(t, s) : ''}
     ${mel ? `<div class="jzb-row">
       <label class="mono jzb-f" title="heard: the melody's sound, whatever is shown">melody heard <select class="sel sm" id="jzbtMel">${opt([[0.8, 'full'], [0.3, 'quietly, as a guide'], [0, 'not at all']], s.melody)}</select></label>
       <label class="mono jzb-f" title="shown: the melody's notes, whatever is heard"><input type="checkbox" id="jzbtShow" ${s.showMelody ? 'checked' : ''}> melody shown</label>
     </div>
     <div class="jzbt-mel" id="jzbtMelBox" ${s.showMelody ? '' : 'hidden'}></div>` : ''}
-    <div class="jzb-show jzbt-show" id="jzbtShow" hidden>
+    <div class="jzb-show jzbt-show" id="jzbtNow" hidden>
       <div class="jzb-key serif" id="jzbtSec"></div>
       <div class="jzb-where mono" id="jzbtWhere"></div></div>
   </div>`;
@@ -411,7 +432,7 @@ function jzbtStop(){
   try { r.player.stop(); } catch(e){}
   if(!r.root.isConnected) return;
   const go = r.root.querySelector('#jzbtGo'); if(go){ go.textContent = '▶ Play the tune'; go.classList.remove('on'); }
-  const sh = r.root.querySelector('#jzbtShow'); if(sh) sh.hidden = true;
+  const sh = r.root.querySelector('#jzbtNow'); if(sh) sh.hidden = true;
   $$('.jt-bar.now', r.root).forEach(b => b.classList.remove('now'));
 }
 addEventListener('hashchange', () => { if(_jzbt.run) jzbtStop(); });
@@ -423,19 +444,19 @@ async function jzbtStart(root, t){
   if(!tl){ toast('This tune has no changes to play.'); return false; }
   const go = root.querySelector('#jzbtGo');
   if(go){ go.textContent = 'Loading sounds…'; go.classList.add('loading'); }
-  try { if(typeof instrumentsLoad === 'function') await instrumentsLoad(['piano', 'acoustic_bass'].concat(tl.hasMelody ? ['flute'] : [])); } catch(e){}
+  try { if(typeof instrumentsLoad === 'function') await instrumentsLoad(['piano', 'acoustic_bass', 'kit'].concat(tl.hasMelody ? ['flute'] : [], s.soloist && s.soloist !== 'none' ? [s.soloist] : [])); } catch(e){}
   if(go) go.classList.remove('loading');
   if(!root.isConnected) return false;
   if(typeof scorePlayStopAll === 'function') scorePlayStopAll();
   const straight = s.drumStyle === 'bossa' || s.drumStyle === 'straight';
   const player = scorePlayer(tl, {bpm: s.bpm, swing: straight ? 0 : jzbSwing(s.swingRatio, s.bpm), countIn: s.countIn,
-    volumes: {0: s.melody || 0, 1: 1, 2: 0.9, 3: 0.75}, muted: new Set(s.melody > 0 ? [] : ['p:0']),
+    volumes: {0: s.melody || 0, 1: 1, 2: 0.9, 3: 0.75, 4: s.soloVol == null ? 0.85 : s.soloVol}, muted: new Set((s.melody > 0 ? [] : ['p:0']).concat(s.soloist && s.soloist !== 'none' ? [] : ['p:4'])),
     onEnd: () => { if(_jzbt.run && _jzbt.run.player === player) jzbtStop(); }});
   if(!player.start()){ toast('This browser cannot make sound.'); return false; }
   const r = {t, root, player, tl, raf: 0, lastBar: -1};
   _jzbt.run = r;
   if(go){ go.textContent = '■ Stop'; go.classList.add('on'); }
-  const sh = root.querySelector('#jzbtShow'); if(sh) sh.hidden = false;
+  const sh = root.querySelector('#jzbtNow'); if(sh) sh.hidden = false;
   const frame = () => {
     if(_jzbt.run !== r) return;
     if(!r.root.isConnected){ jzbtStop(); return; }
@@ -474,6 +495,11 @@ function bindJazzTunePlay(root, t){
   $b('#jzbtTrade').onchange = () => { s.trading = $b('#jzbtTrade').checked; again(); };
   [['#jzbtBass', 'bassStyle'], ['#jzbtDrums', 'drumStyle'], ['#jzbtComp', 'comping']].forEach(([q, k]) => { $b(q).onchange = () => { s[k] = $b(q).value; again(); }; });
   $b('#jzbtCount').onchange = () => { s.countIn = +$b('#jzbtCount').value; saveNow(); };
+  const solo = $b('#jzbtSolo'); if(solo) solo.onchange = () => { s.soloist = solo.value; saveNow(); rerender(); if(live()) jzbtStart(document.getElementById('main') || root, t); };
+  const den = $b('#jzbtSoloDen'); if(den) den.onchange = () => { s.soloDensity = den.value; again(); if(_jzbt.showSolo) rerender(); };
+  const out = $b('#jzbtSoloOut'); if(out) out.onchange = () => { s.soloOutside = +out.value; again(); if(_jzbt.showSolo) rerender(); };
+  const nw = $b('#jzbtSoloNew'); if(nw) nw.onclick = () => { s.soloSeed = (s.soloSeed || 1) + 1; again(); if(_jzbt.showSolo) rerender(); };
+  const sh2 = $b('#jzbtSoloShow'); if(sh2) sh2.onclick = () => { _jzbt.showSolo = !_jzbt.showSolo; rerender(); };
   const mel = $b('#jzbtMel');
   if(mel) mel.onchange = () => { s.melody = +mel.value; saveNow();
     if(live()){ const p = _jzbt.run.player; p.set('volumes', {0: s.melody, 1: 1, 2: 0.9, 3: 0.75}); p.set('muted', new Set(s.melody > 0 ? [] : ['p:0'])); } };
