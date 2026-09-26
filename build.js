@@ -246,6 +246,19 @@ if(fs.existsSync(path.join(orchDir, 'instruments.json'))){
     const f = path.join(orchDir, n.file); if(fs.existsSync(f)){ files[n.file] = fs.readFileSync(f).toString('base64'); orchFiles++; } }));
   orch = {manifest: man, files};
 }
+/* The solo violin and cello (vendor/strings, CC0 — see its LICENSE.md; made
+   by `node tools/fetch-orchestra.js --set strings`): longer notes, two
+   dynamic layers, 32 kHz. They join the orchestra's manifest, and the
+   player prefers them for a violin or a cello part. */
+const strDir = path.join(__dirname, 'vendor', 'strings');
+if(orch && fs.existsSync(path.join(strDir, 'instruments.json'))){
+  const sm = JSON.parse(fs.readFileSync(path.join(strDir, 'instruments.json'), 'utf8'));
+  Object.entries(sm.instruments).forEach(([id, v]) => {
+    const notes = (v.notes || []).map(n => Object.assign({}, n, {file: 'strings/' + n.file}));
+    notes.forEach(n => { const f = path.join(strDir, n.file.slice(8)); if(fs.existsSync(f)){ orch.files[n.file] = fs.readFileSync(f).toString('base64'); orchFiles++; } });
+    orch.manifest.instruments[id] = Object.assign({}, v, {notes});
+  });
+}
 if(orch){
   const body = JSON.stringify(orch);
   orchBytes = body.length;

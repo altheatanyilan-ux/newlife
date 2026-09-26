@@ -26,15 +26,18 @@
    fall back to for an instrument the GM set does not have. */
 const INSTRUMENTS = {
   acoustic_bass:     {name: 'Double bass', sustain: false, level: 1.5, release: 0.08, orch: ['bass-pizz']},
-  violin:            {name: 'Violin', sustain: true, level: 1.9, release: 0.18, orch: ['violin-solo']},
-  cello:             {name: 'Cello', sustain: true, level: 1.9, release: 0.2, orch: ['celli']},
+  /* the solo violin and cello: the long, two-layer recordings in
+     vendor/strings when the page has them (first of the list that is
+     there), played as a bow plays — see bowedNote below */
+  violin:            {name: 'Violin', sustain: true, level: 1.9, release: 0.18, orch: ['violin-hq', 'violin-solo'], first: true, bowed: true},
+  cello:             {name: 'Cello', sustain: true, level: 1.9, release: 0.2, orch: ['cello-solo', 'celli'], first: true, bowed: true},
   flute:             {name: 'Flute', sustain: true, level: 1.8, release: 0.12, orch: ['flute']},
-  string_ensemble_1: {name: 'Strings', sustain: true, level: 1.8, release: 0.3, orch: ['basses', 'celli', 'violas', 'violins']},
+  string_ensemble_1: {name: 'Strings', sustain: true, level: 1.8, release: 0.3, orch: ['basses', 'celli', 'violas', 'violins'], room: true},
   /* the rest of the orchestra: real samples only (the GM set has none of
      these; where the orchestra is missing they fall back as named) */
-  violins:           {name: 'Violins', sustain: true, level: 1.8, release: 0.25, orch: ['violins'], gm: 'string_ensemble_1'},
-  viola:             {name: 'Viola', sustain: true, level: 1.9, release: 0.2, orch: ['violas'], gm: 'violin'},
-  contrabass:        {name: 'Double bass (bowed)', sustain: true, level: 1.8, release: 0.2, orch: ['basses'], gm: 'cello'},
+  violins:           {name: 'Violins', sustain: true, level: 1.8, release: 0.25, orch: ['violins'], gm: 'string_ensemble_1', room: true},
+  viola:             {name: 'Viola', sustain: true, level: 1.9, release: 0.2, orch: ['violas'], gm: 'violin', room: true},
+  contrabass:        {name: 'Double bass (bowed)', sustain: true, level: 1.8, release: 0.2, orch: ['basses'], gm: 'cello', room: true},
   pizzicato_strings: {name: 'Strings, pizzicato', sustain: false, level: 1.7, release: 0.1, orch: ['celli-pizz', 'violas-pizz', 'violins-pizz'], gm: 'acoustic_bass'},
   harp:              {name: 'Harp', sustain: false, level: 1.6, release: 0.4, orch: ['harp']},
   piccolo:           {name: 'Piccolo', sustain: true, level: 1.5, release: 0.1, orch: ['piccolo'], gm: 'flute'},
@@ -68,7 +71,7 @@ function instrumentReady(id){
   if(id === 'piano') return typeof grandPianoReady === 'function' && grandPianoReady();
   if(id === 'kit' || id === 'drums') return !orchestraAvailable() || orchKitReady() || !!_instr.failed.kit;
   const def = INSTRUMENTS[id]; if(!def) return true;
-  if(def.orch && def.orch.some(o => _orch.sets[o])) return true;
+  if(def.orch && orchIds(def).some(o => _orch.sets[o])) return true;
   if(_instr.sets[id] && _instr.sets[id].keys.length) return true;
   if(def.gm && _instr.sets[def.gm] && _instr.sets[def.gm].keys.length) return true;
   if(!orchestraAvailable() && !instrumentsAvailable()) return true;
@@ -93,8 +96,11 @@ function orchLoad(oid){
     const src = orchSrc(); const m = src && src.manifest.instruments[oid]; if(!m) return false;
     if(m.kind === 'hits'){ const hits = []; for(const h of m.hits){ const buf = await orchDecode(h.file); if(buf) hits.push({buf, vel: h.vel}); }
       _orch.sets[oid] = {kind: 'hits', hits}; return hits.length > 0; }
-    const set = {kind: 'pitched', sustain: !!m.sustain, notes: [], range: m.range};
-    await Promise.all(m.notes.map(async n => { const buf = await orchDecode(n.file); if(buf) set.notes.push({midi: n.midi, tune: n.tune || 0, buf: m.sustain ? instrLoopable(buf) : buf}); }));
+    /* the long recordings loop a stretch of their own steady middle, only
+       ever reached by a note held longer than the recording */
+    const loop = m.length ? [Math.max(0.9, m.length * 0.4), Math.max(1.4, m.length - 0.75)] : INSTR_LOOP;
+    const set = {kind: 'pitched', sustain: !!m.sustain, notes: [], range: m.range, layers: m.layers || 1, loop, vibrato: m.vibrato !== false, hq: !!m.length};
+    await Promise.all(m.notes.map(async n => { const buf = await orchDecode(n.file); if(buf) set.notes.push({midi: n.midi, layer: n.layer || 0, tune: n.tune || 0, buf: m.sustain ? instrLoopable(buf, loop) : buf}); }));
     set.notes.sort((a, b) => a.midi - b.midi);
     _orch.sets[oid] = set; return set.notes.length > 0;
   })().catch(e => { console.warn(`the ${oid} could not be loaded`, e); return false; }).finally(() => { delete _orch.loading[oid]; });
@@ -102,13 +108,26 @@ function orchLoad(oid){
 }
 /* the sample for a note: from the set whose range holds it (strings split
    by range), then the nearest note of that set */
-function orchPick(ids, midi){
+function orchPick(ids, midi, vel){
   const sets = ids.map(o => _orch.sets[o]).filter(x => x && x.notes && x.notes.length);
   if(!sets.length) return null;
   let set = sets.find(x => midi >= x.range[0] && midi <= x.range[1]);
   if(!set) set = sets.slice().sort((a, b) => Math.min(Math.abs(midi - a.range[0]), Math.abs(midi - a.range[1])) - Math.min(Math.abs(midi - b.range[0]), Math.abs(midi - b.range[1])))[0];
-  let best = set.notes[0]; for(const n of set.notes) if(Math.abs(n.midi - midi) < Math.abs(best.midi - midi)) best = n;
-  return {n: best, set};
+  /* the dynamic layer the note's loudness calls for: the soft recording up
+     to mezzo-forte, the loud one from forte (0.74 in the player) up */
+  const v = vel == null ? 0.6 : vel;
+  const want = set.layers > 1 ? Math.min(set.layers - 1, Math.max(0, Math.floor((v - 0.3) / 0.42 * (set.layers - 1) + 1e-9))) : 0;
+  const pool = set.notes.filter(n => (n.layer || 0) === want);
+  const from = pool.length ? pool : set.notes;
+  let best = from[0]; for(const n of from) if(Math.abs(n.midi - midi) < Math.abs(best.midi - midi)) best = n;
+  return {n: best, set, layer: want};
+}
+/* the instrument ids of the orchestra to load for a part: all of them for
+   a section split by range, the first the page carries for a solo */
+function orchIds(def){
+  if(!def.first) return def.orch;
+  const src = orchSrc(), have = src ? def.orch.filter(o => src.manifest.instruments[o]) : [];
+  return have.length ? [have[0]] : def.orch.slice(0, 1);
 }
 /* THE KIT: the recorded drums in the orchestra set, by General MIDI number */
 const ORCH_KIT = {35: 'kick', 36: 'kick', 37: 'cross-stick', 38: 'snare', 40: 'snare', 42: 'hihat-closed', 44: 'hihat-closed', 46: 'hihat-open', 49: 'crash', 57: 'crash',
@@ -135,8 +154,8 @@ function instrMidiOf(name){ const m = /^([A-G]b?)(\d)$/.exec(name); return m ? 1
 /* a sustained note's loop, joined so it does not click: the last stretch
    before loopEnd is blended into what comes before loopStart, so at the
    moment the loop wraps the signal is where it was when it started */
-function instrLoopable(buf){
-  const sr = buf.sampleRate, a = Math.round(INSTR_LOOP[0] * sr), z = Math.min(buf.length, Math.round(INSTR_LOOP[1] * sr));
+function instrLoopable(buf, loop = INSTR_LOOP){
+  const sr = buf.sampleRate, a = Math.round(loop[0] * sr), z = Math.min(buf.length, Math.round(loop[1] * sr));
   const x = Math.min(Math.round(INSTR_XFADE * sr), a, z - a - 1);
   if(x <= 0) return buf;
   let out;
@@ -155,7 +174,7 @@ function instrumentLoad(id){
   if(!INSTRUMENTS[id]) return Promise.resolve(false);
   if(instrumentReady(id)) return Promise.resolve(true);
   /* the real instrument where the page carries the orchestra */
-  if(INSTRUMENTS[id].orch && orchestraAvailable()) return Promise.all(INSTRUMENTS[id].orch.map(orchLoad)).then(r => r.some(Boolean) ? true
+  if(INSTRUMENTS[id].orch && orchestraAvailable()) return Promise.all(orchIds(INSTRUMENTS[id]).map(orchLoad)).then(r => r.some(Boolean) ? true
     : (INSTRUMENTS[id].gm ? instrumentLoad(INSTRUMENTS[id].gm) : false));
   if(INSTRUMENTS[id].gm && !(_instr.src || instrumentsAvailable()) ) return Promise.resolve(false);
   if(INSTRUMENTS[id].gm) return instrumentLoad(INSTRUMENTS[id].gm);
@@ -195,7 +214,8 @@ function instrumentNote(ctx, dest, id, midi, t, dur, vel, held, level){
   if(!id || id === 'piano') return typeof grandPianoNote === 'function' && grandPianoNote(ctx, dest, midi, t, dur, vel, held, level);
   if(id === 'drums' || id === 'kit') return orchKitHit(ctx, dest, Math.round(midi), t, vel, dur);
   const def0 = INSTRUMENTS[id];
-  if(def0 && def0.orch){ const pk = orchPick(def0.orch, Math.round(midi)); if(pk) return orchNote(ctx, dest, def0, pk, midi, t, dur, vel, held, level); }
+  if(def0 && def0.orch){ const pk = orchPick(orchIds(def0), Math.round(midi), vel);
+    if(pk) return pk.set.hq && def0.bowed ? bowedNote(ctx, dest, def0, pk, midi, t, dur, vel, held, level) : orchNote(ctx, dest, def0, pk, midi, t, dur, vel, held, level); }
   if(def0 && def0.gm && !_instr.sets[id]) return instrumentNote(ctx, dest, def0.gm, midi, t, dur, vel, held, level);
   const set = _instr.sets[id], def = INSTRUMENTS[id];
   if(!set || !set.keys.length || !def || !ctx || !dest) return false;
@@ -252,8 +272,97 @@ function orchNote(ctx, dest, def, pk, midi, t, dur, vel, held, level){
     stop = Math.min(start + buf.duration / rate, end + def.release * 2 + 0.05);
   }
   src.connect(soft); soft.connect(g); g.connect(dest); src.start(start); src.stop(stop);
+  if(def.room){ const r = stringsRoom(ctx, dest); if(r) g.connect(r); }
   _instr.stats.sampled++;
   return true;
+}
+
+/* ---------- a bowed note ----------
+   The violin and cello were the two sounds that gave the player away: a
+   short recording, moved a long way in pitch, started at full strength and
+   cut off dead, dry. A bow does none of that. So:
+   - the recording nearest the note, from the dynamic layer its loudness
+     calls for (a soft note is a soft recording, not a loud one turned down);
+   - the bow comes in: a short swell, slower for a quiet note;
+   - the cello, recorded without vibrato, is given one — a little after the
+     note starts, widening, a touch uneven, as a cellist's is (the violin's
+     own recorded vibrato is left alone);
+   - held past its recording, it loops a stretch of its own steady middle;
+   - the bow comes off rather than stopping: a release of a third of a second;
+   - and the instrument is heard in a room, not in an anechoic box: a quiet
+     send to a short, dark hall (stringsRoom). */
+function bowedNote(ctx, dest, def, pk, midi, t, dur, vel, held, level){
+  if(!ctx || !dest) return false;
+  const {n, set} = pk, buf = n.buf;
+  const detune0 = (Math.random() - 0.5) * 4;                       /* a player is never quite on the grid */
+  const rate = Math.pow(2, (midi - (n.midi + n.tune / 100)) / 12);
+  const v = Math.max(0.03, Math.min(1, vel == null ? 0.6 : vel));
+  const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  if(src.detune) src.detune.value = detune0;
+  const start = Math.max(0, t), ring = Math.max(0.06, held || dur || 0.5), end = start + ring;
+  /* loudness: the layer carries most of it, so the gain only shades within a layer */
+  const peak = (level == null ? 1 : level) * def.level * 0.8 * (0.55 + 0.45 * v);
+  const g = ctx.createGain();
+  const atk = Math.min(ring * 0.4, 0.03 + 0.07 * (1 - v));
+  g.gain.setValueAtTime(0.0001, start);
+  g.gain.linearRampToValueAtTime(peak * 0.7, start + atk * 0.5);
+  g.gain.linearRampToValueAtTime(peak, start + atk);
+  /* a gentle tone: a soft note is a little darker */
+  const tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.Q.value = 0.3;
+  tone.frequency.value = Math.min(15000, 5500 + 9500 * v);
+  /* vibrato where the recording has none */
+  if(!set.vibrato && ring > 0.3 && src.detune){
+    const lfo = ctx.createOscillator(), depth = ctx.createGain();
+    lfo.frequency.value = 5.1 + Math.random() * 0.8;
+    const d = 9 + 6 * v;
+    depth.gain.setValueAtTime(0, start);
+    depth.gain.setValueAtTime(0, start + Math.min(0.28, ring * 0.3));
+    depth.gain.linearRampToValueAtTime(d, start + Math.min(0.85, ring * 0.7));
+    lfo.connect(depth); depth.connect(src.detune);
+    lfo.start(start); lfo.stop(end + 0.6);
+  }
+  const L = set.loop || INSTR_LOOP;
+  if(set.sustain && (end - start) * rate > L[1] - 0.05){ src.loop = true; src.loopStart = L[0]; src.loopEnd = Math.min(buf.duration, L[1]); }
+  const rel = 0.34;
+  g.gain.setValueAtTime(peak, Math.max(start + atk, end));
+  g.gain.setTargetAtTime(0.0001, Math.max(start + atk, end), rel / 3);
+  const stop = Math.min(src.loop ? Infinity : start + buf.duration / rate, end + rel * 2.2);
+  src.connect(tone); tone.connect(g); g.connect(dest);
+  const room = stringsRoom(ctx, dest); if(room) g.connect(room);
+  src.start(start); src.stop(Math.max(start + 0.05, stop));
+  _instr.stats.sampled++; _instr.stats.bowed = (_instr.stats.bowed || 0) + 1;
+  return true;
+}
+/* The room: a convolution with an impulse response made here, not fetched —
+   seeded noise (the same every time) under an exponential decay of about
+   two seconds, darkened as a hall darkens, after an 18 ms gap. One per
+   output, sent to quietly; it is what makes a dry recording sound played. */
+const STRINGS_ROOM = {send: 0.3, decay: 0.32, len: 2.2, pre: 0.018};
+function stringsRoom(ctx, dest){
+  try {
+    if(dest._liRoom && dest._liRoom.context === ctx) return dest._liRoom;
+    const sr = ctx.sampleRate, len = Math.round(sr * STRINGS_ROOM.len), pre = Math.round(sr * STRINGS_ROOM.pre);
+    const ir = ctx.createBuffer(2, len, sr);
+    for(let ch = 0; ch < 2; ch++){
+      const d = ir.getChannelData(ch); let seed = ch ? 48271 : 16807, lp = 0;
+      for(let i = pre; i < len; i++){
+        seed = (seed * 16807) % 2147483647;
+        const r = seed / 2147483647 * 2 - 1, tt = (i - pre) / sr;
+        /* the tail grows darker as it goes: less high end the later it is */
+        const a = 0.55 * Math.exp(-tt / 0.6) + 0.08;
+        lp += a * (r - lp);
+        d[i] = lp * Math.exp(-tt / STRINGS_ROOM.decay) * (1 - Math.exp(-tt / 0.006));
+      }
+    }
+    /* to unit energy, so the send is the same loudness at any rate */
+    let e = 0; for(let ch = 0; ch < 2; ch++){ const d = ir.getChannelData(ch); for(let i = 0; i < len; i++) e += d[i] * d[i]; }
+    const k = 1 / Math.sqrt(e / 2 || 1); for(let ch = 0; ch < 2; ch++){ const d = ir.getChannelData(ch); for(let i = 0; i < len; i++) d[i] *= k; }
+    const conv = ctx.createConvolver(); conv.normalize = false; conv.buffer = ir;
+    const wet = ctx.createGain(); wet.gain.value = STRINGS_ROOM.send;
+    conv.connect(wet); wet.connect(dest);
+    dest._liRoom = conv;
+    return conv;
+  } catch(e){ return null; }
 }
 
 /* ---------- which instrument a part is ----------

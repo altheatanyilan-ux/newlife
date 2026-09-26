@@ -1,0 +1,487 @@
+{
+ "version": 1,
+ "sampleRate": 44100,
+ "instruments": {
+  "violin-hq": {
+   "name": "Violin (solo)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "VSCO-2 Community Edition, Versilian Studios",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 55,
+     "layer": 0,
+     "tune": 0,
+     "file": "violin-hq/55_0.mp3",
+     "from": "LLVln_ArcoVib_G3_p.wav"
+    },
+    {
+     "midi": 55,
+     "layer": 1,
+     "tune": -1,
+     "file": "violin-hq/55_1.mp3",
+     "from": "LLVln_ArcoVib_G3_f.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 4,
+     "file": "violin-hq/57_0.mp3",
+     "from": "LLVln_ArcoVib_A3_p.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": 0,
+     "file": "violin-hq/57_1.mp3",
+     "from": "LLVln_ArcoVib_A3_f.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": 22,
+     "file": "violin-hq/60_0.mp3",
+     "from": "LLVln_ArcoVib_C4_p.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": -1,
+     "file": "violin-hq/60_1.mp3",
+     "from": "LLVln_ArcoVib_C4_f.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 0,
+     "tune": 4,
+     "file": "violin-hq/64_0.mp3",
+     "from": "LLVln_ArcoVib_E4_p.wav"
+    },
+    {
+     "midi": 64,
+     "layer": 1,
+     "tune": 4,
+     "file": "violin-hq/64_1.mp3",
+     "from": "LLVln_ArcoVib_E4_f.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 0,
+     "tune": -2,
+     "file": "violin-hq/67_0.mp3",
+     "from": "LLVln_ArcoVib_G4_p.wav"
+    },
+    {
+     "midi": 67,
+     "layer": 1,
+     "tune": 3,
+     "file": "violin-hq/67_1.mp3",
+     "from": "LLVln_ArcoVib_G4_f.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": 3,
+     "file": "violin-hq/69_0.mp3",
+     "from": "LLVln_ArcoVib_A4_p.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 1,
+     "tune": 13,
+     "file": "violin-hq/69_1.mp3",
+     "from": "LLVln_ArcoVib_A4_f.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": -3,
+     "file": "violin-hq/72_0.mp3",
+     "from": "LLVln_ArcoVib_C5_p.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 1,
+     "tune": 3,
+     "file": "violin-hq/72_1.mp3",
+     "from": "LLVln_ArcoVib_C5_f.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 0,
+     "tune": 5,
+     "file": "violin-hq/76_0.mp3",
+     "from": "LLVln_ArcoVib_E5_p.wav"
+    },
+    {
+     "midi": 76,
+     "layer": 1,
+     "tune": 0,
+     "file": "violin-hq/76_1.mp3",
+     "from": "LLVln_ArcoVib_E5_f.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 0,
+     "tune": 3,
+     "file": "violin-hq/79_0.mp3",
+     "from": "LLVln_ArcoVib_G5_p.wav"
+    },
+    {
+     "midi": 79,
+     "layer": 1,
+     "tune": 6,
+     "file": "violin-hq/79_1.mp3",
+     "from": "LLVln_ArcoVib_G5_f.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": 3,
+     "file": "violin-hq/81_0.mp3",
+     "from": "LLVln_ArcoVib_A5_p.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 1,
+     "tune": 0,
+     "file": "violin-hq/81_1.mp3",
+     "from": "LLVln_ArcoVib_A5_f.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": -4,
+     "file": "violin-hq/84_0.mp3",
+     "from": "LLVln_ArcoVib_C6_p.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 1,
+     "tune": -11,
+     "file": "violin-hq/84_1.mp3",
+     "from": "LLVln_ArcoVib_C6_f.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 0,
+     "tune": 6,
+     "file": "violin-hq/88_0.mp3",
+     "from": "LLVln_ArcoVib_E6_p.wav"
+    },
+    {
+     "midi": 88,
+     "layer": 1,
+     "tune": 6,
+     "file": "violin-hq/88_1.mp3",
+     "from": "LLVln_ArcoVib_E6_f.wav"
+    },
+    {
+     "midi": 91,
+     "layer": 0,
+     "tune": 7,
+     "file": "violin-hq/91_0.mp3",
+     "from": "LLVln_ArcoVib_G6_p.wav"
+    },
+    {
+     "midi": 91,
+     "layer": 1,
+     "tune": 11,
+     "file": "violin-hq/91_1.mp3",
+     "from": "LLVln_ArcoVib_G6_f.wav"
+    },
+    {
+     "midi": 93,
+     "layer": 0,
+     "tune": 0,
+     "file": "violin-hq/93_0.mp3",
+     "from": "LLVln_ArcoVib_A6_p.wav"
+    },
+    {
+     "midi": 93,
+     "layer": 1,
+     "tune": 11,
+     "file": "violin-hq/93_1.mp3",
+     "from": "LLVln_ArcoVib_A6_f.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 0,
+     "tune": 0,
+     "file": "violin-hq/96_0.mp3",
+     "from": "LLVln_ArcoVib_C7_p.wav"
+    },
+    {
+     "midi": 96,
+     "layer": 1,
+     "tune": -11,
+     "file": "violin-hq/96_1.mp3",
+     "from": "LLVln_ArcoVib_C7_f.wav"
+    }
+   ],
+   "range": [
+    55,
+    96
+   ],
+   "sampleRate": 32000,
+   "sustain": true,
+   "length": 7
+  },
+  "cello-solo": {
+   "name": "Cello (solo)",
+   "family": "strings",
+   "kind": "pitched",
+   "source": "Karoryfer Samples and Bigcat Instruments open source cello",
+   "layers": 2,
+   "notes": [
+    {
+     "midi": 36,
+     "layer": 0,
+     "tune": 4,
+     "file": "cello-solo/36_0.mp3",
+     "from": "C1_mp_d.wav"
+    },
+    {
+     "midi": 36,
+     "layer": 1,
+     "tune": 9,
+     "file": "cello-solo/36_1.mp3",
+     "from": "C1_f_d.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 0,
+     "tune": 0,
+     "file": "cello-solo/39_0.mp3",
+     "from": "Eb1_mp_d.wav"
+    },
+    {
+     "midi": 39,
+     "layer": 1,
+     "tune": 8,
+     "file": "cello-solo/39_1.mp3",
+     "from": "Eb1_f_d.wav"
+    },
+    {
+     "midi": 42,
+     "layer": 0,
+     "tune": -5,
+     "file": "cello-solo/42_0.mp3",
+     "from": "Gb1_mp_d.wav"
+    },
+    {
+     "midi": 42,
+     "layer": 1,
+     "tune": -7,
+     "file": "cello-solo/42_1.mp3",
+     "from": "Gb1_f_d.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 0,
+     "tune": 0,
+     "file": "cello-solo/45_0.mp3",
+     "from": "A1_mp_d.wav"
+    },
+    {
+     "midi": 45,
+     "layer": 1,
+     "tune": -4,
+     "file": "cello-solo/45_1.mp3",
+     "from": "A1_f_d.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 0,
+     "tune": 0,
+     "file": "cello-solo/48_0.mp3",
+     "from": "C2_mp_d.wav"
+    },
+    {
+     "midi": 48,
+     "layer": 1,
+     "tune": 7,
+     "file": "cello-solo/48_1.mp3",
+     "from": "C2_f_d.wav"
+    },
+    {
+     "midi": 51,
+     "layer": 0,
+     "tune": 1,
+     "file": "cello-solo/51_0.mp3",
+     "from": "Eb2_mp_d.wav"
+    },
+    {
+     "midi": 51,
+     "layer": 1,
+     "tune": 2,
+     "file": "cello-solo/51_1.mp3",
+     "from": "Eb2_f_d.wav"
+    },
+    {
+     "midi": 54,
+     "layer": 0,
+     "tune": 2,
+     "file": "cello-solo/54_0.mp3",
+     "from": "Gb2_mp_d.wav"
+    },
+    {
+     "midi": 54,
+     "layer": 1,
+     "tune": 1,
+     "file": "cello-solo/54_1.mp3",
+     "from": "Gb2_f_d.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 0,
+     "tune": 2,
+     "file": "cello-solo/57_0.mp3",
+     "from": "A2_mp_d.wav"
+    },
+    {
+     "midi": 57,
+     "layer": 1,
+     "tune": 1,
+     "file": "cello-solo/57_1.mp3",
+     "from": "A2_f_d.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 0,
+     "tune": -1,
+     "file": "cello-solo/60_0.mp3",
+     "from": "C3_mp_d.wav"
+    },
+    {
+     "midi": 60,
+     "layer": 1,
+     "tune": 3,
+     "file": "cello-solo/60_1.mp3",
+     "from": "C3_f_d.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 0,
+     "tune": 0,
+     "file": "cello-solo/63_0.mp3",
+     "from": "Eb3_mp_d.wav"
+    },
+    {
+     "midi": 63,
+     "layer": 1,
+     "tune": 8,
+     "file": "cello-solo/63_1.mp3",
+     "from": "Eb3_f_d.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 0,
+     "tune": 1,
+     "file": "cello-solo/66_0.mp3",
+     "from": "Gb3_mp_d.wav"
+    },
+    {
+     "midi": 66,
+     "layer": 1,
+     "tune": 1,
+     "file": "cello-solo/66_1.mp3",
+     "from": "Gb3_f_d.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 0,
+     "tune": 3,
+     "file": "cello-solo/69_0.mp3",
+     "from": "A3_mp_d.wav"
+    },
+    {
+     "midi": 69,
+     "layer": 1,
+     "tune": 2,
+     "file": "cello-solo/69_1.mp3",
+     "from": "A3_f_d.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 0,
+     "tune": 2,
+     "file": "cello-solo/72_0.mp3",
+     "from": "C4_mp_d.wav"
+    },
+    {
+     "midi": 72,
+     "layer": 1,
+     "tune": -1,
+     "file": "cello-solo/72_1.mp3",
+     "from": "C4_f_d.wav"
+    },
+    {
+     "midi": 75,
+     "layer": 0,
+     "tune": 3,
+     "file": "cello-solo/75_0.mp3",
+     "from": "Eb4_mp_d.wav"
+    },
+    {
+     "midi": 75,
+     "layer": 1,
+     "tune": 4,
+     "file": "cello-solo/75_1.mp3",
+     "from": "Eb4_f_d.wav"
+    },
+    {
+     "midi": 78,
+     "layer": 0,
+     "tune": 3,
+     "file": "cello-solo/78_0.mp3",
+     "from": "Gb4_mp_d.wav"
+    },
+    {
+     "midi": 78,
+     "layer": 1,
+     "tune": 0,
+     "file": "cello-solo/78_1.mp3",
+     "from": "Gb4_f_d.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 0,
+     "tune": 0,
+     "file": "cello-solo/81_0.mp3",
+     "from": "A4_mp_d.wav"
+    },
+    {
+     "midi": 81,
+     "layer": 1,
+     "tune": 0,
+     "file": "cello-solo/81_1.mp3",
+     "from": "A4_f_d.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 0,
+     "tune": 4,
+     "file": "cello-solo/84_0.mp3",
+     "from": "C5_mp_d.wav"
+    },
+    {
+     "midi": 84,
+     "layer": 1,
+     "tune": 1,
+     "file": "cello-solo/84_1.mp3",
+     "from": "C5_f_d.wav"
+    }
+   ],
+   "range": [
+    36,
+    84
+   ],
+   "sampleRate": 32000,
+   "sustain": true,
+   "length": 4.6,
+   "vibrato": false
+  }
+ }
+}

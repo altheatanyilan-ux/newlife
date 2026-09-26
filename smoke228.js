@@ -50,9 +50,11 @@ const FERMATA = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="
     const src = JSON.parse(document.getElementById('gmSrc').textContent);
     const loaded = {};
     for(const id of Object.keys(INSTRUMENTS)){ loaded[id] = await instrumentLoad(id); }
-    const set = _instr.sets.violin;
+    /* the violin plays from the recorded solo violin now (vendor/strings);
+       the GM set is its fallback */
+    const hq = _orch.sets['violin-hq'];
     return {names: Object.keys(src).sort(), counts: Object.fromEntries(Object.entries(src).map(([k, v]) => [k, Object.keys(v).length])),
-      loaded, violinLen: +set.buffers.get(set.keys[3]).duration.toFixed(2), credit: [INSTR_CREDIT.name, INSTR_CREDIT.by, INSTR_CREDIT.licence]};
+      loaded, violinLen: hq ? +hq.notes[3].buf.duration.toFixed(2) : null, credit: [INSTR_CREDIT.name, INSTR_CREDIT.by, INSTR_CREDIT.licence]};
   });
   is('five instruments are in the page', I.names, ['acoustic_bass', 'cello', 'flute', 'string_ensemble_1', 'violin']);
   yes('  every minor third across each one\'s range', Object.values(I.counts).every(n => n >= 12 && n <= 20), I.counts);
@@ -64,8 +66,9 @@ const FERMATA = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="
     satb: instrumentForName('Bass', ['Soprano', 'Alto', 'Tenor', 'Bass']),
     jazzBass: instrumentForName('Bass', ['Piano', 'Bass', 'Drums']) }));
   is('a part\'s General MIDI program picks its instrument', M.programs,
-    ['violin', 'violin', 'cello', 'cello', 'acoustic_bass', 'string_ensemble_1', 'flute', 'flute', 'piano', 'piano']);
-  is('  and, without one, its name', M.names, ['cello', 'acoustic_bass', 'flute', 'string_ensemble_1', 'flute', 'piano', 'piano']);
+    ['violin', 'viola', 'cello', 'contrabass', 'acoustic_bass', 'string_ensemble_1', 'flute', 'clarinet', 'piano', 'trumpet']);
+  /* the recorded orchestra gave the oboe and trumpet voices of their own */
+  is('  and, without one, its name', M.names, ['cello', 'acoustic_bass', 'flute', 'string_ensemble_1', 'oboe', 'trumpet', 'piano']);
   is('  a choir\'s Bass is a voice, not a double bass; a combo\'s is', [M.satb, M.jazzBass], ['piano', 'acoustic_bass']);
   const PT = await p.evaluate(xml => musicXmlTimeline(xml).parts.map(x => [x.name, x.program, x.inst]), DUET);
   is('the score\'s parts are read with their programs and instruments', PT, [['Violin', 41, 'violin'], ['Piano', 1, 'piano']]);
@@ -137,7 +140,8 @@ const FERMATA = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="
 
   console.log('\n5. the transport');
   const id = await p.evaluate(async xml => (await takeScoreFile(new File([xml], 'Violin and Piano.musicxml'))).id, DUET);
-  await p.evaluate(() => { Object.keys(_instr.sets).forEach(k => delete _instr.sets[k]); });
+  /* forget every decoded instrument — the GM set and the recorded orchestra and strings alike */
+  await p.evaluate(() => { Object.keys(_instr.sets).forEach(k => delete _instr.sets[k]); Object.keys(_orch.sets).forEach(k => delete _orch.sets[k]); });
   await p.evaluate(id => { scoreUi().focus = null; location.hash = '#/score/' + id; }, id); await p.waitForTimeout(4000);
   const R0 = await p.evaluate(() => { const q = s => document.querySelector('#scPlayRow ' + s);
     return {rew: !!q('[data-plxrew]'), stop: !!q('[data-plxstop]'), bpm: q('[data-plxbpm]').value, score: q('[data-plxscore]').textContent,

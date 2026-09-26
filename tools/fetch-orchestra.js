@@ -34,7 +34,10 @@
 'use strict';
 const fs = require('fs'), path = require('path'), cp = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'vendor', 'orchestra');
+/* --set strings: the solo violin and cello the site's player uses, at a
+   higher quality than the rest (vendor/strings) */
+const SET = (process.argv.indexOf('--set') > 0 ? process.argv[process.argv.indexOf('--set') + 1] : 'orchestra');
+const OUT = path.join(ROOT, 'vendor', SET === 'strings' ? 'strings' : 'orchestra');
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const SRC = arg('--src') || process.env.SAMPLE_SOURCES || '/home/user';
 const ONLY = (arg('--only') || '').split(',').filter(Boolean);
@@ -46,13 +49,24 @@ const REPOS = {
   virt: {url: 'https://github.com/sfzinstruments/virtuosity_drums', dir: 'sfzinstruments/virtuosity_drums', credit: 'Virtuosity Drums, Versilian Studios'},
   swirly: {url: 'https://github.com/sfzinstruments/karoryfer.swirly-drums', dir: 'sfzinstruments/karoryfer.swirly-drums', credit: 'Swirly Drums, Karoryfer Samples'},
   smolken: {url: 'https://github.com/sfzinstruments/dsmolken.double-bass', dir: 'sfzinstruments/dsmolken.double-bass', credit: '1958 Otto Rubner double bass, D. Smolken'},
+  kbcello: {url: 'https://github.com/sfzinstruments/karoryfer-bigcat.cello', dir: 'sfzinstruments/karoryfer-bigcat.cello', credit: 'Karoryfer Samples and Bigcat Instruments open source cello'},
 };
 
 /* id, what it is, where, which files; range is the sounding MIDI range kept;
    layers: how many dynamic layers; dur: the longest a note is kept (s) */
 const P = (id, name, family, repo, dir, o = {}) => Object.assign({id, name, family, repo, dir, kind: 'pitched', layers: 1, dur: 3.2, range: [0, 127]}, o);
 const H = (id, name, family, repo, dir, o = {}) => Object.assign({id, name, family, repo, dir, kind: 'hits', layers: 2, rr: 3, dur: 1.2}, o);
-const SPECS = [
+/* The two solo strings the Repertoire player uses. Each note as long as a
+   slow bow holds it, at 32 kHz rather than 22 (the brilliance of a violin
+   is above 11 kHz), two dynamic layers, every note the library has. The
+   violin is VSCO-2's solo violin, recorded with vibrato; the cello is the
+   Karoryfer x Bigcat solo cello (a real solo cello, not a section),
+   recorded without vibrato so the player can add its own. */
+const STRING_SPECS = [
+  P('violin-hq', 'Violin (solo)', 'strings', 'vsco', 'Strings/Solo Violin/Arco Vib/', {layers: 2, dur: 7, range: [55, 100], sr: 32000, kbps: 96, every: true}),
+  P('cello-solo', 'Cello (solo)', 'strings', 'kbcello', 'Samples/sus/', {inc: /_d\.wav$/, layers: 2, dur: 4.6, range: [36, 84], sr: 32000, kbps: 96, every: true, vibrato: false}),
+];
+const SPECS = SET === 'strings' ? STRING_SPECS : [
   /* the jazz band */
   P('bass-pizz', 'Double bass, pizzicato', 'band', 'smolken', 'pizz/', {inc: /\/pizz_[a-g]#?\d_[fm][a-d]\.wav$/i, layers: 2, dur: 2.4, range: [28, 62]}),
   P('piano', 'Grand piano (Steinway B)', 'band', 'vcsl', 'Chordophones/Zithers/Grand Piano, Steinway B/NoSus/', {inc: /_Close_/, layers: 2, dur: 5, range: [33, 99]}),
@@ -150,9 +164,10 @@ function decode(file){
   const out = cp.execFileSync(FF, ['-v', 'error', '-i', file, '-ac', '1', '-ar', String(SR), '-f', 'f32le', '-'], {maxBuffer: 1 << 28});
   return new Float32Array(out.buffer, out.byteOffset, out.length / 4);
 }
-function encode(pcm, file){
+function encode(pcm, file, o = {}){
   fs.mkdirSync(path.dirname(file), {recursive: true});
-  cp.execFileSync(FF, ['-v', 'error', '-y', '-f', 'f32le', '-ar', String(SR), '-ac', '1', '-i', '-', '-codec:a', 'libmp3lame', '-b:a', '96k', file],
+  cp.execFileSync(FF, ['-v', 'error', '-y', '-f', 'f32le', '-ar', String(SR), '-ac', '1', '-i', '-'].concat(o.sr ? ['-ar', String(o.sr)] : [])
+    .concat(['-codec:a', 'libmp3lame', '-b:a', (o.kbps || 96) + 'k', file]),
     {input: Buffer.from(pcm.buffer, pcm.byteOffset, pcm.length * 4)});
 }
 
@@ -181,7 +196,7 @@ function rrOf(name){
 }
 
 /* ---------- pitch: YIN on the steady part ---------- */
-function yin(x, sr, len){
+function yin(x, sr, len, long){
   /* to about 11 kHz, a few frames inside the note, the median; then each
      frame's period refined at the full rate, where a high note's period
      is only a few samples long at 11 kHz */
@@ -190,7 +205,11 @@ function yin(x, sr, len){
   const rs = sr / f, W = 1024, tmax = Math.min(W, Math.floor(rs / 26)), tmin = Math.floor(rs / 4200);
   const est = [];
   const audible = Math.max(0.12, (len || x.length) / sr);
-  const places = [0.15, 0.3, 0.45, 0.6].map(p => Math.min(0.7, Math.max(0.04, p * audible)));
+  /* a note played with vibrato swings ±20–30 cents, so four frames can
+     land anywhere on the swing: for the long solo strings, the median of
+     a frame every 50 ms across the steady part */
+  const places = long ? Array.from({length: 60}, (_, i) => 0.4 + i * 0.05).filter(t => t < Math.min(3.6, audible * 0.85))
+    : [0.15, 0.3, 0.45, 0.6].map(p => Math.min(0.7, Math.max(0.04, p * audible)));
   for(const at of places){
     const o = Math.floor(at * rs);
     if(o + W + tmax >= y.length) continue;
@@ -287,7 +306,7 @@ function build(spec){
   chosen = chosen.filter(c => c.pcm && c.pcm.length > 100);
   if(spec.kind === 'pitched'){
     /* the octave the library names its notes in: the offset most samples agree on */
-    chosen.forEach(c => { const x = fromOnset(c.pcm); c.measured = yin(x, SR, audibleLength(x)); });
+    chosen.forEach(c => { const x = fromOnset(c.pcm); c.measured = yin(x, SR, audibleLength(x), !!spec.every); });
     let shift = 0;
     if(!spec.unnamed){
       const votes = {};
@@ -303,8 +322,11 @@ function build(spec){
       c.pitchNote = Math.abs(dev) <= 45 ? 'measured' : c.measured == null ? 'unmeasured' : 'name';
     });
     chosen = chosen.filter(c => c.midi != null && c.midi >= spec.range[0] - 2 && c.midi <= spec.range[1] + 2);
-    /* every minor third: for each target, the nearest sample, per layer */
+    /* every minor third: for each target, the nearest sample, per layer
+       (or, for the solo strings, every note the library recorded) */
     const keep = [];
+    if(spec.every){ chosen = chosen.filter(c => c.midi >= spec.range[0] - 2 && c.midi <= spec.range[1] + 2); }
+    else {
     const layersN = Math.max(...chosen.map(c => c.li)) + 1;
     for(let li = 0; li < layersN; li++){
       const cands = chosen.filter(c => c.li === li);
@@ -317,6 +339,7 @@ function build(spec){
       cands.forEach(c => { if(!got.has(c) && !cands.some(o => got.has(o) && Math.abs(o.midi - c.midi) <= 2)){ got.add(c); keep.push(c); } });
     }
     chosen = keep;
+    }
   }
   /* trim, one gain for the instrument so its layers keep their difference */
   chosen.forEach(c => { c.pcm = prepare(c.pcm, spec.dur); });
@@ -328,11 +351,13 @@ function build(spec){
     chosen.sort((a, b) => a.midi - b.midi || a.li - b.li).forEach(c => {
       const file = `${spec.id}/${c.midi}_${c.li}.mp3`;
       for(let i = 0; i < c.pcm.length; i++) c.pcm[i] *= g;
-      encode(c.pcm, path.join(OUT, file));
+      encode(c.pcm, path.join(OUT, file), spec);
       entry.notes.push({midi: c.midi, layer: c.li, tune: c.tune || 0, file, from: c.name});
     });
     entry.layers = Math.max(...entry.notes.map(n => n.layer)) + 1;
     entry.range = [entry.notes[0].midi, entry.notes[entry.notes.length - 1].midi];
+    if(spec.sr){ entry.sampleRate = spec.sr; entry.sustain = true; entry.length = spec.dur; }
+    if(spec.vibrato === false) entry.vibrato = false;
   } else {
     entry.hits = [];
     chosen.forEach(c => {
@@ -364,7 +389,21 @@ function build(spec){
   }
   fs.writeFileSync(idxFile, JSON.stringify(index, null, 1));
   const credits = [...new Set(Object.values(index.instruments).map(e => e.source))];
-  fs.writeFileSync(path.join(OUT, 'LICENSE.md'), `# The orchestra and the band — licences
+  const used = new Set(Object.values(index.instruments).map(e => e.source));
+  fs.writeFileSync(path.join(OUT, 'LICENSE.md'), SET === 'strings' ? `# The solo violin and cello — licences
+
+The Repertoire player's violin and cello. Every sample is a recording of a
+real instrument, trimmed, made mono, resampled to 32 kHz and encoded as MP3
+by \`node tools/fetch-orchestra.js --set strings\`. All of it is dedicated to
+the public domain under **Creative Commons CC0 1.0 Universal** by its makers:
+
+${[...used].map(c => '- ' + c).join('\n')}
+
+Sources:
+${Object.values(REPOS).filter(r => used.has(r.credit)).map(r => `- ${r.credit}: ${r.url}`).join('\n')}
+
+CC0 asks for nothing; the credit is given because it is owed.
+` : `# The orchestra and the band — licences
 
 Every sample in this folder is a recording of a real instrument, trimmed,
 made mono and encoded as MP3 by \`tools/fetch-orchestra.js\`. All of it is
@@ -380,5 +419,5 @@ CC0 asks for nothing; the credit is given because it is owed.
 `);
   let bytes = 0; const walk = d => fs.readdirSync(d, {withFileTypes: true}).forEach(e => { const p = path.join(d, e.name); if(e.isDirectory()) walk(p); else bytes += fs.statSync(p).size; });
   walk(OUT);
-  console.log(`\n${Object.keys(index.instruments).length} instruments, ${(bytes / 1048576).toFixed(1)} MB in vendor/orchestra`);
+  console.log(`\n${Object.keys(index.instruments).length} instruments, ${(bytes / 1048576).toFixed(1)} MB in ${path.relative(ROOT, OUT)}`);
 })();
