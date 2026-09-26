@@ -184,24 +184,28 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       return jaHours(addDays(today(), -7), today()); }), 0);
 
   console.log('\n6. an error becomes something you have to produce');
-  const carded = await p.evaluate(() => {
-    const before = (S.study?.cards || []).length;
+  /* The Study Deck was rebuilt to Anki's shape: a suggested card is a note,
+     tagged inbox, its cards suspended until it is accepted, filed in the
+     deck its source feeds. */
+  const carded = await p.evaluate(async () => {
+    if(!SD.loaded) await sdLoad();
+    const before = SD.notes.size;
     const e = {id:'s192e', date:today(), intendedMeaning:'to decide on a plan',
       actualJapanese:'予定を決めるをします', correctedNatural:'予定を決めます',
       errorType:'conjugation', patternTag:'て-form', sourceType:'other', sourceId:null,
       sentToStudyDeck:false, createdAt:new Date().toISOString()};
     jaState().errors.push(e);
-    suggestStudyCard({type:'production', sourceType:'error_log', sourceId:e.id,
+    const r = suggestStudyCard({type:'production', sourceType:'error_log', sourceId:e.id,
       front:`Say this in Japanese:\n\n${e.intendedMeaning}`, back:e.correctedNatural,
       sourceLabel:'Speaking Lab', tags:['conjugation']});
-    const made = (S.study.cards || []).slice(-1)[0];
-    return {grew: S.study.cards.length === before + 1, type: made.type, deck: made.deckId,
-      status: made.status, front: made.front, back: made.back};
+    const n = r.note, cs = sdCardsOf(n.id), deck = SD.decks.get(cs[0].deckId);
+    return {grew: SD.notes.size === before + 1, front: sdStripHTML(n.fields[0]), back: sdStripHTML(n.fields[1]),
+      deck: deck && deck.name, want: studySourceDeckName('error_log'), inbox: n.tags.includes('inbox'), waiting: cs.every(c => c.queue === -1)};
   });
   yes('a card is made', carded.grew);
-  is('  that asks you to produce it', carded.type, 'production');
-  is('  filed with the corrections', carded.deck, 'ja_corrections');
-  is('  and waiting to be looked at', carded.status, 'inbox');
+  yes('  that asks you to produce it', /^Say this in Japanese/.test(carded.front), carded.front);
+  is('  filed in the deck the corrections feed', carded.deck, carded.want);
+  yes('  and waiting to be looked at', carded.inbox && carded.waiting, JSON.stringify(carded));
   yes('the meaning is the prompt and the Japanese is the answer',
     /decide on a plan/.test(carded.front) && carded.back === '予定を決めます', JSON.stringify(carded));
 
@@ -221,15 +225,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     return i.id;
   });
   await p.waitForTimeout(1500);
-  const carded2 = await p.evaluate(id => {
+  const carded2 = await p.evaluate(async id => {
     document.querySelector(`[data-jaislandcard="${id}"]`).click();
-    const made = (S.study.cards || []).filter(x => x.sourceId === id);
-    return {n: made.length, type: made[0]?.type, status: made[0]?.status,
-      front: made[0]?.front, back: made[0]?.back};
+    await new Promise(r => setTimeout(r, 300));
+    const made = [...SD.notes.values()].filter(n => n.extra && n.extra.sourceId === id);
+    const n = made[0];
+    return {n: made.length, inbox: !!n && n.tags.includes('inbox'),
+      front: n ? sdStripHTML(n.fields[0]) : '', back: n ? sdStripHTML(n.fields[1]) : ''};
   }, island);
   is('one card', carded2.n, 1);
-  is('  that asks you to produce it', carded2.type, 'production');
-  is('  and waits to be looked at', carded2.status, 'inbox');
+  yes('  that asks you to produce it', /Why I am learning Japanese/.test(carded2.front), carded2.front);
+  is('  and waits to be looked at', carded2.inbox, true);
   yes('the topic is the prompt and the whole monologue is the answer',
     /Why I am learning Japanese/.test(carded2.front || '') && carded2.back === '日本語を勉強している理由は…',
     JSON.stringify(carded2));

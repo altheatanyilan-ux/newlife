@@ -78,7 +78,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      rendered && rendered.marks > 0 && !rendered.pen && rendered.same, JSON.stringify(rendered));
 
   console.log('\n3. the clock opens at the time it is');
-  await page.evaluate(() => { location.hash = '#/today'; rerender(); }); await page.waitForTimeout(1100); await clean();
+  await page.evaluate(() => { setTodayView('do'); location.hash = '#/today'; rerender(); }); await page.waitForTimeout(1100); await clean();
   const nowHM = await page.evaluate(() => nowHM());
   await page.evaluate(() => { const r = rhythmDay(today()); r.sleepTime = ''; saveNow(); rerender(); });
   await page.waitForTimeout(700); await clean();

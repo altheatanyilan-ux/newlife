@@ -33,8 +33,9 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   }));
   /* the Compass is no longer a door of its own: its charts are the Review tab
      of the Lived Record, beside the writing about them */
-  ok('Today and Planning at the top, in that order',
-     JSON.stringify(nav.top) === JSON.stringify(['today','planning']), JSON.stringify(nav.top));
+  /* Planning went inside Today (its Tasks view), so Today stands alone at the top */
+  ok('Today at the top, with Planning inside it',
+     JSON.stringify(nav.top) === JSON.stringify(['today']), JSON.stringify(nav.top));
   ok('and the Compass is not a room any more',
      !nav.top.includes('compass') && !nav.zones.some(z => z.pages.includes('compass')), JSON.stringify(nav));
   ok('the top three carry no heading',
@@ -44,8 +45,10 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      the whole room was taken out — and Score Practice stands where it stood:
      a piece of notation with your own marks on it is a thing you are making
      as much as a thing you are reading. */
-  ok('Create holds Content, Projects, Finance, the Skill Tree, both music rooms and the Japanese Studio',
-     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','finance','skills','score','jazz','japanese']),
+  /* Finance and the Skill Tree moved into the Identity room; the Songwriting
+     Studio joined the music rooms */
+  ok('Create holds Content, Projects, the music rooms (Repertoire, Jazz, Songwriting) and the Japanese Studio',
+     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','score','jazz','songwriting','japanese']),
      JSON.stringify(nav.zones[0]));
   /* the Jazz Studio is beside Score Practice rather than inside it: one is
      for pieces, the other for patterns in all twelve keys, and they are
@@ -60,8 +63,10 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      holding on to is closer to who you are than to what you are making. Time
      is here for the same reason — where the hours went is a fact about who
      you are, not about what you produced. */
-  ok('Identity holds Values, Journals, People, the Study Deck and Time',
-     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['values','journals','people','study','time']),
+  /* Values, People, the Skill Tree and Finance are one Identity room now;
+     Time is a view of Today; the Knowledge Tree joined */
+  ok('Identity holds the Identity room, the Lived Record, the Knowledge Tree and the Study Deck',
+     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['identityRoom','journals','tree','study']),
      JSON.stringify(nav.zones[1]));
   ok('both zones fold', await page.evaluate(() => document.querySelectorAll('.zone [data-zoneh]').length === 2), 'no');
   ok('nothing is left loose at the bottom', nav.loose.length === 0, JSON.stringify(nav.loose));
@@ -105,9 +110,10 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   await go('#/journals');
   ok('it opens on the entries, as before',
      await page.evaluate(() => !!document.querySelector('.jnav') && document.querySelector('[data-jrview].on')?.dataset.jrview === 'entries'), 'no');
-  ok('with a switch to the Timeline, the Library and the Review',
+  /* the Review moved on to be one of Today's views */
+  ok('with a switch to the Timeline and the Library',
      await page.evaluate(() => [...document.querySelectorAll('[data-jrview]')].map(b => b.dataset.jrview).join(',')
-       === 'entries,timeline,library,review'),
+       === 'entries,timeline,library'),
      await page.evaluate(() => [...document.querySelectorAll('[data-jrview]')].map(b => b.dataset.jrview).join(',')));
   await page.evaluate(() => document.querySelector('[data-jrview="timeline"]').click()); await page.waitForTimeout(1000);
   const tl = await page.evaluate(() => ({hash: location.hash, h1: document.querySelector('h1')?.textContent,
@@ -160,7 +166,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
 
   console.log('\n6. every old address still answers');
   for(const [from, want] of [['#/timeline','#/journals/timeline'], ['#/timeline/threads','#/journals/timeline/threads'],
-                             ['#/writing','#/content'], ['#/compass','#/journals/review']]){
+                             ['#/writing','#/content'], ['#/compass','#/today/review']]){
     await go(from);
     const landed = await page.evaluate(() => location.hash);
     ok(`${from} → ${want}`, landed === want, landed);

@@ -409,7 +409,14 @@ function bindJazzLeadCards(root, mode){
   if(u[mode].phase === 'card' || u[mode].phase === 'running') u[mode].phase = mode === 'A' ? 'setup' : 'ready';
   const draw = {A: jzlDrawA, B: jzlDrawB, C: jzlDrawC}[mode];
   draw(host);
-  addEventListener('hashchange', () => { if(_jzlCleanup) _jzlCleanup(); }, {once: true});
+  /* Leaving the cards stops listening. One listener for the page's lifetime,
+     not one per drawing: those piled up, and because the router draws the
+     next page before they ran, going from one mode to another (A → B) drew B,
+     started it listening, and then had A's leftover cleanup switch B's keys,
+     MIDI and microphone off. Between the modes nothing needs doing here —
+     each mode's jzlListen replaces the last one's. */
+  if(!window._jzlHashHook){ window._jzlHashHook = true;
+    addEventListener('hashchange', () => { if(!/^#\/jazz\/cards(\/|$)/.test(location.hash) && _jzlCleanup) _jzlCleanup(); }); }
 }
 const jzlSetStage = (host, redraw) => { const s = host.querySelector('[data-jzlstage]');
   if(s) s.onchange = () => { jazzLeadUi().stage = s.value; redraw(); }; };

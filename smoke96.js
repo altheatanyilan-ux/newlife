@@ -170,23 +170,18 @@ const clickToast = (pg, re) => pg.evaluate(src => {
     fs.writeFileSync(idxFile, nextIdx);
     fs.writeFileSync(swFile, swBak.replace(/^const BUILD = '[^']*';/m, `const BUILD = '${nextHash}';`));
 
-    /* the page notices a new worker the same way a phone left open would */
+    /* The new worker takes over as soon as it has installed (skipWaiting):
+       it used to wait politely for every tab to close, which meant a broken
+       build went on being served after the fix was out. The page follows the
+       change of controller and reloads itself onto the new build. */
+    const nav = p.waitForNavigation({timeout: 25000}).catch(() => null);
     await p.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update(); });
-    const offer = await waitForToast(p, /newer version of the house/i);
-    yes('the open page is told a newer version is ready', !!offer, '(no such toast)');
-    yes('and it is an offer, not a swap done behind your back — the old build is still running',
-        !(await p.content()).includes('BUILD-TWO'));
-
-    const clicked = await clickToast(p, /newer version of the house/i);
-    if(!clicked) no('taking the offer loads the new build', 'no reload button on that toast');
-    else {
-      await p.waitForNavigation({timeout: 20000}).catch(() => {});
-      await p.waitForTimeout(2500);
-      yes('taking the offer loads the new build', (await p.content()).includes('BUILD-TWO'));
-      const shells = await p.evaluate(async () => (await caches.keys()).filter(n => n.startsWith('shell-')));
-      is('and the previous build\'s cache is swept up, not left to pile', shells.length, 1);
-      is('the surviving one is the new build', shells[0], 'shell-' + nextHash);
-    }
+    await nav;
+    await p.waitForTimeout(2500);
+    yes('a new build reaches the open page by itself: it reloads onto it', (await p.content()).includes('BUILD-TWO'));
+    const shells = await p.evaluate(async () => (await caches.keys()).filter(n => n.startsWith('shell-')));
+    is('and the previous build\'s cache is swept up, not left to pile', shells.length, 1);
+    is('the surviving one is the new build', shells[0], 'shell-' + nextHash);
   } finally {
     fs.writeFileSync(idxFile, idxBak);
     fs.writeFileSync(swFile, swBak);
@@ -228,7 +223,11 @@ const clickToast = (pg, re) => pg.evaluate(src => {
      icon, and splitting on a tag name matches the first prose mention of it in
      a comment. These link tags appear nowhere else, so scan for them. */
   const headSrc = fs.readFileSync('/home/user/newlife/index.html', 'utf8');
-  const fontLinks = headSrc.match(/<link[^>]*fonts\.googleapis\.com[^>]*>/g) || [];
+  /* Parsed as a browser parses it, so a link that only exists as text inside
+     a script (the Study Deck's card template, drawn in its own sandboxed
+     frame when a card is shown) is not mistaken for one in the page. */
+  const fontLinks = await (await b.newPage()).evaluate(src => [...new DOMParser().parseFromString(src, 'text/html')
+    .querySelectorAll('link[href*="fonts.googleapis.com"]')].map(l => l.outerHTML), headSrc);
   const blocking = fontLinks.filter(l => /rel=["']stylesheet["']/.test(l) && !/media=["']print["']/.test(l)
                                           && !/^<link[^>]*rel=["']preconnect/.test(l));
   is('the webfont stylesheet is not on the critical path', blocking.length, 0);

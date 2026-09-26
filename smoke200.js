@@ -349,7 +349,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('Today says where the day went, in one line', /\dh|\dm/.test(said.line), said.line);
   yes('  and the weekly review says it with a comparison',
     said.review.length >= 1 && /tracked/.test(said.review[0]), JSON.stringify(said.review));
-  await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(1200);
+  /* on the day's own views (the rooms under Today draw their own page) */
+  await p.evaluate(() => { setTodayView('do'); location.hash = '#/today'; }); await p.waitForTimeout(1200);
   yes('  and it is on the page', await p.evaluate(() => !!document.getElementById('tTime')));
 
   console.log('\n15. nothing threw');

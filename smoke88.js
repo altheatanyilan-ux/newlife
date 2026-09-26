@@ -24,13 +24,15 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   await go();
 
   console.log('\n1. the room exists and is furnished');
-  const seed = await page.evaluate(() => ({nav: !!document.querySelector('[data-page="planning"]'),
+  /* Planning is Today's Tasks view now: the way in is the switch on Today */
+  const seed = await page.evaluate(() => ({nav: !!document.querySelector('.today-switch [data-tview="tasks"]') && todayView() === 'tasks',
     tasks: S.tasks.length, lists: S.planning.lists.length, folders: S.planning.folders.length,
     tags: S.planning.tags.length, sections: S.planning.lists.reduce((a,l)=>a+l.sections.length,0),
     rows: document.querySelectorAll('.pt-row').length, smart: document.querySelectorAll('[data-plsel^="smart:"]').length}));
-  ok('a nav entry', seed.nav, 'no Planning in the sidebar');
+  ok('a way in: Today → Tasks', seed.nav, 'no Tasks view on Today');
   ok('seeded with lists, folders, tags and sections',
-     seed.lists >= 6 && seed.folders === 2 && seed.tags === 5 && seed.sections >= 5, JSON.stringify(seed));
+     /* (projects are lists now, so they are counted here too, in a folder of their own) */
+     seed.lists >= 6 && seed.folders >= 2 && seed.tags === 5 && seed.sections >= 5, JSON.stringify(seed));
   ok('and with tasks', seed.tasks >= 15, 'saw ' + seed.tasks);
   /* Habits used to be the eighth item here. It is a room of its own now — a
      peer of the whole task side rather than one of its saved views — so the
@@ -51,8 +53,9 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   ok('and the dated row offers all three spans',
      await page.evaluate(() => [...document.querySelectorAll('[data-plspan]')].map(b => b.dataset.plspan).join(',') === 'today,tomorrow,next7'));
   ok('habits is not among them', await page.evaluate(() => !document.querySelector('[data-plsel="smart:habits"]')));
+  /* the rooms became views of Today: Tasks, Habits, and the statistics under Review */
   ok('it is one of the three rooms instead',
-     await page.evaluate(() => [...document.querySelectorAll('[data-plroom]')].map(b => b.dataset.plroom).join(',') === 'tasks,habits,stats'));
+     await page.evaluate(() => [...document.querySelectorAll('.today-switch [data-tview]')].map(b => b.dataset.tview).filter(v => ['tasks', 'habits', 'review'].includes(v)).join(',') === 'tasks,habits,review'));
 
   console.log('\n2. the sentence, read as a task');
   const parsed = await page.evaluate(() => {
@@ -192,7 +195,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
     const h = S.habits[0], T = today();
     delete (S.habitLog[T] || {})[h.id];
     /* habits are their own room now, not a selection inside the task room */
-    planSetRoom('habits'); return {id:h.id, before: !!habitDone(h, T)};
+    setTodayView('habits'); S._habView = 'dashboard'; return {id:h.id, before: !!habitDone(h, T)};
   });
   await page.waitForTimeout(900);
   /* the habits room was rewritten afterwards — three views of its own, and a
@@ -241,7 +244,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
 
   console.log('\n10. the statistics');
   /* back out of the habits room before asking the task room for anything */
-  await page.evaluate(() => { planSetRoom('tasks'); planSetSel('smart','stats'); });
+  await page.evaluate(() => { setTodayView('tasks'); planSetRoom('tasks'); planSetSel('smart','stats'); });
   await page.waitForTimeout(900);
   const stats = await page.evaluate(() => ({tiles: document.querySelectorAll('.ps-tile').length,
     bars: document.querySelectorAll('.ps-bar').length, heat: document.querySelectorAll('.ph-heatgrid').length,
@@ -322,7 +325,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   }
   ok('a linked task shows on its project and its skill',
      seen['#/projects'] > 0 && seen['#/skills'] > 0, JSON.stringify(seen));
-  await page.evaluate(() => { location.hash = '#/today'; rerender(); }); await page.waitForTimeout(900);
+  await page.evaluate(() => { setTodayView('do'); location.hash = '#/today'; rerender(); }); await page.waitForTimeout(900);
   ok('Today points at the whole list', await page.evaluate(() => !!document.querySelector('a[href="#/planning/today"]')), 'no link');
 
   console.log('\n13. the old readers of S.tasks still work');

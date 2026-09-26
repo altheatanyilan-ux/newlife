@@ -202,7 +202,9 @@ const MELODY = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3
     return {head: mel(0), solo: mel(1), out: mel(2), inst: tl.parts[0].inst};
   }, MELODY);
   yes('a tune with a melody plays it in the head and the head out, not in the solos', M.head.join() === '72,77,79,72' && M.solo.length === 0 && M.out.length === 4 && M.inst === 'flute', M);
-  await p.evaluate(id => { jazzTuneUi().key = 'G'; Object.assign(jazzTunePlaySettings(jazzTune(id)), {bpm: 240, choruses: 1, trading: false, countIn: 0}); location.hash = '#/jazz/tune/' + id; }, T.id);
+  /* ▶ starts at the solos by default since the generated soloist came in;
+     "start with the head" is the setting that plays it from the top */
+  await p.evaluate(id => { jazzTuneUi().key = 'G'; Object.assign(jazzTunePlaySettings(jazzTune(id)), {bpm: 240, choruses: 1, trading: false, countIn: 0, startAt: 'head'}); location.hash = '#/jazz/tune/' + id; }, T.id);
   await p.waitForTimeout(3000);
   yes('on the tune page: "Play the tune — head · solos · head out"', await p.evaluate(() => /Play the tune/.test(document.getElementById('jzbt').textContent)));
   await p.click('#jzbtGo');

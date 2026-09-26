@@ -132,7 +132,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('and putting it on that day works', await p.evaluate(id => byId(S.tasks, id).day, tid), await p.evaluate(() => addDays(today(), 2)));
 
   console.log('\n8. the × still deletes for good, with its undo');
-  await p.evaluate(id => { setTaskDay(id, today()); location.hash = '#/today'; rerender(); }, tid);
+  await p.evaluate(id => { setTaskDay(id, today()); setTodayView('do'); location.hash = '#/today'; rerender(); }, tid);
   await openTasks();
   await p.click(`${row} [data-tdel]`);
   await p.waitForTimeout(500);
@@ -142,14 +142,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('and the task really is gone', await p.evaluate(id => !!byId(S.tasks, id), tid), false);
 
   console.log('\n9. a task made inside a project has no subtasks array, and must not break');
+  /* projects are lists now: a project's task is a task on its list, and one
+     written without a subtasks key must still open into steps */
   const pref = await p.evaluate(() => {
     const p0 = (S.projects || [])[0];
-    if(!p0 || !(p0.phases || []).length) return null;
-    const t = {id: uid(), text: 'a project task with no subtasks key', day: today(), done: false};
-    p0.phases[0].tasks = p0.phases[0].tasks || [];
-    p0.phases[0].tasks.push(t);
-    saveNow(); location.hash = '#/today'; rerender();
-    return allTaskRefs().find(r => r.task === t).id;
+    const list = p0 && planState().lists.find(l => l.projectId === p0.id);
+    if(!list) return null;
+    const t = {id: uid(), text: 'a project task with no subtasks key', day: today(), done: false, listId: list.id};
+    S.tasks.push(t);
+    saveNow(); setTodayView('do'); location.hash = '#/today'; rerender();
+    const ref = allTaskRefs().find(r => r.task === t || r.id === t.id);
+    return ref ? ref.id : t.id;
   });
   if(!pref) no('a project task can be broken into steps', 'no project with a phase to test against');
   else {

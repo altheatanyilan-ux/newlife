@@ -177,12 +177,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('every topic with vocabulary on it is listed', over.rows.length >= 1, JSON.stringify(over.rows));
   yes('  worst first, which is the order that answers the question',
     over.worstFirst.every((v, i, a) => !i || a[i-1] <= v), JSON.stringify(over.worstFirst));
+  /* the Study Deck was rebuilt to Anki's shape: its inbox is the notes tagged inbox */
+  await p.evaluate(async () => { if(!SD.loaded) await sdLoad(); });
   const sent = await p.evaluate(async () => {
-    const before = studyState().cards.filter(c => c.status === 'inbox').length;
+    const before = studyInboxNotes().length;
     document.querySelector('#jaChunksToDeck').click();
     await new Promise(r => setTimeout(r, 500));
     const i = jaState2().islands.find(v => (v.chunks || []).length);
-    return {before, after: studyState().cards.filter(c => c.status === 'inbox').length,
+    return {before, after: studyInboxNotes().length,
       sent: i.chunks.filter(c => c.sentToDeck).map(c => c.japanese),
       ready: i.chunks.filter(c => c.ready).map(c => c.japanese)};
   });
@@ -425,18 +427,18 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     /no correction written in yet/.test(book.openSaid || ''), book.openSaid);
   const refused = await p.evaluate(() => {
     const e = jaState2().errors.find(v => !v.corrected.trim());
-    const before = studyState().cards.filter(c => c.status === 'inbox').length;
+    const before = studyInboxNotes().length;
     const made = jaErrorToDeck(e.id);
-    return {made, grew: studyState().cards.filter(c => c.status === 'inbox').length - before};
+    return {made, grew: studyInboxNotes().length - before};
   });
   /* the room has no opinion about your Japanese: it will not invent the
      answer, and it will not make a card that has no answer on it */
   is('an entry with no correction cannot become a card', [refused.made, refused.grew], [false, 0]);
   const carded = await p.evaluate(() => {
     const e = jaState2().errors.find(v => v.corrected.trim());
-    const before = studyState().cards.filter(c => c.status === 'inbox').length;
+    const before = studyInboxNotes().length;
     const made = jaErrorToDeck(e.id);
-    return {made, grew: studyState().cards.filter(c => c.status === 'inbox').length - before, flagged: e.sentToStudyDeck};
+    return {made, grew: studyInboxNotes().length - before, flagged: e.sentToStudyDeck};
   });
   is('one with a correction can', [carded.made, carded.grew, carded.flagged], [true, 1, true]);
 

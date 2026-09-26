@@ -47,7 +47,8 @@ function xml(bars){
     document.startViewTransition = cb => { let skipped = false; setTimeout(() => cb(), 450);
       return {finished: Promise.resolve(), skipTransition(){ skipped = true; }}; };
     let n = 0; const ro = window.renderRoute; window.renderRoute = function(...a){ n++; return ro.apply(this, a); };
-    location.hash = '#/values';
+    /* (#/values is an old address that redirects now, which is two routes; a room that is one) */
+    location.hash = '#/projects';
     setTimeout(() => { window.renderRoute = ro; if(real) document.startViewTransition = real; res({n, off: _vtOff}); }, 1200);
   }));
   yes('a crossfade that answers after the timer does not build the page a second time', R.n === 1, R);
