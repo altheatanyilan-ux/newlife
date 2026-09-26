@@ -127,7 +127,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  how soon it is, and what is left', /in 12d · 1 left/.test(step));
   /* it is a door, not a label */
   await p.evaluate(() => document.querySelector('[data-planms]').click()); await p.waitForTimeout(1400);
-  is('  pressing one opens Planning', await p.evaluate(() => location.hash), '#/planning');
+  /* Planning is Today's Tasks view now, at its own address */
+  is('  pressing one opens Planning (Today → Tasks)', await p.evaluate(() => location.hash), '#/today/tasks');
   yes('  already narrowed to that date', await p.evaluate(() => !!S._planFilter?.milestone));
   is('  on the list the date belongs to',
      await p.evaluate(() => planList(S._planSel?.id)?.name), 'Ship it');

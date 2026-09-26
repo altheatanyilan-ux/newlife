@@ -12,7 +12,12 @@ const PLAN_SEEDED = 'starter';
 function planSeedIfEmpty(){
   const p = planState();
   if(p.seeded) return;
-  if((S.tasks || []).length > 3) { p.seeded = PLAN_SEEDED; return; }   // never on top of real work
+  /* never on top of real work — and the starter projects' own phases are
+     not real work: since projects became lists, their tasks live in S.tasks,
+     and counting them kept this room empty on every first run */
+  const starterLists = new Set((S.projects || []).filter(x => x.seeded === 'starter').map(x => x.id));
+  const real = (S.tasks || []).filter(t => !t.seeded && !starterLists.has(t.listId));
+  if(real.length > 3) { p.seeded = PLAN_SEEDED; return; }
   const T = today(), inD = n => addDays(T, n);
 
   [['Life', 0], ['Work & learning', 1]].forEach(([n, o]) => {

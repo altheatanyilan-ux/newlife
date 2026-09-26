@@ -42,7 +42,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const go = async h => { await p.evaluate(x => { if(location.hash === x) rerender(); else location.hash = x; }, h);
     await p.waitForTimeout(1400); };
   const face = () => p.evaluate(() => document.querySelector('#focusDock .fp-time')?.textContent);
-  const onToday = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender();
+  const onToday = async () => { await p.evaluate(() => { setTodayView('do'); if(location.hash === '#/today') rerender();
     else location.hash = '#/today'; }); await p.waitForTimeout(1200); };
   /* the clock starts the instant an estimate is pressed, so by the time the
      face is read a second has gone: assert the minute, not the tick */

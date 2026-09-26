@@ -63,10 +63,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n3. tasks, habits and statistics are rooms, not list items');
   await plan();
-  const rooms = await p.$$eval('[data-plroom]', n => n.map(x => x.dataset.plroom));
   /* Statistics joined them later: the numbers about the work are a peer of the
-     work, not a view of one list of it. */
-  is('the three rooms, in order', rooms.join(','), 'tasks,habits,stats');
+     work, not a view of one list of it. Later still the three became views of
+     Today (Tasks, Habits, and the statistics under Review). */
+  const rooms = await p.$$eval('.today-switch [data-tview]', n => n.map(x => x.dataset.tview).filter(v => ['tasks', 'habits', 'review'].includes(v)));
+  is('the three rooms, in order, as views of Today', rooms.join(','), 'tasks,habits,review');
   yes('habits is no longer buried among the task views',
       await p.evaluate(() => !document.querySelector('[data-plsel="smart:habits"]')));
   yes('the task room has its list sidebar', !!(await p.$('.pl-side')));

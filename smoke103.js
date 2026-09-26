@@ -22,7 +22,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
   const draw = async () => { await p.evaluate(() => rerender()); await p.waitForTimeout(700); };
-  const onToday = async () => { await p.evaluate(() => { if(location.hash === '#/today') rerender(); else location.hash = '#/today'; }); await p.waitForTimeout(900); };
+  const onToday = async () => { await p.evaluate(() => { setTodayView('do'); if(location.hash === '#/today') rerender(); else location.hash = '#/today'; }); await p.waitForTimeout(900); };
   const onCompass = async () => { await p.evaluate(() => { if(location.hash === '#/compass') rerender(); else location.hash = '#/compass'; }); await p.waitForTimeout(1200); };
 
   console.log('\n1. the timer is not somewhere you go to — it is everywhere');

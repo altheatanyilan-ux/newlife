@@ -49,7 +49,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const cards = await p.$$eval('.pk-card', n => n.length);
   const cardT = await p.$$eval('.pk-card [data-test]', n => n.length);
   yes('  so does the matrix card', cards > 0 && cardT === cards, `${cardT} chips on ${cards} cards`);
-  await p.evaluate(() => { location.hash = '#/today'; rerender(); }); await p.waitForTimeout(1400);
+  await p.evaluate(() => { setTodayView('do'); location.hash = '#/today'; rerender(); const d = document.querySelector('#t-tasks'); if(d) d.open = true; }); await p.waitForTimeout(1400);
   const trows = await p.$$eval('.task-row', n => n.length);
   const tT = await p.$$eval('.task-row [data-test]', n => n.length);
   yes('  and the Today row', trows > 0 && tT === trows, `${tT} chips on ${trows} rows`);
@@ -102,6 +102,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     is('  and is still owed when it was owed', await p.evaluate(i => byId(S.tasks, i).day, away),
        await p.evaluate(() => addDays(today(), 5)));
     is('  and we are taken to Today', await p.evaluate(() => parseHash().name), 'today');
+    /* Today has several views now; the sitting's words are on Execution */
+    await p.evaluate(() => { setTodayView('do'); rerender(); }); await p.waitForTimeout(900);
     yes('  where the full timer is, with its work note and break log',
         !!(await p.$('#fpDid')) || await p.evaluate(() => !!document.querySelector('.fp-card')));
     yes('  and no lesser timer opens in a panel', !(await p.$('.focus-panel')));
@@ -111,7 +113,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       await p.evaluate(() => typeof openFocusTimer === 'undefined'));
 
   console.log('\n5. a task that has been sat with is in progress');
-  const pid = await p.evaluate(() => (S.tasks || [])[0]?.id);
+  /* a task of an ordinary list, not one of a project's phases (projects are
+     lists now, and their rows are drawn in the Projects room) */
+  const pid = await p.evaluate(() => { const proj = new Set(planState().lists.filter(l => l.projectId).map(l => l.id));
+    return ((S.tasks || []).find(t => !t.done && !proj.has(t.listId)) || {}).id; });
   is('with nothing logged, it is not', await p.evaluate(i => taskIsInProgress(i), pid), false);
   await p.evaluate(i => {
     planState().focusSessions = planState().focusSessions || [];
@@ -126,7 +131,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      arranged tasks by a status the matrix already arranges them by — so the
      only place "in progress" is still said is on the row, which is where it is
      read. The inference itself is tested above, on taskIsInProgress. */
-  await p.evaluate(i => { const t = byId(S.tasks, i); t.listId = planState().lists.find(l => l.id !== 'inbox').id;
+  await p.evaluate(i => { const t = byId(S.tasks, i); t.listId = planState().lists.find(l => l.id !== 'inbox' && !l.projectId).id;
     t.day = ''; saveNow(); }, pid);
   const lid = await p.evaluate(i => byId(S.tasks, i).listId, pid);
   await p.evaluate(l => { S._planSel = {kind:'list', id:l}; S._planView = 'list'; location.hash = '#/planning'; rerender(); }, lid);
