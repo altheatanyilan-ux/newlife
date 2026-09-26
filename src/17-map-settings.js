@@ -67,6 +67,11 @@ routes.settings = function(root){
       <div class="opt"><div><b id="starterState"></b><div class="d" id="starterHint"></div></div>
         <span class="row" style="gap:8px"><button class="btn" id="sStarterAdd">Add it</button><button class="btn ghost danger" id="sStarterDel">Take it out</button></span></div>
     </div>
+    <div class="card rv"><h3>Worked examples</h3>
+      <p class="muted" style="font-size:.85rem">A tutorial by example: entries written to show each room in use — the Lived Record (a reflection, a dream, a decision that comes back for review, a sealed letter, a quote, the Library), Planning (a list with a milestone, both dates, subtasks, a reminder), the clock, People, Repertoire (a score with sections, bar notes and sittings), the Knowledge Tree, the Study Deck, Brand Strategy, Songwriting, the Japanese and Jazz Studios. Every one is titled “Example ·” and tagged #example, and comes out in one action. The starter set comes in with them if it is not already here.</p>
+      <div class="opt"><div><b id="tutState"></b><div class="d" id="tutHint"></div></div>
+        <span class="row" style="gap:8px"><button class="btn" id="sTutAdd">Add them</button><button class="btn ghost danger" id="sTutDel">Take them out</button></span></div>
+    </div>
     <div class="card rv"><h3>Data &amp; backups</h3><p class="muted" style="font-size:.85rem" id="storageLine">Everything lives in this browser, in an IndexedDB database. Measuring…</p><div class="bar" style="--c:var(--sage);margin-bottom:12px"><i id="storageBar" style="width:0%"></i></div>
       <div class="row"><button class="btn primary" id="sExport">💾 Export backup</button><button class="btn" id="sImport">Import backup</button><input type="file" id="sFile" accept=".json,application/json" hidden><button class="btn ghost" id="sRestoreInfo" title="${esc(RECOVERY_TEXT)}">ⓘ How to restore</button></div>
       <p class="muted" style="font-size:.85rem;margin-top:12px" id="lastBackupLine"></p>
@@ -106,6 +111,22 @@ routes.settings = function(root){
         removeStarter();
         return () => { Object.assign(S, snap); saveNow(); };
       }, after:() => { S.settings.starterDeclined = true; saveNow(); rerender(); }}); };
+  })();
+
+  /* the worked examples */
+  (() => {
+    if(!$('#tutState') || typeof tutorialCount !== 'function') return;
+    const n = tutorialCount();
+    $('#tutState').textContent = n ? `${n} example record${n === 1 ? '' : 's'} are in the house` : 'No worked examples in this house';
+    $('#tutHint').textContent = n ? 'Browse #example to see them all. Taking them out leaves everything of yours as it is.' : 'Adding them will not touch anything you have written.';
+    $('#sTutAdd').disabled = !!n; $('#sTutDel').disabled = !n;
+    $('#sTutAdd').onclick = async () => { $('#sTutAdd').disabled = true; const r = await applyTutorial(); sound('success');
+      toast(`Examples added to ${r.rooms.length} rooms${r.starter ? ', with the starter set' : ''}. Every one is tagged #example.`, 7000); rerender(); };
+    $('#sTutDel').onclick = () => { const c = tutorialCount();
+      requestDelete({label: `the worked examples (${c} record${c === 1 ? '' : 's'})`, remove: () => {
+        removeTutorial().then(() => rerender());
+        return () => { applyTutorial().then(() => rerender()); };
+      }, after: () => { S.settings.tutorialDeclined = true; saveNow(); rerender(); }}); };
   })();
 
   if($('#ambSettings')) bindAmbientMenu($('#ambSettings'));

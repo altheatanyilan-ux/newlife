@@ -54,8 +54,11 @@ async function boot(p, url){
 }
 const snapshot = () => (async () => {
   const out = {};
-  for(const t of db.tables){ if(/^tree/.test(t.name)) continue; const rows = await t.toArray();
-    out[t.name] = t.name === 'meta' ? rows.filter(r => !['treePrefs', 'sdSummary'].includes(r.key)).map(r => r.key).sort().join(',') : JSON.stringify(rows.map(r => JSON.stringify(r)).sort()); }
+  /* later versions add their own migrations on top of this one (lists as projects moves phase
+     tasks, smoke243; Score Study adds its stores, smoke245) — what is compared is what the Tree's
+     migration could have touched */
+  for(const t of db.tables){ if(/^tree/.test(t.name) || ['projects', 'tasks', 'analyses', 'writeups', 'takes', 'performanceNotes', 'ambiguities', 'omrReviews'].includes(t.name)) continue; const rows = await t.toArray();
+    out[t.name] = t.name === 'meta' ? rows.filter(r => !['treePrefs', 'sdSummary', 'anPrefs', 'projectsPremigration', 'planning'].includes(r.key)).map(r => r.key).sort().join(',') : JSON.stringify(rows.map(r => JSON.stringify(r)).sort()); }
   return out;
 })();
 
@@ -85,7 +88,7 @@ const snapshot = () => (async () => {
     const info = await p.evaluate(async () => ({ver: db.verno || db._version, real: usingRealDexie, tree: TREE_STORES.every(k => Array.isArray(S[k]) && S[k].length === 0), stores: TREE_STORES.every(k => db.tables.some(t => t.name === k)),
       kept: S.entries.filter(e => /^mig/.test(e.id)).length, task: !!S.tasks.find(t => t.id === 'migt')}));
     yes(`${label}: the old build ran at v18`, v18.ver === 18 && v18.real === (label === 'Dexie'), JSON.stringify(v18));
-    yes(`${label}: the new build opens it at v19`, info.ver === 19 && info.real === (label === 'Dexie'), JSON.stringify(info));
+    yes(`${label}: the new build opens it at v19 or later`, info.ver >= 19 && info.real === (label === 'Dexie'), JSON.stringify(info));
     const diff = Object.keys(before).filter(k => before[k] !== after[k]);
     yes(`${label}: every existing store is unchanged`, !diff.length && Object.keys(before).length > 20, diff.join(', ') + ` (${Object.keys(before).length} stores)`);
     yes(`${label}: the entries and the task are there`, info.kept === 5 && info.task);

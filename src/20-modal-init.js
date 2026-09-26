@@ -443,6 +443,7 @@ async function initInner(){
        stops it being a nag. */
     try { maybeAskBedtime(); } catch(e){ console.warn('bedtime question skipped', e); }
     try { maybeOfferStarter(); } catch(e){ console.warn('starter set skipped', e); }
+    try { if(typeof maybeOfferTutorial === 'function') setTimeout(maybeOfferTutorial, 4000); } catch(e){ console.warn('examples offer skipped', e); }
     try { migratePlanning(); planSeedIfEmpty(); } catch(e){ console.warn('planning seed skipped', e); }
     try { migrateContent(); contentSeedIfEmpty(); } catch(e){ console.warn('content seed skipped', e); } }, 1200);
   try { maybeAskPreferences(restOfBoot); } catch(e){ console.warn('opening question skipped', e); restOfBoot(); }

@@ -154,6 +154,8 @@ function treeGuard(rows, lastWritten){
     prev.forEach(old => {
       const now = cur.get(old.id);
       if(now && JSON.stringify(now) === JSON.stringify(old)) return;
+      /* a worked example (19-tutorial.js) was never yours, and may be taken out */
+      if(!now && old.seeded === 'tutorial') return;
       if(now && k === 'treePredictions' && treeIsResolution(old, now)) return;
       broke++;
       const frozen = Object.freeze(Object.assign({}, old));

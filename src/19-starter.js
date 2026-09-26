@@ -331,7 +331,20 @@ function maybeOfferStarter(){
   if(S.settings.starterApplied || S.settings.starterDeclined) return;
   if(!houseIsEmpty()) return;
   S.settings.starterApplied = 'auto';
-  applyStarter(); rerender();
-  toast('Added a starter set — goals, skills, projects, a compass and some open questions, built from the vision board you described. All of it is editable, and Settings has one button that takes every bit of it back out.', 12000,
-    {label:'take it out', fn:()=>{ removeStarter(); S.settings.starterDeclined = true; saveNow(); rerender(); toast('Gone. Nothing of yours was touched.'); }});
+  applyStarter();
+  /* and the worked examples, so that every room opens with something in it that shows what it is for —
+     for a person; a test driving the browser (navigator.webdriver) gets the empty rooms it expects */
+  const withExamples = typeof applyTutorial === 'function' && !navigator.webdriver;
+  (withExamples ? applyTutorial() : Promise.resolve()).then(() => rerender());
+  S.settings.tutorialOffered = true;
+  toast(`Added a starter set — goals, skills, projects, a compass and some open questions, built from the vision board you described${withExamples ? ', and worked examples in every room (each titled “Example ·”)' : ''}. All of it is editable, and Settings takes every bit of it back out.`, 12000,
+    {label:'take it out', fn:()=>{ removeStarter(); if(withExamples) removeTutorial().then(() => rerender()); S.settings.starterDeclined = true; S.settings.tutorialDeclined = true; saveNow(); rerender(); toast('Gone. Nothing of yours was touched.'); }});
+}
+/* A house that already has things in it is offered the examples once, and never given them unasked. */
+function maybeOfferTutorial(){
+  if(typeof applyTutorial !== 'function' || navigator.webdriver || !S.settings || S.settings.tutorialOffered || S.settings.tutorialApplied || S.settings.tutorialDeclined) return;
+  if(houseIsEmpty()) return;
+  S.settings.tutorialOffered = true; saveNow();
+  toast('New: worked examples in every room — a reflection, a decision, a Knowledge Tree page, a deck, a score with its sections — as a tutorial by example. Each is titled “Example ·” and comes out in one click.', 14000,
+    {label:'add them', fn:()=>{ applyTutorial().then(r => { rerender(); toast(`Examples added to ${r.rooms.length} rooms. Settings → Worked examples takes them out.`, 6000); }); }});
 }

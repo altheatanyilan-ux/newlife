@@ -234,6 +234,26 @@ The house opens with a first draft in it: seven skills, four projects with real 
 
 Every record it adds carries `seeded:'starter'`, so **Settings → Starter set → Take it out** removes all of it in one action and touches nothing you wrote yourself. It is offered only into a house that is still empty; if you have written anything, the button in Settings is the only way in. Applying it twice is a no-op — records are matched on a stable key.
 
+## Worked examples
+
+An empty room does not say what it is for, so the house also carries **worked examples** — a tutorial by example, one or more in every room, written by the assistant that built the house and saying so. Each is titled **“Example ·”**, tagged **#example** (so `#/tag/example` lists them all), and stamped `seeded:'tutorial'`:
+
+| Room | What the examples show |
+|---|---|
+| Lived Record | a reflection linked to a person, gratitude, a dream with named symbols, a synchronicity, a manifestation, a decision that comes back for review in a month, a letter sealed for a year, a quote, an open question, an intuition with its strength, a memory dated where it belongs on the Timeline, a progress note, a visualization for the Morning Theatre; a finished book with a passage and a film to get to in the Library |
+| Planning | a list with a milestone, tasks carrying both a due date and a do date, priorities across the matrix, subtasks, a reminder with a time, an estimate for the focus timer, a finished task, a thing to buy, an Inbox capture |
+| Time | a few days of sittings, in categories |
+| People | three people with circles, cadences, what each installed and gave, gift ideas and a history of interactions |
+| Repertoire | a sixteen-bar score engraved from its own MusicXML, four sections with target and comfortable tempos, two notes on bars, three logged sittings |
+| Knowledge Tree | a root, a branch and two points with links (one deliberately red), positions revised over time, a graft with its reason, an inbox capture, an experiment with its binomial |
+| Study Deck | two decks under *Examples*: reversed vocabulary cards and cloze cards on ii–V–I |
+| Brand Strategy | an account with its charter, voice and three pillars, and a quote, an observation, an idea, a hypothesis, a voice rule and an open question filed to it |
+| Songwriting | a song half written (sections, a plot in three steps, the three boxes) and three seeds |
+| Japanese Studio | a topic island in both registers with its chunks, and two errors in the notebook |
+| Jazz Studio | a sitting logged on the first exercise of Stage 1 |
+
+A new house gets them on first run, with the starter set. A house that already has things in it is offered them once, and nothing is added unasked. **Settings → Worked examples** adds them or **takes every one out in one action**, touching nothing you wrote — including the Knowledge Tree positions, which are otherwise add-only: an example's rows are the one exception the guard makes, because they were never yours. Nothing is added to the Writing Studio and no habit day is logged. A browser driven by a test (`navigator.webdriver`) is not given them on first run, so the smoke suites still start from empty rooms.
+
 ## Starting empty
 
 Underneath the starter set the house is unfurnished: nothing is seeded except the journal categories. Take the starter set out and every stage, value, skill, project and habit is yours from the first one.
