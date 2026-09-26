@@ -104,7 +104,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       negative: false, dimension: 'phys', createdAt: new Date().toISOString()});
     saveNow();
   });
-  await p.click('[data-plroom="habits"]');
+  /* Habits is a view of Today now, picked on Today's own switch */
+  await p.evaluate(() => { location.hash = '#/today'; }); await p.waitForTimeout(900);
+  await p.click('[data-tview="habits"]');
   await p.waitForTimeout(1300);
   yes('it opens', !!(await p.$('.pl-habits-room')));
   yes('with no list sidebar, because habits do not live in lists', !(await p.$('.pl-side')));
@@ -130,21 +132,21 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
         const id = Object.keys(S.habitLog[T] || {})[0];
         return !!id && !!habitDone(byId(S.habits, id), T); }));
 
-  console.log('\n6. the room is remembered, and the old address still works');
+  console.log('\n6. the view is remembered, and the old address still works');
   await p.evaluate(() => flushSave());
   await p.reload(); await p.waitForTimeout(2500);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
-  await p.evaluate(() => { location.hash = '#/planning'; });
+  await p.evaluate(() => { location.hash = '#/today'; });
   await p.waitForTimeout(1500);
-  is('it comes back to habits', await p.evaluate(() => planRoom()), 'habits');
+  is('it comes back to habits', await p.evaluate(() => todayView()), 'habits');
   await p.evaluate(() => { location.hash = '#/planning/today'; });
   await p.waitForTimeout(1400);
-  is('an address naming a task view returns to the task room',
-     await p.evaluate(() => planRoom()), 'tasks');
+  is('an old address naming a task view returns to the tasks',
+     await p.evaluate(() => todayView() + ' ' + location.hash), 'tasks #/today/tasks');
   await p.evaluate(() => { location.hash = '#/planning/habits'; });
   await p.waitForTimeout(1400);
-  is('and the old habits address opens the habits room',
-     await p.evaluate(() => planRoom()), 'habits');
+  is('and the old habits address opens the habits',
+     await p.evaluate(() => todayView() + ' ' + location.hash), 'habits #/today/habits');
   yes('  really showing it', !!(await p.$('.pl-habits-room')));
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));

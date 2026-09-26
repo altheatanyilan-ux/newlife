@@ -38,7 +38,7 @@ const ENS_HOLDS = [[1.5, '1.5×'], [2, '2×'], [3, '3×'], ['wait', 'wait for me
 function ensembleDefaults(x){
   const e = x.ensembleSettings && typeof x.ensembleSettings === 'object' ? x.ensembleSettings : {};
   const want = {partRoles: {}, partVolumes: {}, mineStaffOnly: null, guideVolume: 0,
-    guideFadeEnabled: false, guideFadeSteps: ENS_FADE.slice(), showCueStrip: false, fermataHold: 2,
+    guideFadeEnabled: false, guideFadeSteps: ENS_FADE.slice(), showCueStrip: false, readCue: null, fermataHold: 2,
     defaultTempo: null, tempoAsked: false, sectionTempoOverrides: {}, countInBars: 0, tempoPercent: 100,
     tapTempo: false, midiWait: false, midiOctave: false};
   Object.keys(want).forEach(k => { if(e[k] === undefined) e[k] = want[k]; });
@@ -53,6 +53,9 @@ function ensembleDefaults(x){
   e.guideFadeSteps = Array.isArray(e.guideFadeSteps) && e.guideFadeSteps.length
     ? e.guideFadeSteps.map(v => clamp(+v || 0, 0, 0.5)) : ENS_FADE.slice();
   e.showCueStrip = !!e.showCueStrip;
+  /* reading mode keeps its own answer once you give it one; until then it
+     does what the room does */
+  e.readCue = e.readCue == null ? null : !!e.readCue;
   e.fermataHold = e.fermataHold === 'wait' ? 'wait' : [1.5, 2, 3].includes(+e.fermataHold) ? +e.fermataHold : 2;
   e.defaultTempo = +e.defaultTempo > 0 ? clamp(Math.round(+e.defaultTempo), 20, 300) : null;
   e.tempoAsked = !!e.tempoAsked;
@@ -595,19 +598,40 @@ function ensTempoPrompt(x, ctl, fromQ){
    one long staff line, and scrolled so the bar being played sits a third of
    the way in, with its own lit bar and playhead. */
 let _cue = {osmd: null, key: '', inner: null, geo: null, lastK: -1};
+/* Whether the strip is wanted where you are: in the room, the tick in the
+   play-along panel; reading, the button on the reading strip, which starts
+   out agreeing with the tick and remembers its own answer once pressed. */
+function ensCueWanted(x){
+  const e = x.ensembleSettings || ensembleDefaults(x);
+  return scoreUi().reading && e.readCue != null ? e.readCue : e.showCueStrip;
+}
+/* the parts heard and not on the page: the partner */
+function ensCuePartners(x, tl){
+  return ensembleRoles(x, tl).map((r, i) => r === 'partner' ? i : -1).filter(i => i >= 0);
+}
+function ensCueReadPaint(x, partners){
+  const b = document.getElementById('scCueRead'); if(!b) return;
+  const want = ensCueWanted(x);
+  b.classList.toggle('on', !!(want && partners.length));
+  b.setAttribute('aria-pressed', want && partners.length ? 'true' : 'false');
+  b.title = partners.length
+    ? (want ? 'hide the partner cue along the bottom' : 'show the partner, small, along the bottom — the bar being played lit')
+    : 'no partner yet: take a part off the page (its name, here) and it plays as your partner, cued along the bottom';
+}
 async function ensembleCuePaint(x){
   const wrap = document.getElementById('scCue'); if(!wrap) return;
   const e = x.ensembleSettings, tl = ensTimeline(x), ui = scoreUi();
-  const roles = ensembleRoles(x, tl);
-  const partners = roles.map((r, i) => r === 'partner' ? i : -1).filter(i => i >= 0);
-  const on = !!(e.showCueStrip && tl && tl.parts.length > 1 && partners.length);
+  const partners = ensCuePartners(x, tl);
+  ensCueReadPaint(x, partners);
+  const on = !!(ensCueWanted(x) && tl && tl.parts.length > 1 && partners.length);
   wrap.hidden = !on;
   if(!on) return;
   const label = wrap.querySelector('[data-cuename]');
   if(label) label.textContent = partners.map(i => tl.parts[i].name).join(' · ');
   const tog = wrap.querySelector('#scCueTog');
   if(tog){ tog.textContent = ui.cueShut ? '▸' : '▾'; tog.onclick = () => { ui.cueShut = !ui.cueShut; wrap.classList.toggle('shut', ui.cueShut); tog.textContent = ui.cueShut ? '▸' : '▾'; }; }
-  wrap.classList.toggle('shut', !!ui.cueShut);
+  /* folding is the room's; reading, the button on the strip is the switch */
+  wrap.classList.toggle('shut', !!ui.cueShut && !ui.reading);
   const inner = wrap.querySelector('.sc-cue-in');
   let xml = '';
   try { xml = scoreXmlFor(x); } catch(err){ return; }

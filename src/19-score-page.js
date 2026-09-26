@@ -454,7 +454,8 @@ function scoreReadStripHTML(x){
     ${scoreZoomHTML(x)}
     ${scoreTightHTML(x)}
     ${parts.length > 1 ? `<span class="sc-strip-parts">${parts.map(p =>
-      `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>` : ''}
+      `<button class="tbtn${(x.hidden || []).includes(p.index) ? '' : ' on'}" data-scrpart="${p.index}">${esc(p.name)}</button>`).join('')}</span>
+      <button class="tbtn" id="scCueRead" aria-pressed="false">partner cue</button>` : ''}
     <button class="tbtn${ui.marks ? ' on' : ''}" id="scMarks" title="the bands and pins you have put on it">marks</button>
     <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
       `<button class="tbtn sc-layer${(x.overlays || {})[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
@@ -1425,6 +1426,15 @@ function bindScoreViewer(root, x){
   on('#scRead', () => setScoreReading(true));
   on('#scUnread', () => setScoreReading(false));
   on('#scHide', () => scoreStripHide());
+  on('#scCueRead', () => {
+    if(typeof ensembleCuePaint !== 'function') return;
+    const tl = ensTimeline(x);
+    if(!ensCuePartners(x, tl).length){
+      toast('No partner yet — tap a part\u2019s name to take it off the page, and it plays as your partner, cued along the bottom.');
+      return; }
+    x.ensembleSettings.readCue = !ensCueWanted(x);
+    saveNow(); ensembleCuePaint(x);
+  });
   on('#scMarks', () => { const u = scoreUi(); u.marks = !u.marks; saveNow();
     const btn = root.querySelector('#scMarks'); if(btn) btn.classList.toggle('on', u.marks);
     scoreOverlayPaint(x); scoreLayersPaint(x); });

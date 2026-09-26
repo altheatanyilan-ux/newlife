@@ -8935,7 +8935,8 @@ html.sc-reading .sc-head,
 html.sc-reading .sc-bar,
 html.sc-reading .sc-side,
 html.sc-reading .page-entry,
-html.sc-reading .ctx-add{display:none !important}
+html.sc-reading .ctx-add,
+html.sc-reading .mobile-nav{display:none !important}
 html.sc-reading #main{padding:0 !important;margin:0 !important;max-width:none !important}
 html.sc-reading .page{padding:0 !important;margin:0 !important;max-width:none !important}
 html.sc-reading .sc-body{display:block;margin:0;gap:0}
@@ -10035,7 +10036,19 @@ html.ja-running{overflow:hidden}
 .sc-cue.shut .sc-cue-in{display:none}
 .sc-cue-in svg{display:block;max-width:none !important}
 .sc-cue-wait{display:block;padding:10px 12px;font-size:.7rem}
-html.sc-reading .sc-cue{display:none !important}
+/* Reading, the partner runs along the bottom of the glass — where the strip,
+   which comes down from the top, never lies over it — and the page is laid
+   out in what is left, so no line of it goes under the cue. */
+html.sc-reading{--sc-cue-h:132px}
+html.sc-reading .sc-cue{position:fixed;left:0;right:0;bottom:0;z-index:55;margin:0;border-radius:0;
+  border-width:1px 0 0;height:var(--sc-cue-h);display:flex;flex-direction:column;
+  background:color-mix(in srgb,var(--surface) 96%,transparent)}
+html.sc-reading .sc-cue[hidden]{display:none}
+html.sc-reading .sc-cue #scCueTog{display:none}
+html.sc-reading .sc-cue-h{padding:2px 14px;border-bottom:none}
+html.sc-reading .sc-cue-in{flex:1;max-height:none;min-height:0}
+html.sc-reading .sc-cue:not([hidden]) ~ .sc-body .sc-stage{height:calc(100dvh - var(--sc-cue-h));
+  max-height:calc(100dvh - var(--sc-cue-h))}
 @media (max-width:640px){.sc-ens-name{min-width:0;flex-basis:100%}.sc-ens-vol input{width:70px}}
 @media print{.sc-ens,.sc-cue,.sc-ens-wait,.sc-waitmarks{display:none !important}}
 
