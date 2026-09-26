@@ -83123,7 +83123,7 @@ function jazzTunePlaySettings(t){
     bassStyle: style === 'bossa' ? 'two_feel' : ballad ? 'two_feel' : 'walking',
     drumStyle: style === 'bossa' ? 'bossa' : ballad ? 'ballad' : 'swing', comping: 'charleston',
     melody: 0.6, showMelody: true, countIn: 1, swingRatio: 0.62,
-    soloist: 'sax', soloDensity: 'medium', soloOutside: 1, soloSeed: 1, soloVol: 0.85};
+    soloist: 'sax', soloDensity: 'medium', soloOutside: 1, soloSeed: 1, soloVol: 1, startAt: 'solos'};
   /* filled in where it is kept, never replaced: the settings panel holds
      this very object, and a copy put in its place would leave every later
      change (the bass, the drums, the comping) written somewhere nobody reads */
@@ -83207,7 +83207,9 @@ function jazzTuneTimeline(t, key, s){
         part: 2, staff: 1, voice: '2', inBar: x / 2, perf: b.i, perc: true, kit: true}); } });
     add(jzbComp(sb, s.comping, rnd), 3, null, band);
     /* the soloist, in the solo choruses (19-jazz-zz-solo.js) */
-    if(kind === 'solo' && s.soloist && s.soloist !== 'none' && typeof jzsSolo === 'function'){
+    /* the soloist improvises in the solo choruses — and in the heads too
+       when the tune carries no written melody for them */
+    if((kind === 'solo' || !mel) && s.soloist && s.soloist !== 'none' && typeof jzsSolo === 'function'){
       const keyPc = jzsKeyPc(key);
       const line = jzsSolo(sb.map(b => Object.assign({}, b, {trade: perf[b.i].trade === 'drums' ? 'drums' : null})),
         {inst: s.soloist, density: s.soloDensity, outside: s.soloOutside, keyPc, rnd: jzbRand(`${t.id}|${key}|${ci}|solo|${s.soloSeed || 1}`)});
@@ -83248,6 +83250,7 @@ function jazzTunePlayHTML(t){
       <label class="mono jzb-f">soloist <select class="sel sm" id="jzbtSolo">${opt(JZS_SOLOISTS, s.soloist)}</select></label>
       ${s.soloist && s.soloist !== 'none' ? `<label class="mono jzb-f">lines <select class="sel sm" id="jzbtSoloDen">${opt(JZS_DENSITY, s.soloDensity)}</select></label>
       <label class="mono jzb-f">inside ↔ outside <input type="range" min="0" max="4" id="jzbtSoloOut" value="${s.soloOutside}"></label>
+      <label class="mono jzb-f" title="where ▶ starts: straight into the solos, or the head first">start <select class="sel sm" id="jzbtStart">${opt([['solos', 'at the solos'], ['head', 'with the head']], s.startAt || 'solos')}</select></label>
       <button class="tbtn" id="jzbtSoloNew" title="the same rules, another solo">a new solo</button>
       <button class="tbtn" id="jzbtSoloShow">${_jzbt.showSolo ? 'hide the solo' : 'show the solo'}</button>` : ''}
     </div>
@@ -83286,9 +83289,12 @@ async function jzbtStart(root, t){
   if(typeof scorePlayStopAll === 'function') scorePlayStopAll();
   const straight = s.drumStyle === 'bossa' || s.drumStyle === 'straight';
   const player = scorePlayer(tl, {bpm: s.bpm, swing: straight ? 0 : jzbSwing(s.swingRatio, s.bpm), countIn: s.countIn,
-    volumes: {0: s.melody || 0, 1: 1, 2: 0.9, 3: 0.75, 4: s.soloVol == null ? 0.85 : s.soloVol}, muted: new Set((s.melody > 0 ? [] : ['p:0']).concat(s.soloist && s.soloist !== 'none' ? [] : ['p:4'])),
+    volumes: {0: s.melody || 0, 1: 1, 2: 0.85, 3: 0.65, 4: s.soloVol == null ? 1 : s.soloVol}, muted: new Set((s.melody > 0 ? [] : ['p:0']).concat(s.soloist && s.soloist !== 'none' ? [] : ['p:4'])),
     onEnd: () => { if(_jzbt.run && _jzbt.run.player === player) jzbtStop(); }});
-  if(!player.start()){ toast('This browser cannot make sound.'); return false; }
+  /* with a soloist, ▶ goes straight to the solos unless asked for the head */
+  const soloing = s.soloist && s.soloist !== 'none';
+  const firstSolo = soloing && (s.startAt || 'solos') === 'solos' ? tl.perf.find(p => p.kind === 'solo') : null;
+  if(!player.start(null, firstSolo ? firstSolo.q0 : null)){ toast('This browser cannot make sound.'); return false; }
   const r = {t, root, player, tl, raf: 0, lastBar: -1};
   _jzbt.run = r;
   if(go){ go.textContent = '■ Stop'; go.classList.add('on'); }
@@ -83300,7 +83306,8 @@ async function jzbtStart(root, t){
     if(pm && pm.i !== r.lastBar){
       r.lastBar = pm.i;
       const sec = root.querySelector('#jzbtSec'), where = root.querySelector('#jzbtWhere');
-      const said = pm.kind === 'head' ? 'Head' : pm.kind === 'head_out' ? 'Head out' : `Solos · chorus ${pm.soloN} of ${s.choruses}`;
+      const who = soloing ? ((JZS_SOLOISTS.find(x => x[0] === s.soloist) || [])[1] || s.soloist) : '';
+      const said = pm.kind === 'head' ? 'Head' : pm.kind === 'head_out' ? 'Head out' : `Solos · chorus ${pm.soloN} of ${s.choruses}${who ? ' · ' + who : ''}`;
       if(sec) sec.textContent = [pm.section, pm.trade === 'drums' ? '🥁 drums' : pm.trade === 'you' ? 'you' : ''].filter(Boolean).join(' · ') || `bar ${pm.number}`;
       if(where) where.textContent = `${said} · bar ${pm.k + 1} of ${tl.form.length}`;
       $$('.jt-bar.now', root).forEach(b => b.classList.remove('now'));
@@ -83334,6 +83341,7 @@ function bindJazzTunePlay(root, t){
   const solo = $b('#jzbtSolo'); if(solo) solo.onchange = () => { s.soloist = solo.value; saveNow(); rerender(); if(live()) jzbtStart(document.getElementById('main') || root, t); };
   const den = $b('#jzbtSoloDen'); if(den) den.onchange = () => { s.soloDensity = den.value; again(); if(_jzbt.showSolo) rerender(); };
   const out = $b('#jzbtSoloOut'); if(out) out.onchange = () => { s.soloOutside = +out.value; again(); if(_jzbt.showSolo) rerender(); };
+  const st2 = $b('#jzbtStart'); if(st2) st2.onchange = () => { s.startAt = st2.value; saveNow(); };
   const nw = $b('#jzbtSoloNew'); if(nw) nw.onclick = () => { s.soloSeed = (s.soloSeed || 1) + 1; again(); if(_jzbt.showSolo) rerender(); };
   const sh2 = $b('#jzbtSoloShow'); if(sh2) sh2.onclick = () => { _jzbt.showSolo = !_jzbt.showSolo; rerender(); };
   const mel = $b('#jzbtMel');
