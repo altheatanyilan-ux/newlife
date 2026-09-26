@@ -110,12 +110,12 @@ const STARTER = {
 
   /* ---- a shelf of things to get to, marked as wanted rather than read ---- */
   media: [
-    {key:'md-drink', kind:'book',  title:'The Bar Book',            creator:'Jeffrey Morgenthaler', status:'wishlist', tags:['bar']},
-    {key:'md-craft', kind:'book',  title:'Shokunin — books on Japanese craft and repetition', creator:'', status:'wishlist', tags:['japan','craft']},
-    {key:'md-blue',  kind:'album', title:'Kind of Blue',            creator:'Miles Davis',          status:'wishlist', tags:['piano']},
-    {key:'md-bill',  kind:'album', title:'Sunday at the Village Vanguard', creator:'Bill Evans Trio', status:'wishlist', tags:['piano']},
-    {key:'md-totoro',kind:'film',  title:'My Neighbour Totoro',     creator:'Hayao Miyazaki',       status:'wishlist', tags:['japan']},
-    {key:'md-spirit',kind:'film',  title:'Spirited Away',           creator:'Hayao Miyazaki',       status:'wishlist', tags:['japan']},
+    {key:'md-drink', kind:'book',  title:'The Bar Book',            creator:'Jeffrey Morgenthaler', status:'want', tags:['bar']},
+    {key:'md-craft', kind:'book',  title:'Shokunin — books on Japanese craft and repetition', creator:'', status:'want', tags:['japan','craft']},
+    {key:'md-blue',  kind:'album', title:'Kind of Blue',            creator:'Miles Davis',          status:'want', tags:['piano']},
+    {key:'md-bill',  kind:'album', title:'Sunday at the Village Vanguard', creator:'Bill Evans Trio', status:'want', tags:['piano']},
+    {key:'md-totoro',kind:'film',  title:'My Neighbour Totoro',     creator:'Hayao Miyazaki',       status:'want', tags:['japan']},
+    {key:'md-spirit',kind:'film',  title:'Spirited Away',           creator:'Hayao Miyazaki',       status:'want', tags:['japan']},
   ],
 
   /* ---- threads: the themes, which I can see from the outside ---- */

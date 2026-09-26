@@ -107,7 +107,9 @@ function migrateMedia(){
        runs once at load and not on every render. */
     if(!Array.isArray(x.urls)) x.urls = [];
     x.urls = x.urls.filter(u => u && (String(u.url||'').trim() || String(u.label||'').trim()))
-      .map(u => ({id:u.id || uid(), label:String(u.label||''), url:String(u.url||'').trim(), kind:mediaLinkKind(u.kind)}));
+      .map(u => Object.assign({id:u.id || uid(), label:String(u.label||''), url:String(u.url||'').trim(), kind:mediaLinkKind(u.kind)},
+        /* what the service said about it, and when it was last asked (18-media-preview.js) */
+        u.preview && typeof u.preview === 'object' ? {preview:u.preview} : {}, u.previewTried ? {previewTried:u.previewTried} : {}));
     if(!x._convoMigrated){
       const parts = [];
       if(x.resonance) parts.push(x.resonance);
@@ -547,11 +549,13 @@ function renderLibrary(root, params, opts = {}){
     ${kind!=='all'||status!=='all'||res!=='all' ? `<div class="row rv" style="margin-bottom:10px"><button class="btn sm ghost" id="mClearF">clear filters</button></div>` : ''}
 
     ${view==='shelf' ? `<div class="shelf-grid rv">${list.length ? list.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind] || MEDIA_KINDS.book; const r = resonanceMeta(x.resonanceLevel); const stage = mediaLifeStage(e);
-      return `<div class="work" data-mopen="${e.id}" style="--c:${k[2]}">
-        <div class="work-spine">${k[0]}</div>
+      const pv = typeof mediaPreviewOf === 'function' ? mediaPreviewOf(e) : null;
+      return `<div class="work${pv && pv.cover ? ' has-cover' : ''}" data-mopen="${e.id}" style="--c:${k[2]}">
+        ${pv && pv.cover ? `<div class="work-art">${mediaCoverHTML(pv, x.kind, 'mp-cover-shelf')}</div>` : `<div class="work-spine">${k[0]}</div>`}
         <div class="work-body">
           <div class="row between" style="gap:8px;align-items:flex-start"><div class="work-title">${esc(e.title||'Untitled')}</div>${mediaLinkArrowHTML(e)}</div>
           <div class="mono work-maker">${esc(x.creator||'')}${x.year?` · ${esc(x.year)}`:''}</div>
+          ${pv ? `<div class="work-svc">${mediaServiceMark(pv, 'xs')}</div>` : ''}
           <div class="row between" style="margin-top:6px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:'<span class="faint mono">no resonance yet</span>'}</div>
           ${x.oneLineCapture?`<div class="work-line">${esc(x.oneLineCapture)}</div>`:''}
           ${stage?`<div class="mono faint" style="margin-top:4px">${stage.char} ${esc(stage.name)}</div>`:''}
@@ -559,7 +563,8 @@ function renderLibrary(root, params, opts = {}){
         </div></div>`; }).join('')
       : `<div class="empty">Nothing logged yet. The first one can be whatever you happen to be in the middle of.</div>`}</div>`
     : `<div class="stack" style="gap:6px">${list.length ? list.map(e => { const x = mediaX(e); const k = MEDIA_KINDS[x.kind]||MEDIA_KINDS.book; const r = resonanceMeta(x.resonanceLevel);
-        return `<div class="row between click" data-mopen="${e.id}" style="padding:9px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer"><span class="row" style="gap:10px"><span>${k[0]}</span><b class="serif">${esc(e.title)}</b><span class="mono faint">${esc(x.creator||'')}</span></span><span class="row" style="gap:8px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}${mediaLinkArrowHTML(e)}</span></div>`; }).join('') : '<div class="empty">Nothing matches.</div>'}</div>`}
+        const pv = typeof mediaPreviewOf === 'function' ? mediaPreviewOf(e) : null;
+        return `<div class="row between click" data-mopen="${e.id}" style="padding:9px 12px;border:1px solid var(--line);border-radius:9px;cursor:pointer"><span class="row" style="gap:10px">${pv && pv.cover ? mediaCoverHTML(pv, x.kind, 'mp-cover-xs') : `<span>${k[0]}</span>`}<b class="serif">${esc(e.title)}</b><span class="mono faint">${esc(x.creator||'')}</span></span><span class="row" style="gap:8px"><span class="status-pill">${MEDIA_STATUS_LABEL[x.status]}</span>${r?`<span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}${mediaLinkArrowHTML(e)}</span></div>`; }).join('') : '<div class="empty">Nothing matches.</div>'}</div>`}
 
     ${all.length ? `<section class="section rv"><span class="sc">What you keep coming back to</span>
       <div class="tag-cloud" style="margin-top:10px">${allTags().filter(([t]) => mediaEntries().some(e=>entryTags(e).includes(t))).slice(0,24).map(([t,n])=>`<a class="tag" href="#/tag/${encodeURIComponent(t)}" style="--n:${Math.min(n,5)}">#${esc(t)}<span class="n">${n}</span></a>`).join('') || '<span class="faint">Tag a few works and the pattern shows up here.</span>'}</div></section>` : ''}
@@ -604,19 +609,29 @@ function openMediaModal(pre={}, onCreate=null){
         <input class="inp" id="mYear" placeholder="Year">
         <select class="sel" id="mStat">${MEDIA_STATUS.map(s=>`<option value="${s}" ${(pre.status||'progress')===s?'selected':''}>${MEDIA_STATUS_LABEL[s]}</option>`).join('')}</select>
       </div>
-      <input class="inp mono" id="mUrl" placeholder="Link — where it lives (optional)" value="${esc(pre.url||'')}">
+      <input class="inp mono" id="mUrl" placeholder="Link — paste Spotify, YouTube, Apple Music, a book page… (optional)" value="${esc(pre.url||'')}">
+      <div class="mp-log-wrap" id="mPreview" hidden></div>
       <select class="sel" id="mStage"><option value="">life stage — leave to date consumed, or pick one now</option>${S.stages.filter(s=>!s.notyet).map(s=>`<option value="${s.id}" ${pre.stageId===s.id?'selected':''}>${s.char} ${esc(s.name)}${s.years?' · '+esc(s.years):''}</option>`).join('')}</select>
       <div class="row" style="justify-content:flex-end"><button class="btn primary" id="mSave">Add to the shelf</button></div>
     </div>`, 'narrow');
-  let kind = pre.kind || 'book';
-  m.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { kind = b.dataset.mk; m.querySelectorAll('[data-mk]').forEach(x=>x.classList.toggle('on', x===b)); });
+  let kind = pre.kind || 'book', kindPicked = !!pre.kind;
+  const setKind = k => { kind = k; m.querySelectorAll('[data-mk]').forEach(x => x.classList.toggle('on', x.dataset.mk === k)); };
+  m.querySelectorAll('[data-mk]').forEach(b => b.onclick = () => { kindPicked = true; setKind(b.dataset.mk); });
+  /* a pasted link is recognised, previewed, and fills what is still blank */
+  const linkWatch = typeof mediaLogLinkWatch === 'function' ? mediaLogLinkWatch(m, () => kindPicked, setKind) : {get: () => null};
   m.querySelector('#mSave').onclick = () => {
     const title = m.querySelector('#mTitle').value.trim(); if(!title){ toast('It needs a title, at least.'); return; }
     const st = m.querySelector('#mStat').value; const stageId = m.querySelector('#mStage').value || '';
     const url = m.querySelector('#mUrl').value.trim();
     const e = {id:uid(), type:'media', title, body:'', occurredAt:today(), createdAt:new Date().toISOString(), media:[], links:{stages:stageId?[stageId]:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[]}, people:[], places:[], emotions:[], tags:[], confidence:'',
       extra:{kind, creator:m.querySelector('#mCreator').value.trim(), year:m.querySelector('#mYear').value.trim(), status:st, resonanceLevel:null, quotes:[], urls:url?[newMediaUrl(url, pre.urlLabel||'')]:[], startedAt: st==='progress'?today():'', finishedAt: pre.finishedAt || (st==='finished'?today():''), oneLineCapture:'', installed:'', recommend:'', recommendWho:''}};
+    /* the preview comes with it; one still on its way is asked for again
+       once the work is on the shelf */
+    const pv = linkWatch.get(), u0 = e.extra.urls[0];
+    if(u0 && pv && pv.href === linkHrefOf(url)){ const keep = Object.assign({}, pv); delete keep.pending; u0.preview = keep; }
     S.entries.push(e); saveNow(); m.remove(); sound('success');
+    if(u0 && (!pv || pv.pending) && typeof mediaPreviewRefresh === 'function')
+      mediaPreviewRefresh(e, u0, () => { if(!onCreate) rerender(); });
     if(onCreate){ onCreate(e); return; }
     rerender(); openMediaPanel(e.id);
   };
@@ -643,7 +658,7 @@ function openMediaPanel(id){
 
     <div class="vp-sec"><div class="row between"><span class="sc">Where to find it</span><button class="btn sm ghost" id="mpAddL">＋ link</button></div>
       <div class="faint" style="font-size:.78rem;margin-bottom:6px">The addresses this work lives at — the thing itself, where to get it, what was written about it. Hover a row to change it.</div>
-      <div class="lvl-res">${(x.urls||[]).map((u,i)=>mediaLinkRowHTML(e, u, i)).join('') || '<div class="faint" style="font-size:.8rem">No links yet. Paste one and it becomes a door.</div>'}</div></div>
+      <div class="lvl-res">${(x.urls||[]).map((u,i)=>typeof mediaLinkIsCard === 'function' && mediaLinkIsCard(u) ? mediaLinkCardHTML(e, u, i) : mediaLinkRowHTML(e, u, i)).join('') || '<div class="faint" style="font-size:.8rem">No links yet. Paste one — an album, a video, a book — and it becomes a card with its cover.</div>'}</div></div>
 
     <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>
       <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div>
@@ -686,6 +701,13 @@ function openMediaPanel(id){
       remove:()=>{ const gone = mediaUrls(e).splice(i,1)[0]; return () => mediaUrls(e).splice(i,0,gone); }, after:reopen}); });
   p.querySelectorAll('[data-qdel]').forEach(b => b.onclick = () => { const i = +b.dataset.qdel; requestDelete({label:'Quote', node:b.closest('.passage'), remove:()=>{ const gone = x.quotes.splice(i,1)[0]; if(gone.quoteEntryId){ const qe = byId(S.entries, gone.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } return () => x.quotes.splice(i,0,gone); }, after:reopen}); });
   bindLinksEditor(p, e.links, reopen);
+  if(typeof mediaBindCards === 'function'){
+    mediaBindCards(p, e, reopen);
+    /* a link from before previews existed is looked up the first time its
+       work is opened (once a day at most, if the service will not answer) */
+    const stale = (x.urls || []).filter(u => u.url && !u.preview && mediaKnownService(u.url) && (!u.previewTried || Date.now() - Date.parse(u.previewTried) > 864e5));
+    stale.forEach(u => { u.previewTried = new Date().toISOString(); mediaPreviewRefresh(e, u, () => { if(p.isConnected) reopen(); }); });
+  }
   p.querySelectorAll('[data-rec]').forEach(b => b.onclick = () => { x.recommend = (x.recommend===b.dataset.rec) ? '' : b.dataset.rec; saveNow(); reopen(); });
   const tagI = p.querySelector('#mpTags'); tagI.onchange = () => { e.tags = normTags(tagI.value.split(/[\s,]+/)); saveNow(); reopen(); };
   p.querySelector('#mpDel').onclick = () => requestDelete({label:e.title||'this entry', remove:()=>{ (x.quotes||[]).forEach(q=>{ if(q.quoteEntryId){ const qe = byId(S.entries,q.quoteEntryId); if(qe) S.entries.splice(S.entries.indexOf(qe),1); } }); return spliceOut(S.entries, y=>y.id===e.id); }, after:()=>{ closePanel(); rerender(); }});
