@@ -81,20 +81,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('the bow comes off: still sounding just after the note, gone (but for the room) a moment later', B.justAfter > B.held * 0.1 && B.after < B.held * 0.12, B);
 
   console.log('\n4. gentler than it was');
+  /* The thin strings this replaced (a single loud recording, 22 kHz) are no
+     longer carried — the orchestra plays from vendor/orchestra-hq now — so
+     what they gave is kept as a number: the same phrase, at mezzo-forte,
+     peaked at 0.794 on the build before (measured when they were taken out). */
+  const WAS = 0.794;
   const G = await p.evaluate(async () => {
-    const sr = 44100, phrase = async () => { const ctx = new OfflineAudioContext(2, sr * 6, sr);
-      [[76, 0.2, 1.2], [74, 1.4, 0.6], [72, 2.0, 1.8]].forEach(([m, t, d]) => instrumentNote(ctx, ctx.destination, 'violin', m, t, d, 0.6, null, 1));
-      [[48, 0.2, 2.4], [43, 2.6, 2.4]].forEach(([m, t, d]) => instrumentNote(ctx, ctx.destination, 'cello', m, t, d, 0.6, null, 1));
-      const d = (await ctx.startRendering()).getChannelData(0); let pk = 0; for(let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i])); return pk; };
-    const now = await phrase();
-    const keep = [INSTRUMENTS.violin.orch, INSTRUMENTS.cello.orch];
-    INSTRUMENTS.violin.orch = ['violin-solo']; INSTRUMENTS.cello.orch = ['celli'];
-    await instrumentsLoad(['violin', 'cello']);
-    const was = await phrase();
-    [INSTRUMENTS.violin.orch, INSTRUMENTS.cello.orch] = keep;
-    return {now: +now.toFixed(3), was: +was.toFixed(3)};
+    const sr = 44100, ctx = new OfflineAudioContext(2, sr * 6, sr);
+    [[76, 0.2, 1.2], [74, 1.4, 0.6], [72, 2.0, 1.8]].forEach(([m, t, d]) => instrumentNote(ctx, ctx.destination, 'violin', m, t, d, 0.6, null, 1));
+    [[48, 0.2, 2.4], [43, 2.6, 2.4]].forEach(([m, t, d]) => instrumentNote(ctx, ctx.destination, 'cello', m, t, d, 0.6, null, 1));
+    const d = (await ctx.startRendering()).getChannelData(0); let pk = 0; for(let i = 0; i < d.length; i++) pk = Math.max(pk, Math.abs(d[i]));
+    return +pk.toFixed(3);
   });
-  yes('at mezzo-forte the loudest moment is lower than with the old strings', G.now < G.was, G);
+  yes('at mezzo-forte the loudest moment is lower than with the old strings', G < WAS, {now: G, was: WAS});
 
   is('no page errors', errs, []);
   console.log(`\n${bad ? bad + ' FAILED' : 'all good'}`);

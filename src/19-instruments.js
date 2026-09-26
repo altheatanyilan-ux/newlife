@@ -29,25 +29,33 @@ const INSTRUMENTS = {
   /* the solo violin and cello: the long, two-layer recordings in
      vendor/strings when the page has them (first of the list that is
      there), played as a bow plays — see bowedNote below */
-  violin:            {name: 'Violin', sustain: true, level: 1.9, release: 0.18, orch: ['violin-hq', 'violin-solo'], first: true, bowed: true},
-  cello:             {name: 'Cello', sustain: true, level: 1.9, release: 0.2, orch: ['cello-solo', 'celli'], first: true, bowed: true},
-  flute:             {name: 'Flute', sustain: true, level: 1.8, release: 0.12, orch: ['flute']},
-  string_ensemble_1: {name: 'Strings', sustain: true, level: 1.8, release: 0.3, orch: ['basses', 'celli', 'violas', 'violins'], room: true},
+  violin:            {name: 'Violin', sustain: true, level: 1.9, release: 0.18, orch: ['violin-hq', 'violin-solo'], first: true, bowed: true, family: 'strings'},
+  cello:             {name: 'Cello', sustain: true, level: 1.9, release: 0.2, orch: ['cello-solo', 'celli'], first: true, bowed: true, family: 'strings'},
+  flute:             {name: 'Flute', sustain: true, level: 1.8, release: 0.12, orch: ['flute'], short: ['flute-stac'], family: 'wind'},
+  string_ensemble_1: {name: 'Strings', sustain: true, level: 1.8, release: 0.3, orch: ['basses', 'celli', 'violas', 'violins'], room: true,
+    short: ['basses-spic', 'celli-spic', 'violas-spic', 'violins-spic'], pizz: ['bass-pizz', 'celli-pizz', 'violas-pizz', 'violins-pizz'], family: 'strings'},
   /* the rest of the orchestra: real samples only (the GM set has none of
-     these; where the orchestra is missing they fall back as named) */
-  violins:           {name: 'Violins', sustain: true, level: 1.8, release: 0.25, orch: ['violins'], gm: 'string_ensemble_1', room: true},
-  viola:             {name: 'Viola', sustain: true, level: 1.9, release: 0.2, orch: ['violas'], gm: 'violin', room: true},
-  contrabass:        {name: 'Double bass (bowed)', sustain: true, level: 1.8, release: 0.2, orch: ['basses'], gm: 'cello', room: true},
+     these; where the orchestra is missing they fall back as named).
+     short: the recordings of short notes (spiccato, staccato) a quick or a
+     staccato note is played from; pizz: what a "pizz." plucks */
+  violins:           {name: 'Violins', sustain: true, level: 1.8, release: 0.25, orch: ['violins'], gm: 'string_ensemble_1', room: true,
+    short: ['violins-spic'], pizz: ['violins-pizz'], family: 'strings'},
+  viola:             {name: 'Viola', sustain: true, level: 1.9, release: 0.2, orch: ['violas'], gm: 'violin', room: true,
+    short: ['violas-spic'], pizz: ['violas-pizz'], family: 'strings'},
+  celli:             {name: 'Cellos', sustain: true, level: 1.8, release: 0.28, orch: ['celli'], gm: 'cello', room: true,
+    short: ['celli-spic'], pizz: ['celli-pizz'], family: 'strings'},
+  contrabass:        {name: 'Double bass (bowed)', sustain: true, level: 1.8, release: 0.2, orch: ['basses'], gm: 'cello', room: true,
+    short: ['basses-spic'], pizz: ['bass-pizz'], family: 'strings'},
   pizzicato_strings: {name: 'Strings, pizzicato', sustain: false, level: 1.7, release: 0.1, orch: ['celli-pizz', 'violas-pizz', 'violins-pizz'], gm: 'acoustic_bass'},
   harp:              {name: 'Harp', sustain: false, level: 1.6, release: 0.4, orch: ['harp']},
-  piccolo:           {name: 'Piccolo', sustain: true, level: 1.5, release: 0.1, orch: ['piccolo'], gm: 'flute'},
-  oboe:              {name: 'Oboe', sustain: true, level: 1.7, release: 0.1, orch: ['oboe'], gm: 'flute'},
-  clarinet:          {name: 'Clarinet', sustain: true, level: 1.7, release: 0.1, orch: ['clarinet'], gm: 'flute'},
-  bassoon:           {name: 'Bassoon', sustain: true, level: 1.8, release: 0.1, orch: ['bassoon'], gm: 'cello'},
-  horn:              {name: 'Horn', sustain: true, level: 1.7, release: 0.15, orch: ['horn'], gm: 'cello'},
-  trumpet:           {name: 'Trumpet', sustain: true, level: 1.5, release: 0.1, orch: ['trumpet'], gm: 'flute'},
-  trombone:          {name: 'Trombone', sustain: true, level: 1.6, release: 0.12, orch: ['trombone'], gm: 'cello'},
-  tuba:              {name: 'Tuba', sustain: true, level: 1.8, release: 0.12, orch: ['tuba'], gm: 'acoustic_bass'},
+  piccolo:           {name: 'Piccolo', sustain: true, level: 1.5, release: 0.1, orch: ['piccolo'], gm: 'flute', family: 'wind'},
+  oboe:              {name: 'Oboe', sustain: true, level: 1.7, release: 0.1, orch: ['oboe'], gm: 'flute', short: ['oboe-stac'], family: 'wind'},
+  clarinet:          {name: 'Clarinet', sustain: true, level: 1.7, release: 0.1, orch: ['clarinet'], gm: 'flute', short: ['clarinet-stac'], family: 'wind'},
+  bassoon:           {name: 'Bassoon', sustain: true, level: 1.8, release: 0.1, orch: ['bassoon'], gm: 'cello', short: ['bassoon-stac'], family: 'wind'},
+  horn:              {name: 'Horn', sustain: true, level: 1.7, release: 0.15, orch: ['horn'], gm: 'cello', short: ['horn-stac'], family: 'brass'},
+  trumpet:           {name: 'Trumpet', sustain: true, level: 1.5, release: 0.1, orch: ['trumpet'], gm: 'flute', short: ['trumpet-stac'], family: 'brass'},
+  trombone:          {name: 'Trombone', sustain: true, level: 1.6, release: 0.12, orch: ['trombone'], gm: 'cello', short: ['trombone-stac'], family: 'brass'},
+  tuba:              {name: 'Tuba', sustain: true, level: 1.8, release: 0.12, orch: ['tuba'], gm: 'acoustic_bass', short: ['tuba-stac'], family: 'brass'},
   sax:               {name: 'Saxophone', sustain: true, level: 1.6, release: 0.1, orch: ['tenor-sax'], gm: 'flute'},
   organ:             {name: 'Organ', sustain: true, level: 1.3, release: 0.15, orch: ['organ']},
   harpsichord:       {name: 'Harpsichord', sustain: false, level: 1.5, release: 0.2, orch: ['harpsichord']},
@@ -102,9 +110,30 @@ function orchLoad(oid){
     const set = {kind: 'pitched', sustain: !!m.sustain, notes: [], range: m.range, layers: m.layers || 1, loop, vibrato: m.vibrato !== false, hq: !!m.length};
     await Promise.all(m.notes.map(async n => { const buf = await orchDecode(n.file); if(buf) set.notes.push({midi: n.midi, layer: n.layer || 0, tune: n.tune || 0, buf: m.sustain ? instrLoopable(buf, loop) : buf}); }));
     set.notes.sort((a, b) => a.midi - b.midi);
+    set.layerGain = m.balance ? orchLayerGains(set) : null;
     _orch.sets[oid] = set; return set.notes.length > 0;
   })().catch(e => { console.warn(`the ${oid} could not be loaded`, e); return false; }).finally(() => { delete _orch.loading[oid]; });
   return _orch.loading[oid];
+}
+/* The soft recording of a note is much quieter than the loud one — that is
+   the point of it, the tone of a bow drawn lightly — but played as it is, a
+   mezzo-forte passage disappears under the piano. Each layer is brought to
+   a fixed share of the loudest layer's level (measured once, at decoding),
+   keeping its tone; the note's own loudness then shades within the layer. */
+const ORCH_LAYER_SHARE = [0.62, 1];
+function orchLayerGains(set){
+  if(!set.layers || set.layers < 2) return null;
+  const rms = [];
+  set.notes.forEach(n => { const d = n.buf.getChannelData(0), sr = n.buf.sampleRate;
+    const a = Math.round(0.1 * sr), z = Math.min(d.length, Math.round(1.6 * sr)); let e = 0, c = 0;
+    for(let i = a; i < z; i += 4){ e += d[i] * d[i]; c++; }
+    if(c){ (rms[n.layer] = rms[n.layer] || []).push(Math.sqrt(e / c)); } });
+  const mean = xs => xs && xs.length ? xs.reduce((x, y) => x + y, 0) / xs.length : 0;
+  const top = mean(rms[set.layers - 1]);
+  if(!top) return null;
+  return [...Array(set.layers)].map((_, L) => { const m = mean(rms[L]);
+    const share = ORCH_LAYER_SHARE[Math.round(L / Math.max(1, set.layers - 1) * (ORCH_LAYER_SHARE.length - 1))];
+    return m ? Math.max(1, Math.min(3, share * top / m)) : 1; });
 }
 /* the sample for a note: from the set whose range holds it (strings split
    by range), then the nearest note of that set */
@@ -124,10 +153,17 @@ function orchPick(ids, midi, vel){
 }
 /* the instrument ids of the orchestra to load for a part: all of them for
    a section split by range, the first the page carries for a solo */
-function orchIds(def){
-  if(!def.first) return def.orch;
-  const src = orchSrc(), have = src ? def.orch.filter(o => src.manifest.instruments[o]) : [];
-  return have.length ? [have[0]] : def.orch.slice(0, 1);
+function orchIds(def, which){
+  const list = which ? def[which] : def.orch;
+  if(!list) return [];
+  const src = orchSrc(), man = src ? src.manifest.instruments : {};
+  /* the recording made for the player (vendor/orchestra-hq: both dynamic
+     layers, 32 kHz, five-second notes) wherever the page carries one */
+  const ids = list.map(o => man[o + '-hq'] ? o + '-hq' : o);
+  if(which) return ids.filter(o => man[o]);
+  if(!def.first) return ids;
+  const have = src ? ids.filter(o => man[o]) : [];
+  return have.length ? [have[0]] : ids.slice(0, 1);
 }
 /* THE KIT: the recorded drums in the orchestra set, by General MIDI number */
 const ORCH_KIT = {35: 'kick', 36: 'kick', 37: 'cross-stick', 38: 'snare', 40: 'snare', 42: 'hihat-closed', 44: 'hihat-closed', 46: 'hihat-open', 49: 'crash', 57: 'crash',
@@ -174,8 +210,14 @@ function instrumentLoad(id){
   if(!INSTRUMENTS[id]) return Promise.resolve(false);
   if(instrumentReady(id)) return Promise.resolve(true);
   /* the real instrument where the page carries the orchestra */
-  if(INSTRUMENTS[id].orch && orchestraAvailable()) return Promise.all(orchIds(INSTRUMENTS[id]).map(orchLoad)).then(r => r.some(Boolean) ? true
-    : (INSTRUMENTS[id].gm ? instrumentLoad(INSTRUMENTS[id].gm) : false));
+  if(INSTRUMENTS[id].orch && orchestraAvailable()){
+    const def = INSTRUMENTS[id];
+    /* the short notes and the pizzicato come with it, when the page has
+       them, so the first staccato is already a staccato */
+    const extra = Promise.all(orchIds(def, 'short').concat(orchIds(def, 'pizz')).map(orchLoad));
+    return Promise.all([Promise.all(orchIds(def).map(orchLoad)), extra]).then(([r]) => r.some(Boolean) ? true
+      : (def.gm ? instrumentLoad(def.gm) : false));
+  }
   if(INSTRUMENTS[id].gm && !(_instr.src || instrumentsAvailable()) ) return Promise.resolve(false);
   if(INSTRUMENTS[id].gm) return instrumentLoad(INSTRUMENTS[id].gm);
   if(_instr.loading[id]) return _instr.loading[id];
@@ -207,15 +249,29 @@ function instrumentsLoad(ids){ return Promise.all([...new Set(ids)].map(id => in
  * One note on an instrument. Same shape as grandPianoNote; 'piano' is the grand.
  * Returns false when the instrument is not ready, so the caller can use its own voice.
  */
-function instrumentNote(ctx, dest, id, midi, t, dur, vel, held, level){
+function instrumentNote(ctx, dest, id, midi, t, dur, vel, held, level, art){
   /* the microphone, if it is open, is told what the app itself is sounding
      (the grand says so for itself, below) */
   if(id && id !== 'piano' && id !== 'drums' && id !== 'kit' && typeof listenAppNote === 'function') listenAppNote(ctx, midi, t, held || dur);
   if(!id || id === 'piano') return typeof grandPianoNote === 'function' && grandPianoNote(ctx, dest, midi, t, dur, vel, held, level);
   if(id === 'drums' || id === 'kit') return orchKitHit(ctx, dest, Math.round(midi), t, vel, dur);
   const def0 = INSTRUMENTS[id];
-  if(def0 && def0.orch){ const pk = orchPick(orchIds(def0), Math.round(midi), vel);
-    if(pk) return pk.set.hq && def0.bowed ? bowedNote(ctx, dest, def0, pk, midi, t, dur, vel, held, level) : orchNote(ctx, dest, def0, pk, midi, t, dur, vel, held, level); }
+  if(def0 && def0.orch){
+    /* a player's few milliseconds either side of the beat, so that a chord
+       from six parts is not six recordings started on the same sample */
+    if(art && art.human && t > 0) t = Math.max(0, t + (Math.random() - 0.5) * 0.012);
+    const ring = held || dur || 0.5;
+    /* plucked where the score says pizz. */
+    if(art && art.pizz){ const pk = orchPick(orchIds(def0, 'pizz'), Math.round(midi), vel);
+      if(pk){ _instr.stats.pizz = (_instr.stats.pizz || 0) + 1;
+        return orchNote(ctx, dest, Object.assign({}, def0, {sustain: false, release: 0.3, level: def0.level * 0.95}), pk, midi, t, dur, vel, Math.max(ring, 0.6), level); } }
+    /* a staccato note, or a quick one not under a slur: the recording of a
+       short note, which speaks at once and ends as a short note ends —
+       where a held note cut off after a tenth of a second has not begun */
+    if(art && (art.staccato || (ring < ORCH_SHORT && !art.slur))){ const pk = orchPick(orchIds(def0, 'short'), Math.round(midi), vel);
+      if(pk) return shortNote(ctx, dest, def0, pk, midi, t, dur, vel, level); }
+    const pk = orchPick(orchIds(def0), Math.round(midi), vel);
+    if(pk) return pk.set.hq ? bowedNote(ctx, dest, def0, pk, midi, t, dur, vel, held, level, art) : orchNote(ctx, dest, def0, pk, midi, t, dur, vel, held, level); }
   if(def0 && def0.gm && !_instr.sets[id]) return instrumentNote(ctx, dest, def0.gm, midi, t, dur, vel, held, level);
   const set = _instr.sets[id], def = INSTRUMENTS[id];
   if(!set || !set.keys.length || !def || !ctx || !dest) return false;
@@ -272,38 +328,69 @@ function orchNote(ctx, dest, def, pk, midi, t, dur, vel, held, level){
     stop = Math.min(start + buf.duration / rate, end + def.release * 2 + 0.05);
   }
   src.connect(soft); soft.connect(g); g.connect(dest); src.start(start); src.stop(stop);
-  if(def.room){ const r = stringsRoom(ctx, dest); if(r) g.connect(r); }
+  if(def.room && !dest._hall){ const r = stringsRoom(ctx, dest); if(r) g.connect(r); }
   _instr.stats.sampled++;
   return true;
 }
+/* A short note: the recording of one (spiccato, staccato), let ring as it
+   was recorded, into the room it was recorded in, and not cut. */
+const ORCH_SHORT = 0.2;
+function shortNote(ctx, dest, def, pk, midi, t, dur, vel, level){
+  if(!ctx || !dest) return false;
+  const {n, set, layer} = pk, rate = Math.pow(2, (midi - (n.midi + n.tune / 100)) / 12), buf = n.buf;
+  const v = Math.max(0.03, Math.min(1, vel == null ? 0.6 : vel));
+  const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
+  if(src.detune) src.detune.value = (Math.random() - 0.5) * 6;
+  const g = ctx.createGain(), tone = ctx.createBiquadFilter(); tone.type = 'lowpass'; tone.Q.value = 0.3;
+  tone.frequency.value = Math.min(15000, 3500 + 11500 * v);
+  const lg = set.layerGain ? set.layerGain[layer] || 1 : 1;
+  const peak = (level == null ? 1 : level) * def.level * 0.8 * lg * (0.35 + 0.65 * v);
+  const start = Math.max(0, t), len = buf.duration / rate;
+  g.gain.setValueAtTime(0.0001, start); g.gain.linearRampToValueAtTime(peak, start + 0.004);
+  g.gain.setValueAtTime(peak, start + Math.max(0.01, len - 0.08)); g.gain.linearRampToValueAtTime(0.0001, start + len);
+  src.connect(tone); tone.connect(g); g.connect(dest);
+  if(def.room && !dest._hall){ const r = stringsRoom(ctx, dest); if(r) g.connect(r); }
+  src.start(start); src.stop(start + len + 0.02);
+  _instr.stats.sampled++; _instr.stats.short = (_instr.stats.short || 0) + 1;
+  return true;
+}
 
-/* ---------- a bowed note ----------
-   The violin and cello were the two sounds that gave the player away: a
-   short recording, moved a long way in pitch, started at full strength and
-   cut off dead, dry. A bow does none of that. So:
+/* ---------- a held note, on the long recordings ----------
+   The violin and cello were the two sounds that gave the player away, and
+   then the whole orchestra: a short recording, moved a long way in pitch,
+   started at full strength and cut off dead, dry. None of the instruments
+   does that. So, for every part played from the long recordings (the solo
+   strings, and vendor/orchestra-hq: the sections, the winds, the brass):
    - the recording nearest the note, from the dynamic layer its loudness
-     calls for (a soft note is a soft recording, not a loud one turned down);
-   - the bow comes in: a short swell, slower for a quiet note;
+     calls for (a soft note is a soft recording, not a loud one turned down),
+     each layer brought to a fixed share of the loudest (orchLayerGains);
+   - a bow comes in: a short swell, slower for a quiet note; a wind or brass
+     note keeps the attack it was recorded with, only eased at the very start;
+   - under a slur, a quick note is taken from a little way into its
+     recording, past the slow start a section makes, so a run is heard;
    - the cello, recorded without vibrato, is given one — a little after the
-     note starts, widening, a touch uneven, as a cellist's is (the violin's
+     note starts, widening, a touch uneven, as a cellist's is (the others'
      own recorded vibrato is left alone);
    - held past its recording, it loops a stretch of its own steady middle;
-   - the bow comes off rather than stopping: a release of a third of a second;
-   - and the instrument is heard in a room, not in an anechoic box: a quiet
-     send to a short, dark hall (stringsRoom). */
-function bowedNote(ctx, dest, def, pk, midi, t, dur, vel, held, level){
+   - it comes off rather than stopping: a release of a quarter to a third of
+     a second, into the hall (the player's, shared by the orchestra) or, on
+     its own, a short dark room (stringsRoom). */
+function bowedNote(ctx, dest, def, pk, midi, t, dur, vel, held, level, art){
   if(!ctx || !dest) return false;
-  const {n, set} = pk, buf = n.buf;
-  const detune0 = (Math.random() - 0.5) * 4;                       /* a player is never quite on the grid */
+  const {n, set, layer} = pk, buf = n.buf;
+  const strings = def.family === 'strings' || def.bowed;
+  const detune0 = (Math.random() - 0.5) * (strings ? 4 : 2);      /* a player is never quite on the grid */
   const rate = Math.pow(2, (midi - (n.midi + n.tune / 100)) / 12);
   const v = Math.max(0.03, Math.min(1, vel == null ? 0.6 : vel));
   const src = ctx.createBufferSource(); src.buffer = buf; src.playbackRate.value = rate;
   if(src.detune) src.detune.value = detune0;
   const start = Math.max(0, t), ring = Math.max(0.06, held || dur || 0.5), end = start + ring;
   /* loudness: the layer carries most of it, so the gain only shades within a layer */
-  const peak = (level == null ? 1 : level) * def.level * 0.8 * (0.55 + 0.45 * v);
+  const lg = set.layerGain ? set.layerGain[layer] || 1 : 1;
+  const peak = (level == null ? 1 : level) * def.level * 0.8 * lg * (0.55 + 0.45 * v);
   const g = ctx.createGain();
-  const atk = Math.min(ring * 0.4, 0.03 + 0.07 * (1 - v));
+  const quick = !!(art && art.slur) && ring < 0.45;
+  const atk = strings ? Math.min(ring * 0.4, quick ? 0.02 : 0.03 + 0.07 * (1 - v)) : Math.min(ring * 0.3, 0.012);
   g.gain.setValueAtTime(0.0001, start);
   g.gain.linearRampToValueAtTime(peak * 0.7, start + atk * 0.5);
   g.gain.linearRampToValueAtTime(peak, start + atk);
@@ -323,13 +410,15 @@ function bowedNote(ctx, dest, def, pk, midi, t, dur, vel, held, level){
   }
   const L = set.loop || INSTR_LOOP;
   if(set.sustain && (end - start) * rate > L[1] - 0.05){ src.loop = true; src.loopStart = L[0]; src.loopEnd = Math.min(buf.duration, L[1]); }
-  const rel = 0.34;
-  g.gain.setValueAtTime(peak, Math.max(start + atk, end));
-  g.gain.setTargetAtTime(0.0001, Math.max(start + atk, end), rel / 3);
-  const stop = Math.min(src.loop ? Infinity : start + buf.duration / rate, end + rel * 2.2);
+  /* a slurred note overlaps the next a little, as a legato does */
+  const rel = strings ? (quick ? 0.2 : 0.34) : 0.24, tail = art && art.slur ? 0.05 : 0;
+  g.gain.setValueAtTime(peak, Math.max(start + atk, end + tail));
+  g.gain.setTargetAtTime(0.0001, Math.max(start + atk, end + tail), rel / 3);
+  const offset = quick && strings ? Math.min(0.07, buf.duration * 0.05) : 0;
+  const stop = Math.min(src.loop ? Infinity : start + (buf.duration - offset) / rate, end + tail + rel * 2.2);
   src.connect(tone); tone.connect(g); g.connect(dest);
-  const room = stringsRoom(ctx, dest); if(room) g.connect(room);
-  src.start(start); src.stop(Math.max(start + 0.05, stop));
+  if(!dest._hall){ const room = stringsRoom(ctx, dest); if(room) g.connect(room); }
+  src.start(start, offset); src.stop(Math.max(start + 0.05, stop));
   _instr.stats.sampled++; _instr.stats.bowed = (_instr.stats.bowed || 0) + 1;
   return true;
 }
@@ -363,6 +452,102 @@ function stringsRoom(ctx, dest){
     dest._liRoom = conv;
     return conv;
   } catch(e){ return null; }
+}
+
+/* The hall an orchestra plays in: one convolution for the whole of it (the
+   player sends each part in, from its own gain), made here as the room
+   above is — seeded noise under a two-and-a-half-second decay, darker as it
+   goes, a 24 ms gap before it answers — but longer and wider, the two ears
+   hearing different reflections. Cached on the output it feeds. */
+const ORCH_HALL = {decay: 0.4, len: 2.8, pre: 0.024};
+function orchHall(ctx, into){
+  try {
+    if(into._orchHall && into._orchHall.context === ctx) return into._orchHall;
+    const sr = ctx.sampleRate, len = Math.round(sr * ORCH_HALL.len), pre = Math.round(sr * ORCH_HALL.pre);
+    const ir = ctx.createBuffer(2, len, sr);
+    for(let ch = 0; ch < 2; ch++){
+      const d = ir.getChannelData(ch); let seed = ch ? 69621 : 40692, lp = 0;
+      for(let i = pre + ch * Math.round(sr * 0.0035); i < len; i++){
+        seed = (seed * 16807) % 2147483647;
+        const r = seed / 2147483647 * 2 - 1, tt = (i - pre) / sr;
+        const a = 0.5 * Math.exp(-tt / 0.7) + 0.07;
+        lp += a * (r - lp);
+        d[i] = lp * Math.exp(-tt / ORCH_HALL.decay) * (1 - Math.exp(-tt / 0.012));
+      }
+    }
+    let e = 0; for(let ch = 0; ch < 2; ch++){ const d = ir.getChannelData(ch); for(let i = 0; i < len; i++) e += d[i] * d[i]; }
+    const k = 1 / Math.sqrt(e / 2 || 1); for(let ch = 0; ch < 2; ch++){ const d = ir.getChannelData(ch); for(let i = 0; i < len; i++) d[i] *= k; }
+    const conv = ctx.createConvolver(); conv.normalize = false; conv.buffer = ir;
+    conv.connect(into);
+    into._orchHall = conv;
+    _instr.stats.halls = (_instr.stats.halls || 0) + 1;
+    return conv;
+  } catch(e){ return null; }
+}
+
+/* ---------- an orchestra: sections and a soloist, seats, the hall ----------
+   A symphony's "Violin I" is sixteen violins, not one; a concerto's
+   "Violin" in front of them is one. So once the score is an orchestra —
+   winds, brass or timpani beside at least three string parts, or seven
+   parts or more — its violin and cello parts are played by the sections,
+   except the soloist: the part named solo or principal, or the one string
+   part left unnumbered (or singular) among numbered (or plural) ones. A
+   "Contrabass" in an orchestra is bowed, not a jazz bass. Then each part
+   is given its seat (pan) and its share of the hall; a solo piano piece is
+   left exactly as it was. */
+const ORCH_SEAT = {violins: -0.45, violin: -0.06, viola: 0.14, celli: 0.32, cello: 0.1, contrabass: 0.45, acoustic_bass: 0.4,
+  harp: -0.55, piccolo: -0.2, flute: -0.14, oboe: 0.06, clarinet: -0.06, bassoon: 0.12, horn: -0.3, trumpet: 0.16, trombone: 0.3,
+  tuba: 0.4, timpani: 0.08, pizzicato_strings: -0.2, string_ensemble_1: 0, organ: 0, harpsichord: -0.12, piano: 0.04,
+  glockenspiel: 0.22, xylophone: 0.22, marimba: 0.2, tubular_bells: 0.26, vibraphone: 0.2, sax: 0.1, drums: 0.1};
+const ORCH_SEND = {strings: 0.34, wind: 0.36, brass: 0.38, perc: 0.4, keys: 0.16};
+const ORCH_WINDS = new Set(['piccolo', 'flute', 'oboe', 'clarinet', 'bassoon', 'horn', 'trumpet', 'trombone', 'tuba', 'timpani']);
+const ORCH_STRINGS = new Set(['violin', 'violins', 'viola', 'cello', 'celli', 'contrabass', 'string_ensemble_1', 'acoustic_bass']);
+function instrumentsOrchestrate(parts){
+  if(!parts || !parts.length) return parts;
+  const sounding = parts.filter(p => p.inst && p.inst !== 'drums');
+  const strings = sounding.filter(p => ORCH_STRINGS.has(p.inst)), winds = sounding.filter(p => ORCH_WINDS.has(p.inst));
+  const orchestral = (winds.length >= 1 && strings.length >= 3) || sounding.length >= 7;
+  const soloNamed = p => /\b(solo|soloist|principale?|principal|concertante|obbligato)\b/i.test(p.name || '');
+  const numbered = p => /(\b(i{1,3}|iv|[1-4])\b|\b(1st|2nd|first|second)\b|\d\s*$)/i.test(p.name || '');
+  const plural = p => /violins|violini|violinen|violons|cellos|celli\b|violoncelli|contrabbassi|kontrabässe|basses\b/i.test(p.name || '');
+  if(orchestral){
+    ['violin', 'cello'].forEach(kind => {
+      const group = parts.filter(p => p.inst === kind || p.inst === (kind === 'violin' ? 'violins' : 'celli'));
+      const solo = group.filter(soloNamed);
+      let soloist = solo.length ? solo : [];
+      if(!soloist.length && group.length >= 2){
+        const loose = group.filter(p => !numbered(p) && !plural(p));
+        if(loose.length === 1 && group.some(p => numbered(p) || plural(p))) soloist = loose;
+      }
+      group.forEach(p => { p.solo = soloist.includes(p);
+        p.inst = p.solo ? kind : (kind === 'violin' ? 'violins' : 'celli'); });
+    });
+    parts.forEach(p => { if(p.inst === 'acoustic_bass') p.inst = 'contrabass'; });
+  }
+  /* seats, and the hall: an orchestra, a chamber group, or a duet — never
+     a piece for one instrument, which the player already sounds as it did */
+  if(sounding.length < 2) return parts;
+  const seen = {};
+  parts.forEach(p => {
+    if(!p.inst || p.inst === 'drums') return;
+    const def = INSTRUMENTS[p.inst] || {};
+    let pan = ORCH_SEAT[p.inst] != null ? ORCH_SEAT[p.inst] : 0;
+    if(p.solo) pan = p.inst === 'violin' ? -0.08 : 0.08;
+    /* the second of two violin sections sits inside the first */
+    const n = seen[p.inst] = (seen[p.inst] || 0) + 1;
+    if(p.inst === 'violins' && n === 2) pan = -0.22;
+    else if(n > 1) pan += (n % 2 ? -1 : 1) * 0.06 * Math.ceil((n - 1) / 2);
+    if(!orchestral) pan *= 0.6;
+    p.pan = Math.max(-0.8, Math.min(0.8, pan));
+    const fam = def.family === 'strings' ? 'strings' : def.family === 'wind' ? 'wind' : def.family === 'brass' ? 'brass'
+      : ['timpani', 'glockenspiel', 'xylophone', 'marimba', 'tubular_bells', 'vibraphone', 'harp'].includes(p.inst) ? 'perc' : 'keys';
+    p.hall = ORCH_SEND[fam] * (p.solo ? 0.7 : 1) * (orchestral ? 1 : 0.8);
+    /* many parts together are louder than any one: each is trimmed by its
+       share, the soloist less, so the tutti fits under full scale and the
+       solo still stands out of it */
+    if(orchestral) p.trim = Math.min(1, 2.1 / Math.sqrt(sounding.length)) * (p.solo || p.inst === 'piano' ? 1.35 : 1);
+  });
+  return parts;
 }
 
 /* ---------- which instrument a part is ----------
@@ -402,21 +587,22 @@ function instrumentForName(name, allNames){
   const n = String(name || '').toLowerCase();
   const choir = (allNames || []).some(x => /soprano|alto|tenor/i.test(x) && !/sax/i.test(x));
   if(/pizz/.test(n)) return 'pizzicato_strings';
-  if(/violins|violini|vl\.? ?i{1,2}\b|violin [12i]/.test(n)) return 'violins';
-  if(/violin|violino|vln/.test(n)) return 'violin';
-  if(/viola|vla\b|bratsche/.test(n)) return 'viola';
-  if(/cello|violoncell|\bvc\b/.test(n)) return 'cello';
-  if(/contrabass|double bass|kontrabass|string bass|upright bass/.test(n)) return 'acoustic_bass';
+  /* the cello before the violin: "violoncello" and "violoncelle" have a violin in them */
+  if(/cello|violoncell|\bvc\b|\bvlc\b/.test(n)) return 'cello';
+  if(/violins|violini|violinen|violons|vl\.? ?i{1,2}\b|violin [12i]/.test(n)) return 'violins';
+  if(/violin|violino|violon\b|vln/.test(n)) return 'violin';
+  if(/viola|viole\b|vla\b|bratsche/.test(n)) return 'viola';
+  if(/contrabass|contrabbass|contrebass|double bass|kontrab|string bass|upright bass/.test(n)) return 'acoustic_bass';
   if(/sax/.test(n)) return 'sax';
   if(/\bbass\b/.test(n) && !/clarinet|trombone|voice|choir|tuba|sax/.test(n) && !choir) return 'acoustic_bass';
-  if(/piccolo/.test(n)) return 'piccolo';
-  if(/flute|flauto|recorder|flöte|flote/.test(n)) return 'flute';
-  if(/oboe|english horn|cor anglais|hautbois/.test(n)) return 'oboe';
+  if(/piccolo|ottavino/.test(n)) return 'piccolo';
+  if(/flute|flauti?\b|flauto|recorder|flöte|flote|flûte/.test(n)) return 'flute';
+  if(/oboe|obo[ei]\b|english horn|cor anglais|corno inglese|hautbois/.test(n)) return 'oboe';
   if(/clarinet|klarinette|clarinetto/.test(n)) return 'clarinet';
-  if(/bassoon|fagott|fagotto/.test(n)) return 'bassoon';
-  if(/horn|corno|cor\b/.test(n)) return 'horn';
-  if(/trumpet|tromba|trompete|cornet|flugel/.test(n)) return 'trumpet';
-  if(/trombone|posaune/.test(n)) return 'trombone';
+  if(/bassoon|fagott|fagotto|basson/.test(n)) return 'bassoon';
+  if(/trombone|tromboni|posaune/.test(n)) return 'trombone';
+  if(/horn|hörner|corno|corni\b|\bcors?\b/.test(n)) return 'horn';
+  if(/trumpet|tromba|trombe\b|trompete|trompette|cornet|flugel/.test(n)) return 'trumpet';
   if(/tuba|euphonium/.test(n)) return 'tuba';
   if(/harp|arpa|harfe/.test(n)) return 'harp';
   if(/timpani|pauken|timbales/.test(n)) return 'timpani';
@@ -431,7 +617,15 @@ function instrumentForName(name, allNames){
   return 'piano';
 }
 function instrumentFor(part, allNames){
-  return instrumentForProgram(part && part.program) || instrumentForName(part && (part.instrumentName || part.name), allNames);
+  const byProgram = instrumentForProgram(part && part.program);
+  const byName = instrumentForName(part && (part.instrumentName || part.name), allNames);
+  /* a program says "strings" or "violin"; the name can say which, and how
+     many: a "Violins" part is the section, a "Viola" part on the string
+     ensemble program is the violas */
+  if(byProgram === 'string_ensemble_1' && ['violin', 'violins', 'viola', 'cello', 'acoustic_bass'].includes(byName)) return byName === 'acoustic_bass' ? 'contrabass' : byName;
+  const plural = /violins|violini|violinen|violons/i.test((part && (part.name || part.instrumentName)) || '');
+  if(byProgram === 'violin' && plural) return 'violins';
+  return byProgram || byName;
 }
 const instrumentName = id => id === 'piano' ? 'Piano' : (INSTRUMENTS[id] || {}).name || id;
 function instrumentsCreditHTML(){

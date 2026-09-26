@@ -37,7 +37,7 @@ const ROOT = path.resolve(__dirname, '..');
 /* --set strings: the solo violin and cello the site's player uses, at a
    higher quality than the rest (vendor/strings) */
 const SET = (process.argv.indexOf('--set') > 0 ? process.argv[process.argv.indexOf('--set') + 1] : 'orchestra');
-const OUT = path.join(ROOT, 'vendor', SET === 'strings' ? 'strings' : 'orchestra');
+const OUT = path.join(ROOT, 'vendor', SET === 'strings' ? 'strings' : SET === 'orchestra-hq' ? 'orchestra-hq' : 'orchestra');
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const SRC = arg('--src') || process.env.SAMPLE_SOURCES || '/home/user';
 const ONLY = (arg('--only') || '').split(',').filter(Boolean);
@@ -66,7 +66,45 @@ const STRING_SPECS = [
   P('violin-hq', 'Violin (solo)', 'strings', 'vsco', 'Strings/Solo Violin/Arco Vib/', {layers: 2, dur: 7, range: [55, 100], sr: 32000, kbps: 96, every: true}),
   P('cello-solo', 'Cello (solo)', 'strings', 'kbcello', 'Samples/sus/', {inc: /_d\.wav$/, layers: 2, dur: 4.6, range: [36, 84], sr: 32000, kbps: 96, every: true, vibrato: false}),
 ];
-const SPECS = SET === 'strings' ? STRING_SPECS : [
+/* --set orchestra-hq: the orchestra the Repertoire player plays a
+   symphony or a concerto on (vendor/orchestra-hq). The same VSCO-2
+   recordings as the harness's set, kept the way the solo strings are: both
+   dynamic layers (a quiet passage is a quiet recording, not a loud one
+   turned down), 32 kHz rather than 22, and each held note five seconds long
+   before any looping, so a long chord is the section still playing rather
+   than a three-second stretch going round. And the short notes the
+   sections actually played — spiccato strings, staccato winds and brass —
+   for the quick notes, where a sustained recording cut off after a tenth of
+   a second is what gives a machine away. */
+const HQ = (id, dir, o) => P(id, o.name, o.family, 'vsco', dir, Object.assign({layers: 2, dur: 5, sr: 32000, kbps: 64}, o));
+const HQS = (id, dir, o) => P(id, o.name, o.family, 'vsco', dir, Object.assign({layers: 1, dur: 1.1, sr: 32000, kbps: 64, sustain: false}, o));
+const HQ_SPECS = [
+  HQ('violins-hq', 'Strings/Violin Section/susVib/', {name: 'Violins (section)', family: 'strings', range: [55, 96]}),
+  HQ('violas-hq', 'Strings/Viola Section/susvib/', {name: 'Violas (section)', family: 'strings', range: [48, 84]}),
+  HQ('celli-hq', 'Strings/Cello Section/susvib/', {name: 'Cellos (section)', family: 'strings', range: [36, 76]}),
+  HQ('basses-hq', 'Strings/Solo Contrabass/SusVib/', {name: 'Double basses (arco)', family: 'strings', range: [28, 60]}),
+  HQ('flute-hq', 'Woodwinds/Flute/susvib/', {name: 'Flute', family: 'woodwinds', range: [60, 96]}),
+  HQ('oboe-hq', 'Woodwinds/Oboe/Vib/', {name: 'Oboe', family: 'woodwinds', range: [58, 91]}),
+  HQ('clarinet-hq', 'Woodwinds/Clarinet/susLong/', {name: 'Clarinet', family: 'woodwinds', range: [50, 91]}),
+  HQ('bassoon-hq', 'Woodwinds/Bassoon/sus/', {name: 'Bassoon', family: 'woodwinds', range: [34, 75]}),
+  HQ('horn-hq', 'Brass/F Horn/sus/', {name: 'French horn', family: 'brass', range: [34, 77]}),
+  HQ('trumpet-hq', 'Brass/Trumpet/sus/', {name: 'Trumpet', family: 'brass', range: [54, 84]}),
+  HQ('trombone-hq', 'Brass/Tenor Trombone/sus/', {name: 'Tenor trombone', family: 'brass', range: [40, 72], dur: 4.2}),
+  HQ('tuba-hq', 'Brass/Tuba/sus/', {name: 'Tuba', family: 'brass', range: [26, 65]}),
+  HQS('violins-spic-hq', 'Strings/Violin Section/Spic/', {name: 'Violins, spiccato', family: 'strings', range: [55, 91], dur: 0.9}),
+  HQS('violas-spic-hq', 'Strings/Viola Section/spic/', {name: 'Violas, spiccato', family: 'strings', range: [48, 81], dur: 0.9}),
+  HQS('celli-spic-hq', 'Strings/Cello Section/spic/', {name: 'Cellos, spiccato', family: 'strings', range: [36, 72], dur: 0.9}),
+  HQS('basses-spic-hq', 'Strings/Solo Contrabass/Spic/', {name: 'Double basses, spiccato', family: 'strings', range: [28, 60], dur: 0.9}),
+  HQS('flute-stac-hq', 'Woodwinds/Flute/stac/', {name: 'Flute, staccato', family: 'woodwinds', range: [60, 96]}),
+  HQS('oboe-stac-hq', 'Woodwinds/Oboe/Stacc/', {name: 'Oboe, staccato', family: 'woodwinds', range: [58, 91]}),
+  HQS('clarinet-stac-hq', 'Woodwinds/Clarinet/stac/', {name: 'Clarinet, staccato', family: 'woodwinds', range: [50, 91]}),
+  HQS('bassoon-stac-hq', 'Woodwinds/Bassoon/stac/', {name: 'Bassoon, staccato', family: 'woodwinds', range: [34, 75]}),
+  HQS('horn-stac-hq', 'Brass/F Horn/stac/', {name: 'French horn, staccato', family: 'brass', range: [34, 77]}),
+  HQS('trumpet-stac-hq', 'Brass/Trumpet/stac/', {name: 'Trumpet, staccato', family: 'brass', range: [54, 84]}),
+  HQS('trombone-stac-hq', 'Brass/Tenor Trombone/stac/', {name: 'Tenor trombone, staccato', family: 'brass', range: [40, 72]}),
+  HQS('tuba-stac-hq', 'Brass/Tuba/stac/', {name: 'Tuba, staccato', family: 'brass', range: [26, 65]}),
+];
+const SPECS = SET === 'strings' ? STRING_SPECS : SET === 'orchestra-hq' ? HQ_SPECS : [
   /* the jazz band */
   P('bass-pizz', 'Double bass, pizzicato', 'band', 'smolken', 'pizz/', {inc: /\/pizz_[a-g]#?\d_[fm][a-d]\.wav$/i, layers: 2, dur: 2.4, range: [28, 62]}),
   P('piano', 'Grand piano (Steinway B)', 'band', 'vcsl', 'Chordophones/Zithers/Grand Piano, Steinway B/NoSus/', {inc: /_Close_/, layers: 2, dur: 5, range: [33, 99]}),
@@ -356,7 +394,7 @@ function build(spec){
     });
     entry.layers = Math.max(...entry.notes.map(n => n.layer)) + 1;
     entry.range = [entry.notes[0].midi, entry.notes[entry.notes.length - 1].midi];
-    if(spec.sr){ entry.sampleRate = spec.sr; entry.sustain = true; entry.length = spec.dur; }
+    if(spec.sr){ entry.sampleRate = spec.sr; entry.sustain = spec.sustain !== false; if(entry.sustain) entry.length = spec.dur; }
     if(spec.vibrato === false) entry.vibrato = false;
   } else {
     entry.hits = [];
@@ -390,7 +428,23 @@ function build(spec){
   fs.writeFileSync(idxFile, JSON.stringify(index, null, 1));
   const credits = [...new Set(Object.values(index.instruments).map(e => e.source))];
   const used = new Set(Object.values(index.instruments).map(e => e.source));
-  fs.writeFileSync(path.join(OUT, 'LICENSE.md'), SET === 'strings' ? `# The solo violin and cello — licences
+  fs.writeFileSync(path.join(OUT, 'LICENSE.md'), SET === 'orchestra-hq' ? `# The orchestra of the Repertoire player — licences
+
+The sections, woodwinds and brass the Repertoire player plays a symphony or
+a concerto on. Every sample is a recording of a real instrument, trimmed,
+made mono, resampled to 32 kHz and encoded as MP3 by
+\`node tools/fetch-orchestra.js --set orchestra-hq\`: two dynamic layers of
+each held note, five seconds long, and the short (staccato and spiccato)
+notes. All of it is dedicated to the public domain under **Creative Commons
+CC0 1.0 Universal** by its makers:
+
+${[...used].map(c => '- ' + c).join('\n')}
+
+Sources:
+${Object.values(REPOS).filter(r => used.has(r.credit)).map(r => `- ${r.credit}: ${r.url}`).join('\n')}
+
+CC0 asks for nothing; the credit is given because it is owed.
+` : SET === 'strings' ? `# The solo violin and cello — licences
 
 The Repertoire player's violin and cello. Every sample is a recording of a
 real instrument, trimmed, made mono, resampled to 32 kHz and encoded as MP3

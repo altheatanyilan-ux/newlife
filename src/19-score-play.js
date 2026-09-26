@@ -66,10 +66,33 @@ const plxNum = (el, name, d) => { const t = plxText(el, name); const n = parseFl
  * @returns {parts:[{id, name, staves}], measures:[{k, number, len, beats, beatType}],
  *   order:[k…] (the written bars in the order they are played),
  *   perf:[{i, k, number, q0, len}] (one per bar played, in quarter notes from the start),
- *   events:[{q, d, midi, vel, part, staff, voice, perf, inBar, grace, perc, staccato, arp}],
+ *   events:[{q, d, midi, vel, part, staff, voice, perf, inBar, grace, perc, staccato, arp, pizz, slur}],
  *   tempos:[{q, bpm}] (performance time), bpm (the first marked tempo, or null),
  *   length (quarters)}
  */
+/* A hairpin is a change of loudness across the notes under it, not a
+   loudness that jumps at the next dynamic. Each note under one is moved
+   from where the hairpin starts towards where it arrives: the next dynamic,
+   if the part marks one on the note straight after, or else about a third
+   louder (or softer) than it began. */
+function plxShapeWedges(perBar, wedges){
+  const posOf = (k, at) => k * 1e4 + at;
+  wedges.forEach(w => {
+    const a = posOf(w.k, w.at), z = posOf(w.k2, w.at2);
+    if(!(z > a)) return;
+    const under = [], after = [];
+    perBar.forEach((ns, k) => ns.forEach(n => { if(n.grace || n.perc) return; const p = posOf(k, n.at);
+      if(p >= a - 1e-6 && p < z - 1e-6) under.push({n, p}); else if(p >= z - 1e-6) after.push({n, p}); }));
+    if(under.length < 2) return;
+    under.sort((x, y) => x.p - y.p); after.sort((x, y) => x.p - y.p);
+    const v0 = under[0].n.vel, next = after.length ? after[0].n.vel : null;
+    let v1 = v0 * (1 + 0.35 * w.dir);
+    if(next != null && (next - v0) * w.dir > 0.02) v1 = next;
+    v1 = Math.max(0.05, Math.min(1, v1));
+    const span = under[under.length - 1].p - under[0].p || 1;
+    under.forEach(({n, p}) => { n.vel = Math.max(0.05, Math.min(1, n.vel + (v1 - v0) * (p - under[0].p) / span)); });
+  });
+}
 function musicXmlTimeline(xml){
   const doc = typeof xml === 'string' ? new DOMParser().parseFromString(xml, 'application/xml') : xml;
   if(!doc || !doc.documentElement || doc.getElementsByTagName('parsererror').length)
@@ -114,6 +137,12 @@ function musicXmlTimeline(xml){
     const bars = byPart.get(pid);
     let div = 1, chrom = 0, octShift = 0, vel = PLX_DEFAULT_VEL, staves = 1;
     let beats = 4, beatType = 4;
+    /* how the part is being played, as the score says it: plucked from a
+       "pizz." until an "arco"; the slurs open (a note inside one is joined
+       to the next, not detached); the hairpins, shaped over their notes
+       once the part has been read */
+    let pizz = false, wedge = null;
+    const slurs = new Set(), wedges = [];
     const perBar = [];
     for(let k = 0; k < nBars; k++){
       const bar = bars[k];
@@ -128,6 +157,8 @@ function musicXmlTimeline(xml){
         if(isFinite(t) && t > 0) tempoIn[k].push({at, bpm: t, sound: true});
         const d = parseFloat(s.getAttribute('dynamics'));
         if(isFinite(d)) vel = Math.max(0.05, Math.min(1, d / 90 * 0.6));
+        const pz = s.getAttribute('pizzicato');
+        if(pz === 'yes') pizz = true; else if(pz === 'no') pizz = false;
         if(pi === 0){
           if(s.getAttribute('dacapo') === 'yes') info.dacapo = true;
           if(s.getAttribute('segno')) info.segno = s.getAttribute('segno');
@@ -180,7 +211,14 @@ function musicXmlTimeline(xml){
           if(isFinite(nd)) v = Math.max(0.05, Math.min(1, nd / 90 * 0.6));
           if(has(arts, 'accent')) v = Math.min(1, v + 0.12);
           if(has(arts, 'strong-accent')) v = Math.min(1, v + 0.18);
+          /* in a slur already, or the first note of one: joined to what follows */
+          const sl = plxKids(nots, 'slur');
+          const slurred = !chord && (slurs.size > 0 || sl.some(x => x.getAttribute('type') === 'start'));
+          if(!chord) sl.forEach(x => { const n = x.getAttribute('number') || '1', ty = x.getAttribute('type');
+            if(ty === 'start') slurs.add(n); else if(ty === 'stop') slurs.delete(n); });
+          const tech = plxKid(nots, 'technical');
           notes.push({at: onset, d: dur, midi: Math.round(midi), vel: v, part: pi,
+            pizz: pizz || has(tech, 'pizzicato') || undefined, slur: slurred || undefined,
             staff: plxNum(c, 'staff', 1), voice: plxText(c, 'voice') || '1', grace, perc,
             tieStart: ties.includes('start'), tieStop: ties.includes('stop'),
             staccato: has(arts, 'staccato') || has(arts, 'staccatissimo') || has(arts, 'spiccato'),
@@ -211,6 +249,8 @@ function musicXmlTimeline(xml){
               /* what the words say about the tempo (a section tempo can ramp
                  through a rit.), and a road sign written only as words */
               const txt = w.textContent.trim();
+              if(/\bpizz/i.test(txt)) pizz = true;
+              else if(/\b(arco|col arco|coll'arco)\b/i.test(txt)) pizz = false;
               if(!sym && txt){
                 if(/\b(rit|ritard|ritardando|rall|rallentando|allarg|allargando)\b/i.test(txt)) info.tempoWord = info.tempoWord || 'rit';
                 else if(/\baccel/i.test(txt)) info.tempoWord = info.tempoWord || 'accel';
@@ -219,6 +259,10 @@ function musicXmlTimeline(xml){
             const dyn = plxKid(dt, 'dynamics');
             if(dyn){ const k0 = [...dyn.children].map(x => x.nodeName).find(n => PLX_DYN[n] != null);
               if(k0) vel = PLX_DYN[k0]; }
+            const wd = plxKid(dt, 'wedge');
+            if(wd){ const ty = wd.getAttribute('type');
+              if(ty === 'crescendo' || ty === 'diminuendo') wedge = {dir: ty === 'crescendo' ? 1 : -1, k, at};
+              else if(ty === 'stop' && wedge){ wedges.push(Object.assign(wedge, {k2: k, at2: at})); wedge = null; } }
             const met = plxKid(dt, 'metronome');
             if(met){
               const unit = plxText(met, 'beat-unit') || 'quarter', dots = plxKids(met, 'beat-unit-dot').length;
@@ -278,6 +322,7 @@ function musicXmlTimeline(xml){
       barHeld[k] = Math.max(barHeld[k], fit);
       if(got > fit + 1e-6) barPadded[k] = true;
     }
+    plxShapeWedges(perBar, wedges);
     parts.push(Object.assign({id: pid, name: names[pid] || pid, staves}, instr[pid] || {}));
     raw.push(perBar);
   });
@@ -300,6 +345,9 @@ function musicXmlTimeline(xml){
   /* each part's instrument, where this build carries one; the piano otherwise */
   const allNames = parts.map(p => p.name);
   parts.forEach(p => { p.inst = p.channel === 10 ? 'drums' : typeof instrumentFor === 'function' ? instrumentFor(p, allNames) : 'piano'; });
+  /* an orchestra: sections where a symphony has sections and the soloist
+     alone, each part in its seat, and the hall they share */
+  if(typeof instrumentsOrchestrate === 'function') instrumentsOrchestrate(parts);
   const measures = [...Array(nBars)].map((_, k) => {
     const b0 = byPart.get(partIds[0])[k];
     const n = b0 ? parseInt(b0.number, 10) : NaN;
@@ -504,11 +552,16 @@ function plxOut(ctx, volume){
   const wet = ctx.createGain(); wet.gain.value = 0.16;
   let verb = null;
   try { verb = ctx.createConvolver(); verb.buffer = plxRoom(ctx); } catch(e){ verb = null; }
+  /* and a limiter just under full scale after it: a full orchestra's
+     forte chord is the one moment the mix could clip, and a clipped chord
+     is the harshest sound a player makes. Below about -1 dB it does nothing. */
+  const lim = ctx.createDynamicsCompressor();
+  lim.threshold.value = -1.5; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.12;
   master.connect(dry); dry.connect(comp);
   if(verb){ master.connect(wet); wet.connect(verb); verb.connect(comp); }
-  comp.connect(ctx.destination);
+  comp.connect(lim); lim.connect(ctx.destination);
   return {input: master, stop(){ try { master.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.04); } catch(e){}
-    setTimeout(() => { try { master.disconnect(); comp.disconnect(); } catch(e){} }, 2000); }};
+    setTimeout(() => { try { master.disconnect(); comp.disconnect(); lim.disconnect(); } catch(e){} }, 2000); }};
 }
 /* A struck string. held: how long it rings (the pedal can make that longer
    than the note); the key coming up fades it in a tenth of a second. */
@@ -733,19 +786,39 @@ function scorePlayer(tl, opts){
   /* a gain for each part (and each staff of it), so a part is turned up or
      down while it plays without touching anything else */
   const gains = new Map();
+  /* times the part's share of a full orchestra (instrumentsOrchestrate):
+     thirteen parts at a forte are not thirteen times one part */
   const volOf = key => { const [pi, st] = key.split(':'); const v = o.volumes || {};
-    return Math.max(0, (v[pi] == null ? 1 : +v[pi]) * (st != null && v[`${pi}:${st}`] != null ? +v[`${pi}:${st}`] : 1)); };
+    const trim = (tl.parts[+pi] || {}).trim || 1;
+    return Math.max(0, trim * (v[pi] == null ? 1 : +v[pi]) * (st != null && v[`${pi}:${st}`] != null ? +v[`${pi}:${st}`] : 1)); };
+  /* An orchestra is heard in a hall, from its seats: each part through a
+     panner to where it sits (the violins on the left, the cellos and basses
+     on the right, the soloist in the middle), and a send from its own gain
+     into one hall the whole orchestra shares — one reverberation for the
+     room, not one per part, and turned down with the part it belongs to. */
+  let hall = null;
+  const hallIn = () => {
+    if(hall !== null) return hall;
+    hall = typeof orchHall === 'function' ? orchHall(ctx, out.input) : false;
+    return hall;
+  };
   const gainFor = e => {
     const key = e.chord ? 'chords' : `${e.part}:${e.staff}`;
     let g = gains.get(key);
-    if(!g){ g = ctx.createGain(); g.gain.value = key === 'chords' ? 1 : volOf(key); g.connect(out.input); gains.set(key, g); }
+    if(!g){ g = ctx.createGain(); g.gain.value = key === 'chords' ? 1 : volOf(key);
+      const pt = e.chord ? null : tl.parts[e.part];
+      let to = out.input;
+      if(pt && pt.pan && ctx.createStereoPanner){ try { const pan = ctx.createStereoPanner(); pan.pan.value = pt.pan; pan.connect(out.input); to = pan; } catch(err){} }
+      g.connect(to);
+      if(pt && pt.hall > 0){ const h = hallIn(); if(h){ const send = ctx.createGain(); send.gain.value = pt.hall; g.connect(send); send.connect(h); g._hall = true; } }
+      gains.set(key, g); }
     return g;
   };
   const voice = (e, dest, t0, d, held) => {
     if(e.perc){ if(e.kit) plxKit(ctx, dest, e.midi, t0, e.vel, d); else plxDrum(ctx, dest, e.midi, t0, e.vel); return; }
     const inst = e.chord ? 'piano' : ((tl.parts[e.part] || {}).inst || 'piano');
     if(inst !== 'piano' && inst !== 'drums' && typeof instrumentNote === 'function'
-      && instrumentNote(ctx, dest, inst, e.midi, t0, d, e.vel, held, 1)) return;
+      && instrumentNote(ctx, dest, inst, e.midi, t0, d, e.vel, held, 1, {staccato: e.staccato, slur: e.slur, pizz: e.pizz, human: true})) return;
     plxPiano(ctx, dest, e.midi, t0, d, e.vel, held);
   };
   const at = q => anchorT + secs(anchorQ, q);

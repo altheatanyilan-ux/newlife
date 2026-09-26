@@ -259,6 +259,27 @@ if(orch && fs.existsSync(path.join(strDir, 'instruments.json'))){
     orch.manifest.instruments[id] = Object.assign({}, v, {notes});
   });
 }
+/* The orchestra the Repertoire player plays a symphony or a concerto on
+   (vendor/orchestra-hq, CC0 — see its LICENSE.md; made by
+   `node tools/fetch-orchestra.js --set orchestra-hq`): the sections, winds
+   and brass with both dynamic layers, 32 kHz, five-second notes, and their
+   short (staccato, spiccato) notes. Where one of these is carried, the thin
+   copy of the same instrument above is left out: the player prefers the
+   "-hq" recording by name, so the thin one would never be heard. */
+const hqDir = path.join(__dirname, 'vendor', 'orchestra-hq');
+if(orch && fs.existsSync(path.join(hqDir, 'instruments.json'))){
+  const hm = JSON.parse(fs.readFileSync(path.join(hqDir, 'instruments.json'), 'utf8'));
+  const drop = Object.keys(orch.manifest.instruments).filter(id => hm.instruments[id + '-hq'] || (id === 'violin-solo' && orch.manifest.instruments['violin-hq']));
+  drop.forEach(id => { (orch.manifest.instruments[id].notes || []).forEach(n => { if(orch.files[n.file]){ delete orch.files[n.file]; orchFiles--; } });
+    delete orch.manifest.instruments[id]; });
+  Object.entries(hm.instruments).forEach(([id, v]) => {
+    const notes = (v.notes || []).map(n => Object.assign({}, n, {file: 'hq/' + n.file}));
+    notes.forEach(n => { const f = path.join(hqDir, n.file.slice(3)); if(fs.existsSync(f)){ orch.files[n.file] = fs.readFileSync(f).toString('base64'); orchFiles++; } });
+    /* balance: its soft layer is brought up to a share of the loud one (the
+       solo strings, balanced by hand, are not) */
+    orch.manifest.instruments[id] = Object.assign({}, v, {notes, balance: true});
+  });
+}
 if(orch){
   const body = JSON.stringify(orch);
   orchBytes = body.length;
