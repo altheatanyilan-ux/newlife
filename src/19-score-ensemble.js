@@ -677,6 +677,7 @@ function scoreEnsembleCfg(x){
     onPosition: (pm, q, ctl) => {
       if(_ens.want && ctl.player && ctl.player.waiting == null) ensWaitClear();
       ensembleCueFollow(pm, q);
+      if(typeof anOnPlayPosition === 'function') anOnPlayPosition(pm, q);
     }
   };
 }

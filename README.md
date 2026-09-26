@@ -69,6 +69,7 @@ Four rooms no longer have a door of their own, because they stopped being separa
 | `#/stage/:id` | Stage detail: versioned narrative, sub-stages (each printed on its own uploaded images), formative events, retrospective values, soundtrack, artifacts, letters |
 | `#/settings` | Theme, ambient sound, felt time, landing page, sidebar zones, the Import Station, export/import/clear |
 | `#/study` | The **Study Deck**, built to Anki's shape so a deck can go back and forth: notes and note types (Basic, reversed, optional reversed, type-in, Cloze, Image Occlusion), cards per template, nested decks with option presets, and an add-only review log. FSRS schedules by default (the reference ts-fsrs, inlined), with SM-2 on request; the queue follows Anki's order and limits. Cards are drawn in a sandboxed frame, and a note type's own JavaScript is off unless you turn it on. `add`, `browse` (Anki's search syntax, bulk edits, find and replace), `stats` (every graph with its numbers, true retention), `import` (.apkg and .colpkg from any Anki version, CSV, JSON) and `tools` (postpone, advance, flatten, load balance, easy days, a break, siblings, rescheduling, an FSRS optimiser fitted to your reviews, a simulator) — every tool previews its effect and can be undone |
+| `#/score` | **Repertoire**: your scores, engraved from MusicXML, with sections, pins, a metronome, a player that can leave your part out, and **Study** — the harmony, cadences and form of the piece, worked out here from its notes. See *Score Study* below |
 | `#/tree` | The **Knowledge Tree**: a personal wiki for a lifelong inquiry. Every page has one home (root → branch → point), a position held at a stated confidence, and the question that would change your mind. See *Knowledge Tree* below |
 
 ## Knowledge Tree
@@ -96,6 +97,41 @@ Typing `[[` offers matching titles and aliases, so a page is found before it is 
 **Backup.** The whole-database export carries every Tree store; the Tree can also be exported and imported on its own (an import adds what is missing and never overwrites). The Tree's home warns gently when the last export is more than thirty days old.
 
 **Keys.** `Alt+K` anywhere (outside a text field): quick capture into the Tree's inbox. `Ctrl/⌘+Enter` keeps the capture. In a Tree text box, `[[` opens the page list; `↑ ↓` move, `Enter` or `Tab` completes, `Esc` closes.
+
+## Score Study
+
+Study is a mode of a score in Repertoire, not a room of its own: open a score and press **◈ study** in its head. The panel beside the score replaces the section list while it is on, and a layer is drawn on the engraving itself — Roman numerals under each system, the key where it changes, cadence flags above, phrase brackets, and your notes on the notes. Everything is worked out in the browser, from rules; nothing is sent anywhere and no model is involved.
+
+**What it reads.** Partwise MusicXML, the same file the score was engraved from. It checks first that every voice fills every bar, and lists the bars where one does not.
+
+**Automatic, then proposed, then yours.** *Analyse* runs the first pass in a Web Worker (falling back to the page if the browser has none):
+
+- **Keys** — Krumhansl–Schmuckler correlation per bar against a profile you choose (Krumhansl–Kessler, Temperley, Aarden–Essen, Bellman–Budge), smoothed with a Viterbi pass whose modulation penalty you set. Each key span says how sure it is, gives the runner-up, and warns when the runner-up is the dominant — the classic confusion.
+- **Chords** — template matching on the pitch classes sounding in each harmonic window, spelled from the key; Roman numerals with inversions, applied dominants and leading-tone chords (V/x, vii°/x), the Neapolitan, the Italian, French and German sixths, the cadential 6/4 and mixture. Every label carries a confidence and the next-best reading. Non-chord tones are named where the line makes it clear (passing, neighbour, suspension, appoggiatura, incomplete neighbour).
+- **Cadences** — PAC, IAC, HC, deceptive, evaded, abandoned and plagal, with a broad or a strict (Caplin) definition, each placed at a level (motive, phrase, theme, section) and flagged when it has a cadence's shape but sits inside a phrase.
+- **Form** — once you accept cadences, phrases are seeded between them; two phrases that begin alike, the first ending on a half cadence and the second on an authentic one, are proposed as antecedent and consequent of a period. Sections nest; the timeline shows each phrase as tonic, pre-dominant and dominant zones, and a gap between two bars is a click to split or join.
+- **Tension** — an approximation of Lerdahl's tonal pitch space: distance from the tonic, from the previous chord, surface dissonance and melodic attraction, with weights you can change. Arrivals are weighted by cadence level.
+- **Schemata** — Prinner, Romanesca, Monte, Fonte, Do–Re–Mi, Meyer, Quiescenza and the rest, found from the bass and melody scale degrees. Where chords stop being functional, the Neo-Riemannian path (P, L, R, N, S) between triads is described instead.
+
+Nothing the machine proposes is taken as settled. Each chord, key, cadence, unit and schema is *proposed* until you accept, relabel or reject it; *Accept all* is there, and so is a filter that shows only the labels it is unsure of.
+
+**Your decisions are recorded, add-only.** Every time you choose between readings or override the machine, a row goes into the decision log — what the readings were, what you chose, and why if you say. Those rows, the write-ups, and any interpretation you *save* can never be changed or removed: they are frozen when written and the save puts them back if anything tries. Editing a saved interpretation starts a new version with the old one as its parent; the version menu moves between them.
+
+**Write-ups.** For each section, a proposed write-up in five blocks — harmony, cadences, form, tension, and what it suggests for playing — generated from the confirmed analysis by rules and templates, the same text every time for the same analysis. Accept it, edit it, or write your own; each is a new version, and none is ever cut short. *Practise this section* makes it a Repertoire section with its bars; *Reflect* opens a journal entry about it; *To the Tree* captures the insight into the Knowledge Tree's inbox.
+
+**Notes on the notes.** Select one or more noteheads (Notes tab, *Select notes on the score*, shift-click for more) and write what to do — voicing, timing, dynamics, articulation, pedal, colour, fingering, breath or bowing — with the hand, how much it matters, and why. A note is anchored to the notes themselves (part, staff, voice, bar, position in the bar, pitches), not to a place on the screen, so it stays on its notehead through zooming, a narrower window and reading mode's reflow. **There is no length limit.** A note up to twelve words (the threshold is yours) is written inline above the staff, or below it for the left hand; a longer one is a pin whose popover holds every word. Several notes get a bracket. Rules also propose notes — lean into the bass at a deceptive cadence, take time at the main arrival, hold a half cadence open, weight an appoggiatura — each with its reason, to accept, edit or reject.
+
+**Takes.** *Tap along* while you play or listen: one tap a beat. The tempo curve is drawn over the tension curve on one bar axis, with cadences and phrase boundaries through both, and the facts are stated plainly — your median tempo, your biggest slowings and whether they fall at phrase-level cadences, how you pace phrase ends against the middles, and how alike your takes are at each phrase end.
+
+**RomanText.** Every version exports as a `.rntxt` file (Tymoczko, Gotham, Cuthbert and Ariza's RomanText, the format of the When-in-Rome corpus) and any `.rntxt` imports as a new version — an expert's analysis, a teacher's, or the companion script's. *Compare* shows two versions bar by bar, with every place they disagree.
+
+**The companion script (optional).** `tools/analyze.py` is a separate Python script you run yourself, never called by the site. Given a MusicXML file it writes a `.rntxt` and a `.csv` from AugmentedNet, a trained Roman-numeral model (set `AUGMENTEDNET` to its folder), or from music21's own chord-by-chord reading with `--rules`. Import the `.rntxt` in Compare with the origin *companion*; it arrives as a version like any other and is accepted only by you.
+
+**Scores from a scan.** Study reads MusicXML, so a PDF or photo goes through optical music recognition first — Audiveris (desktop, mature) or homr (for photographed pages), both outside the site — and the result is imported as a score. Tick *this score came from OMR* under Compare, and Study will not analyse until every bar has been checked against the image (each marked fine or fixed), because a wrong note from the scanner becomes a wrong chord here.
+
+**Settings** live in the Overview tab: the key profile, the modulation penalty, the cadence definition, the inline-note threshold, the note filter (hand, category, importance) and density, the tension weights, the Neo-Riemannian threshold, and whether non-chord tones are dimmed and phrase arches drawn.
+
+**Storage and backup.** Six stores were added in schema v20 — analyses, write-ups, takes, performance notes, the decision log and OMR reviews — by a migration that adds and changes nothing else. The whole-database export carries them.
 
 ## The day
 

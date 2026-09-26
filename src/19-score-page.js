@@ -56,6 +56,7 @@ routes.score = function(root, params){
   document.documentElement.classList.toggle('sc-reading', !!ui.reading);
   root.innerHTML = `<div class="page sc-page sc-open">${scoreViewerHTML(rec)}</div>`;
   bindScoreViewer(root, rec);
+  if(typeof anMountViewer === 'function') anMountViewer(root, rec);
   scorePaint(rec);
   /* Arriving from somewhere that knows which bar it means — a rule saying
      where you met it — the engraving has not been drawn yet, so the scroll
@@ -276,6 +277,8 @@ function scoreViewerHTML(x){
       ${scorePeriodOf(x) ? `<span class="sc-comp faint">${esc(scorePeriodName(scorePeriodOf(x)))}</span>` : ''}
       <span class="grow"></span>
       <span class="mono faint">${x.totalMeasures ? `${x.totalMeasures} bars` : ''}</span>
+      <button class="tbtn${ui.study ? ' on' : ''}" id="scStudy" aria-pressed="${ui.study ? 'true' : 'false'}"
+        title="study the harmony, cadences and form — worked out here, from the notes">◈ study</button>
       <button class="tbtn" id="scPrint" title="print it, with or without what you have written on it">⎙ print</button>
     </div>
     ${focus ? `<div class="sc-focusbar" style="--c:${esc(focus.color)}">
@@ -322,7 +325,8 @@ function scoreViewerHTML(x){
         <div class="sc-pins" id="scPins"></div>
         <div class="sc-loading" id="scLoading">engraving…</div>
       </div>
-      <aside class="sc-side" id="scSide">${scoreSideHTML(x)}</aside>
+      <aside class="sc-side" id="scSide"${ui.study ? ' hidden' : ''}>${scoreSideHTML(x)}</aside>
+      ${ui.study ? '<aside class="an-side" id="anSide" aria-label="study"></aside>' : ''}
     </div>`;
 }
 
@@ -754,6 +758,7 @@ function scoreRepaintParts(x){
 }
 /* the bands behind the notation, and the pins above it */
 function scoreOverlayPaint(x){
+  if(typeof anAfterPaint === 'function') setTimeout(() => anAfterPaint(x), 0);
   const over = document.getElementById('scOverlay');
   const pinBox = document.getElementById('scPins');
   if(!over || !pinBox) return;
