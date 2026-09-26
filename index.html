@@ -10885,6 +10885,55 @@ html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
   .rf-card{max-height:50vh;overflow:auto}
 }
 .pd-remlead{padding:2px 20px 2px 6px;font-size:.74rem;width:auto;margin-left:4px}
+
+/* ---------- piano input (19-listen-*.js) ---------- */
+.li-page{max-width:880px}
+.li-lede{color:var(--muted);max-width:62ch;line-height:1.6;margin:4px 0 18px}
+.li-card{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:0 0 14px;background:var(--surface)}
+.li-card h2{font-size:1.05rem;margin:0 0 8px}
+.li-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:6px 0}
+.li-row .inp{max-width:220px}
+.li-row label{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted)}
+.li-row .sel{width:auto}
+.li-seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.li-seg button{border:0;background:transparent;padding:6px 14px;font:inherit;font-size:.85rem;color:var(--muted);cursor:pointer}
+.li-seg button.on{background:var(--text);color:var(--bg)}
+.li-status{margin:8px 0 4px;font-size:.88rem;display:flex;align-items:center;gap:8px}
+.li-dot{width:8px;height:8px;border-radius:50%;background:#b5533c;box-shadow:0 0 0 3px rgba(181,83,60,.18);animation:liPulse 1.6s ease-in-out infinite}
+@keyframes liPulse{50%{opacity:.45}}
+.li-meter{position:relative;height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:10px 0 6px}
+.li-meter i{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#7f916a,#c9a84c 75%,#b5533c);transition:width .06s linear}
+.li-meter b{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--text);opacity:.45}
+.li-facts{display:flex;gap:16px;font-size:.8rem;color:var(--muted)}
+.li-heard{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
+.li-note{font-family:var(--mono,monospace);font-size:.82rem;padding:3px 8px;border-radius:6px;
+  background:color-mix(in srgb,var(--text) var(--c),transparent);color:var(--bg)}
+.li-verdict{margin-top:10px;min-height:48px}
+.li-v{font-family:var(--serif,serif);font-size:1.3rem}
+.li-v.ok{color:#5f7a4c}.li-v.no{color:#a2533c}
+.li-vrow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.li-chip{font-size:.8rem;padding:2px 9px;border-radius:999px;border:1px solid var(--line)}
+.li-chip.ok{border-color:#7f916a;color:#5f7a4c}
+.li-chip.miss{border-style:dashed;color:var(--muted)}
+.li-chip.extra{border-color:#b5533c;color:#a2533c}
+.li-vmeta{font-size:.76rem}
+.li-dev{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;padding:6px 0;border-top:1px solid var(--line)}
+.li-dev:first-of-type{border-top:0}
+.li-dev span{color:var(--muted)}
+.li-file{flex-direction:column;align-items:flex-start !important}
+.li-file input{font-size:.78rem;max-width:230px}
+.li-hprog{position:relative;font-size:.82rem;color:var(--muted);margin:8px 0;min-height:1.2em}
+.li-hprog i{display:block;height:3px;background:var(--text);opacity:.5;margin-top:4px;border-radius:2px}
+.li-err{color:#a2533c}
+.li-hrun{border-top:1px solid var(--line);padding:10px 0}
+.li-htab{border-collapse:collapse;font-size:.85rem;margin:6px 0}
+.li-htab th{text-align:left;font-weight:500;color:var(--muted);padding:3px 14px 3px 0;vertical-align:top;white-space:nowrap}
+.li-htab td{padding:3px 0}
+.li-pill{position:fixed;left:14px;bottom:14px;z-index:70;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;
+  border:1px solid var(--line);background:var(--surface);color:var(--text);font:inherit;font-size:.8rem;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.li-mini{display:inline-block;width:44px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.li-mini i{display:block;height:100%;width:0;background:#7f916a}
+@media (max-width:600px){.li-card{padding:14px}.li-row .inp{max-width:100%}}
 </style>
 
 </head>
@@ -15389,7 +15438,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
@@ -50319,6 +50368,8 @@ function grandPianoNote(ctx, dest, midi, t, dur, vel, held, level){
     stop = Math.min(stop, end + tau * 8 + 0.05);
   }
   src.connect(tone); tone.connect(g); g.connect(dest);
+  /* the microphone, if it is open, is told what the app itself is sounding */
+  if(typeof listenAppNote === 'function') listenAppNote(ctx, m, start, ring);
   src.start(start);
   src.stop(stop);
   _grand.stats.sampled++;
@@ -50529,6 +50580,9 @@ function instrumentsLoad(ids){ return Promise.all([...new Set(ids)].map(id => in
  * Returns false when the instrument is not ready, so the caller can use its own voice.
  */
 function instrumentNote(ctx, dest, id, midi, t, dur, vel, held, level){
+  /* the microphone, if it is open, is told what the app itself is sounding
+     (the grand says so for itself, below) */
+  if(id && id !== 'piano' && id !== 'drums' && id !== 'kit' && typeof listenAppNote === 'function') listenAppNote(ctx, midi, t, held || dur);
   if(!id || id === 'piano') return typeof grandPianoNote === 'function' && grandPianoNote(ctx, dest, midi, t, dur, vel, held, level);
   if(id === 'drums' || id === 'kit') return orchKitHit(ctx, dest, Math.round(midi), t, vel, dur);
   const def0 = INSTRUMENTS[id];
@@ -77257,7 +77311,7 @@ routes.jazz = function(root, params){
     repertoire: ['jazzRepertoireHTML', 'bindJazzRepertoire'], analysis: ['jazzAnalysisHTML', 'bindJazzAnalysis'],
     playalong: ['jazzPlayAlongHTML', 'bindJazzPlayAlong'], record: ['jazzRecordHTML', 'bindJazzRecord'],
     audiation: ['jazzAudiationHTML', 'bindJazzAudiation'], mindset: ['jazzMindsetHTML', 'bindJazzMindset'],
-    journal: ['jazzJournalHTML', 'bindJazzJournal']};
+    journal: ['jazzJournalHTML', 'bindJazzJournal'], piano: ['jazzPianoInHTML', 'bindJazzPianoIn']};
   if(want && v3Rooms[want]){
     const [draw, bind] = v3Rooms[want];
     const rest = (params || []).slice(1);
@@ -77380,6 +77434,7 @@ function jazzRoadHTML(){
       <button class="tbtn" data-jzgo="#/jazz/playalong">\u{1f941} Play-along</button>
       <button class="tbtn" data-jzgo="#/jazz/listen">\u{1f3a7} Listening</button>
       <button class="tbtn" data-jzgo="#/jazz/record">\u{1f399}️ Record</button>
+      <button class="tbtn" data-jzgo="#/jazz/piano">\u{1f3b9} Piano input</button>
       <button class="tbtn" data-jzgo="#/jazz/journal">\u{1f4d3} Journal</button>
       <button class="tbtn" data-jzgo="#/jazz/audiation">\u{1f442} Audiation</button>
       <button class="tbtn" data-jzgo="#/jazz/mindset">\u{1f9d8} Mindset</button>
@@ -83581,15 +83636,15 @@ function ldFFT(re, im){
     }
   }
 }
-const _ldTw = {};
 function ldTwiddles(len){
+  const _ldTw = ldTwiddles.cache = ldTwiddles.cache || {};
   if(_ldTw[len]) return _ldTw[len];
   const half = len >> 1, t = new Float64Array(len);
   for(let k = 0; k < half; k++){ const a = -2 * Math.PI * k / len; t[2 * k] = Math.cos(a); t[2 * k + 1] = Math.sin(a); }
   return (_ldTw[len] = t);
 }
-const _ldWin = {};
 function ldHann(n){
+  const _ldWin = ldHann.cache = ldHann.cache || {};
   if(_ldWin[n]) return _ldWin[n];
   const w = new Float32Array(n);
   for(let i = 0; i < n; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * (i + 0.5) / n);
@@ -83606,12 +83661,20 @@ function ldSpectrum(at, start, len, nfft){
   for(let k = 0; k <= nfft / 2; k++) out[k] = Math.sqrt(re[k] * re[k] + im[k] * im[k]) * sc;
   return out;
 }
-const ldMidiHz = (p, cents) => 440 * Math.pow(2, (p - 69) / 12 + (cents || 0) / 1200);
+function ldMidiHz(p, cents){ return 440 * Math.pow(2, (p - 69) / 12 + (cents || 0) / 1200); }
 /* How much a piano string stretches its partials: f_k = k·f1·√((1+Bk²)/(1+B)).
    B rises steeply up the keyboard (short, stiff strings) and a little at
    the very bottom (the wound bass strings); these are typical values for a
    grand, and the per-piano templates absorb the rest. */
-function ldInharm(p){ return p >= 60 ? 1.2e-4 * Math.pow(10, (p - 60) / 34) : 1.2e-4 * Math.pow(10, (60 - p) / 120); }
+function ldInharm(p){
+  const def = p >= 60 ? 1.2e-4 * Math.pow(10, (p - 60) / 34) : 1.2e-4 * Math.pow(10, (60 - p) / 120);
+  /* what this piano has shown us, octave by octave, once it has shown us
+     enough — an upright's short bass strings stretch their partials several
+     times further than a concert grand's */
+  const L = ldInharm.learned, band = Math.max(0, Math.min(7, Math.floor((p - 21) / 12)));
+  const b = L && L[band];
+  return b && b.n >= 3 ? b.B : def;
+}
 function ldPartialHz(p, k, cents){
   const B = ldInharm(p);
   return k * ldMidiHz(p, cents) * Math.sqrt((1 + B * k * k) / (1 + B));
@@ -83631,7 +83694,10 @@ function ldPeakNear(spec, f, binHz, cents, minBins){
   const lo = Math.max(1, Math.floor(f / binHz - w)), hi = Math.min(spec.length - 2, Math.ceil(f / binHz + w));
   let bi = lo, bv = 0;
   for(let b = lo; b <= hi; b++) if(spec[b] > bv){ bv = spec[b]; bi = b; }
-  return {bin: bi, v: bv};
+  /* the largest bin in the window may only be the slope of a neighbour's
+     peak — the next key's partial, a semitone away. A partial is a peak. */
+  const peak = bv > 0 && spec[bi] >= (spec[bi - 1] || 0) && spec[bi] >= (spec[bi + 1] || 0);
+  return {bin: bi, v: bv, peak};
 }
 /* the frequency of a peak, from the parabola through its three bins */
 function ldPeakHz(spec, bin, binHz){
@@ -83641,7 +83707,16 @@ function ldPeakHz(spec, bin, binHz){
   const off = d < 0 ? 0.5 * (la - lc) / d : 0;
   return (bin + Math.max(-0.5, Math.min(0.5, off))) * binHz;
 }
-const ldDb = x => 20 * Math.log10(Math.max(1e-9, x));
+function ldDb(x){ return 20 * Math.log10(Math.max(1e-9, x)); }
+/* the typical level either side of a peak, past its main lobe */
+function ldBackground(spec, bin, lobe){
+  const a = Math.ceil(lobe * 1.5), z = Math.ceil(lobe * 4), v = [];
+  for(let b = bin - z; b <= bin - a; b++) if(b > 0) v.push(spec[b]);
+  for(let b = bin + a; b <= bin + z; b++) if(b < spec.length) v.push(spec[b]);
+  if(!v.length) return 1e-9;
+  v.sort((x, y) => x - y);
+  return v[v.length >> 1];
+}
 
 /* ---------- the analyser ----------
    ldCreate(sr, opts) → an object you push samples into; it hands back
@@ -83662,7 +83737,7 @@ function ldCreate(sr, opts){
   const kLo = Math.max(1, Math.round(30 / frameHz)), kHi = Math.min(nb - 1, Math.round(6000 / frameHz));
   let prevL = null, sinceHop = 0;
   const flux = [], fluxT = [];
-  let lastOnset = -1e9;
+  let lastOnset = -1e9, lastFlux = 0;
   /* the room: a running minimum of every bin over the last second and a
      half, lightly smoothed — "minimum statistics", which finds the noise
      floor even while someone is playing, because between notes, in some
@@ -83672,6 +83747,8 @@ function ldCreate(sr, opts){
   let cents = o.cents || 0;
   const tuneObs = [];
   const tpl = o.templates ? JSON.parse(JSON.stringify(o.templates)) : {};
+  ldInharm.learned = o.inharm ? JSON.parse(JSON.stringify(o.inharm)) : {};
+  const bObs = {};
   let expected = null, expectOpts = {};
   const pending = [];
   const out = [];
@@ -83681,13 +83758,26 @@ function ldCreate(sr, opts){
     let e = 0; for(let i = end - o.frame; i < end; i++){ const v = at(i); e += v * v; }
     return {s, rms: Math.sqrt(e / o.frame)};
   }
+  /* The floor is the fifth-quietest reading in every twenty of each bin
+     over the last second and a half: low enough that notes rarely reach
+     into it, steady enough that the room's own flutter does not. A bare
+     minimum over that many frames sits an order of magnitude under the
+     noise's typical level, and everything above it counted as sound. Held
+     notes lift it, which is right for finding onsets — only what is new
+     should count — and the dB-above-floor of a note is read with that in
+     mind (the rise since before the onset is what decides). */
+  const kTop = Math.min(nb - 1, Math.round(8000 / frameHz));
   function updateFloor(s, rms){
     minHist.push(s); if(minHist.length > FLOOR_FRAMES) minHist.shift();
     if(frames % 8 === 0 || !floor){
-      const f = new Float32Array(nb).fill(1e9);
-      for(const h of minHist) for(let k = 0; k < nb; k++) if(h[k] < f[k]) f[k] = h[k];
-      /* a minimum reads below the mean; lift it back */
-      for(let k = 0; k < nb; k++) f[k] = Math.max(1e-7, f[k] * 2.5);
+      const f = new Float32Array(nb), H = minHist.length, col = new Float32Array(H);
+      const q = Math.floor(H * 0.2);
+      for(let k = 0; k <= kTop; k++){
+        for(let h = 0; h < H; h++) col[h] = minHist[h][k];
+        col.sort();
+        f[k] = Math.max(1e-7, col[q] * 1.9);
+      }
+      for(let k = kTop + 1; k < nb; k++) f[k] = f[kTop];
       floor = f;
     }
     floorRms = floorRms ? Math.min(Math.max(floorRms * 0.999, 1e-5), rms > floorRms ? floorRms * 1.0005 : rms) : rms;
@@ -83703,8 +83793,12 @@ function ldCreate(sr, opts){
     const {s, rms} = frameAt(end);
     frames++; lastRms = rms;
     updateFloor(s, rms);
+    /* each bin as how far it stands above the room's own noise there, so a
+       soft note under the pedal counts as much as a loud one in a quiet
+       room; bins that are only noise (under three times the floor) do not
+       count at all, which keeps the flux of an empty room near nothing */
     const L = new Float32Array(nb);
-    for(let k = 0; k < nb; k++) L[k] = Math.log(1 + 1000 * s[k]);
+    for(let k = 0; k < nb; k++){ const r = s[k] / (floor ? floor[k] : 1e-4); L[k] = r > 2.2 ? Math.log(r / 2.2) : 0; }
     let fx = 0;
     if(prevL) for(let k = kLo; k <= kHi; k++){ const d = L[k] - prevL[k]; if(d > 0) fx += d; }
     prevL = L;
@@ -83720,9 +83814,15 @@ function ldCreate(sr, opts){
       const a = flux[m - 3], b = flux[m - 2], c = flux[m - 1];
       const recent = flux.slice(Math.max(0, m - 24), m - 2).sort((x, y) => x - y);
       const med = recent.length ? recent[recent.length >> 1] : 0;
-      const thr = Math.max(floorFlux * 3 + 1, med * 1.5 + 2);
+      const thr = Math.max(floorFlux * 1.5 + (o.minFlux || 3.5), med * 1.4 + 3);
       const tEnd = fluxT[m - 2];
-      if(b > a && b >= c && b > thr && (tEnd - lastOnset) > 0.045 * sr && rms > floorRms * 1.8){
+      if(o.trace) o.trace.push([+(tEnd / sr).toFixed(3), +b.toFixed(1), +thr.toFixed(1), +floorFlux.toFixed(1), +med.toFixed(1)]);
+      /* just after a strong attack, a much weaker spike is that attack still
+         blooming (partials arriving at different speeds, the room answering)
+         and not a new key */
+      const masked = (tEnd - lastOnset) < 0.09 * sr && b < lastFlux * 0.5;
+      if(b > a && b >= c && b > thr && (tEnd - lastOnset) > 0.045 * sr && !masked){
+        lastFlux = b;
         /* the attack sits in the newest part of the frame that jumped */
         const t0 = Math.round(tEnd - o.hop * 1.5 + o.onsetBias * sr);
         lastOnset = tEnd;
@@ -83759,7 +83859,7 @@ function ldCreate(sr, opts){
     const vel = Math.max(0, Math.min(1, (ldDb(lastRms) - ldDb(floorRms) - 6) / 50));
     res.notes.forEach(x => { x.vel = +(Math.max(0.05, Math.min(1, x.vel != null ? x.vel : vel))).toFixed(2); });
     learn(res, post, binHz);
-    return {type: 'notes', t: t0 / sr, notes: res.notes, verify: res.verify || null, window: len / sr};
+    return {type: 'notes', t: t0 / sr, notes: res.notes, verify: res.verify || null, faint: res.faint, window: len / sr};
   }
 
   /* ---------- the tuning, and the templates ---------- */
@@ -83777,6 +83877,33 @@ function ldCreate(sr, opts){
         if(Math.abs(c) < 60) tuneObs.push(c);
       }
     });
+    /* inharmonicity: how far this piano's partials stretch, from notes
+       heard alone and clearly */
+    if(sure.length === 1 || (res.verify && res.verify.pass && res.notes.length === 1)){
+      const x = sure[0] || res.notes[0];
+      if(x && x.pitch >= 21 && x.pitch <= 84){
+        const f1pk = ldPeakNear(post, ldMidiHz(x.pitch, cents), binHz, 50, 2);
+        if(f1pk.v > 0 && f1pk.peak){
+          const f1 = ldPeakHz(post, f1pk.bin, binHz), est = [];
+          const K = Math.min(12, ldPartials(x.pitch, sr));
+          for(let k = 3; k <= K; k++){
+            const guess = k * f1 * Math.sqrt(1 + ldInharm(x.pitch) * k * k);
+            const pk = ldPeakNear(post, guess, binHz, 60, 2);
+            if(!pk.peak || pk.v <= 0) continue;
+            const r = ldPeakHz(post, pk.bin, binHz) / (k * f1), r2 = r * r;
+            const B = (r2 - 1) / (k * k - r2);
+            if(B > 0 && B < 0.01) est.push(B);
+          }
+          if(est.length >= 2){
+            est.sort((a, b) => a - b);
+            const band = Math.max(0, Math.min(7, Math.floor((x.pitch - 21) / 12)));
+            const ob = bObs[band] = bObs[band] || []; ob.push(est[est.length >> 1]); if(ob.length > 40) ob.shift();
+            const sorted = ob.slice().sort((a, b) => a - b);
+            ldInharm.learned[band] = {B: sorted[sorted.length >> 1], n: ob.length};
+          }
+        }
+      }
+    }
     while(tuneObs.length > 300) tuneObs.shift();
     if(tuneObs.length >= 12){
       const s = tuneObs.slice().sort((a, b) => a - b);
@@ -83820,6 +83947,7 @@ function ldCreate(sr, opts){
     tuning(){ return +cents.toFixed(1); },
     setTuning(c){ cents = +c || 0; },
     templates(){ return tpl; },
+    inharmonicity(){ return JSON.parse(JSON.stringify(ldInharm.learned || {})); },
     time(){ return n / sr; }
   };
 }
@@ -83835,19 +83963,36 @@ function ldEstimate(c){
   const cache = {};
   /* how strongly pitch p is there, in dB above the room, weighted over its
      partials; and how much of it is new since just before the onset */
-  function score(p, spec){
+  /* the partials of every note already accepted: a candidate that only
+     shows up where those are is an echo of them, not a key */
+  const owned = [];
+  const ownedNear = f => owned.some(g => Math.abs(1200 * Math.log2(f / g.f)) < g.tol);
+  /* a real string's upper partials stray further from the model the higher
+     they are, so the tolerance widens with the partial number */
+  function own(p){ for(let k = 1; k <= 30; k++){ const f = ldPartialHz(p, k, cents); if(f > Math.min(sr * 0.45, 8000)) break; owned.push({f, tol: 35 + 3 * k}); } }
+  function score(p, spec, uniqueOnly){
     const K = ldPartials(p, sr), t = tpl[p];
-    let sw = 0, sd = 0, sr_ = 0, srw = 0, hits = 0;
+    let sw = 0, sd = 0, sr_ = 0, srw = 0, hits = 0, fundOk = false;
     const amps = [];
     for(let k = 1; k <= K; k++){
       const f = ldPartialHz(p, k, cents);
       if(f > sr * 0.45) break;
-      const pk = ldPeakNear(spec, f, binHz, 22, 1.2);
+      if(uniqueOnly && ownedNear(f)) continue;
+      const pk = ldPeakNear(spec, f, binHz, 20 + 1.5 * k, 1.2);
+      /* a peak in what is left after other notes were taken out has to have
+         been a peak before too — the edge of a hole cut for a neighbour's
+         partial is not a partial */
+      const real = spec === post ? pk.peak : pk.peak && ldPeakNear(post, f, binHz, 20 + 1.5 * k, 1.2).peak;
+      if(!real) pk.v *= 0.25;
       const fl = floorAt(f, len);
-      const d = Math.max(0, Math.min(60, ldDb(pk.v) - ldDb(fl)));
+      /* a partial is a narrow peak standing clear of what is around it; the
+         thump of a hammer, broad and low, raises everything near it at once
+         and stands clear of nothing */
+      const prom = ldDb(pk.v) - ldDb(ldBackground(spec, pk.bin, lobeBins));
+      const d = Math.max(0, Math.min(60, ldDb(pk.v) - ldDb(fl), prom + 4));
       const w = t && t.w[k - 1] != null ? 0.25 + t.w[k - 1] : (p < 48 ? 1 : 1 / Math.pow(k, 0.6));
-      sw += w; sd += w * d; if(d > 6) hits++;
-      amps.push({k, bin: pk.bin, v: pk.v});
+      sw += w; sd += w * d; if(d > 6){ hits++; if(k === 1) fundOk = true; }
+      amps.push({k, bin: pk.bin, v: pk.v, d});
       if(d > 6){
         const pp = ldPeakNear(pre, f, binHz, 22, 1.2);
         const dpre = ldDb(pp.v * Math.sqrt(plen / len)) - ldDb(fl);
@@ -83855,10 +84000,26 @@ function ldEstimate(c){
       }
     }
     const S = sw ? sd / sw : 0, R = srw ? sr_ / srw : 0;
+    /* the salience that ranks candidates against each other: summed, not
+       averaged — a low note that explains ten partials outweighs one of its
+       own upper partials taken for a note — and marked down for every low
+       partial it should have and does not (the octave below a note has
+       every other one missing) */
+    /* how strong its strongest partials are — a bass note's pitch lives in
+       a handful of upper partials and the rest are faint, so an average over
+       all twenty would bury it */
+    const topN = Math.min(6, Math.max(2, Math.ceil(amps.length / 2)));
+    const top6 = amps.map(x => x.d).sort((a, b) => b - a).slice(0, topN);
+    const lowHits = amps.filter(x => x.k >= 2 && x.k <= 5 && x.d >= 6).length;
+    const Sb = top6.length ? top6.reduce((a, b) => a + b, 0) / top6.length : 0;
+    let sal = 0;
+    amps.forEach(x => { const d = x.d; const w = 1 / Math.sqrt(x.k);
+      if(d >= 6) sal += w * d;
+      else if(x.k <= 4 && !(x.k === 1 && p < 45)) sal -= w * 10; });
     /* a fundamental with nothing above it is more likely a partial of
        something lower, or noise; ask for at least two partials heard */
     const need = Math.min(2, amps.length);
-    return {S, R, hits, need, amps};
+    return {S, R, hits, need, amps, fundOk, used: amps.length, sal, Sb, lowHits};
   }
   function remove(p, sc){
     /* spectral smoothness: take off each partial only as much as a smooth
@@ -83870,47 +84031,89 @@ function ldEstimate(c){
       const take = Math.min(a[i], smooth * 1.1);
       if(a[i] <= 0) return;
       const frac = Math.max(0, 1 - take / a[i]);
-      const lo = Math.max(0, Math.floor(x.bin - lobeBins)), hi = Math.min(work.length - 1, Math.ceil(x.bin + lobeBins));
-      for(let b = lo; b <= hi; b++) work[b] *= frac;
+      /* tapered, so what is taken out leaves no edge behind */
+      const span = lobeBins * 1.6;
+      const lo = Math.max(0, Math.floor(x.bin - span)), hi = Math.min(work.length - 1, Math.ceil(x.bin + span));
+      for(let b = lo; b <= hi; b++){
+        const u = Math.abs(b - x.bin) / span, wgt = u >= 1 ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * u);
+        work[b] *= 1 - wgt * (1 - frac);
+      }
     });
   }
   const isNew = sc => sc.R >= 3 || sc.S - Math.max(0, sc.S - sc.R) >= 8;
   const notes = [], taken = new Set();
   const conf = (sc, thr) => Math.max(0, Math.min(1, 0.5 + (sc.S - thr) / 16));
-  const ACCEPT_EXP = eo.expThr != null ? eo.expThr : 9, ACCEPT = eo.thr != null ? eo.thr : 15, REL = eo.rel != null ? eo.rel : 0.42;
+  const ACCEPT_EXP = eo.expThr != null ? eo.expThr : 9, ACCEPT = eo.thr != null ? eo.thr : 16;
   let top = 0;
   /* the expected notes first, the most evident first */
+  const faint = [];
   if(exp){
     const order = exp.map(p => ({p, sc: score(p, work)})).sort((x, y) => y.sc.S - x.sc.S);
     order.forEach(({p}) => {
-      const sc = score(p, work);
-      if(sc.S >= ACCEPT_EXP && sc.hits >= sc.need && (isNew(sc) || sc.S >= ACCEPT_EXP + 10)){
-        notes.push({pitch: p, conf: +conf(sc, ACCEPT_EXP).toFixed(2), S: +sc.S.toFixed(1), R: +sc.R.toFixed(1), expected: true});
-        taken.add(p); top = Math.max(top, sc.S); remove(p, sc);
-      }
+      /* what is left once the notes already heard are taken out: a note
+         whose every partial is also another's (E6 over A4 — a twelfth and
+         an octave) shows only as more than that other note alone explains */
+      const scU = notes.length ? score(p, work, true) : null;
+      const sc = scU && scU.used >= 2 ? scU : score(p, work, false);
+      const need = p >= 76 ? 1 : sc.need;
+      const thr = Math.max(ACCEPT_EXP, top - 24);
+      /* a note just under the bar that clearly rose with the attack was
+         struck; one that did not rise is the room, or another string */
+      const rescued = sc.S >= thr - 4 && sc.R >= 10 && sc.hits >= 2;
+      if(((sc.S >= thr && sc.hits >= need) || rescued) && (isNew(sc) || sc.S >= thr + 10)){
+        notes.push({pitch: p, conf: +conf(sc, ACCEPT_EXP).toFixed(2), S: +sc.S.toFixed(1), R: +sc.R.toFixed(1), sal: sc.sal, Sb: sc.Sb, expected: true});
+        taken.add(p); top = Math.max(top, sc.S); remove(p, score(p, work, false)); own(p);
+      } else faint.push({pitch: p, S: +sc.S.toFixed(1), R: +sc.R.toFixed(1), hits: sc.hits, thr: +thr.toFixed(1)});
     });
   }
-  /* then anything else that is plainly there */
+  /* then anything else that is plainly there — judged only on partials
+     no accepted note accounts for, and against the loudest note struck:
+     a key played with the others lands within a dozen or so decibels of
+     them, and rises with them; an echo of their partials does neither */
+  let topSal = notes.reduce((m, x) => Math.max(m, x.sal || 0), 0), topB = notes.reduce((m, x) => Math.max(m, x.Sb || 0), 0);
+  const rises = () => { const r = notes.map(x => x.R).sort((a, b) => a - b); return r.length ? r[r.length >> 1] : 0; };
   for(let iter = 0; iter < 10; iter++){
     let best = null;
+    const rNeedNow = notes.length ? Math.max(6, rises() * 0.6) : 3;
     for(let p = 21; p <= 108; p++){
       if(taken.has(p)) continue;
-      const sc = score(p, work);
-      if(sc.hits < sc.need || !isNew(sc)) continue;
-      if(!best || sc.S > best.sc.S) best = {p, sc};
+      const sc = score(p, work, notes.length > 0);
+      const need = p >= 84 ? 1 : 2;
+      if(sc.used < need || sc.hits < need || !isNew(sc)) continue;
+      /* above middle C a piano's fundamental is its loudest partial: a
+         candidate there without one is somebody's overtone */
+      if(p >= 60 && !sc.fundOk) continue;
+      /* and below the bass clef's middle a string sounds most in its second
+         to fifth partials; without two of those it is not a note */
+      if(p < 48 && sc.lowHits < 2) continue;
+      if(sc.Sb < Math.max(ACCEPT, topB - (eo.relDb != null ? eo.relDb : 15))) continue;
+      /* and on average across its partials, not only its best few */
+      if(notes.length && sc.S < Math.max(10, top - 18)) continue;
+      if(sc.sal <= 0) continue;
+      /* every test is applied before choosing, so that one strong candidate
+         failing the last of them does not end the search for the others */
+      if(sc.R < rNeedNow || (topSal && sc.sal < topSal * 0.25)) continue;
+      if(!best || sc.sal > best.sc.sal) best = {p, sc};
     }
+    if(eo.trace){ const q = eo.trace.pitch; if(q != null && !taken.has(q)){ const sc = score(q, work, notes.length > 0);
+      eo.trace.log.push({iter, q, S: +sc.S.toFixed(1), Sb: +sc.Sb.toFixed(1), sal: +sc.sal.toFixed(1), R: +sc.R.toFixed(1), hits: sc.hits, used: sc.used, fundOk: sc.fundOk, low: sc.lowHits,
+        top: +top.toFixed(1), topB: +topB.toFixed(1), best: best && best.p}); } }
     if(!best) break;
-    const thr = Math.max(ACCEPT, top * REL);
-    if(best.sc.S < thr) break;
+    const thr = Math.max(ACCEPT, top - (eo.relDb != null ? eo.relDb : 15));
+    topSal = Math.max(topSal, best.sc.sal); topB = Math.max(topB, best.sc.Sb);
     /* a weak note an octave or a twelfth above a stronger one that came in
        with it is far more often that note's resonance than a key */
     const shadow = notes.some(x => [12, 19, 24].includes(best.p - x.pitch) && x.S > best.sc.S + 6);
-    taken.add(best.p); remove(best.p, best.sc);
+    taken.add(best.p);
+    const full = score(best.p, work, false);
+    remove(best.p, full);
     if(shadow) continue;
-    notes.push({pitch: best.p, conf: +conf(best.sc, thr).toFixed(2), S: +best.sc.S.toFixed(1), R: +best.sc.R.toFixed(1), expected: false});
+    own(best.p);
+    notes.push({pitch: best.p, conf: +conf(best.sc, thr).toFixed(2), S: +best.sc.S.toFixed(1), R: +best.sc.R.toFixed(1),
+      Sb: +best.sc.Sb.toFixed(1), sal: +best.sc.sal.toFixed(1), low: best.sc.lowHits, used: best.sc.used, expected: false});
     top = Math.max(top, best.sc.S);
   }
-  const res = {notes};
+  const res = {notes, faint};
   if(exp) res.verify = ldVerifyStep(exp, notes, eo);
   return res;
 }
@@ -83998,10 +84201,664 @@ const LD_STRICTNESS = {
 };
 
 /* everything the Worker needs, by name, so it can be rebuilt from source */
-const LD_WORKER_PARTS = () => [ldFFT, ldTwiddles, ldHann, ldSpectrum, ldInharm, ldPartialHz, ldPartials,
-  ldPeakNear, ldPeakHz, ldCreate, ldEstimate, ldVerifyStep, ldAlign, ldRhythm];
+const LD_WORKER_PARTS = () => [ldMidiHz, ldDb, ldFFT, ldTwiddles, ldHann, ldSpectrum, ldInharm, ldPartialHz, ldPartials,
+  ldPeakNear, ldPeakHz, ldBackground, ldCreate, ldEstimate, ldVerifyStep, ldAlign, ldRhythm];
 
 if(typeof module !== 'undefined' && module.exports) module.exports = {ldCreate, ldEstimate, ldVerifyStep, ldAlign, ldRhythm, ldSpectrum, ldMidiHz, ldPartialHz, LD_STRICTNESS};
+/* ============================================================
+   HEARING THE PIANO — the input layer.
+
+   One stream of notes for the whole house, whether they came from a MIDI
+   keyboard or from an acoustic piano through the microphone. Everything
+   downstream (the Verify Engine, and later the feedback, the flashcards
+   and Compose) listens to this and never asks where a note came from:
+
+     NoteEvent = {pitch, onset, offset, velocity, confidence, source}
+
+   onset and offset are seconds on one clock (performance.now() / 1000),
+   so a key on the MIDI keyboard and a string heard by the microphone are
+   on the same timeline as the metronome and the backing.
+
+   THE MICROPHONE. Asked for with echo cancellation, noise suppression and
+   automatic gain all off: those are built for voices on calls and they eat
+   a piano alive (the cancellation takes the sustain for an echo, the gain
+   pumps the decay). The sound goes from an AudioWorklet — which runs on
+   the audio thread — straight to a Worker through a MessageChannel, so
+   the page's own thread never carries a sample and never stalls the
+   analysis, and the analysis never stalls the page. Where a browser has
+   no AudioWorklet, a ScriptProcessor does the same job less elegantly.
+
+   NOTHING LEAVES THE DEVICE. No audio is recorded or kept by any of this;
+   it is analysed as it arrives and dropped. What is kept is what was
+   learned about the piano: its tuning, how its strings stretch, the shape
+   of its notes — per microphone, so the practice-room piano and the one at
+   home each have their own.
+
+   THE APP'S OWN SOUND. When the house is playing (a backing band, the
+   score player, a recording) through the speakers, the microphone hears
+   it. The notes the app itself is sounding are known exactly, so a note
+   heard at the same pitch while the app is playing it is set aside. If a
+   lot of what is heard is the app, the page says so rather than marking
+   you wrong for the band's piano, and the first time the microphone and
+   the speakers are on together it suggests headphones.
+   ============================================================ */
+
+function listenState(){
+  if(!S.listen || typeof S.listen !== 'object') S.listen = {};
+  const L = S.listen;
+  L.v = 1;
+  L.source = ['auto', 'mic', 'midi'].includes(L.source) ? L.source : 'auto';
+  L.devices = L.devices && typeof L.devices === 'object' ? L.devices : {};
+  L.tipHeadphones = !!L.tipHeadphones;
+  L.strictness = ['lenient', 'standard', 'strict'].includes(L.strictness) ? L.strictness : 'standard';
+  L.mode = ['exact', 'pitch-class'].includes(L.mode) ? L.mode : 'exact';
+  L.harness = Array.isArray(L.harness) ? L.harness : [];
+  return L;
+}
+
+/* ---------- the bus ---------- */
+const _li = {subs: new Set(), recent: [], active: null, midi: null, mic: null, expect: null, verifySubs: new Set(),
+  app: [], leakCount: 0, heardCount: 0, leakWarned: false, levelSubs: new Set(), level: null};
+function listenOn(fn){ _li.subs.add(fn); return () => _li.subs.delete(fn); }
+function listenOnVerify(fn){ _li.verifySubs.add(fn); return () => _li.verifySubs.delete(fn); }
+function listenOnLevel(fn){ _li.levelSubs.add(fn); return () => _li.levelSubs.delete(fn); }
+function listenNow(){ return performance.now() / 1000; }
+function listenEmit(ev){
+  _li.recent.push(ev); if(_li.recent.length > 64) _li.recent.shift();
+  _li.subs.forEach(f => { try { f(ev); } catch(e){ console.warn('listener failed', e); } });
+}
+function listenRecent(n){ return _li.recent.slice(-(n || 16)); }
+function listenActive(){ return _li.active; }   /* 'mic' | 'midi' | null */
+
+/* ---------- which source ---------- */
+async function listenStart(opts){
+  const L = listenState();
+  const want = (opts && opts.source) || L.source;
+  await listenStop();
+  if(want === 'midi' || want === 'auto'){
+    const ok = await listenMidiStart().catch(() => false);
+    if(ok){ _li.active = 'midi'; listenIndicator(); return 'midi'; }
+    if(want === 'midi') throw new Error('No MIDI keyboard is connected (or this browser has no Web MIDI).');
+  }
+  await listenMicStart();
+  _li.active = 'mic';
+  listenIndicator();
+  return 'mic';
+}
+async function listenStop(){
+  if(_li.mic) await listenMicStop();
+  if(_li.midi) listenMidiStop();
+  _li.active = null;
+  listenIndicator();
+}
+
+/* ---------- MIDI: the notes as they are, with a certainty of one ---------- */
+async function listenMidiStart(){
+  if(!navigator.requestMIDIAccess) return false;
+  const acc = await navigator.requestMIDIAccess();
+  const inputs = [...acc.inputs.values()];
+  if(!inputs.length) return false;
+  const open = new Map();
+  const hook = input => { input.onmidimessage = e => {
+    const [st, a, b] = e.data, hi = st & 0xf0;
+    const t = (e.timeStamp || performance.now()) / 1000;
+    if(hi === 0x90 && b > 0){
+      const ev = {pitch: a, onset: t, offset: null, velocity: +(b / 127).toFixed(2), confidence: 1, source: 'midi'};
+      open.set(a, ev); listenEmit(ev); listenMidiVerify(ev);
+    } else if(hi === 0x80 || (hi === 0x90 && b === 0)){
+      const ev = open.get(a); if(ev){ ev.offset = t; open.delete(a); }
+    }
+  }; };
+  inputs.forEach(hook);
+  acc.onstatechange = () => [...acc.inputs.values()].forEach(hook);
+  _li.midi = {acc, inputs};
+  listenIndicator();
+  return true;
+}
+function listenMidiStop(){
+  if(!_li.midi) return;
+  [..._li.midi.acc.inputs.values()].forEach(i => { i.onmidimessage = null; });
+  _li.midi = null;
+}
+/* MIDI knows its notes exactly, so a step is judged on the keys: the notes
+   that arrive within a short window of the first make up the chord */
+let _liMidiStep = null;
+function listenMidiVerify(ev){
+  if(!_li.expect) return;
+  const now = ev.onset;
+  if(!_liMidiStep || now - _liMidiStep.t > 0.08){
+    _liMidiStep = {t: now, notes: [], timer: null, expect: _li.expect};
+  }
+  _liMidiStep.notes.push({pitch: ev.pitch, conf: 1});
+  clearTimeout(_liMidiStep.timer);
+  const step = _liMidiStep;
+  step.timer = setTimeout(() => {
+    const v = ldVerifyStep(step.expect.notes, step.notes, step.expect.eo);
+    listenVerified({t: step.t, verify: v, notes: step.notes.map(n => n.pitch), source: 'midi', latency: listenNow() - step.t});
+  }, 70);
+}
+function listenVerified(r){ _li.verifySubs.forEach(f => { try { f(r); } catch(e){ console.warn(e); } }); }
+
+/* ---------- what the current step asks for ---------- */
+function listenExpect(notes, eo){
+  const L = listenState();
+  const opts = Object.assign({mode: L.mode, strictness: L.strictness}, eo || {});
+  _li.expect = notes && notes.length ? {notes: notes.slice(), eo: opts} : null;
+  if(_li.mic && _li.mic.worker) _li.mic.worker.postMessage({type: 'expect', notes: _li.expect ? _li.expect.notes : null, eo: opts});
+}
+
+/* ---------- the microphone ---------- */
+function listenWorkerUrl(){
+  if(_li.workerUrl) return _li.workerUrl;
+  const parts = LD_WORKER_PARTS().map(f => f.toString()).join('\n');
+  const src = `'use strict';
+${parts}
+let an = null, sr = 48000, f0 = null, lastLevel = -1, saveAt = 0;
+function feed(buf){
+  if(!an) return;
+  const r = an.push(buf);
+  if(r.length) postMessage({type: 'events', events: r, f0});
+  const now = an.time();
+  if(now - lastLevel > 0.05){ lastLevel = now; const l = an.level(); postMessage({type: 'level', rms: l.rms, db: l.db, floorDb: l.floorDb, t: now, tuning: an.tuning()}); }
+  if(now - saveAt > 15){ saveAt = now; postMessage({type: 'learned', tuning: an.tuning(), templates: an.templates(), inharm: an.inharmonicity()}); }
+}
+onmessage = e => {
+  const m = e.data;
+  if(m.type === 'init'){
+    sr = m.sr; an = ldCreate(sr, m.opts || {});
+    if(m.port) m.port.onmessage = ev => { const d = ev.data; if(d && d.start != null){ f0 = d.start; return; } feed(d); };
+    return;
+  }
+  if(!an) return;
+  if(m.type === 'audio') feed(m.data);
+  else if(m.type === 'expect') an.expect(m.notes, m.eo);
+  else if(m.type === 'learned') postMessage({type: 'learned', tuning: an.tuning(), templates: an.templates(), inharm: an.inharmonicity(), final: !!m.final});
+};`;
+  _li.workerUrl = URL.createObjectURL(new Blob([src], {type: 'text/javascript'}));
+  return _li.workerUrl;
+}
+function listenWorkletUrl(){
+  if(_li.workletUrl) return _li.workletUrl;
+  const src = `class LiCapture extends AudioWorkletProcessor {
+  constructor(){ super(); this.buf = new Float32Array(1024); this.n = 0; this.out = null; this.started = false;
+    this.port.onmessage = e => { if(e.data && e.data.port) this.out = e.data.port; }; }
+  process(inputs){
+    const ch = inputs[0] && inputs[0][0];
+    if(!ch || !this.out) return true;
+    if(!this.started){ this.started = true; this.out.postMessage({start: currentFrame}); }
+    for(let i = 0; i < ch.length; i++){
+      this.buf[this.n++] = ch[i];
+      if(this.n === this.buf.length){ const b = this.buf; this.out.postMessage(b, [b.buffer]); this.buf = new Float32Array(1024); this.n = 0; }
+    }
+    return true;
+  }
+}
+registerProcessor('li-capture', LiCapture);`;
+  /* a page opened from a file has no origin a blob: module can be loaded
+     from, so the worklet is offered as a data: URL first, and a blob: second */
+  _li.workletUrls = ['data:text/javascript;base64,' + btoa(unescape(encodeURIComponent(src))),
+    URL.createObjectURL(new Blob([src], {type: 'text/javascript'}))];
+  _li.workletUrl = _li.workletUrls[0];
+  return _li.workletUrl;
+}
+function listenDeviceKey(track){
+  const s = track && track.getSettings ? track.getSettings() : {};
+  return (s.deviceId && s.deviceId !== 'default' ? s.deviceId : '') || (track && track.label) || 'default';
+}
+async function listenMicStart(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('This browser offers no microphone.');
+  const stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1}});
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC({latencyHint: 'interactive'});
+  const src = ctx.createMediaStreamSource(stream);
+  const track = stream.getAudioTracks()[0];
+  const key = listenDeviceKey(track);
+  const L = listenState();
+  const dev = L.devices[key] = L.devices[key] || {label: (track && track.label) || 'Microphone', cents: 0, inharm: {}, templates: {}, firstUsed: new Date().toISOString()};
+  dev.lastUsed = new Date().toISOString();
+  const worker = new Worker(listenWorkerUrl());
+  const initOpts = {cents: dev.cents || 0, templates: dev.templates || null, inharm: dev.inharm || null};
+  let node = null, sp = null;
+  if(ctx.audioWorklet && typeof AudioWorkletNode === 'function'){
+    try {
+      listenWorkletUrl();
+      let loaded = false, lastErr = null;
+      for(const u of _li.workletUrls){ try { await ctx.audioWorklet.addModule(u); loaded = true; break; } catch(e){ lastErr = e; } }
+      if(!loaded) throw lastErr || new Error('no worklet');
+      node = new AudioWorkletNode(ctx, 'li-capture', {numberOfInputs: 1, numberOfOutputs: 0, channelCount: 1});
+      const ch = new MessageChannel();
+      node.port.postMessage({port: ch.port1}, [ch.port1]);
+      worker.postMessage({type: 'init', sr: ctx.sampleRate, opts: initOpts, port: ch.port2}, [ch.port2]);
+      src.connect(node);
+    } catch(e){ node = null; _li.workletError = String(e && e.message || e); }
+  }
+  if(!node){
+    worker.postMessage({type: 'init', sr: ctx.sampleRate, opts: initOpts});
+    /* the older way, on the page's thread: only moving samples, never analysing them */
+    sp = ctx.createScriptProcessor(2048, 1, 1);
+    sp.onaudioprocess = e => { const d = e.inputBuffer.getChannelData(0).slice(); worker.postMessage({type: 'audio', data: d}, [d.buffer]); };
+    src.connect(sp); sp.connect(ctx.destination);
+  }
+  /* the audio clock against the page's: where the microphone's samples sit
+     on the one timeline every NoteEvent uses */
+  const offset = () => { try { const ts = ctx.getOutputTimestamp(); if(ts && ts.performanceTime) return ts.performanceTime / 1000 - ts.contextTime; } catch(e){} return listenNow() - ctx.currentTime; };
+  const m = _li.mic = {stream, ctx, src, node, sp, worker, key, dev, off: offset(), startedAt: listenNow(), ctx0: ctx.currentTime};
+  worker.onmessage = e => listenWorkerMessage(m, e.data);
+  _li.leakCount = 0; _li.heardCount = 0; _li.leakWarned = false;
+  if(_li.expect) worker.postMessage({type: 'expect', notes: _li.expect.notes, eo: _li.expect.eo});
+  listenIndicator();
+  return true;
+}
+async function listenMicStop(){
+  const m = _li.mic; if(!m) return;
+  /* what was learned about the piano this time is asked for first, and the
+     answer waited for (briefly), so a short session still leaves it behind */
+  m.closing = true;
+  try {
+    await new Promise(r => { m.onLearned = r; m.worker.postMessage({type: 'learned', final: true}); setTimeout(r, 400); });
+  } catch(e){}
+  _li.mic = null;
+  try { m.stream.getTracks().forEach(t => t.stop()); } catch(e){}
+  try { m.node && m.node.disconnect(); m.sp && m.sp.disconnect(); m.src.disconnect(); } catch(e){}
+  try { await m.ctx.close(); } catch(e){}
+  setTimeout(() => { try { m.worker.terminate(); } catch(e){} }, 200);
+  _li.level = null;
+  _li.levelSubs.forEach(f => { try { f(null); } catch(e){} });
+}
+/* a stream time from the Worker, onto the shared clock */
+function listenMicClock(m, t, f0){
+  const ctxT = (f0 != null ? f0 / m.ctx.sampleRate : m.ctx0) + t;
+  return ctxT + m.off;
+}
+function listenWorkerMessage(m, d){
+  if(_li.mic !== m) return;
+  if(m.closing && d.type !== 'learned') return;
+  if(d.type === 'level'){
+    _li.level = {db: d.db, floorDb: d.floorDb, tuning: d.tuning, measuring: listenNow() - m.startedAt < 1.2};
+    _li.levelSubs.forEach(f => { try { f(_li.level); } catch(e){} });
+    listenIndicatorLevel(d.db, d.floorDb);
+    return;
+  }
+  if(d.type === 'learned'){
+    m.dev.cents = d.tuning; m.dev.templates = d.templates || {}; m.dev.inharm = d.inharm || {};
+    m.dev.updatedAt = new Date().toISOString();
+    if(typeof saveNow === 'function') saveNow();
+    if(d.final && m.onLearned) m.onLearned();
+    return;
+  }
+  if(d.type !== 'events') return;
+  d.events.forEach(ev => {
+    if(ev.type !== 'notes') return;
+    const onset = listenMicClock(m, ev.t, d.f0);
+    const kept = [];
+    ev.notes.forEach(n => {
+      _li.heardCount++;
+      if(listenIsApp(n.pitch, onset)){ _li.leakCount++; return; }
+      kept.push(n);
+      listenEmit({pitch: n.pitch, onset: +onset.toFixed(3), offset: null, velocity: n.vel, confidence: n.conf, source: 'mic'});
+    });
+    listenLeakCheck();
+    if(ev.verify){
+      /* a verdict that leaned on notes the app itself was playing is not the
+         player's; judged again on what is left */
+      const v = kept.length === ev.notes.length ? ev.verify
+        : ldVerifyStep(_li.expect ? _li.expect.notes : [], kept, _li.expect ? _li.expect.eo : {});
+      listenVerified({t: onset, verify: v, notes: kept.map(n => n.pitch), faint: ev.faint || [], source: 'mic', latency: listenNow() - onset});
+    }
+  });
+}
+
+/* ---------- the app's own notes ---------- */
+/* Called by every voice the house plays through (the grand, the GM and
+   orchestra sets): which pitch, when on the shared clock, for how long. */
+function listenAppNote(ctx, midi, t, dur){
+  if(!_li.mic || !ctx || typeof OfflineAudioContext !== 'undefined' && ctx instanceof OfflineAudioContext) return;
+  let off; try { const ts = ctx.getOutputTimestamp(); off = ts && ts.performanceTime ? ts.performanceTime / 1000 - ts.contextTime : listenNow() - ctx.currentTime; } catch(e){ off = listenNow() - ctx.currentTime; }
+  const from = t + off, to = from + Math.max(0.1, dur || 0.5);
+  _li.app.push({pitch: Math.round(midi), from, to});
+  const cut = listenNow() - 12; while(_li.app.length && _li.app[0].to < cut) _li.app.shift();
+  listenHeadphoneTip();
+}
+function listenIsApp(pitch, t){
+  return _li.app.some(a => (a.pitch === pitch || Math.abs(a.pitch - pitch) === 12) && t >= a.from - 0.06 && t <= a.to + 0.25);
+}
+function listenLeakCheck(){
+  if(_li.leakWarned || _li.heardCount < 12) return;
+  if(_li.leakCount / _li.heardCount > 0.35){
+    _li.leakWarned = true;
+    if(typeof toast === 'function') toast('The microphone is hearing the app’s own playback. Its notes are being set aside, but headphones would make this much surer.', 7000);
+  }
+}
+function listenHeadphoneTip(){
+  const L = listenState();
+  if(L.tipHeadphones) return;
+  L.tipHeadphones = true;
+  if(typeof saveNow === 'function') saveNow();
+  if(typeof toast === 'function') toast('Listening and playing at once: headphones keep the app’s sound out of the microphone.', 7000);
+}
+
+/* ---------- the small "Listening" mark, whenever the microphone is open ---------- */
+function listenIndicator(){
+  let el = document.getElementById('liPill');
+  if(!_li.active){ if(el) el.remove(); return; }
+  if(!el){
+    el = document.createElement('button');
+    el.id = 'liPill'; el.className = 'li-pill'; el.type = 'button';
+    el.title = 'The piano is being listened to on this device only. Press to stop.';
+    el.onclick = () => { listenStop(); if(typeof rerender === 'function' && location.hash.startsWith('#/jazz/piano')) rerender(); };
+    document.body.appendChild(el);
+  }
+  el.innerHTML = `<span class="li-dot"></span><span>${_li.active === 'midi' ? 'MIDI keyboard' : 'Listening'}</span>${_li.active === 'mic' ? '<span class="li-mini"><i></i></span>' : ''}`;
+}
+function listenIndicatorLevel(db, floorDb){
+  const bar = document.querySelector('#liPill .li-mini i');
+  if(bar) bar.style.width = Math.max(0, Math.min(100, (db + 70) / 60 * 100)) + '%';
+}
+
+/* ---------- names ---------- */
+const LI_NAMES = ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+function listenNoteName(p){ return LI_NAMES[((p % 12) + 12) % 12] + (Math.floor(p / 12) - 1); }
+function listenParseNotes(text){
+  const pc = {C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11};
+  return String(text || '').split(/[\s,]+/).map(w => {
+    const m = w.trim().match(/^([A-Ga-g])([#♯b♭]?)(-?\d)$/); if(!m) return null;
+    const acc = /[#♯]/.test(m[2]) ? 1 : /[b♭]/.test(m[2]) ? -1 : 0;
+    return 12 * (+m[3] + 1) + pc[m[1].toUpperCase()] + acc;
+  }).filter(v => v != null);
+}
+/* ============================================================
+   HEARING THE PIANO — the room for it (Jazz Studio › Piano input).
+
+   Where the input is chosen and started, where you can see what it hears,
+   try the Verify Engine on a chord, and — the part that matters most for
+   now — measure it on recordings of your own piano before anything is
+   built on top of it.
+
+   THE HARNESS. You give it a recording and the MusicXML of what you played
+   in it (a scale, a ii–V–I in voicings, the Charleston, a melody over left
+   hand chords). The recording sync engine the house already has
+   (19-sync-*.js) finds where every written note falls in the recording;
+   the Verify Engine is then run over the recording exactly as it would run
+   live — told, a moment before each chord, what that chord should be — and
+   what it decided is compared with what was written:
+
+     note-level precision, recall and F1, a note counting as found when it
+     is reported within ±50 ms of where it was played;
+     chord verification: for each step of two to five notes, whether the
+     engine's pass/fail was right — and, so that "pass" is not the only
+     answer it is ever asked for, each step is asked about a second time
+     with one of its notes moved a semitone, which the right answer fails;
+     the latency the engine would have live;
+   and all of it split by register (bass below C3, middle to C5, treble)
+   and by the pedal, which you say was on or off for the take.
+
+   It is an honest measure only if the recording is of what the MusicXML
+   says: a wrong note you really played counts against the engine.
+   ============================================================ */
+
+function jazzPianoInHTML(){
+  const L = listenState();
+  const act = listenActive();
+  const devs = Object.entries(L.devices);
+  const lvl = _li.level;
+  const runs = L.harness.slice(-6).reverse();
+  return `<div class="li-page">
+    <div class="jz-crumbs"><a href="#/jazz">Jazz Studio</a> <span>›</span> <span>Piano input</span></div>
+    <h1 class="serif">Piano input</h1>
+    <p class="li-lede">Play a real piano and the studio hears it: through the microphone, or from a MIDI keyboard if one is plugged in.
+      Everything is analysed on this device as it arrives. No sound is recorded, kept or sent anywhere.</p>
+
+    <section class="li-card">
+      <div class="li-row">
+        <div class="li-seg" role="radiogroup" aria-label="Input">${[['auto', 'Auto'], ['mic', 'Microphone'], ['midi', 'MIDI keyboard']].map(([k, n]) =>
+          `<button class="${L.source === k ? 'on' : ''}" data-lisrc="${k}" role="radio" aria-checked="${L.source === k}">${n}</button>`).join('')}</div>
+        <button class="btn ${act ? '' : 'primary'}" id="liGo">${act ? 'Stop listening' : 'Start listening'}</button>
+      </div>
+      <div class="li-status" id="liStatus">${act === 'mic' ? '<span class="li-dot"></span> Listening through the microphone'
+        : act === 'midi' ? '<span class="li-dot"></span> Reading the MIDI keyboard'
+        : '<span class="faint">Not listening. Auto uses a MIDI keyboard when one is connected, otherwise the microphone.</span>'}</div>
+      ${act === 'mic' ? `<div class="li-meter"><i id="liMeter"></i><b id="liFloor"></b></div>
+        <div class="li-facts" id="liFacts">${listenFactsHTML(lvl)}</div>` : ''}
+    </section>
+
+    <section class="li-card">
+      <h2 class="serif">What it hears</h2>
+      <div class="li-heard" id="liHeard">${listenHeardHTML()}</div>
+    </section>
+
+    <section class="li-card">
+      <h2 class="serif">Check a chord</h2>
+      <p class="faint">Name the notes (or pick a voicing), play them, and the Verify Engine says what it found.</p>
+      <div class="li-row">
+        <input class="inp" id="liExp" value="${esc(L.lastExp || 'F4 C5')}" placeholder="F4 C5" aria-label="Expected notes">
+        ${[['Dm7 shell', 'F4 C5'], ['G7 type A', 'F4 A4 B4 E5'], ['Cmaj7 drop 2', 'G3 E4 B4 C5'], ['C major triad', 'C4 E4 G4']].map(([n, v]) =>
+          `<button class="tbtn" data-lipre="${v}">${n}</button>`).join('')}
+      </div>
+      <div class="li-row">
+        <label>Match <select class="sel" id="liMode"><option value="exact"${L.mode === 'exact' ? ' selected' : ''}>exact octaves</option>
+          <option value="pitch-class"${L.mode === 'pitch-class' ? ' selected' : ''}>note names, any octave</option></select></label>
+        <label>Strictness <select class="sel" id="liStrict">${['lenient', 'standard', 'strict'].map(k =>
+          `<option value="${k}"${L.strictness === k ? ' selected' : ''}>${k}</option>`).join('')}</select></label>
+      </div>
+      <div class="li-verdict" id="liVerdict"><span class="faint">${act ? 'Play the chord.' : 'Start listening first.'}</span></div>
+    </section>
+
+    <section class="li-card">
+      <h2 class="serif">Your piano</h2>
+      ${devs.length ? devs.map(([k, d]) => `<div class="li-dev"><b>${esc(d.label || 'Microphone')}</b>
+        <span>tuning ${d.cents > 0 ? '+' : ''}${(+d.cents || 0).toFixed(0)} cents from A = 440</span>
+        <span>${Object.keys(d.templates || {}).length} notes learned</span>
+        <span>${Object.keys(d.inharm || {}).length} of 8 octaves' string stretch measured</span></div>`).join('')
+        : '<p class="faint">Nothing learned yet. The tuning, the stretch of the strings and the sound of each note are picked up as you play — nothing to calibrate.</p>'}
+    </section>
+
+    <section class="li-card">
+      <h2 class="serif">How well does it hear my piano?</h2>
+      <p class="faint">A recording of your piano and the MusicXML of what you played in it. The recording is read here and let go; nothing is stored but the numbers.</p>
+      <div class="li-row">
+        <label class="li-file">Recording <input type="file" id="liHAudio" accept="audio/*,.wav,.mp3,.m4a,.flac,.ogg"></label>
+        <label class="li-file">MusicXML <input type="file" id="liHXml" accept=".musicxml,.xml,.mxl"></label>
+        <label><input type="checkbox" id="liHPedal"> pedal down for most of it</label>
+        <button class="btn primary" id="liHRun">Measure</button>
+      </div>
+      <div class="li-hprog" id="liHProg"></div>
+      <div id="liHOut">${runs.length ? runs.map(listenHarnessRowHTML).join('') : ''}</div>
+    </section>
+  </div>`;
+}
+function listenFactsHTML(lvl){
+  const m = _li.mic;
+  if(!lvl) return '<span>Measuring the room…</span>';
+  const t = m ? m.dev.cents : 0;
+  return `<span>${lvl.measuring ? 'Measuring the room…' : `room noise ${lvl.floorDb.toFixed(0)} dB`}</span>
+    <span>tuning ${lvl.tuning > 0 ? '+' : ''}${(lvl.tuning != null ? lvl.tuning : t || 0).toFixed(0)} ¢</span>`;
+}
+function listenHeardHTML(){
+  const r = listenRecent(24);
+  if(!r.length) return '<span class="faint">Nothing yet.</span>';
+  return r.slice().reverse().map(e => `<span class="li-note" style="--c:${Math.round(e.confidence * 100)}%"
+    title="${e.source} · confidence ${Math.round(e.confidence * 100)}% · velocity ${Math.round(e.velocity * 100)}%">${listenNoteName(e.pitch)}</span>`).join('');
+}
+function listenVerdictHTML(r){
+  const v = r.verify, nm = p => typeof p === 'number' && p > 11 ? listenNoteName(p) : LI_NAMES[p];
+  return `<div class="li-v ${v.pass ? 'ok' : 'no'}">${v.pass ? 'Right' : 'Not yet'}</div>
+    <div class="li-vrow">${v.present.map(p => `<span class="li-chip ok">${nm(p)}</span>`).join('')}
+      ${v.missing.map(p => `<span class="li-chip miss" title="expected, not heard">${nm(p)}</span>`).join('')}
+      ${v.extra.map(p => `<span class="li-chip extra" title="heard, not expected">${listenNoteName(p)}</span>`).join('')}</div>
+    <div class="faint li-vmeta">${r.source === 'mic' ? 'microphone' : 'MIDI'} · answered ${Math.max(0, Math.round((r.latency || 0) * 1000))} ms after the attack</div>`;
+}
+function listenHarnessRowHTML(h){
+  const pc = v => v == null ? '—' : Math.round(v * 100) + '%';
+  const cell = x => x ? `F1 ${pc(x.f)} <span class="faint">(P ${pc(x.p)} R ${pc(x.r)}, ${x.n})</span>` : '—';
+  return `<div class="li-hrun">
+    <div class="li-hhead"><b>${esc(h.name)}</b> <span class="faint">${esc((h.at || '').slice(0, 16).replace('T', ' '))} · ${h.pedal ? 'pedal' : 'no pedal'} · ${h.duration}s</span></div>
+    <table class="li-htab"><tbody>
+      <tr><th>All notes</th><td>${cell(h.all)}</td></tr>
+      <tr><th>Bass · middle · treble</th><td>${cell(h.reg.bass)}<br>${cell(h.reg.middle)}<br>${cell(h.reg.treble)}</td></tr>
+      <tr><th>Chords (2–5 notes)</th><td>${h.chords.n ? `${pc(h.chords.right / h.chords.n)} right of ${h.chords.n} decisions` : 'no chords in this take'}
+        ${h.chords.mid ? `<br><span class="faint">middle register: ${pc(h.chords.mid.right / h.chords.mid.n)} of ${h.chords.mid.n}</span>` : ''}</td></tr>
+      <tr><th>Latency</th><td>${h.latencyMs} ms after the attack <span class="faint">(${h.computeMs} ms of it arithmetic)</span></td></tr>
+      <tr><th>Timing</th><td>onsets ${h.onsetMs >= 0 ? '+' : ''}${h.onsetMs} ms from where the notes were played, on average</td></tr>
+    </tbody></table>
+    ${h.worst && h.worst.length ? `<div class="faint">Hardest notes: ${h.worst.map(w => `${esc(w.name)} (${w.missed} of ${w.n} missed)`).join(', ')}</div>` : ''}
+  </div>`;
+}
+
+/* ---------- the harness ---------- */
+async function listenHarnessRun(audioFile, xmlFile, opts, step){
+  const say = (t, f) => step && step(t, f);
+  say('Reading the MusicXML…', 0.02);
+  const xml = await readMusicXmlFile(xmlFile);
+  const tl = musicXmlTimeline(xml);
+  if(!tl || !tl.events || !tl.events.length) throw new Error('There are no notes in that MusicXML.');
+  say('Decoding the recording…', 0.05);
+  const audio = await syncDecodeForEngine(await audioFile.arrayBuffer());
+  if(audio.duration > 600) throw new Error('Keep test recordings under ten minutes.');
+  say('Finding where each written note falls in the recording…', 0.1);
+  const score = syncScoreFromMusicXml(tl);
+  /* the aligner takes its samples into its Worker (transferred, not copied),
+     which would leave nothing here to listen to afterwards: it gets a copy */
+  const res = await syncAlign({pcm: audio.pcm.slice(), sr: audio.sr}, score, {onProgress: (t, f) => say(t, f != null ? 0.1 + f * 0.5 : null)});
+  const alt = res.diagnostics.alternate, chosen = alt ? (score.alternates || []).find(a => a.how === alt) || score : score;
+  const map = syncMapNew(Object.assign({}, res.syncMap, {reading: {how: chosen.how || 'as written', order: chosen.order}}));
+  const rec = {map: JSON.parse(syncMapExport(map)).maps[0]};
+  const tim = syncTiming(rec, tl, 100);
+  if(!tim) throw new Error('The recording could not be matched to the score.');
+  /* that timing is the player's, and counts from the first bar; where the
+     first bar starts in the recording is added back */
+  const toR = syncPerfToReading(rec.map, tl) || [];
+  const firstM = toR.find(m => m != null);
+  const lead = firstM != null ? scoreToAudioTime(rec.map, 1, firstM, 1) : 0;
+  const start = isFinite(lead) && lead != null ? lead - tim.T(tl.perf[0] ? tl.perf[0].q0 : 0) : 0;
+  /* the written notes, where they fell */
+  const notes = tl.events.filter(e => !e.chord && !e.perc && e.midi != null)
+    .map(e => ({midi: e.midi, t: start + tim.T(e.q)})).filter(n => isFinite(n.t) && n.t >= 0 && n.t <= audio.duration).sort((a, b) => a.t - b.t);
+  if(opts && opts.debug) opts.debug.notes = notes.slice(0, 40).map(n => [n.midi, +n.t.toFixed(3)]);
+  const steps = [];
+  notes.forEach(n => { const s = steps[steps.length - 1]; if(s && n.t - s.t <= 0.035) s.notes.push(n); else steps.push({t: n.t, notes: [n]}); });
+  say('Listening to the recording as it would live…', 0.62);
+  const run = async perturb => {
+    const an = ldCreate(audio.sr, {});
+    const eo = {mode: 'exact', strictness: 'standard'};
+    const got = [];
+    let si = 0, ms = 0, evals = 0;
+    const CH = 2048;
+    for(let i = 0; i < audio.pcm.length; i += CH){
+      const t = i / audio.sr;
+      while(si < steps.length && steps[si].t - 0.08 <= t){
+        const st = steps[si];
+        an.expect(perturb ? perturb(st) : st.notes.map(n => n.midi), eo); si++;
+      }
+      const t0 = performance.now();
+      const r = an.push(audio.pcm.subarray(i, i + CH));
+      const dt = performance.now() - t0;
+      r.forEach(e => { if(e.type === 'notes'){ got.push(e); evals++; ms += dt; } });
+      if((i / CH) % 400 === 0) await new Promise(res => setTimeout(res, 0));
+    }
+    an.flush().forEach(e => { if(e.type === 'notes') got.push(e); });
+    return {got, computeMs: evals ? ms / evals : 0};
+  };
+  const A = await run(null);
+  say('Asking it again, about chords that were not played…', 0.8);
+  /* the same steps, each with one note moved a semitone: the right answer is "no" */
+  const moved = new Map();
+  const B = await run(st => { const ps = st.notes.map(n => n.midi); if(ps.length < 2 || ps.length > 5) return ps;
+    const j = Math.floor(ps.length / 2); let q = ps[j] + 1; if(ps.includes(q)) q = ps[j] - 1; const out = ps.slice(); out[j] = q; moved.set(st, out); return out; });
+  say('Counting…', 0.97);
+  const regOf = m => m < 48 ? 'bass' : m <= 72 ? 'middle' : 'treble';
+  const T0 = () => ({tp: 0, fn: 0, fp: 0});
+  const all = T0(), reg = {bass: T0(), middle: T0(), treble: T0()};
+  const used = new Set(), errs = [], byPitch = {};
+  notes.forEach(n => {
+    const ei = A.got.findIndex((e, k) => Math.abs(e.t - n.t) <= 0.05 && e.notes.some(x => x.pitch === n.midi) && !used.has(k + ':' + n.midi));
+    const bp = byPitch[n.midi] = byPitch[n.midi] || {n: 0, missed: 0}; bp.n++;
+    if(ei >= 0){ used.add(ei + ':' + n.midi); all.tp++; reg[regOf(n.midi)].tp++; errs.push(A.got[ei].t - n.t); }
+    else { all.fn++; reg[regOf(n.midi)].fn++; bp.missed++; }
+  });
+  A.got.forEach((e, k) => e.notes.forEach(x => {
+    if(used.has(k + ':' + x.pitch)) return;
+    if(notes.some(n => n.midi === x.pitch && Math.abs(e.t - n.t) <= 0.05)) return;
+    all.fp++; reg[regOf(x.pitch)].fp++;
+  }));
+  const chords = {n: 0, right: 0, mid: {n: 0, right: 0}};
+  const judge = (got, st, want) => {
+    const ev = got.filter(e => Math.abs(e.t - st.t) <= 0.06).sort((a, b) => Math.abs(a.t - st.t) - Math.abs(b.t - st.t))[0];
+    const pass = !!(ev && ev.verify && ev.verify.pass);
+    const ok = pass === want; chords.n++; if(ok) chords.right++;
+    if(st.notes.every(n => n.midi >= 48 && n.midi <= 84)){ chords.mid.n++; if(ok) chords.mid.right++; }
+  };
+  steps.filter(st => st.notes.length >= 2 && st.notes.length <= 5).forEach(st => { judge(A.got, st, true); if(moved.has(st)) judge(B.got, st, false); });
+  const prf = x => { const p = x.tp + x.fp ? x.tp / (x.tp + x.fp) : null, r = x.tp + x.fn ? x.tp / (x.tp + x.fn) : null;
+    return {p, r, f: p != null && r != null && p + r ? 2 * p * r / (p + r) : null, n: x.tp + x.fn}; };
+  const worst = Object.entries(byPitch).filter(([, v]) => v.missed).sort((a, b) => b[1].missed / b[1].n - a[1].missed / a[1].n || b[1].missed - a[1].missed)
+    .slice(0, 5).map(([p, v]) => ({name: listenNoteName(+p), missed: v.missed, n: v.n}));
+  const h = {id: uid(), name: audioFile.name.replace(/\.[^.]+$/, ''), at: new Date().toISOString(), pedal: !!(opts && opts.pedal),
+    duration: Math.round(audio.duration), all: prf(all), reg: {bass: prf(reg.bass), middle: prf(reg.middle), treble: prf(reg.treble)},
+    chords: chords.n ? chords : {n: 0, right: 0}, computeMs: +A.computeMs.toFixed(1),
+    latencyMs: Math.round(105 + 1024 / audio.sr * 1000 + A.computeMs),
+    onsetMs: errs.length ? Math.round(errs.reduce((a, b) => a + b, 0) / errs.length * 1000) : 0, worst};
+  if(!h.chords.mid || !h.chords.mid.n) delete h.chords.mid;
+  return h;
+}
+
+function bindJazzPianoIn(root){
+  const L = listenState();
+  const rer = () => { if(typeof rerender === 'function') rerender(); };
+  root.querySelectorAll('[data-lisrc]').forEach(b => b.onclick = async () => {
+    L.source = b.dataset.lisrc; saveNow();
+    if(listenActive()){ try { await listenStart(); } catch(e){ toast(e.message, 5000); } }
+    rer();
+  });
+  const go = root.querySelector('#liGo');
+  if(go) go.onclick = async () => {
+    if(listenActive()){ await listenStop(); rer(); return; }
+    go.disabled = true; go.textContent = 'Starting…';
+    try { await listenStart(); listenApplyExpect(root); }
+    catch(e){ toast(e && e.name === 'NotAllowedError' ? 'The browser was not allowed to use the microphone.' : (e.message || 'Could not start listening.'), 6000); }
+    rer();
+  };
+  const exp = root.querySelector('#liExp');
+  if(exp) exp.onchange = () => { L.lastExp = exp.value; saveNow(); listenApplyExpect(root); };
+  root.querySelectorAll('[data-lipre]').forEach(b => b.onclick = () => { exp.value = b.dataset.lipre; L.lastExp = exp.value; saveNow(); listenApplyExpect(root); });
+  const mode = root.querySelector('#liMode'), strict = root.querySelector('#liStrict');
+  if(mode) mode.onchange = () => { L.mode = mode.value; saveNow(); listenApplyExpect(root); };
+  if(strict) strict.onchange = () => { L.strictness = strict.value; saveNow(); listenApplyExpect(root); };
+  listenApplyExpect(root);
+  /* live read-outs, for as long as this page is showing */
+  const offs = [];
+  offs.push(listenOn(() => { const h = document.getElementById('liHeard'); if(h) h.innerHTML = listenHeardHTML(); }));
+  offs.push(listenOnVerify(r => { const v = document.getElementById('liVerdict'); if(v) v.innerHTML = listenVerdictHTML(r); }));
+  offs.push(listenOnLevel(l => {
+    const m = document.getElementById('liMeter'), f = document.getElementById('liFloor'), facts = document.getElementById('liFacts');
+    if(!l) return;
+    if(m) m.style.width = Math.max(0, Math.min(100, (l.db + 70) / 60 * 100)) + '%';
+    if(f) f.style.left = Math.max(0, Math.min(100, (l.floorDb + 70) / 60 * 100)) + '%';
+    if(facts) facts.innerHTML = listenFactsHTML(l);
+  }));
+  const stop = () => { if(document.getElementById('liHeard')) return; offs.forEach(o => o()); clearInterval(watch); };
+  const watch = setInterval(stop, 1000);
+  /* the harness */
+  const run = root.querySelector('#liHRun');
+  if(run) run.onclick = async () => {
+    const a = root.querySelector('#liHAudio').files[0], x = root.querySelector('#liHXml').files[0];
+    if(!a || !x){ toast('Choose a recording and the MusicXML of what was played in it.'); return; }
+    const prog = root.querySelector('#liHProg');
+    run.disabled = true;
+    try {
+      const h = await listenHarnessRun(a, x, {pedal: root.querySelector('#liHPedal').checked},
+        (t, f) => { if(prog) prog.innerHTML = `<span>${esc(t)}</span>${f != null ? `<i style="width:${Math.round(f * 100)}%"></i>` : ''}`; });
+      L.harness.push(h); if(L.harness.length > 40) L.harness.shift(); saveNow();
+      if(prog) prog.innerHTML = '';
+      const out = root.querySelector('#liHOut'); if(out) out.innerHTML = L.harness.slice(-6).reverse().map(listenHarnessRowHTML).join('');
+    } catch(e){ console.warn(e); if(prog) prog.innerHTML = `<span class="li-err">${esc(e.message || String(e))}</span>`; }
+    run.disabled = false;
+  };
+}
+function listenApplyExpect(root){
+  const exp = root.querySelector('#liExp');
+  const notes = exp ? listenParseNotes(exp.value) : [];
+  listenExpect(notes.length ? notes : null);
+}
 /* ============================================================
    NAVIGATION — two zones (Present / Becoming) + standalone pages
    Rendered from S.settings.nav so the user can move pages between

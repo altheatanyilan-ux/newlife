@@ -157,6 +157,8 @@ function grandPianoNote(ctx, dest, midi, t, dur, vel, held, level){
     stop = Math.min(stop, end + tau * 8 + 0.05);
   }
   src.connect(tone); tone.connect(g); g.connect(dest);
+  /* the microphone, if it is open, is told what the app itself is sounding */
+  if(typeof listenAppNote === 'function') listenAppNote(ctx, m, start, ring);
   src.start(start);
   src.stop(stop);
   _grand.stats.sampled++;

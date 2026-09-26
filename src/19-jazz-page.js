@@ -122,7 +122,7 @@ routes.jazz = function(root, params){
     repertoire: ['jazzRepertoireHTML', 'bindJazzRepertoire'], analysis: ['jazzAnalysisHTML', 'bindJazzAnalysis'],
     playalong: ['jazzPlayAlongHTML', 'bindJazzPlayAlong'], record: ['jazzRecordHTML', 'bindJazzRecord'],
     audiation: ['jazzAudiationHTML', 'bindJazzAudiation'], mindset: ['jazzMindsetHTML', 'bindJazzMindset'],
-    journal: ['jazzJournalHTML', 'bindJazzJournal']};
+    journal: ['jazzJournalHTML', 'bindJazzJournal'], piano: ['jazzPianoInHTML', 'bindJazzPianoIn']};
   if(want && v3Rooms[want]){
     const [draw, bind] = v3Rooms[want];
     const rest = (params || []).slice(1);
@@ -245,6 +245,7 @@ function jazzRoadHTML(){
       <button class="tbtn" data-jzgo="#/jazz/playalong">\u{1f941} Play-along</button>
       <button class="tbtn" data-jzgo="#/jazz/listen">\u{1f3a7} Listening</button>
       <button class="tbtn" data-jzgo="#/jazz/record">\u{1f399}️ Record</button>
+      <button class="tbtn" data-jzgo="#/jazz/piano">\u{1f3b9} Piano input</button>
       <button class="tbtn" data-jzgo="#/jazz/journal">\u{1f4d3} Journal</button>
       <button class="tbtn" data-jzgo="#/jazz/audiation">\u{1f442} Audiation</button>
       <button class="tbtn" data-jzgo="#/jazz/mindset">\u{1f9d8} Mindset</button>

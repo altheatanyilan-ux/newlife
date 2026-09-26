@@ -189,6 +189,9 @@ function instrumentsLoad(ids){ return Promise.all([...new Set(ids)].map(id => in
  * Returns false when the instrument is not ready, so the caller can use its own voice.
  */
 function instrumentNote(ctx, dest, id, midi, t, dur, vel, held, level){
+  /* the microphone, if it is open, is told what the app itself is sounding
+     (the grand says so for itself, below) */
+  if(id && id !== 'piano' && id !== 'drums' && id !== 'kit' && typeof listenAppNote === 'function') listenAppNote(ctx, midi, t, held || dur);
   if(!id || id === 'piano') return typeof grandPianoNote === 'function' && grandPianoNote(ctx, dest, midi, t, dur, vel, held, level);
   if(id === 'drums' || id === 'kit') return orchKitHit(ctx, dest, Math.round(midi), t, vel, dur);
   const def0 = INSTRUMENTS[id];

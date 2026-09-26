@@ -70,15 +70,15 @@ function ldFFT(re, im){
     }
   }
 }
-const _ldTw = {};
 function ldTwiddles(len){
+  const _ldTw = ldTwiddles.cache = ldTwiddles.cache || {};
   if(_ldTw[len]) return _ldTw[len];
   const half = len >> 1, t = new Float64Array(len);
   for(let k = 0; k < half; k++){ const a = -2 * Math.PI * k / len; t[2 * k] = Math.cos(a); t[2 * k + 1] = Math.sin(a); }
   return (_ldTw[len] = t);
 }
-const _ldWin = {};
 function ldHann(n){
+  const _ldWin = ldHann.cache = ldHann.cache || {};
   if(_ldWin[n]) return _ldWin[n];
   const w = new Float32Array(n);
   for(let i = 0; i < n; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * (i + 0.5) / n);
@@ -95,12 +95,20 @@ function ldSpectrum(at, start, len, nfft){
   for(let k = 0; k <= nfft / 2; k++) out[k] = Math.sqrt(re[k] * re[k] + im[k] * im[k]) * sc;
   return out;
 }
-const ldMidiHz = (p, cents) => 440 * Math.pow(2, (p - 69) / 12 + (cents || 0) / 1200);
+function ldMidiHz(p, cents){ return 440 * Math.pow(2, (p - 69) / 12 + (cents || 0) / 1200); }
 /* How much a piano string stretches its partials: f_k = k·f1·√((1+Bk²)/(1+B)).
    B rises steeply up the keyboard (short, stiff strings) and a little at
    the very bottom (the wound bass strings); these are typical values for a
    grand, and the per-piano templates absorb the rest. */
-function ldInharm(p){ return p >= 60 ? 1.2e-4 * Math.pow(10, (p - 60) / 34) : 1.2e-4 * Math.pow(10, (60 - p) / 120); }
+function ldInharm(p){
+  const def = p >= 60 ? 1.2e-4 * Math.pow(10, (p - 60) / 34) : 1.2e-4 * Math.pow(10, (60 - p) / 120);
+  /* what this piano has shown us, octave by octave, once it has shown us
+     enough — an upright's short bass strings stretch their partials several
+     times further than a concert grand's */
+  const L = ldInharm.learned, band = Math.max(0, Math.min(7, Math.floor((p - 21) / 12)));
+  const b = L && L[band];
+  return b && b.n >= 3 ? b.B : def;
+}
 function ldPartialHz(p, k, cents){
   const B = ldInharm(p);
   return k * ldMidiHz(p, cents) * Math.sqrt((1 + B * k * k) / (1 + B));
@@ -120,7 +128,10 @@ function ldPeakNear(spec, f, binHz, cents, minBins){
   const lo = Math.max(1, Math.floor(f / binHz - w)), hi = Math.min(spec.length - 2, Math.ceil(f / binHz + w));
   let bi = lo, bv = 0;
   for(let b = lo; b <= hi; b++) if(spec[b] > bv){ bv = spec[b]; bi = b; }
-  return {bin: bi, v: bv};
+  /* the largest bin in the window may only be the slope of a neighbour's
+     peak — the next key's partial, a semitone away. A partial is a peak. */
+  const peak = bv > 0 && spec[bi] >= (spec[bi - 1] || 0) && spec[bi] >= (spec[bi + 1] || 0);
+  return {bin: bi, v: bv, peak};
 }
 /* the frequency of a peak, from the parabola through its three bins */
 function ldPeakHz(spec, bin, binHz){
@@ -130,7 +141,16 @@ function ldPeakHz(spec, bin, binHz){
   const off = d < 0 ? 0.5 * (la - lc) / d : 0;
   return (bin + Math.max(-0.5, Math.min(0.5, off))) * binHz;
 }
-const ldDb = x => 20 * Math.log10(Math.max(1e-9, x));
+function ldDb(x){ return 20 * Math.log10(Math.max(1e-9, x)); }
+/* the typical level either side of a peak, past its main lobe */
+function ldBackground(spec, bin, lobe){
+  const a = Math.ceil(lobe * 1.5), z = Math.ceil(lobe * 4), v = [];
+  for(let b = bin - z; b <= bin - a; b++) if(b > 0) v.push(spec[b]);
+  for(let b = bin + a; b <= bin + z; b++) if(b < spec.length) v.push(spec[b]);
+  if(!v.length) return 1e-9;
+  v.sort((x, y) => x - y);
+  return v[v.length >> 1];
+}
 
 /* ---------- the analyser ----------
    ldCreate(sr, opts) → an object you push samples into; it hands back
@@ -151,7 +171,7 @@ function ldCreate(sr, opts){
   const kLo = Math.max(1, Math.round(30 / frameHz)), kHi = Math.min(nb - 1, Math.round(6000 / frameHz));
   let prevL = null, sinceHop = 0;
   const flux = [], fluxT = [];
-  let lastOnset = -1e9;
+  let lastOnset = -1e9, lastFlux = 0;
   /* the room: a running minimum of every bin over the last second and a
      half, lightly smoothed — "minimum statistics", which finds the noise
      floor even while someone is playing, because between notes, in some
@@ -161,6 +181,8 @@ function ldCreate(sr, opts){
   let cents = o.cents || 0;
   const tuneObs = [];
   const tpl = o.templates ? JSON.parse(JSON.stringify(o.templates)) : {};
+  ldInharm.learned = o.inharm ? JSON.parse(JSON.stringify(o.inharm)) : {};
+  const bObs = {};
   let expected = null, expectOpts = {};
   const pending = [];
   const out = [];
@@ -170,13 +192,26 @@ function ldCreate(sr, opts){
     let e = 0; for(let i = end - o.frame; i < end; i++){ const v = at(i); e += v * v; }
     return {s, rms: Math.sqrt(e / o.frame)};
   }
+  /* The floor is the fifth-quietest reading in every twenty of each bin
+     over the last second and a half: low enough that notes rarely reach
+     into it, steady enough that the room's own flutter does not. A bare
+     minimum over that many frames sits an order of magnitude under the
+     noise's typical level, and everything above it counted as sound. Held
+     notes lift it, which is right for finding onsets — only what is new
+     should count — and the dB-above-floor of a note is read with that in
+     mind (the rise since before the onset is what decides). */
+  const kTop = Math.min(nb - 1, Math.round(8000 / frameHz));
   function updateFloor(s, rms){
     minHist.push(s); if(minHist.length > FLOOR_FRAMES) minHist.shift();
     if(frames % 8 === 0 || !floor){
-      const f = new Float32Array(nb).fill(1e9);
-      for(const h of minHist) for(let k = 0; k < nb; k++) if(h[k] < f[k]) f[k] = h[k];
-      /* a minimum reads below the mean; lift it back */
-      for(let k = 0; k < nb; k++) f[k] = Math.max(1e-7, f[k] * 2.5);
+      const f = new Float32Array(nb), H = minHist.length, col = new Float32Array(H);
+      const q = Math.floor(H * 0.2);
+      for(let k = 0; k <= kTop; k++){
+        for(let h = 0; h < H; h++) col[h] = minHist[h][k];
+        col.sort();
+        f[k] = Math.max(1e-7, col[q] * 1.9);
+      }
+      for(let k = kTop + 1; k < nb; k++) f[k] = f[kTop];
       floor = f;
     }
     floorRms = floorRms ? Math.min(Math.max(floorRms * 0.999, 1e-5), rms > floorRms ? floorRms * 1.0005 : rms) : rms;
@@ -192,8 +227,12 @@ function ldCreate(sr, opts){
     const {s, rms} = frameAt(end);
     frames++; lastRms = rms;
     updateFloor(s, rms);
+    /* each bin as how far it stands above the room's own noise there, so a
+       soft note under the pedal counts as much as a loud one in a quiet
+       room; bins that are only noise (under three times the floor) do not
+       count at all, which keeps the flux of an empty room near nothing */
     const L = new Float32Array(nb);
-    for(let k = 0; k < nb; k++) L[k] = Math.log(1 + 1000 * s[k]);
+    for(let k = 0; k < nb; k++){ const r = s[k] / (floor ? floor[k] : 1e-4); L[k] = r > 2.2 ? Math.log(r / 2.2) : 0; }
     let fx = 0;
     if(prevL) for(let k = kLo; k <= kHi; k++){ const d = L[k] - prevL[k]; if(d > 0) fx += d; }
     prevL = L;
@@ -209,9 +248,15 @@ function ldCreate(sr, opts){
       const a = flux[m - 3], b = flux[m - 2], c = flux[m - 1];
       const recent = flux.slice(Math.max(0, m - 24), m - 2).sort((x, y) => x - y);
       const med = recent.length ? recent[recent.length >> 1] : 0;
-      const thr = Math.max(floorFlux * 3 + 1, med * 1.5 + 2);
+      const thr = Math.max(floorFlux * 1.5 + (o.minFlux || 3.5), med * 1.4 + 3);
       const tEnd = fluxT[m - 2];
-      if(b > a && b >= c && b > thr && (tEnd - lastOnset) > 0.045 * sr && rms > floorRms * 1.8){
+      if(o.trace) o.trace.push([+(tEnd / sr).toFixed(3), +b.toFixed(1), +thr.toFixed(1), +floorFlux.toFixed(1), +med.toFixed(1)]);
+      /* just after a strong attack, a much weaker spike is that attack still
+         blooming (partials arriving at different speeds, the room answering)
+         and not a new key */
+      const masked = (tEnd - lastOnset) < 0.09 * sr && b < lastFlux * 0.5;
+      if(b > a && b >= c && b > thr && (tEnd - lastOnset) > 0.045 * sr && !masked){
+        lastFlux = b;
         /* the attack sits in the newest part of the frame that jumped */
         const t0 = Math.round(tEnd - o.hop * 1.5 + o.onsetBias * sr);
         lastOnset = tEnd;
@@ -248,7 +293,7 @@ function ldCreate(sr, opts){
     const vel = Math.max(0, Math.min(1, (ldDb(lastRms) - ldDb(floorRms) - 6) / 50));
     res.notes.forEach(x => { x.vel = +(Math.max(0.05, Math.min(1, x.vel != null ? x.vel : vel))).toFixed(2); });
     learn(res, post, binHz);
-    return {type: 'notes', t: t0 / sr, notes: res.notes, verify: res.verify || null, window: len / sr};
+    return {type: 'notes', t: t0 / sr, notes: res.notes, verify: res.verify || null, faint: res.faint, window: len / sr};
   }
 
   /* ---------- the tuning, and the templates ---------- */
@@ -266,6 +311,33 @@ function ldCreate(sr, opts){
         if(Math.abs(c) < 60) tuneObs.push(c);
       }
     });
+    /* inharmonicity: how far this piano's partials stretch, from notes
+       heard alone and clearly */
+    if(sure.length === 1 || (res.verify && res.verify.pass && res.notes.length === 1)){
+      const x = sure[0] || res.notes[0];
+      if(x && x.pitch >= 21 && x.pitch <= 84){
+        const f1pk = ldPeakNear(post, ldMidiHz(x.pitch, cents), binHz, 50, 2);
+        if(f1pk.v > 0 && f1pk.peak){
+          const f1 = ldPeakHz(post, f1pk.bin, binHz), est = [];
+          const K = Math.min(12, ldPartials(x.pitch, sr));
+          for(let k = 3; k <= K; k++){
+            const guess = k * f1 * Math.sqrt(1 + ldInharm(x.pitch) * k * k);
+            const pk = ldPeakNear(post, guess, binHz, 60, 2);
+            if(!pk.peak || pk.v <= 0) continue;
+            const r = ldPeakHz(post, pk.bin, binHz) / (k * f1), r2 = r * r;
+            const B = (r2 - 1) / (k * k - r2);
+            if(B > 0 && B < 0.01) est.push(B);
+          }
+          if(est.length >= 2){
+            est.sort((a, b) => a - b);
+            const band = Math.max(0, Math.min(7, Math.floor((x.pitch - 21) / 12)));
+            const ob = bObs[band] = bObs[band] || []; ob.push(est[est.length >> 1]); if(ob.length > 40) ob.shift();
+            const sorted = ob.slice().sort((a, b) => a - b);
+            ldInharm.learned[band] = {B: sorted[sorted.length >> 1], n: ob.length};
+          }
+        }
+      }
+    }
     while(tuneObs.length > 300) tuneObs.shift();
     if(tuneObs.length >= 12){
       const s = tuneObs.slice().sort((a, b) => a - b);
@@ -309,6 +381,7 @@ function ldCreate(sr, opts){
     tuning(){ return +cents.toFixed(1); },
     setTuning(c){ cents = +c || 0; },
     templates(){ return tpl; },
+    inharmonicity(){ return JSON.parse(JSON.stringify(ldInharm.learned || {})); },
     time(){ return n / sr; }
   };
 }
@@ -324,19 +397,36 @@ function ldEstimate(c){
   const cache = {};
   /* how strongly pitch p is there, in dB above the room, weighted over its
      partials; and how much of it is new since just before the onset */
-  function score(p, spec){
+  /* the partials of every note already accepted: a candidate that only
+     shows up where those are is an echo of them, not a key */
+  const owned = [];
+  const ownedNear = f => owned.some(g => Math.abs(1200 * Math.log2(f / g.f)) < g.tol);
+  /* a real string's upper partials stray further from the model the higher
+     they are, so the tolerance widens with the partial number */
+  function own(p){ for(let k = 1; k <= 30; k++){ const f = ldPartialHz(p, k, cents); if(f > Math.min(sr * 0.45, 8000)) break; owned.push({f, tol: 35 + 3 * k}); } }
+  function score(p, spec, uniqueOnly){
     const K = ldPartials(p, sr), t = tpl[p];
-    let sw = 0, sd = 0, sr_ = 0, srw = 0, hits = 0;
+    let sw = 0, sd = 0, sr_ = 0, srw = 0, hits = 0, fundOk = false;
     const amps = [];
     for(let k = 1; k <= K; k++){
       const f = ldPartialHz(p, k, cents);
       if(f > sr * 0.45) break;
-      const pk = ldPeakNear(spec, f, binHz, 22, 1.2);
+      if(uniqueOnly && ownedNear(f)) continue;
+      const pk = ldPeakNear(spec, f, binHz, 20 + 1.5 * k, 1.2);
+      /* a peak in what is left after other notes were taken out has to have
+         been a peak before too — the edge of a hole cut for a neighbour's
+         partial is not a partial */
+      const real = spec === post ? pk.peak : pk.peak && ldPeakNear(post, f, binHz, 20 + 1.5 * k, 1.2).peak;
+      if(!real) pk.v *= 0.25;
       const fl = floorAt(f, len);
-      const d = Math.max(0, Math.min(60, ldDb(pk.v) - ldDb(fl)));
+      /* a partial is a narrow peak standing clear of what is around it; the
+         thump of a hammer, broad and low, raises everything near it at once
+         and stands clear of nothing */
+      const prom = ldDb(pk.v) - ldDb(ldBackground(spec, pk.bin, lobeBins));
+      const d = Math.max(0, Math.min(60, ldDb(pk.v) - ldDb(fl), prom + 4));
       const w = t && t.w[k - 1] != null ? 0.25 + t.w[k - 1] : (p < 48 ? 1 : 1 / Math.pow(k, 0.6));
-      sw += w; sd += w * d; if(d > 6) hits++;
-      amps.push({k, bin: pk.bin, v: pk.v});
+      sw += w; sd += w * d; if(d > 6){ hits++; if(k === 1) fundOk = true; }
+      amps.push({k, bin: pk.bin, v: pk.v, d});
       if(d > 6){
         const pp = ldPeakNear(pre, f, binHz, 22, 1.2);
         const dpre = ldDb(pp.v * Math.sqrt(plen / len)) - ldDb(fl);
@@ -344,10 +434,26 @@ function ldEstimate(c){
       }
     }
     const S = sw ? sd / sw : 0, R = srw ? sr_ / srw : 0;
+    /* the salience that ranks candidates against each other: summed, not
+       averaged — a low note that explains ten partials outweighs one of its
+       own upper partials taken for a note — and marked down for every low
+       partial it should have and does not (the octave below a note has
+       every other one missing) */
+    /* how strong its strongest partials are — a bass note's pitch lives in
+       a handful of upper partials and the rest are faint, so an average over
+       all twenty would bury it */
+    const topN = Math.min(6, Math.max(2, Math.ceil(amps.length / 2)));
+    const top6 = amps.map(x => x.d).sort((a, b) => b - a).slice(0, topN);
+    const lowHits = amps.filter(x => x.k >= 2 && x.k <= 5 && x.d >= 6).length;
+    const Sb = top6.length ? top6.reduce((a, b) => a + b, 0) / top6.length : 0;
+    let sal = 0;
+    amps.forEach(x => { const d = x.d; const w = 1 / Math.sqrt(x.k);
+      if(d >= 6) sal += w * d;
+      else if(x.k <= 4 && !(x.k === 1 && p < 45)) sal -= w * 10; });
     /* a fundamental with nothing above it is more likely a partial of
        something lower, or noise; ask for at least two partials heard */
     const need = Math.min(2, amps.length);
-    return {S, R, hits, need, amps};
+    return {S, R, hits, need, amps, fundOk, used: amps.length, sal, Sb, lowHits};
   }
   function remove(p, sc){
     /* spectral smoothness: take off each partial only as much as a smooth
@@ -359,47 +465,89 @@ function ldEstimate(c){
       const take = Math.min(a[i], smooth * 1.1);
       if(a[i] <= 0) return;
       const frac = Math.max(0, 1 - take / a[i]);
-      const lo = Math.max(0, Math.floor(x.bin - lobeBins)), hi = Math.min(work.length - 1, Math.ceil(x.bin + lobeBins));
-      for(let b = lo; b <= hi; b++) work[b] *= frac;
+      /* tapered, so what is taken out leaves no edge behind */
+      const span = lobeBins * 1.6;
+      const lo = Math.max(0, Math.floor(x.bin - span)), hi = Math.min(work.length - 1, Math.ceil(x.bin + span));
+      for(let b = lo; b <= hi; b++){
+        const u = Math.abs(b - x.bin) / span, wgt = u >= 1 ? 0 : 0.5 + 0.5 * Math.cos(Math.PI * u);
+        work[b] *= 1 - wgt * (1 - frac);
+      }
     });
   }
   const isNew = sc => sc.R >= 3 || sc.S - Math.max(0, sc.S - sc.R) >= 8;
   const notes = [], taken = new Set();
   const conf = (sc, thr) => Math.max(0, Math.min(1, 0.5 + (sc.S - thr) / 16));
-  const ACCEPT_EXP = eo.expThr != null ? eo.expThr : 9, ACCEPT = eo.thr != null ? eo.thr : 15, REL = eo.rel != null ? eo.rel : 0.42;
+  const ACCEPT_EXP = eo.expThr != null ? eo.expThr : 9, ACCEPT = eo.thr != null ? eo.thr : 16;
   let top = 0;
   /* the expected notes first, the most evident first */
+  const faint = [];
   if(exp){
     const order = exp.map(p => ({p, sc: score(p, work)})).sort((x, y) => y.sc.S - x.sc.S);
     order.forEach(({p}) => {
-      const sc = score(p, work);
-      if(sc.S >= ACCEPT_EXP && sc.hits >= sc.need && (isNew(sc) || sc.S >= ACCEPT_EXP + 10)){
-        notes.push({pitch: p, conf: +conf(sc, ACCEPT_EXP).toFixed(2), S: +sc.S.toFixed(1), R: +sc.R.toFixed(1), expected: true});
-        taken.add(p); top = Math.max(top, sc.S); remove(p, sc);
-      }
+      /* what is left once the notes already heard are taken out: a note
+         whose every partial is also another's (E6 over A4 — a twelfth and
+         an octave) shows only as more than that other note alone explains */
+      const scU = notes.length ? score(p, work, true) : null;
+      const sc = scU && scU.used >= 2 ? scU : score(p, work, false);
+      const need = p >= 76 ? 1 : sc.need;
+      const thr = Math.max(ACCEPT_EXP, top - 24);
+      /* a note just under the bar that clearly rose with the attack was
+         struck; one that did not rise is the room, or another string */
+      const rescued = sc.S >= thr - 4 && sc.R >= 10 && sc.hits >= 2;
+      if(((sc.S >= thr && sc.hits >= need) || rescued) && (isNew(sc) || sc.S >= thr + 10)){
+        notes.push({pitch: p, conf: +conf(sc, ACCEPT_EXP).toFixed(2), S: +sc.S.toFixed(1), R: +sc.R.toFixed(1), sal: sc.sal, Sb: sc.Sb, expected: true});
+        taken.add(p); top = Math.max(top, sc.S); remove(p, score(p, work, false)); own(p);
+      } else faint.push({pitch: p, S: +sc.S.toFixed(1), R: +sc.R.toFixed(1), hits: sc.hits, thr: +thr.toFixed(1)});
     });
   }
-  /* then anything else that is plainly there */
+  /* then anything else that is plainly there — judged only on partials
+     no accepted note accounts for, and against the loudest note struck:
+     a key played with the others lands within a dozen or so decibels of
+     them, and rises with them; an echo of their partials does neither */
+  let topSal = notes.reduce((m, x) => Math.max(m, x.sal || 0), 0), topB = notes.reduce((m, x) => Math.max(m, x.Sb || 0), 0);
+  const rises = () => { const r = notes.map(x => x.R).sort((a, b) => a - b); return r.length ? r[r.length >> 1] : 0; };
   for(let iter = 0; iter < 10; iter++){
     let best = null;
+    const rNeedNow = notes.length ? Math.max(6, rises() * 0.6) : 3;
     for(let p = 21; p <= 108; p++){
       if(taken.has(p)) continue;
-      const sc = score(p, work);
-      if(sc.hits < sc.need || !isNew(sc)) continue;
-      if(!best || sc.S > best.sc.S) best = {p, sc};
+      const sc = score(p, work, notes.length > 0);
+      const need = p >= 84 ? 1 : 2;
+      if(sc.used < need || sc.hits < need || !isNew(sc)) continue;
+      /* above middle C a piano's fundamental is its loudest partial: a
+         candidate there without one is somebody's overtone */
+      if(p >= 60 && !sc.fundOk) continue;
+      /* and below the bass clef's middle a string sounds most in its second
+         to fifth partials; without two of those it is not a note */
+      if(p < 48 && sc.lowHits < 2) continue;
+      if(sc.Sb < Math.max(ACCEPT, topB - (eo.relDb != null ? eo.relDb : 15))) continue;
+      /* and on average across its partials, not only its best few */
+      if(notes.length && sc.S < Math.max(10, top - 18)) continue;
+      if(sc.sal <= 0) continue;
+      /* every test is applied before choosing, so that one strong candidate
+         failing the last of them does not end the search for the others */
+      if(sc.R < rNeedNow || (topSal && sc.sal < topSal * 0.25)) continue;
+      if(!best || sc.sal > best.sc.sal) best = {p, sc};
     }
+    if(eo.trace){ const q = eo.trace.pitch; if(q != null && !taken.has(q)){ const sc = score(q, work, notes.length > 0);
+      eo.trace.log.push({iter, q, S: +sc.S.toFixed(1), Sb: +sc.Sb.toFixed(1), sal: +sc.sal.toFixed(1), R: +sc.R.toFixed(1), hits: sc.hits, used: sc.used, fundOk: sc.fundOk, low: sc.lowHits,
+        top: +top.toFixed(1), topB: +topB.toFixed(1), best: best && best.p}); } }
     if(!best) break;
-    const thr = Math.max(ACCEPT, top * REL);
-    if(best.sc.S < thr) break;
+    const thr = Math.max(ACCEPT, top - (eo.relDb != null ? eo.relDb : 15));
+    topSal = Math.max(topSal, best.sc.sal); topB = Math.max(topB, best.sc.Sb);
     /* a weak note an octave or a twelfth above a stronger one that came in
        with it is far more often that note's resonance than a key */
     const shadow = notes.some(x => [12, 19, 24].includes(best.p - x.pitch) && x.S > best.sc.S + 6);
-    taken.add(best.p); remove(best.p, best.sc);
+    taken.add(best.p);
+    const full = score(best.p, work, false);
+    remove(best.p, full);
     if(shadow) continue;
-    notes.push({pitch: best.p, conf: +conf(best.sc, thr).toFixed(2), S: +best.sc.S.toFixed(1), R: +best.sc.R.toFixed(1), expected: false});
+    own(best.p);
+    notes.push({pitch: best.p, conf: +conf(best.sc, thr).toFixed(2), S: +best.sc.S.toFixed(1), R: +best.sc.R.toFixed(1),
+      Sb: +best.sc.Sb.toFixed(1), sal: +best.sc.sal.toFixed(1), low: best.sc.lowHits, used: best.sc.used, expected: false});
     top = Math.max(top, best.sc.S);
   }
-  const res = {notes};
+  const res = {notes, faint};
   if(exp) res.verify = ldVerifyStep(exp, notes, eo);
   return res;
 }
@@ -487,7 +635,7 @@ const LD_STRICTNESS = {
 };
 
 /* everything the Worker needs, by name, so it can be rebuilt from source */
-const LD_WORKER_PARTS = () => [ldFFT, ldTwiddles, ldHann, ldSpectrum, ldInharm, ldPartialHz, ldPartials,
-  ldPeakNear, ldPeakHz, ldCreate, ldEstimate, ldVerifyStep, ldAlign, ldRhythm];
+const LD_WORKER_PARTS = () => [ldMidiHz, ldDb, ldFFT, ldTwiddles, ldHann, ldSpectrum, ldInharm, ldPartialHz, ldPartials,
+  ldPeakNear, ldPeakHz, ldBackground, ldCreate, ldEstimate, ldVerifyStep, ldAlign, ldRhythm];
 
 if(typeof module !== 'undefined' && module.exports) module.exports = {ldCreate, ldEstimate, ldVerifyStep, ldAlign, ldRhythm, ldSpectrum, ldMidiHz, ldPartialHz, LD_STRICTNESS};
