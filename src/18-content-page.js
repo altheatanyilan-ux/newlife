@@ -70,6 +70,10 @@ function contentPipelineHTML(){
 /* ---------- the page ---------- */
 const CONTENT_DEEP = {stats:'stats', shelf:'library', library:'library', calendar:'calendar', pipeline:'pipeline'};
 routes.content = function(root, params){
+  /* Brand Strategy lives in this room as a view of its own (18-content-brand-*.js).
+     It goes first: migrateContent() stamps Content's defaults on every piece,
+     and Brand only ever reads pieces, never causes a write to one. */
+  if(params[0] === 'brand' && typeof brandRoute === 'function') return brandRoute(root, params.slice(1));
   migrateContent();
   /* the address can name a view — #/content/shelf is where the Writing
      Studio's desk used to be, and a good deal still links there */
@@ -93,6 +97,7 @@ routes.content = function(root, params){
       <div class="ct-views">
         ${[['pipeline','Pipeline','▥'],['calendar','Calendar','▦'],['library','Shelf','▤'],['stats','Numbers','◫']].map(([k, n, ic], i) =>
           `<button class="${v === k ? 'on' : ''}" data-ctview="${k}" title="${n} (${i + 1})">${ic} <span>${n}</span></button>`).join('')}
+        <a class="ct-brandlink" href="#/content/brand" title="Brand Strategy: accounts, plans, slots and decisions">◈ <span>Brand</span></a>
       </div>
       <div class="row" style="gap:8px;margin-left:auto">
         <input class="inp mono ct-search" id="ctSearch" placeholder="search pieces…" value="${esc(S._ctQ || '')}">

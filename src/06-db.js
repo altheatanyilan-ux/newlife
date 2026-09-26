@@ -129,7 +129,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
