@@ -1,5 +1,5 @@
 {
- "run": "2026-09-25T23:32:37.624Z",
+ "run": "2026-09-26T17:40:56.603Z",
  "results": [
   {
    "truthInfo": "35 annotated downbeats, 35 placed (bar content match 1)",
@@ -8,8 +8,8 @@
    "kind": "asap",
    "tests": "steady arpeggios; the easiest case",
    "audioSeconds": 142.1,
-   "renderMs": 1107,
-   "engineMs": 1740,
+   "renderMs": 1846,
+   "engineMs": 3630,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -89,9 +89,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.7491538936127426,
+      "snap": 1,
+      "onset": 6.507643492013872
+     },
+     "ref": {
+      "chroma": 1.6988421685818766,
+      "snap": 0.9781021897810219,
+      "onset": 6.028231259996264
+     },
+     "used": "coarse"
+    },
     "cost": -1.698,
-    "analyseMs": 1340,
-    "alignMs": 379,
+    "analyseMs": 2141,
+    "alignMs": 1421,
     "retried": false,
     "alternate": null
    },
@@ -429,8 +442,8 @@
    "kind": "asap",
    "tests": "lyrical rubato, a stormy middle",
    "audioSeconds": 257.6,
-   "renderMs": 2535,
-   "engineMs": 2833,
+   "renderMs": 4568,
+   "engineMs": 12360,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -447,21 +460,21 @@
    "errors": {
     "n": 77,
     "matched": 77,
-    "median": 90,
-    "p90": 952,
-    "max": 3521,
-    "within50": 42,
-    "within100": 55,
-    "within200": 64,
-    "withinTarget": 55
+    "median": 36,
+    "p90": 451,
+    "max": 2128,
+    "within50": 61,
+    "within100": 73,
+    "within200": 82,
+    "withinTarget": 73
    },
    "confidence": {
-    "overall": 0.761,
-    "sure": 65,
-    "sureMeanErr": 223,
-    "unsure": 12,
-    "unsureMeanErr": 1025,
-    "interpolated": 14
+    "overall": 0.739,
+    "sure": 62,
+    "sureMeanErr": 154,
+    "unsure": 15,
+    "unsureMeanErr": 278,
+    "interpolated": 0
    },
    "diagnostics": {
     "bpm": 37.01,
@@ -510,9 +523,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.584419727504831,
+      "snap": 0.948051948051948,
+      "onset": 8.217499602371149
+     },
+     "ref": {
+      "chroma": 1.6249990094130748,
+      "snap": 0.922077922077922,
+      "onset": 7.414402157346971
+     },
+     "used": "reference"
+    },
     "cost": -1.442,
-    "analyseMs": 2099,
-    "alignMs": 716,
+    "analyseMs": 7264,
+    "alignMs": 4688,
     "retried": false,
     "alternate": null
    },
@@ -529,19 +555,19 @@
     {
      "bar": "1",
      "truth": 3.3472190000000004,
-     "est": 3.228,
-     "err": -119,
+     "est": 4.481,
+     "err": 1134,
      "tol": 100,
-     "confidence": 0.511,
+     "confidence": 0.821,
      "interpolated": false
     },
     {
      "bar": "2",
      "truth": 7.043796500000001,
-     "est": 6.641,
-     "err": -403,
+     "est": 7.082,
+     "err": 38,
      "tol": 100,
-     "confidence": 0.794,
+     "confidence": 0.784,
      "interpolated": false
     },
     {
@@ -550,70 +576,70 @@
      "est": 10.263,
      "err": -9,
      "tol": 100,
-     "confidence": 0.681,
+     "confidence": 0.809,
      "interpolated": false
     },
     {
      "bar": "4",
      "truth": 13.438020999999999,
-     "est": 13.328,
-     "err": -110,
+     "est": 13.397,
+     "err": -41,
      "tol": 100,
-     "confidence": 0.845,
+     "confidence": 0.536,
      "interpolated": false
     },
     {
      "bar": "5",
      "truth": 17.260666,
-     "est": 17.895,
-     "err": 634,
+     "est": 16.44,
+     "err": -821,
      "tol": 100,
-     "confidence": 0.516,
-     "interpolated": true
+     "confidence": 0.493,
+     "interpolated": false
     },
     {
      "bar": "6",
      "truth": 22.577969,
-     "est": 23.034,
-     "err": 456,
+     "est": 22.477,
+     "err": -101,
      "tol": 100,
-     "confidence": 0.624,
+     "confidence": 0.742,
      "interpolated": false
     },
     {
      "bar": "7",
      "truth": 25.419846,
-     "est": 25.426,
-     "err": 6,
+     "est": 25.774,
+     "err": 354,
      "tol": 100,
-     "confidence": 0.673,
+     "confidence": 0.566,
      "interpolated": false
     },
     {
      "bar": "8",
      "truth": 28.176254,
-     "est": 28.824,
-     "err": 648,
+     "est": 28.143,
+     "err": -33,
      "tol": 100,
-     "confidence": 0.546,
-     "interpolated": true
+     "confidence": 0.527,
+     "interpolated": false
     },
     {
      "bar": "9",
      "truth": 33.015993,
-     "est": 32.833,
-     "err": -183,
+     "est": 33.065,
+     "err": 49,
      "tol": 100,
-     "confidence": 0.811,
+     "confidence": 0.741,
      "interpolated": false
     },
     {
      "bar": "10",
      "truth": 36.38564750000001,
-     "est": 36.362,
-     "err": -24,
+     "est": 36.502,
+     "err": 116,
      "tol": 100,
-     "confidence": 0.798,
+     "confidence": 0.716,
      "interpolated": false
     },
     {
@@ -622,16 +648,16 @@
      "est": 39.683,
      "err": -1,
      "tol": 100,
-     "confidence": 0.788,
+     "confidence": 0.636,
      "interpolated": false
     },
     {
      "bar": "12",
      "truth": 43.28200800000001,
-     "est": 43.212,
-     "err": -70,
+     "est": 43.816,
+     "err": 534,
      "tol": 100,
-     "confidence": 0.841,
+     "confidence": 0.614,
      "interpolated": false
     },
     {
@@ -640,26 +666,26 @@
      "est": 47.345,
      "err": 17,
      "tol": 100,
-     "confidence": 0.821,
+     "confidence": 0.468,
      "interpolated": false
     },
     {
      "bar": "14",
      "truth": 52.60892199999999,
-     "est": 51.548,
-     "err": -1061,
+     "est": 52.593,
+     "err": -16,
      "tol": 100,
-     "confidence": 0.825,
+     "confidence": 0.769,
      "interpolated": false
     },
     {
      "bar": "15",
      "truth": 55.698128,
-     "est": 55.62,
-     "err": -78,
+     "est": 55.728,
+     "err": 30,
      "tol": 100,
-     "confidence": 0.673,
-     "interpolated": true
+     "confidence": 0.782,
+     "interpolated": false
     },
     {
      "bar": "16",
@@ -667,17 +693,17 @@
      "est": 58.329,
      "err": -4,
      "tol": 100,
-     "confidence": 0.881,
+     "confidence": 0.904,
      "interpolated": false
     },
     {
      "bar": "17",
      "truth": 61.822588,
-     "est": 62.206,
-     "err": 383,
+     "est": 61.812,
+     "err": -11,
      "tol": 100,
      "confidence": 0.344,
-     "interpolated": true
+     "interpolated": false
     },
     {
      "bar": "18",
@@ -685,7 +711,7 @@
      "est": 67.129,
      "err": -95,
      "tol": 100,
-     "confidence": 0.764,
+     "confidence": 0.715,
      "interpolated": false
     },
     {
@@ -694,26 +720,26 @@
      "est": 71.262,
      "err": -84,
      "tol": 100,
-     "confidence": 0.918,
+     "confidence": 0.831,
      "interpolated": false
     },
     {
      "bar": "20",
      "truth": 75.83753100000001,
-     "est": 75.836,
-     "err": -2,
+     "est": 76.208,
+     "err": 370,
      "tol": 100,
-     "confidence": 0.579,
+     "confidence": 0.87,
      "interpolated": false
     },
     {
      "bar": "21",
      "truth": 80.458253,
-     "est": 81.525,
-     "err": 1067,
+     "est": 80.457,
+     "err": -1,
      "tol": 100,
-     "confidence": 0.543,
-     "interpolated": true
+     "confidence": 0.533,
+     "interpolated": false
     },
     {
      "bar": "22",
@@ -730,16 +756,16 @@
      "est": 86.68,
      "err": -15,
      "tol": 100,
-     "confidence": 0.853,
+     "confidence": 0.698,
      "interpolated": false
     },
     {
      "bar": "24",
      "truth": 89.30439799999998,
-     "est": 89.072,
-     "err": -232,
+     "est": 89.258,
+     "err": -46,
      "tol": 100,
-     "confidence": 0.975,
+     "confidence": 0.978,
      "interpolated": false
     },
     {
@@ -748,7 +774,7 @@
      "est": 91.371,
      "err": 36,
      "tol": 100,
-     "confidence": 0.813,
+     "confidence": 0.819,
      "interpolated": false
     },
     {
@@ -766,7 +792,7 @@
      "est": 94.854,
      "err": -3,
      "tol": 100,
-     "confidence": 0.89,
+     "confidence": 0.909,
      "interpolated": false
     },
     {
@@ -784,7 +810,7 @@
      "est": 98.754,
      "err": -19,
      "tol": 100,
-     "confidence": 0.897,
+     "confidence": 0.9,
      "interpolated": false
     },
     {
@@ -793,7 +819,7 @@
      "est": 100.96,
      "err": -53,
      "tol": 100,
-     "confidence": 0.884,
+     "confidence": 0.881,
      "interpolated": false
     },
     {
@@ -802,7 +828,7 @@
      "est": 103.259,
      "err": -114,
      "tol": 100,
-     "confidence": 0.758,
+     "confidence": 0.806,
      "interpolated": false
     },
     {
@@ -811,16 +837,16 @@
      "est": 106.115,
      "err": -96,
      "tol": 100,
-     "confidence": 0.983,
+     "confidence": 0.694,
      "interpolated": false
     },
     {
      "bar": "33",
      "truth": 108.026067,
-     "est": 108.669,
-     "err": 643,
+     "est": 109.618,
+     "err": 1592,
      "tol": 100,
-     "confidence": 0.855,
+     "confidence": 0.683,
      "interpolated": false
     },
     {
@@ -829,7 +855,7 @@
      "est": 110.666,
      "err": -51,
      "tol": 100,
-     "confidence": 0.943,
+     "confidence": 0.816,
      "interpolated": false
     },
     {
@@ -847,34 +873,34 @@
      "est": 115.775,
      "err": -2,
      "tol": 100,
-     "confidence": 0.831,
+     "confidence": 0.668,
      "interpolated": false
     },
     {
      "bar": "37",
      "truth": 117.82413400000002,
-     "est": 118.515,
-     "err": 691,
+     "est": 119.487,
+     "err": 1663,
      "tol": 100,
-     "confidence": 0.756,
-     "interpolated": true
+     "confidence": 0.68,
+     "interpolated": false
     },
     {
      "bar": "38",
      "truth": 120.781931,
-     "est": 120.279,
-     "err": -503,
+     "est": 120.744,
+     "err": -38,
      "tol": 100,
-     "confidence": 0.891,
+     "confidence": 0.829,
      "interpolated": false
     },
     {
      "bar": "39",
      "truth": 122.3679335,
-     "est": 122.011,
-     "err": -357,
+     "est": 122.369,
+     "err": 1,
      "tol": 100,
-     "confidence": 0.891,
+     "confidence": 0.965,
      "interpolated": false
     },
     {
@@ -883,7 +909,7 @@
      "est": 123.786,
      "err": 5,
      "tol": 100,
-     "confidence": 0.698,
+     "confidence": 0.851,
      "interpolated": false
     },
     {
@@ -892,16 +918,16 @@
      "est": 125.063,
      "err": -8,
      "tol": 100,
-     "confidence": 0.94,
+     "confidence": 0.948,
      "interpolated": false
     },
     {
      "bar": "42",
      "truth": 126.8267965,
-     "est": 126.827,
-     "err": 0,
+     "est": 126.804,
+     "err": -23,
      "tol": 100,
-     "confidence": 0.792,
+     "confidence": 0.789,
      "interpolated": false
     },
     {
@@ -910,7 +936,7 @@
      "est": 128.662,
      "err": 4,
      "tol": 100,
-     "confidence": 0.882,
+     "confidence": 0.881,
      "interpolated": false
     },
     {
@@ -919,61 +945,61 @@
      "est": 130.844,
      "err": -3,
      "tol": 100,
-     "confidence": 0.92,
+     "confidence": 0.725,
      "interpolated": false
     },
     {
      "bar": "45",
      "truth": 132.85670449999998,
-     "est": 133.19,
-     "err": 333,
+     "est": 132.865,
+     "err": 8,
      "tol": 100,
-     "confidence": 0.569,
+     "confidence": 0.765,
      "interpolated": false
     },
     {
      "bar": "46",
      "truth": 135.9101205,
-     "est": 135.233,
-     "err": -677,
+     "est": 135.906,
+     "err": -4,
      "tol": 100,
-     "confidence": 0.514,
-     "interpolated": true
+     "confidence": 0.548,
+     "interpolated": false
     },
     {
      "bar": "47",
      "truth": 138.9977245,
-     "est": 137.091,
-     "err": -1907,
+     "est": 138.995,
+     "err": -3,
      "tol": 100,
-     "confidence": 0.586,
+     "confidence": 0.653,
      "interpolated": false
     },
     {
      "bar": "48",
      "truth": 140.1889625,
-     "est": 138.646,
-     "err": -1543,
+     "est": 140.179,
+     "err": -10,
      "tol": 100,
-     "confidence": 0.795,
+     "confidence": 0.917,
      "interpolated": false
     },
     {
      "bar": "49",
      "truth": 141.4768885,
-     "est": 140.597,
-     "err": -880,
+     "est": 141.479,
+     "err": 2,
      "tol": 100,
-     "confidence": 0.789,
+     "confidence": 0.859,
      "interpolated": false
     },
     {
      "bar": "50",
      "truth": 142.538319,
-     "est": 142.269,
-     "err": -269,
+     "est": 142.524,
+     "err": -14,
      "tol": 100,
-     "confidence": 0.939,
+     "confidence": 0.973,
      "interpolated": false
     },
     {
@@ -982,7 +1008,7 @@
      "est": 143.778,
      "err": 13,
      "tol": 100,
-     "confidence": 0.833,
+     "confidence": 0.941,
      "interpolated": false
     },
     {
@@ -991,34 +1017,34 @@
      "est": 145.125,
      "err": -5,
      "tol": 100,
-     "confidence": 0.892,
+     "confidence": 0.936,
      "interpolated": false
     },
     {
      "bar": "53",
      "truth": 146.94162649999996,
-     "est": 148.236,
-     "err": 1294,
+     "est": 146.936,
+     "err": -6,
      "tol": 100,
-     "confidence": 0.651,
-     "interpolated": true
+     "confidence": 0.679,
+     "interpolated": false
     },
     {
      "bar": "54",
      "truth": 149.848675,
-     "est": 152.369,
-     "err": 2520,
+     "est": 149.769,
+     "err": -80,
      "tol": 100,
-     "confidence": 0.538,
-     "interpolated": true
+     "confidence": 0.513,
+     "interpolated": false
     },
     {
      "bar": "55",
      "truth": 155.66384,
-     "est": 156.502,
-     "err": 838,
+     "est": 155.736,
+     "err": 72,
      "tol": 100,
-     "confidence": 0.63,
+     "confidence": 0.898,
      "interpolated": false
     },
     {
@@ -1027,17 +1053,17 @@
      "est": 159.962,
      "err": -23,
      "tol": 100,
-     "confidence": 0.889,
+     "confidence": 0.85,
      "interpolated": false
     },
     {
      "bar": "57",
      "truth": 162.903683,
-     "est": 162.648,
-     "err": -256,
+     "est": 162.865,
+     "err": -39,
      "tol": 100,
-     "confidence": 0.708,
-     "interpolated": true
+     "confidence": 0.792,
+     "interpolated": false
     },
     {
      "bar": "58",
@@ -1045,16 +1071,16 @@
      "est": 165.373,
      "err": -8,
      "tol": 100,
-     "confidence": 0.854,
+     "confidence": 0.875,
      "interpolated": false
     },
     {
      "bar": "59",
      "truth": 168.60079299999995,
-     "est": 168.995,
-     "err": 394,
+     "est": 168.6,
+     "err": -1,
      "tol": 100,
-     "confidence": 0.869,
+     "confidence": 0.653,
      "interpolated": false
     },
     {
@@ -1063,17 +1089,17 @@
      "est": 172.873,
      "err": -21,
      "tol": 100,
-     "confidence": 0.77,
+     "confidence": 0.671,
      "interpolated": false
     },
     {
      "bar": "61",
      "truth": 176.332089,
-     "est": 177.284,
-     "err": 952,
+     "est": 176.216,
+     "err": -116,
      "tol": 100,
-     "confidence": 0.601,
-     "interpolated": true
+     "confidence": 0.598,
+     "interpolated": false
     },
     {
      "bar": "62",
@@ -1081,16 +1107,16 @@
      "est": 182.114,
      "err": -184,
      "tol": 100,
-     "confidence": 0.838,
+     "confidence": 0.5,
      "interpolated": false
     },
     {
      "bar": "63",
      "truth": 186.3769505,
-     "est": 186.363,
-     "err": -14,
+     "est": 185.574,
+     "err": -803,
      "tol": 100,
-     "confidence": 0.72,
+     "confidence": 0.803,
      "interpolated": false
     },
     {
@@ -1099,16 +1125,16 @@
      "est": 189.637,
      "err": 6,
      "tol": 100,
-     "confidence": 0.798,
+     "confidence": 0.777,
      "interpolated": false
     },
     {
      "bar": "65",
      "truth": 193.227371,
-     "est": 193.074,
-     "err": -153,
+     "est": 193.678,
+     "err": 451,
      "tol": 100,
-     "confidence": 0.83,
+     "confidence": 0.633,
      "interpolated": false
     },
     {
@@ -1117,26 +1143,26 @@
      "est": 197.462,
      "err": -10,
      "tol": 100,
-     "confidence": 0.832,
+     "confidence": 0.487,
      "interpolated": false
     },
     {
      "bar": "67",
      "truth": 203.2716985,
-     "est": 202.153,
-     "err": -1119,
+     "est": 203.267,
+     "err": -5,
      "tol": 100,
-     "confidence": 0.805,
+     "confidence": 0.775,
      "interpolated": false
     },
     {
      "bar": "68",
      "truth": 206.9565235,
-     "est": 206.898,
-     "err": -59,
+     "est": 206.843,
+     "err": -114,
      "tol": 100,
-     "confidence": 0.661,
-     "interpolated": true
+     "confidence": 0.781,
+     "interpolated": false
     },
     {
      "bar": "69",
@@ -1144,16 +1170,16 @@
      "est": 210.024,
      "err": -17,
      "tol": 100,
-     "confidence": 0.934,
+     "confidence": 0.785,
      "interpolated": false
     },
     {
      "bar": "70",
      "truth": 214.28183700000002,
-     "est": 214.274,
-     "err": -8,
+     "est": 214.599,
+     "err": 317,
      "tol": 100,
-     "confidence": 0.63,
+     "confidence": 0.64,
      "interpolated": false
     },
     {
@@ -1171,16 +1197,16 @@
      "est": 222.679,
      "err": -90,
      "tol": 100,
-     "confidence": 0.768,
+     "confidence": 0.626,
      "interpolated": false
     },
     {
      "bar": "73",
      "truth": 228.06707999999998,
-     "est": 228.066,
-     "err": -1,
+     "est": 228.391,
+     "err": 324,
      "tol": 100,
-     "confidence": 0.851,
+     "confidence": 0.673,
      "interpolated": false
     },
     {
@@ -1189,17 +1215,17 @@
      "est": 232.687,
      "err": 16,
      "tol": 100,
-     "confidence": 0.79,
+     "confidence": 0.571,
      "interpolated": false
     },
     {
      "bar": "75",
      "truth": 237.63010400000002,
-     "est": 237.145,
-     "err": -485,
+     "est": 237.981,
+     "err": 351,
      "tol": 100,
-     "confidence": 0.582,
-     "interpolated": true
+     "confidence": 0.585,
+     "interpolated": false
     },
     {
      "bar": "76",
@@ -1207,17 +1233,17 @@
      "est": 241.232,
      "err": 538,
      "tol": 100,
-     "confidence": 0.918,
+     "confidence": 0.919,
      "interpolated": false
     },
     {
      "bar": "77",
      "truth": 247.400394,
-     "est": 243.879,
-     "err": -3521,
+     "est": 245.272,
+     "err": -2128,
      "tol": 100,
-     "confidence": 0.173,
-     "interpolated": true
+     "confidence": 0.581,
+     "interpolated": false
     }
    ]
   },
@@ -1228,8 +1254,8 @@
    "kind": "asap",
    "tests": "slow, sustained, pedalled",
    "audioSeconds": 297.8,
-   "renderMs": 2520,
-   "engineMs": 3415,
+   "renderMs": 4716,
+   "engineMs": 6755,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -1309,9 +1335,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.6415778915983772,
+      "snap": 0.9931506849315068,
+      "onset": 10.754747571622621
+     },
+     "ref": {
+      "chroma": 1.5884498690121247,
+      "snap": 0.9657534246575342,
+      "onset": 10.35713686779135
+     },
+     "used": "coarse"
+    },
     "cost": -1.559,
-    "analyseMs": 2358,
-    "alignMs": 1020,
+    "analyseMs": 4514,
+    "alignMs": 2191,
     "retried": false,
     "alternate": null
    },
@@ -1991,8 +2030,8 @@
    "kind": "asap",
    "tests": "repeats played as written",
    "audioSeconds": 300.5,
-   "renderMs": 2335,
-   "engineMs": 4005,
+   "renderMs": 3399,
+   "engineMs": 11642,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -2081,6 +2120,19 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.4636439538555546,
+      "snap": 0.9921259842519685,
+      "onset": 9.481132344586413
+     },
+     "ref": {
+      "chroma": 1.4354947449211313,
+      "snap": 0.9868766404199475,
+      "onset": 9.333610314902952
+     },
+     "used": "coarse"
+    },
     "cost": -1.611,
     "readings": [
      {
@@ -2092,8 +2144,8 @@
       "cost": -1.25
      }
     ],
-    "analyseMs": 2311,
-    "alignMs": 1670,
+    "analyseMs": 5355,
+    "alignMs": 6030,
     "retried": false,
     "alternate": null
    },
@@ -2999,8 +3051,8 @@
    "kind": "asap",
    "tests": "the score has repeats, the pianist does not take them",
    "audioSeconds": 197.5,
-   "renderMs": 1592,
-   "engineMs": 2814,
+   "renderMs": 5581,
+   "engineMs": 13570,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -3071,6 +3123,19 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.482035841216608,
+      "snap": 1,
+      "onset": 9.253732032830108
+     },
+     "ref": {
+      "chroma": 1.3715990211686782,
+      "snap": 0.989010989010989,
+      "onset": 8.913548281275654
+     },
+     "used": "coarse"
+    },
     "cost": -1.634,
     "readings": [
      {
@@ -3082,8 +3147,8 @@
       "cost": -1.634
      }
     ],
-    "analyseMs": 1667,
-    "alignMs": 1131,
+    "analyseMs": 5296,
+    "alignMs": 8115,
     "retried": false,
     "alternate": "without the repeats"
    },
@@ -3739,8 +3804,8 @@
    "kind": "asap",
    "tests": "flowing, pedalled, a long melody over triplets",
    "audioSeconds": 323.7,
-   "renderMs": 3072,
-   "engineMs": 4788,
+   "renderMs": 9128,
+   "engineMs": 13545,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -3820,9 +3885,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.896665712416766,
+      "snap": 0.9456681350954479,
+      "onset": 6.432930684115832
+     },
+     "ref": {
+      "chroma": 1.278209743929634,
+      "snap": 0.8663729809104258,
+      "onset": 4.98170974911929
+     },
+     "used": "coarse"
+    },
     "cost": -1.957,
-    "analyseMs": 2822,
-    "alignMs": 1930,
+    "analyseMs": 7901,
+    "alignMs": 5582,
     "retried": false,
     "alternate": null
    },
@@ -4619,8 +4697,8 @@
    "kind": "asap",
    "tests": "fast, agitated, dense",
    "audioSeconds": 164.7,
-   "renderMs": 1517,
-   "engineMs": 4078,
+   "renderMs": 2668,
+   "engineMs": 9064,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -4765,6 +4843,19 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.7507765332480139,
+      "snap": 0.9475982532751092,
+      "onset": 5.140067335521827
+     },
+     "ref": {
+      "chroma": 1.6306544414832762,
+      "snap": 0.925764192139738,
+      "onset": 4.906042716789452
+     },
+     "used": "coarse"
+    },
     "cost": -2.142,
     "readings": [
      {
@@ -4832,8 +4923,8 @@
       "cost": -1.375
      }
     ],
-    "analyseMs": 1414,
-    "alignMs": 2641,
+    "analyseMs": 4033,
+    "alignMs": 4959,
     "retried": false,
     "alternate": null
    },
@@ -5951,8 +6042,8 @@
    "kind": "asap",
    "tests": "Classical allegro, exposition repeat",
    "audioSeconds": 276.2,
-   "renderMs": 2283,
-   "engineMs": 3538,
+   "renderMs": 3685,
+   "engineMs": 14471,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -6032,9 +6123,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.598243429718409,
+      "snap": 0.9767441860465116,
+      "onset": 8.67038711914128
+     },
+     "ref": {
+      "chroma": 1.5047598551596784,
+      "snap": 0.9782945736434109,
+      "onset": 7.750418235300473
+     },
+     "used": "coarse"
+    },
     "cost": -1.746,
-    "analyseMs": 2170,
-    "alignMs": 1343,
+    "analyseMs": 6044,
+    "alignMs": 8295,
     "retried": false,
     "alternate": null
    },
@@ -8118,8 +8222,8 @@
    "kind": "asap",
    "tests": "one harmony rocking for bars on end: little for the harmony to hold on to",
    "audioSeconds": 264.3,
-   "renderMs": 2489,
-   "engineMs": 3124,
+   "renderMs": 3711,
+   "engineMs": 15664,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -8136,21 +8240,21 @@
    "errors": {
     "n": 70,
     "matched": 70,
-    "median": 12912,
-    "p90": 58764,
-    "max": 87221,
-    "within50": 20,
-    "within100": 26,
-    "within200": 26,
-    "withinTarget": 26
+    "median": 17,
+    "p90": 617,
+    "max": 6854,
+    "within50": 74,
+    "within100": 81,
+    "within200": 83,
+    "withinTarget": 81
    },
    "confidence": {
-    "overall": 0.31,
-    "sure": 16,
-    "sureMeanErr": 1225,
-    "unsure": 54,
-    "unsureMeanErr": 27981,
-    "interpolated": 50
+    "overall": 0.325,
+    "sure": 13,
+    "sureMeanErr": 31,
+    "unsure": 57,
+    "unsureMeanErr": 395,
+    "interpolated": 0
    },
    "diagnostics": {
     "bpm": 49.196,
@@ -8199,8 +8303,21 @@
      }
     ],
     "unmappedCost": 0.1,
-    "analyseMs": 2119,
-    "alignMs": 987,
+    "pick": {
+     "old": {
+      "chroma": 0.5082007790803694,
+      "snap": 0.8689320388349514,
+      "onset": 8.417486356442314
+     },
+     "ref": {
+      "chroma": 0.6475577804404515,
+      "snap": 0.9466019417475728,
+      "onset": 8.911392494582689
+     },
+     "used": "reference"
+    },
+    "analyseMs": 4676,
+    "alignMs": 10843,
     "retried": true,
     "alternate": null
    },
@@ -8220,25 +8337,25 @@
      "est": 0.952,
      "err": -10,
      "tol": 100,
-     "confidence": 0.641,
+     "confidence": 0.474,
      "interpolated": false
     },
     {
      "bar": "2",
      "truth": 6.315104,
-     "est": 6.293,
-     "err": -22,
+     "est": 6.316,
+     "err": 1,
      "tol": 100,
-     "confidence": 0.637,
+     "confidence": 0.431,
      "interpolated": false
     },
     {
      "bar": "3",
      "truth": 11.508464,
-     "est": 11.447,
-     "err": -61,
+     "est": 11.912,
+     "err": 404,
      "tol": 100,
-     "confidence": 0.689,
+     "confidence": 0.456,
      "interpolated": false
     },
     {
@@ -8256,25 +8373,25 @@
      "est": 19.482,
      "err": -36,
      "tol": 100,
-     "confidence": 0.608,
+     "confidence": 0.549,
      "interpolated": false
     },
     {
      "bar": "6",
      "truth": 23.22200500000001,
-     "est": 23.197,
-     "err": -25,
+     "est": 23.516,
+     "err": 294,
      "tol": 100,
-     "confidence": 0.668,
+     "confidence": 0.597,
      "interpolated": false
     },
     {
      "bar": "7",
      "truth": 27.03125,
-     "est": 27.005,
-     "err": -26,
+     "est": 27.028,
+     "err": -3,
      "tol": 100,
-     "confidence": 0.718,
+     "confidence": 0.719,
      "interpolated": false
     },
     {
@@ -8301,16 +8418,16 @@
      "est": 37.709,
      "err": -12,
      "tol": 100,
-     "confidence": 0.667,
+     "confidence": 0.683,
      "interpolated": false
     },
     {
      "bar": "11",
      "truth": 41.179688,
-     "est": 41.169,
-     "err": -11,
+     "est": 41.192,
+     "err": 12,
      "tol": 100,
-     "confidence": 0.726,
+     "confidence": 0.727,
      "interpolated": false
     },
     {
@@ -8319,7 +8436,7 @@
      "est": 44.722,
      "err": -71,
      "tol": 100,
-     "confidence": 0.65,
+     "confidence": 0.6,
      "interpolated": false
     },
     {
@@ -8328,7 +8445,7 @@
      "est": 48.53,
      "err": -21,
      "tol": 100,
-     "confidence": 0.677,
+     "confidence": 0.546,
      "interpolated": false
     },
     {
@@ -8337,512 +8454,512 @@
      "est": 51.479,
      "err": -37,
      "tol": 100,
-     "confidence": 0.726,
+     "confidence": 0.6,
      "interpolated": false
     },
     {
      "bar": "15",
      "truth": 54.634115,
-     "est": 54.567,
-     "err": -67,
+     "est": 55.287,
+     "err": 653,
      "tol": 100,
-     "confidence": 0.401,
+     "confidence": 0.491,
      "interpolated": false
     },
     {
      "bar": "16",
      "truth": 58.27734399999999,
-     "est": 58.282,
-     "err": 5,
+     "est": 58.793,
+     "err": 516,
      "tol": 100,
-     "confidence": 0.636,
+     "confidence": 0.526,
      "interpolated": false
     },
     {
      "bar": "17",
      "truth": 61.28190100000001,
-     "est": 61.277,
-     "err": -5,
+     "est": 61.788,
+     "err": 506,
      "tol": 100,
-     "confidence": 0.425,
+     "confidence": 0.202,
      "interpolated": false
     },
     {
      "bar": "18",
      "truth": 64.023438,
-     "est": 63.971,
-     "err": -52,
+     "est": 64.041,
+     "err": 18,
      "tol": 100,
-     "confidence": 0.407,
+     "confidence": 0.281,
      "interpolated": false
     },
     {
      "bar": "19",
      "truth": 67.554688,
-     "est": 68.824,
-     "err": 1269,
+     "est": 67.431,
+     "err": -124,
      "tol": 100,
-     "confidence": 0.479,
-     "interpolated": true
+     "confidence": 0.69,
+     "interpolated": false
     },
     {
      "bar": "20",
      "truth": 70.5742185,
-     "est": 77.183,
-     "err": 6609,
+     "est": 70.565,
+     "err": -9,
      "tol": 100,
-     "confidence": 0.528,
-     "interpolated": true
+     "confidence": 0.803,
+     "interpolated": false
     },
     {
      "bar": "21",
      "truth": 73.0058595,
-     "est": 85.542,
-     "err": 12536,
+     "est": 72.957,
+     "err": -49,
      "tol": 100,
-     "confidence": 0.543,
+     "confidence": 0.732,
      "interpolated": false
     },
     {
      "bar": "22",
      "truth": 75.4882815,
-     "est": 88.909,
-     "err": 13421,
+     "est": 75.465,
+     "err": -23,
      "tol": 100,
-     "confidence": 0.479,
-     "interpolated": true
+     "confidence": 0.717,
+     "interpolated": false
     },
     {
      "bar": "23",
      "truth": 78.244792,
-     "est": 94.203,
-     "err": 15958,
+     "est": 78.251,
+     "err": 6,
      "tol": 100,
-     "confidence": 0.455,
-     "interpolated": true
+     "confidence": 0.504,
+     "interpolated": false
     },
     {
      "bar": "24",
      "truth": 82.289062,
-     "est": 99.498,
-     "err": 17209,
+     "est": 82.292,
+     "err": 3,
      "tol": 100,
-     "confidence": 0.417,
-     "interpolated": true
+     "confidence": 0.729,
+     "interpolated": false
     },
     {
      "bar": "25",
      "truth": 85.585938,
-     "est": 104.792,
-     "err": 19206,
+     "est": 85.566,
+     "err": -20,
      "tol": 100,
-     "confidence": 0.663,
+     "confidence": 0.54,
      "interpolated": false
     },
     {
      "bar": "26",
      "truth": 87.953776,
-     "est": 107.857,
-     "err": 19903,
+     "est": 87.934,
+     "err": -20,
      "tol": 100,
-     "confidence": 0.175,
-     "interpolated": true
+     "confidence": 0.181,
+     "interpolated": false
     },
     {
      "bar": "27",
      "truth": 91.5390625,
-     "est": 109.111,
-     "err": 17572,
+     "est": 91.533,
+     "err": -6,
      "tol": 100,
-     "confidence": 0.154,
-     "interpolated": true
+     "confidence": 0.233,
+     "interpolated": false
     },
     {
      "bar": "28",
      "truth": 95.049479,
-     "est": 110.364,
-     "err": 15315,
+     "est": 95.062,
+     "err": 13,
      "tol": 100,
-     "confidence": 0.145,
-     "interpolated": true
+     "confidence": 0.228,
+     "interpolated": false
     },
     {
      "bar": "29",
      "truth": 98.359375,
-     "est": 111.618,
-     "err": 13259,
+     "est": 98.36,
+     "err": 1,
      "tol": 100,
-     "confidence": 0.2,
-     "interpolated": true
+     "confidence": 0.173,
+     "interpolated": false
     },
     {
      "bar": "30",
      "truth": 101.299479,
-     "est": 112.872,
-     "err": 11573,
+     "est": 101.309,
+     "err": 10,
      "tol": 100,
-     "confidence": 0.137,
-     "interpolated": true
+     "confidence": 0.095,
+     "interpolated": false
     },
     {
      "bar": "31",
      "truth": 104.802083,
-     "est": 114.126,
-     "err": 9324,
+     "est": 105.419,
+     "err": 617,
      "tol": 100,
-     "confidence": 0.132,
-     "interpolated": true
+     "confidence": 0.144,
+     "interpolated": false
     },
     {
      "bar": "32",
      "truth": 108.26041699999999,
-     "est": 115.38,
-     "err": 7120,
+     "est": 108.251,
+     "err": -9,
      "tol": 100,
-     "confidence": 0.18,
-     "interpolated": true
+     "confidence": 0.245,
+     "interpolated": false
     },
     {
      "bar": "33",
      "truth": 111.1009115,
-     "est": 116.634,
-     "err": 5533,
+     "est": 111.084,
+     "err": -17,
      "tol": 100,
-     "confidence": 0.144,
-     "interpolated": true
+     "confidence": 0.201,
+     "interpolated": false
     },
     {
      "bar": "34",
      "truth": 113.98958300000001,
-     "est": 117.888,
-     "err": 3898,
+     "est": 113.987,
+     "err": -3,
      "tol": 100,
-     "confidence": 0.147,
-     "interpolated": true
+     "confidence": 0.214,
+     "interpolated": false
     },
     {
      "bar": "35",
      "truth": 117.20768249999999,
-     "est": 119.142,
-     "err": 1934,
+     "est": 117.191,
+     "err": -17,
      "tol": 100,
-     "confidence": 0.2,
-     "interpolated": true
+     "confidence": 0.229,
+     "interpolated": false
     },
     {
      "bar": "36",
      "truth": 120.745443,
-     "est": 120.395,
-     "err": -350,
+     "est": 120.744,
+     "err": -1,
      "tol": 100,
-     "confidence": 0.172,
-     "interpolated": true
+     "confidence": 0.223,
+     "interpolated": false
     },
     {
      "bar": "37",
      "truth": 124.23112,
-     "est": 121.649,
-     "err": -2582,
+     "est": 124.18,
+     "err": -51,
      "tol": 100,
-     "confidence": 0.152,
-     "interpolated": true
+     "confidence": 0.164,
+     "interpolated": false
     },
     {
      "bar": "38",
      "truth": 126.902344,
-     "est": 122.903,
-     "err": -3999,
+     "est": 126.897,
+     "err": -5,
      "tol": 100,
-     "confidence": 0.174,
-     "interpolated": true
+     "confidence": 0.233,
+     "interpolated": false
     },
     {
      "bar": "39",
      "truth": 129.934896,
-     "est": 124.157,
-     "err": -5778,
+     "est": 129.916,
+     "err": -19,
      "tol": 100,
-     "confidence": 0.146,
-     "interpolated": true
+     "confidence": 0.215,
+     "interpolated": false
     },
     {
      "bar": "40",
      "truth": 133.250651,
-     "est": 125.411,
-     "err": -7840,
+     "est": 133.259,
+     "err": 8,
      "tol": 100,
-     "confidence": 0.122,
-     "interpolated": true
+     "confidence": 0.23,
+     "interpolated": false
     },
     {
      "bar": "41",
      "truth": 136.249349,
-     "est": 126.665,
-     "err": -9584,
+     "est": 136.231,
+     "err": -18,
      "tol": 100,
-     "confidence": 0.163,
-     "interpolated": true
+     "confidence": 0.245,
+     "interpolated": false
     },
     {
      "bar": "42",
      "truth": 139.0065105,
-     "est": 127.919,
-     "err": -11088,
+     "est": 138.995,
+     "err": -12,
      "tol": 100,
-     "confidence": 0.165,
-     "interpolated": true
+     "confidence": 0.179,
+     "interpolated": false
     },
     {
      "bar": "43",
      "truth": 142.0846355,
-     "est": 129.173,
-     "err": -12912,
+     "est": 142.036,
+     "err": -49,
      "tol": 100,
-     "confidence": 0.222,
-     "interpolated": true
+     "confidence": 0.194,
+     "interpolated": false
     },
     {
      "bar": "44",
      "truth": 144.770833,
-     "est": 130.426,
-     "err": -14345,
+     "est": 147.029,
+     "err": 2258,
      "tol": 100,
-     "confidence": 0.074,
-     "interpolated": true
+     "confidence": 0.061,
+     "interpolated": false
     },
     {
      "bar": "45",
      "truth": 152.8209635,
-     "est": 131.68,
-     "err": -21141,
+     "est": 152.764,
+     "err": -57,
      "tol": 100,
-     "confidence": 0.168,
-     "interpolated": true
+     "confidence": 0.154,
+     "interpolated": false
     },
     {
      "bar": "46",
      "truth": 156.308594,
-     "est": 132.934,
-     "err": -23375,
+     "est": 156.294,
+     "err": -15,
      "tol": 100,
-     "confidence": 0.16,
-     "interpolated": true
+     "confidence": 0.247,
+     "interpolated": false
     },
     {
      "bar": "47",
      "truth": 160.145833,
-     "est": 134.188,
-     "err": -25958,
+     "est": 160.148,
+     "err": 2,
      "tol": 100,
-     "confidence": 0.123,
-     "interpolated": true
+     "confidence": 0.208,
+     "interpolated": false
     },
     {
      "bar": "48",
      "truth": 164.141927,
-     "est": 135.442,
-     "err": -28700,
+     "est": 164.142,
+     "err": 0,
      "tol": 100,
-     "confidence": 0.143,
-     "interpolated": true
+     "confidence": 0.213,
+     "interpolated": false
     },
     {
      "bar": "49",
      "truth": 167.438802,
-     "est": 136.696,
-     "err": -30743,
+     "est": 167.439,
+     "err": 0,
      "tol": 100,
-     "confidence": 0.197,
-     "interpolated": true
+     "confidence": 0.176,
+     "interpolated": false
     },
     {
      "bar": "50",
      "truth": 170.4375,
-     "est": 137.95,
-     "err": -32488,
+     "est": 170.388,
+     "err": -49,
      "tol": 100,
-     "confidence": 0.061,
-     "interpolated": true
+     "confidence": 0.133,
+     "interpolated": false
     },
     {
      "bar": "51",
      "truth": 173.9225265,
-     "est": 139.204,
-     "err": -34719,
+     "est": 174.66,
+     "err": 737,
      "tol": 100,
-     "confidence": 0.127,
-     "interpolated": true
+     "confidence": 0.116,
+     "interpolated": false
     },
     {
      "bar": "52",
      "truth": 177.265625,
-     "est": 140.458,
-     "err": -36808,
+     "est": 177.261,
+     "err": -5,
      "tol": 100,
-     "confidence": 0.147,
-     "interpolated": true
+     "confidence": 0.177,
+     "interpolated": false
     },
     {
      "bar": "53",
      "truth": 180.50585949999999,
-     "est": 141.711,
-     "err": -38795,
+     "est": 180.489,
+     "err": -17,
      "tol": 100,
-     "confidence": 0.183,
-     "interpolated": true
+     "confidence": 0.218,
+     "interpolated": false
     },
     {
      "bar": "54",
      "truth": 183.3190105,
-     "est": 142.965,
-     "err": -40354,
+     "est": 183.322,
+     "err": 3,
      "tol": 100,
-     "confidence": 0.168,
-     "interpolated": true
+     "confidence": 0.201,
+     "interpolated": false
     },
     {
      "bar": "55",
      "truth": 186.121745,
-     "est": 144.219,
-     "err": -41903,
+     "est": 186.131,
+     "err": 9,
      "tol": 100,
-     "confidence": 0.106,
-     "interpolated": true
+     "confidence": 0.121,
+     "interpolated": false
     },
     {
      "bar": "56",
      "truth": 190.14388,
-     "est": 145.473,
-     "err": -44671,
+     "est": 190.125,
+     "err": -19,
      "tol": 100,
-     "confidence": 0.185,
-     "interpolated": true
+     "confidence": 0.218,
+     "interpolated": false
     },
     {
      "bar": "57",
      "truth": 193.025391,
-     "est": 146.727,
-     "err": -46298,
+     "est": 192.981,
+     "err": -44,
      "tol": 100,
-     "confidence": 0.161,
-     "interpolated": true
+     "confidence": 0.269,
+     "interpolated": false
     },
     {
      "bar": "58",
      "truth": 196.1184895,
-     "est": 147.981,
-     "err": -48137,
+     "est": 196.093,
+     "err": -25,
      "tol": 100,
-     "confidence": 0.162,
-     "interpolated": true
+     "confidence": 0.155,
+     "interpolated": false
     },
     {
      "bar": "59",
      "truth": 199.4023435,
-     "est": 149.235,
-     "err": -50167,
+     "est": 199.39,
+     "err": -12,
      "tol": 100,
-     "confidence": 0.099,
-     "interpolated": true
+     "confidence": 0.12,
+     "interpolated": false
     },
     {
      "bar": "60",
      "truth": 202.6360675,
-     "est": 150.489,
-     "err": -52147,
+     "est": 209.49,
+     "err": 6854,
      "tol": 100,
-     "confidence": 0.104,
-     "interpolated": true
+     "confidence": 0.098,
+     "interpolated": false
     },
     {
      "bar": "61",
      "truth": 205.886719,
-     "est": 151.742,
-     "err": -54145,
+     "est": 210.28,
+     "err": 4393,
      "tol": 100,
-     "confidence": 0.195,
-     "interpolated": true
+     "confidence": 0.115,
+     "interpolated": false
     },
     {
      "bar": "62",
      "truth": 209.191406,
-     "est": 152.996,
-     "err": -56195,
+     "est": 211.766,
+     "err": 2575,
      "tol": 100,
-     "confidence": 0.163,
-     "interpolated": true
+     "confidence": 0.126,
+     "interpolated": false
     },
     {
      "bar": "63",
      "truth": 213.0136715,
-     "est": 154.25,
-     "err": -58764,
+     "est": 212.973,
+     "err": -41,
      "tol": 100,
-     "confidence": 0.103,
-     "interpolated": true
+     "confidence": 0.099,
+     "interpolated": false
     },
     {
      "bar": "64",
      "truth": 216.8352865,
-     "est": 155.504,
-     "err": -61331,
+     "est": 216.828,
+     "err": -7,
      "tol": 100,
-     "confidence": 0.099,
-     "interpolated": true
+     "confidence": 0.199,
+     "interpolated": false
     },
     {
      "bar": "65",
      "truth": 220.455078,
-     "est": 156.758,
-     "err": -63697,
+     "est": 220.404,
+     "err": -51,
      "tol": 100,
-     "confidence": 0.15,
-     "interpolated": true
+     "confidence": 0.225,
+     "interpolated": false
     },
     {
      "bar": "66",
      "truth": 224.511719,
-     "est": 158.012,
-     "err": -66500,
+     "est": 224.514,
+     "err": 2,
      "tol": 100,
-     "confidence": 0.113,
-     "interpolated": true
+     "confidence": 0.102,
+     "interpolated": false
     },
     {
      "bar": "67",
      "truth": 228.27799500000003,
-     "est": 159.266,
-     "err": -69012,
+     "est": 228.275,
+     "err": -3,
      "tol": 100,
-     "confidence": 0.175,
-     "interpolated": true
+     "confidence": 0.157,
+     "interpolated": false
     },
     {
      "bar": "68",
      "truth": 234.545573,
-     "est": 160.52,
-     "err": -74026,
+     "est": 234.545,
+     "err": -1,
      "tol": 100,
-     "confidence": 0.147,
-     "interpolated": true
+     "confidence": 0.137,
+     "interpolated": false
     },
     {
      "bar": "69",
      "truth": 244.4153645,
-     "est": 161.773,
-     "err": -82642,
+     "est": 242.509,
+     "err": -1906,
      "tol": 100,
-     "confidence": 0.122,
-     "interpolated": true
+     "confidence": 0.247,
+     "interpolated": false
     },
     {
      "bar": "70",
      "truth": 250.248047,
-     "est": 163.027,
-     "err": -87221,
+     "est": 250.172,
+     "err": -76,
      "tol": 100,
      "confidence": 0.09,
-     "interpolated": true
+     "interpolated": false
     }
    ]
   },
@@ -8853,8 +8970,8 @@
    "kind": "asap",
    "tests": "free tempo, washes of pedal: the hardest case",
    "audioSeconds": 290,
-   "renderMs": 3052,
-   "engineMs": 3400,
+   "renderMs": 4675,
+   "engineMs": 7346,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -8934,9 +9051,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.6066130258104563,
+      "snap": 0.8895348837209303,
+      "onset": 8.479595417434227
+     },
+     "ref": {
+      "chroma": 1.4085228250164537,
+      "snap": 0.8372093023255814,
+      "onset": 7.219902191799027
+     },
+     "used": "coarse"
+    },
     "cost": -1.58,
-    "analyseMs": 2368,
-    "alignMs": 1003,
+    "analyseMs": 4436,
+    "alignMs": 2771,
     "retried": false,
     "alternate": null
    },
@@ -9805,8 +9935,8 @@
    "kind": "ensemble",
    "tests": "strings, rubato at phrase ends, a first violin that leads",
    "audioSeconds": 122.1,
-   "renderMs": 1038,
-   "engineMs": 1431,
+   "renderMs": 3230,
+   "engineMs": 2965,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -9886,9 +10016,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.7767612304488463,
+      "snap": 0.7164179104477612,
+      "onset": 5.9355523001668935
+     },
+     "ref": {
+      "chroma": 1.699240049064946,
+      "snap": 0.6368159203980099,
+      "onset": 4.803795241877363
+     },
+     "used": "coarse"
+    },
     "cost": -1.692,
-    "analyseMs": 1140,
-    "alignMs": 264,
+    "analyseMs": 2016,
+    "alignMs": 672,
     "retried": false,
     "alternate": null
    },
@@ -10415,8 +10558,8 @@
    "kind": "ensemble",
    "tests": "the same music doubled by woodwinds and horn, basses an octave down, slower and freer",
    "audioSeconds": 142.1,
-   "renderMs": 1424,
-   "engineMs": 1527,
+   "renderMs": 2614,
+   "engineMs": 2941,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -10496,9 +10639,22 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": {
+     "old": {
+      "chroma": 1.8938786467836828,
+      "snap": 0.7960199004975125,
+      "onset": 5.570377734873803
+     },
+     "ref": {
+      "chroma": 1.839856716645816,
+      "snap": 0.7114427860696517,
+      "onset": 4.825923761020222
+     },
+     "used": "coarse"
+    },
     "cost": -1.71,
-    "analyseMs": 1188,
-    "alignMs": 307,
+    "analyseMs": 1819,
+    "alignMs": 1015,
     "retried": false,
     "alternate": null
    },
@@ -11025,8 +11181,8 @@
    "kind": "jazz",
    "tests": "medium swing in G minor (the chart is in E minor: +3), a turnaround vamp for an intro, a tag ending",
    "audioSeconds": 329.8,
-   "renderMs": 3822,
-   "engineMs": 3100,
+   "renderMs": 5125,
+   "engineMs": 7970,
    "inWorker": true,
    "key": {
     "transposition": 3,
@@ -11118,9 +11274,10 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": null,
     "cost": -0.908,
-    "analyseMs": 2644,
-    "alignMs": 430,
+    "analyseMs": 7230,
+    "alignMs": 631,
     "retried": false,
     "alternate": null
    },
@@ -12748,8 +12905,8 @@
    "kind": "jazz",
    "tests": "medium up, two bars of drums first, a held last chord",
    "audioSeconds": 214.6,
-   "renderMs": 2639,
-   "engineMs": 2051,
+   "renderMs": 3906,
+   "engineMs": 5682,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -12834,9 +12991,10 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": null,
     "cost": -1.112,
-    "analyseMs": 1814,
-    "alignMs": 214,
+    "analyseMs": 4574,
+    "alignMs": 1038,
     "retried": false,
     "alternate": null
    },
@@ -14463,8 +14621,8 @@
    "kind": "jazz",
    "tests": "bebop blues at 210, the head twice at each end",
    "audioSeconds": 143.6,
-   "renderMs": 2020,
-   "engineMs": 1389,
+   "renderMs": 2701,
+   "engineMs": 4858,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -14555,9 +14713,10 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": null,
     "cost": -1.118,
-    "analyseMs": 1289,
-    "alignMs": 77,
+    "analyseMs": 4320,
+    "alignMs": 418,
     "retried": false,
     "alternate": null
    },
@@ -15790,8 +15949,8 @@
    "kind": "jazz",
    "tests": "blues at 190 (the database chart, 13 bars), heads twice, a bar of drums first, 20 cents sharp",
    "audioSeconds": 156.4,
-   "renderMs": 2011,
-   "engineMs": 1540,
+   "renderMs": 4422,
+   "engineMs": 3558,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -15881,9 +16040,10 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": null,
     "cost": -1.181,
-    "analyseMs": 1427,
-    "alignMs": 93,
+    "analyseMs": 3315,
+    "alignMs": 122,
     "retried": false,
     "alternate": null
    },
@@ -17084,8 +17244,8 @@
    "kind": "jazz",
    "tests": "ballad: a free piano intro, a rubato head, a chorus in time with brushes, a rubato head out; a whole tone down, 30 cents sharp",
    "audioSeconds": 334.9,
-   "renderMs": 2599,
-   "engineMs": 3310,
+   "renderMs": 4749,
+   "engineMs": 5960,
    "inWorker": true,
    "key": {
     "transposition": -2,
@@ -17168,9 +17328,10 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": null,
     "cost": -1.244,
-    "analyseMs": 2740,
-    "alignMs": 549,
+    "analyseMs": 4880,
+    "alignMs": 980,
     "retried": false,
     "alternate": null
    },
@@ -18035,8 +18196,8 @@
    "kind": "jazz",
    "tests": "modal: sixteen bars of one chord; a free intro; fades out part way through the last chorus; 42 cents sharp",
    "audioSeconds": 278.7,
-   "renderMs": 3038,
-   "engineMs": 2764,
+   "renderMs": 3863,
+   "engineMs": 3700,
    "inWorker": true,
    "key": {
     "transposition": 0,
@@ -18127,9 +18288,10 @@
      }
     ],
     "unmappedCost": 0.1,
+    "pick": null,
     "cost": -0.749,
-    "analyseMs": 2383,
-    "alignMs": 352,
+    "analyseMs": 3110,
+    "alignMs": 540,
     "retried": false,
     "alternate": null
    },
