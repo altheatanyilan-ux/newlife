@@ -381,7 +381,8 @@ function openPlanListModal(id, {folderId = null} = {}){
     <div class="field"><label>Opens as</label><select class="sel" id="plnView">
       ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || PLAN_VIEW_DEFAULT) === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
     <div class="row between" style="margin-top:8px">
-      ${l && !l.isDefault ? `<button class="btn sm ghost danger" id="plnDel">delete list</button>` : '<span></span>'}
+      ${l && l.projectId ? `<a class="btn sm ghost" href="#/projects/${esc(l.projectId)}">the project’s page →</a>`
+        : l && !l.isDefault ? `<span class="row" style="gap:6px"><button class="btn sm ghost danger" id="plnDel">delete list</button><button class="btn sm ghost" id="plnProj" title="keep its tasks here, and give it a project record: status, dates, phases, nods">make this a project</button></span>` : '<span></span>'}
       <button class="btn primary" id="plnSave">${l ? 'Save' : 'Create'}</button></div></div>`, 'narrow');
   let color = l?.color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length];
   m.querySelectorAll('[data-plc]').forEach(b => b.onclick = () => { color = b.dataset.plc;
@@ -394,6 +395,8 @@ function openPlanListModal(id, {folderId = null} = {}){
     else { const nl = planNewList(name, {folderId, color}); nl.defaultView = view; S._planSel = {kind:'list', id:nl.id}; }
     saveNow(); m.remove(); sound('success'); rerender();
   };
+  const mk = m.querySelector('#plnProj');
+  if(mk) mk.onclick = () => { const pr = planListMakeProject(l.id); m.remove(); if(pr){ sound('success'); toast(`“${esc(pr.name)}” is a project now; its sections are its phases.`); } rerender(); };
   const del = m.querySelector('#plnDel');
   if(del) del.onclick = () => { m.remove();
     requestDelete({label:l.name, after:planRedraw, remove: () => {

@@ -53,7 +53,7 @@ function planShopLikeLists(){
 /* its things onto the shopping list (after what is already there, in their
    own order), and the list itself gone (it is empty) */
 function planMoveListToShop(listId){
-  const l = planList(listId); if(!l || l.id === 'inbox') return 0;
+  const l = planList(listId); if(!l || l.id === 'inbox' || l.projectId) return 0;
   const moved = planOwnTasks().filter(t => t.listId === listId)
     .sort((a, b) => (a.order || 0) - (b.order || 0));
   const base = Date.now();

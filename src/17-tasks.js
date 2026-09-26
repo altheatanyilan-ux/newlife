@@ -20,7 +20,7 @@ function migrateTasks(){
 function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
 function projectTaskRefs(){
   const out = [];
-  (S.projects||[]).forEach(p => (p.phases||[]).forEach(ph => (ph.tasks||[]).forEach(t => {
+  (S.projects||[]).forEach(p => (p.phases||[]).filter(ph => !ph.movedAt).forEach(ph => (ph.tasks||[]).forEach(t => {
     out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:`#/projects/${p.id}`});
   })));
   return out;

@@ -129,7 +129,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
@@ -349,7 +349,7 @@ function migrateProjects(){
     p.resources = Array.isArray(p.resources) ? p.resources : []; p.linkedSkills = Array.isArray(p.linkedSkills) ? p.linkedSkills : []; if(p.linkedVisionEra === undefined) p.linkedVisionEra = null; if(p.notes === undefined) p.notes = ''; p.tags = p.tags||[]; p.income = p.income||{model:'',current:0,target:0,milestones:[]};
   });
 }
-function projectTasks(p){ return (p.phases||[]).flatMap(ph => ph.tasks||[]); }
+function projectTasks(p){ return (p.phases||[]).flatMap(ph => typeof projectPhaseTasks === 'function' ? projectPhaseTasks(p, ph) : (ph.tasks||[])).concat(typeof projectLooseTasks === 'function' ? projectLooseTasks(p) : []); }
 function projectTaskRatio(p){ const t = projectTasks(p); return {done:t.filter(x=>x.done).length, total:t.length}; }
 function migrateLifeline(){
   const y = new Date().getFullYear(); const eras = erasList(); if(!eras.length) return;

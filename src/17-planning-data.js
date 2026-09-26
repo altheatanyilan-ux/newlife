@@ -187,6 +187,8 @@ function planState(){
 function migratePlanning(){
   migrateTasks();
   const p = planState();
+  /* projects are lists: make sure each has its list before orphaned tasks are swept to the Inbox below */
+  if(typeof projectListsSync === 'function') projectListsSync();
   (S.tasks || []).forEach(planTaskDefaults);
   /* The matrix became the view this page opens on, but prefs.view was written
      the last time a view was picked — so without this the change never reaches
