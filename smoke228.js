@@ -140,8 +140,11 @@ const FERMATA = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="
 
   console.log('\n5. the transport');
   const id = await p.evaluate(async xml => (await takeScoreFile(new File([xml], 'Violin and Piano.musicxml'))).id, DUET);
-  /* forget every decoded instrument — the GM set and the recorded orchestra and strings alike */
-  await p.evaluate(() => { Object.keys(_instr.sets).forEach(k => delete _instr.sets[k]); Object.keys(_orch.sets).forEach(k => delete _orch.sets[k]); });
+  /* forget every decoded instrument — the GM set and the recorded orchestra and strings alike —
+     once whatever an earlier section started decoding has landed, or it lands after the
+     forgetting and the "first" press finds the violin already there */
+  await p.evaluate(async () => { await Promise.all(Object.values(_orch.loading).concat(Object.values(_instr.loading)).map(x => x.catch(() => {})));
+    Object.keys(_instr.sets).forEach(k => delete _instr.sets[k]); Object.keys(_orch.sets).forEach(k => delete _orch.sets[k]); Object.keys(_instr.failed).forEach(k => delete _instr.failed[k]); });
   await p.evaluate(id => { scoreUi().focus = null; location.hash = '#/score/' + id; }, id); await p.waitForTimeout(4000);
   const R0 = await p.evaluate(() => { const q = s => document.querySelector('#scPlayRow ' + s);
     return {rew: !!q('[data-plxrew]'), stop: !!q('[data-plxstop]'), bpm: q('[data-plxbpm]').value, score: q('[data-plxscore]').textContent,
@@ -154,9 +157,16 @@ const FERMATA = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="
   is('the tempo at 50% is ♩ = 60', await p.evaluate(() => document.querySelector('#scPlayRow [data-plxbpm]').value), '60');
   await p.selectOption('#scPlayRow [data-plxcount]', '1');
   const before = await p.evaluate(() => _instr.stats.sampled);
+  /* watched from before the press: on a quick machine the violin can be
+     decoded before the page is asked, and "was it said" is the claim */
+  await p.evaluate(() => { const bar = document.querySelector('#scPlayRow .plx-bar'); window._saidLoading = false;
+    const look = () => { if(bar.classList.contains('loading') && /Loading sounds/.test(bar.querySelector('[data-plxgo]').textContent)) window._saidLoading = true; };
+    new MutationObserver(look).observe(bar, {subtree: true, childList: true, attributes: true, characterData: true}); });
   await p.click('#scPlayRow [data-plxgo]');
-  const L0 = await p.evaluate(() => ({go: document.querySelector('#scPlayRow [data-plxgo]').textContent, loading: document.querySelector('#scPlayRow .plx-bar').classList.contains('loading')}));
-  yes('the first press loads the violin first: "Loading sounds…" on the button', /Loading sounds/.test(L0.go) && L0.loading, L0);
+  const L0 = await p.evaluate(() => { const bar = document.querySelector('#scPlayRow .plx-bar');
+    const now = bar.classList.contains('loading') && /Loading sounds/.test(bar.querySelector('[data-plxgo]').textContent);
+    return {go: now ? 'Loading sounds…' : bar.querySelector('[data-plxgo]').textContent, loading: now || window._saidLoading, said: window._saidLoading}; });
+  yes('the first press loads the violin first: "Loading sounds…" on the button', L0.loading && (L0.said || /Loading sounds/.test(L0.go)), L0);
   await p.waitForTimeout(700);
   const C = await p.evaluate(() => { const c = document.querySelector('.plx-count'); return {shown: !!c, n: c && c.textContent}; });
   yes('  then a bar of count-in, counted down big over the score', C.shown && /^[1-4]$/.test(C.n), C);
