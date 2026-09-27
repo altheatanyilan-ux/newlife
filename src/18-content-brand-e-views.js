@@ -21,7 +21,7 @@ function brandRoute(root, params){
   if(!st.prefs.account && st.accounts.length && v !== 'studio') st.prefs.account = brandActiveAccounts()[0] ? brandActiveAccounts()[0].id : st.accounts[0].id;
   const acc = brandAccount(st.prefs.account);
   registerPageEntry && registerPageEntry({pageName: 'Brand Strategy', addLabel: 'Capture', defaultEntryType: 'brand', prefilledFields: {},
-    options: [{label: 'Capture a note', run: () => brandCaptureDialog()}, {label: 'A slot', run: () => brandSlotDialog(null, null, rerender)}, {label: 'A decision', run: () => brandDecisionDialog(null, null, rerender)}]});
+    options: [{label: 'Capture a note', run: () => brandCaptureDialog()}, {label: 'A slot', run: () => brandSlotDialog(null, null, rerender)}, {label: 'A decision', run: () => brandDecisionDialog(null, null, rerender)}, {label: 'An open question', run: () => brandQuestionDialog(acc, rerender)}]});
   const again = () => brandRoute(root, params);
   const view = v || 'dash';
   let body = '';
@@ -95,6 +95,9 @@ function brandBindFilingFields(box, kind, b){
 function brandReadFilingFields(box){ return {scope: [...box.querySelectorAll('[data-bscope] input:checked')].map(i => i.value), anchor: brandParseAnchor(box.querySelector('[data-banchor]').value)}; }
 
 /* ---------- capture, and the generic note form ---------- */
+function brandQuestionDialog(acc, again){
+  brandNoteDialog({kind: 'question', scope: acc ? [acc.id] : ['studio'], anchor: acc ? {kind: 'charter', id: acc.id} : null}, again);
+}
 function brandCaptureDialog(again){ const st = brandState(); brandNoteDialog({kind: 'observation', scope: st.prefs.account ? [st.prefs.account] : [], anchor: st.prefs.account ? {kind: 'account', id: st.prefs.account} : null}, () => again && again()); }
 function brandNoteDialog(pre, done, entry){
   const b = entry ? brandOf(entry) : Object.assign({kind: 'observation', scope: [], anchor: null}, pre || {});
@@ -263,11 +266,14 @@ function brandJudgmentHTML(accountId){
       ${hyps.map(h => `<div class="brand-hyp"><button class="brand-rowbtn" data-bnote="${h.id}">${esc(brandLabel(h))}</button>${brandHypothesisHTML(h)}</div>`).join('') || '<p class="faint">None yet.</p>'}</section>
     <section class="brand-card"><div class="brand-sechead"><h3>Reviews</h3><span class="brand-grow"></span><button class="tbtn" id="bWeek">＋ Week review</button></div>
       ${revs.map(r => `<button class="brand-rowbtn" data-bnote="${r.id}">${esc(brandLabel(r))} <span class="faint">${esc(String(r.createdAt).slice(0, 10))}</span></button>`).join('') || '<p class="faint">None yet. A plan’s review is written from its page.</p>'}</section>
-    <section class="brand-card"><div class="brand-sechead"><h3>Open questions</h3></div>${qs.map(brandNoteRowHTML).join('') || '<p class="faint">None.</p>'}</section>
+    <section class="brand-card"><div class="brand-sechead"><h3>Open questions</h3><span class="faint">${qs.length}</span><span class="brand-grow"></span><button class="tbtn" id="bNewQ">＋ Open question</button></div>${qs.map(brandNoteRowHTML).join('') || '<p class="faint">None yet. A question the account has not answered for itself.</p>'}</section>
   </div>`;
 }
 function brandBindJudgment(root, acc, again){
   const h = root.querySelector('#bNewHyp2'); if(h) h.onclick = () => brandNoteDialog({kind: 'hypothesis', scope: acc ? [acc.id] : ['studio'], anchor: acc ? {kind: 'charter', id: acc.id} : null}, again);
+  /* a question is filed to the account's charter, as a hypothesis is: the
+     question the account has not yet answered belongs to what it is for */
+  const q = root.querySelector('#bNewQ'); if(q) q.onclick = () => brandQuestionDialog(acc, again);
   const w = root.querySelector('#bWeek'); if(w) w.onclick = () => { const plan = acc && brandCurrentPlan(acc.id, 'week'); brandReviewDialog(null, plan || null, again); };
   root.querySelectorAll('[data-bopen]').forEach(b => b.onclick = () => brandEditDialog(byId(S.entries, b.dataset.bopen), again));
 }
