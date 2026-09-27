@@ -37,17 +37,16 @@ const SHORTCUT_GROUPS = [
     ['N',       'Catch an idea'],
     ['W',       'Open the piece and write'],
   ]},
-  {scope:'journals', name:'Journals', line:[['1 2','entries · timeline'],['N','new entry']], rows:[
-    ['1  2', 'Entries · Timeline'],
+  {scope:'journals', name:'Journals', line:[['1–3','entries · timeline · library'],['N','new entry']], rows:[
+    ['1  2  3', 'Entries · Timeline · Library'],
     ['N',    'New entry in this journal'],
   ]},
-  {scope:'planning', name:'Planning', line:[['1–5','switch view'],['N','add a task'],['F','focus timer'],['T','today']], rows:[
-    ['1 … 5', 'List · Calendar · Board · Matrix · Timeline'],
+  {scope:'planning', name:'Planning', line:[['1–3','switch view'],['N','add a task'],['F','focus timer'],['T','today']], rows:[
+    ['1  2  3', 'Matrix · List · Calendar'],
     ['N',     'Add a task'],
-    ['F',     'Start the focus timer'],
+    ['F',     'Go to the focus timer, on Today'],
     ['T',     'Jump to today'],
-    ['H',     'Habits'],
-    ['S',     'Statistics'],
+    ['S',     'Statistics, in Today\u2019s Review'],
     ['E',     'Open the first task'],
   ]},
   {scope:'writing', name:'Writing a piece', line:[['1–4','switch view'],['N','new document'],['R','readability'],['⌥⇧1','mark a passage']],

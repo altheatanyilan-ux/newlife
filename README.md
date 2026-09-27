@@ -4,6 +4,8 @@ A single-file personal website: a structured container for a life examined and a
 
 The governing metaphor is a house still being built. Each section is a room; a unified entry model is the hallway that lets one entry live in many rooms at once.
 
+**New here, or wondering what a room is for?** Read the user's guide, [docs/GUIDE.md](docs/GUIDE.md): every area of the site, how to use it day to day, and how the rooms work together (including pulling your journal entries into a draft in the Writing Studio). This README is about building and maintaining the site.
+
 ## Running it
 
 Open `index.html` in a browser. That is the whole deployment; no server is needed.
@@ -43,7 +45,7 @@ To restore your data on a new device: open this website in the same browser, go 
 
 ## Rooms
 
-The sidebar opens with the two rooms you are in every day — **Today** and **Planning** — unlabelled and not foldable. Below them, two zones grouped by what each is for:
+The sidebar opens with **Today**, unlabelled and not foldable (Planning, Habits, the Review and Time tracking are views inside it). Below it, two zones grouped by what each is for:
 
 - **Create** — what you are making: Content Studio, Projects, Repertoire, Jazz Studio, Songwriting Studio, Japanese Studio
 - **Identity** — who you are, and have been: the Identity room (People, Values, Skill Tree and Finance as four tabs), the Lived Record, the Knowledge Tree, the Study Deck
