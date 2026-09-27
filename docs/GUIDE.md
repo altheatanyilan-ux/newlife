@@ -207,6 +207,10 @@ Above both day views:
 
 ## 6. Execution — doing the day
 
+**The first thing, each morning.** On the first open of a day, before anything else, a **morning card**: choose one of six questions (*What do I most need to know today?* …) or write your own, and it is held up on a full-screen veil while the cards are shuffled; then one tarot card is turned, with what it says, and a box for what it says to you. *Keep it* and it is filed with your readings; either way, next come the bedtime and waking questions. It comes once a day, and can be switched off (and on) in **Settings › Atmosphere**.
+
+**Milestones · the next seven days** sit at the very top of Today, in every view: the planner's milestones due this week (and any missed), with how much of their work is left, and any skill level due by then. Press one to open its list, narrowed to its work.
+
 **Today's plan.** What you decided last night (see *Before you sleep*): the why, three intentions, the first move, and the risk ("in the way"). If this week has a plan, its theme, goals (with how much of each goal's work is done) and the win you are after are shown here every day, so a Sunday goal is still answerable on Wednesday.
 
 **Focus.** The focus timer and the record of today's sittings.
@@ -281,6 +285,7 @@ The house fills as your record fills: books on the shelf are books you logged; t
 
 - **Stillness** has four practices, each with a length, a streak and a depth reading: **Meditation** (a timer and a breathing circle, nothing else), **Breathwork** (four counted patterns, drawn as they run), **Body scan** (Maltz's four mental pictures, walked through slowly) and **Sanctuary**. Every session ends by asking what you noticed in the body and anything that arrived — which can go straight to the intuition log.
 - **Divination** is a mirror, not a fortune: it deals a symbol and asks what you make of it, and keeps your answer.
+  - Every practice here opens on the same full-screen moment — a few lines to arrive by (*Take a breath… hold your question in your mind*) and your question, if you wrote one — before the cards are shuffled, the coins tossed, the charms thrown, an oracle card turned, or a sitting or round of breathing begins.
   - **Tarot** — the 1909 Rider–Waite–Smith deck in its printed colours. A reading is a small ceremony: settle, shuffle, choose from a fan of backs, turn. Twenty spreads in five groups (a card before breakfast; three-card frames; five-to-seven; the long classical layouts such as the Celtic Cross and the twelve houses; occasions), each laid out in its own shape, with a sentence for each position. You can design your own spreads. Reversals can be switched off.
   - **I Ching** — three coins or fifty yarrow stalks; the hexagram is built line by line with its changing lines, and the reading gives the Judgment, the Image and the lines at length.
   - **Charms** — thirty small symbols thrown onto a round cloth. Nothing is in a position: what matters is the ring each landed in, the quarter it faces, and what fell beside it (sixty pairings are written out). Face-down charms are read only if you turn them. Add up to ten charms of your own.

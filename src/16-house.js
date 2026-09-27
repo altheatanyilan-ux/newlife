@@ -908,6 +908,13 @@ function bindHouse(root){
     setTimeout(() => { wrap.classList.remove('entering'); el && el.classList.remove('taken'); then(); },
       reduced() ? 0 : 260);
   };
+  /* A picture of a bookshelf is mostly the gaps between the books, and a
+     press in a gap landed on the wall behind it and did nothing — so half the
+     doors in the house only opened if you happened to hit a stroke. Each
+     object gets a clear panel the size of itself, inside its own group so
+     the hover still lights it. The drawing order is left alone: what stands
+     in front still stands in front. */
+  houseHitAreas(wrap);
   wrap.querySelectorAll('[data-room]').forEach(zn => {
     if(zn.dataset.hung === '1') return;
     zn.dataset.hung = '1';
@@ -924,6 +931,38 @@ function bindHouse(root){
   });
 }
 
+function houseHitAreas(wrap){
+  const svg = wrap.querySelector('svg'); if(!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const vb = svg.viewBox && svg.viewBox.baseVal;
+  const whole = vb && vb.width ? vb.width * vb.height : Infinity;
+  const zones = [...svg.querySelectorAll('[data-room]')].filter(z => !z.querySelector(':scope > .hz-hit'));
+  const boxes = zones.map(z => { let bb = null; try { bb = z.getBBox(); } catch(e){}
+    return {z, bb, area: bb ? bb.width * bb.height : 0}; })
+    .filter(x => x.bb && x.bb.width > 0 && x.bb.height > 0);
+  /* a thing drawn across most of the scene (the sky, the stars) is the
+     scene; a panel that size would swallow every smaller door in front of it */
+  const pad = 4;
+  const grow = bb => ({x: bb.x - pad, y: bb.y - pad, w: bb.width + pad * 2, h: bb.height + pad * 2});
+  const kept = boxes.filter(x => x.area < whole * 0.35);
+  /* A panel drawn later sits over anything drawn before it, so where it
+     overlaps an earlier object it is cut away there (the hole goes to the
+     earlier object, as its own strokes would) — a desk's panel must not
+     take the presses meant for the lamp beside it. */
+  kept.forEach(({z, bb}, i) => {
+    const o = grow(bb);
+    const holes = kept.slice(0, i).map(e => grow(e.bb)).map(e => {
+      const x1 = Math.max(o.x, e.x), y1 = Math.max(o.y, e.y);
+      const x2 = Math.min(o.x + o.w, e.x + e.w), y2 = Math.min(o.y + o.h, e.y + e.h);
+      return x2 > x1 && y2 > y1 ? {x: x1, y: y1, w: x2 - x1, h: y2 - y1} : null; }).filter(Boolean);
+    const rect = r => `M${r.x},${r.y}h${r.w}v${r.h}h${-r.w}Z`;
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('class', 'hz-hit');
+    p.setAttribute('fill-rule', 'evenodd');
+    p.setAttribute('d', rect(o) + holes.map(rect).join(''));
+    z.insertBefore(p, z.firstChild);
+  });
+}
 /* The house is not a page any more — it is the sacred space on Today, under
    the looking-inward view. This route stays only to catch what still points
    here: a bookmark, a link written before the move, a zone deep-linked from

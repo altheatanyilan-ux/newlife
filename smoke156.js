@@ -123,7 +123,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n5. the cloth is the same circle the charms land on');
   await p.evaluate(() => openCharmCast({size:'standard'})); await p.waitForTimeout(500);
   is('three sizes to choose from', await p.$$eval('[data-ccsize]', n => n.length), 3);
-  await p.click('#ccGo'); await p.waitForTimeout(600);
+  /* the throw comes after the veil (the question held up first); passed with "skip" */
+  await p.click('#ccGo'); await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('.dv-veil .dv-skip')?.click()); await p.waitForTimeout(600);
   is('fifteen charms are on it', await p.$$eval('[data-cctok]', n => n.length), 15);
   await p.waitForTimeout(4600);
   is('  and all of them have come to rest', await p.$$eval('.cc-tok.rest', n => n.length), 15);

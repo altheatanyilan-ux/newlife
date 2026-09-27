@@ -378,11 +378,20 @@ function bindStillness(root){
   root.querySelectorAll('[data-stpic]').forEach(b => b.onclick = () => { p.picture = b.dataset.stpic; re(); });
   if(q('#stMantra')) q('#stMantra').oninput = () => { p.mantra = q('#stMantra').value; save(); };
   if(q('#stRebuild')) q('#stRebuild').onclick = () => { s.sanctuary.built = false; re(); };
-  if(q('#stBegin')) q('#stBegin').onclick = () => {
-    if(p.kind === 'scan') openBodyScan(p.minutes, p.picture);
-    else if(p.kind === 'sanctuary') openSanctuary(p.minutes);
-    else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
+  /* Every sitting starts in the dark, the way the cards do: a full-screen
+     moment with a few lines to arrive by, and then the practice. */
+  const STILL_ARRIVE = {
+    breath: ['Sit tall, and let your shoulders drop.', 'Breathe out everything you are holding.', 'Now follow the circle — in, and out.'],
+    scan: ['Lie down, or sit with your back supported.', 'Let your eyes close.', 'Attention goes where it is asked. Begin at the crown.'],
+    sanctuary: ['Close your eyes.', 'Picture a door you have never opened.', 'Step through it, slowly.'],
   };
+  if(q('#stBegin')) q('#stBegin').onclick = () => ceremonyVeil(
+    STILL_ARRIVE[p.kind] || ['Find a comfortable seat.', 'Let your breath find its own pace.', 'Set one intention for this sitting.'],
+    () => {
+      if(p.kind === 'scan') openBodyScan(p.minutes, p.picture);
+      else if(p.kind === 'sanctuary') openSanctuary(p.minutes);
+      else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
+    }, {label: 'a moment before the sitting'});
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();
   if(q('#stCast')) q('#stCast').onclick = () => openCharmCast();
   if(q('#stPaper')) q('#stPaper').onclick = () => openPhysicalReading();

@@ -2580,6 +2580,36 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
   background:color-mix(in srgb,var(--line) 14%,transparent)}
 .wk-carry .sc{font-size:.6rem}
 .wk-theme{margin:4px 0 0;font-family:var(--serif);font-size:.95rem}
+.mc-lede{font-size:.88rem;margin:4px 0 12px}
+.mc-qs{display:flex;flex-direction:column;gap:6px}
+.mc-q{text-align:left;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:none;
+  color:var(--text);cursor:pointer;font-family:var(--serif);font-size:.95rem;
+  transition:border-color .15s var(--ease),background .15s var(--ease)}
+.mc-q:hover{border-color:var(--line-2)}
+.mc-q.on{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 9%,transparent)}
+.mc-off{display:block;margin:12px auto 0}
+.mc-asked{text-align:center;margin:0 0 10px;font-size:.78rem}
+.mc-card{display:flex;justify-content:center}
+.mc-card .tc{margin:0 auto}
+.mc-name{text-align:center;margin:12px 0 4px}
+.mc-sum{text-align:center;font-family:var(--serif);font-size:1rem;margin:4px 0}
+.mc-themes{text-align:center;font-size:.68rem}
+.mc-more{margin-top:10px}
+.mc-more summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
+.today-ms{margin:0 0 14px}
+.today-ms .sc{margin:0 0 6px;display:block}
+.today-ms-row{display:flex;flex-wrap:wrap;gap:6px}
+.today-ms-item{display:inline-flex;align-items:baseline;gap:6px;max-width:100%;padding:6px 11px;cursor:pointer;
+  border:1px solid var(--line);border-left:3px solid var(--c,var(--page-accent));border-radius:9px;
+  background:var(--surface);color:var(--text);font-size:.84rem;text-align:left;
+  transition:border-color .15s var(--ease),background .15s var(--ease)}
+.today-ms-item:hover{background:color-mix(in srgb,var(--c,var(--page-accent)) 8%,var(--surface))}
+.today-ms-dot{color:var(--c,var(--page-accent));font-size:.72rem}
+.today-ms-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:26ch}
+.today-ms-when{font-size:.68rem;color:var(--muted)}
+.today-ms-item.near .today-ms-when{color:var(--text)}
+.today-ms-item.late .today-ms-when{color:#b0544a}
+.today-ms-where{font-size:.72rem}
 .wk-periods{margin:7px 0 2px}
 .wk-period{display:flex;flex-direction:column;gap:2px;padding:6px 9px;border-left:3px solid var(--page-accent);
   border-radius:4px;background:color-mix(in srgb,var(--page-accent) 7%,transparent);font-size:.86rem}
@@ -5679,6 +5709,12 @@ select.sm-active{border-color:var(--page-accent);
    own, and a page that stays the colour it was does not read as one. */
 .dv-veil{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 90% at 50% 40%,#241d18,#15110e 70%);
   display:flex;align-items:center;justify-content:center;animation:dvVeilIn .5s var(--ease) both}
+/* It also wears .sheen, whose position:relative comes later in the sheet and
+   quietly won — the veil became a strip at the foot of the page, behind the
+   dialog, and the moment before the cards stopped happening. Two classes
+   outrank one wherever they are written. */
+.dv-veil.sheen{position:fixed}
+.dv-veil-l.dv-veil-q{font-size:1.2rem;opacity:.85;max-width:34ch}
 .dv-veil.out{animation:dvVeilOut .4s var(--ease) both}
 .dv-veil-in{display:flex;flex-direction:column;align-items:center;gap:26px;text-align:center;padding:30px}
 .dv-veil-l{font-family:var(--lora,var(--serif));font-style:italic;font-size:1.5rem;line-height:1.6;color:#efe6d8;margin:0;
@@ -7684,6 +7720,7 @@ html[data-theme="light"] .rm-wax{fill:#fbf6ea;stroke:rgba(44,37,32,.12);stroke-w
 
 /* ---------- a zone is a place, and it says what it is when you reach ---------- */
 .zone,.obj{cursor:pointer}
+.zone>.hz-hit{fill:transparent;stroke:none;pointer-events:all}
 .zone:focus-visible,.obj:focus-visible{outline:none}
 .zone:focus-visible .rm-say,.obj:focus-visible .obj-say{opacity:1}
 .rm-say,.obj-say{fill:var(--rm-say);font-family:var(--serif);font-size:15px;

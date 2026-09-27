@@ -114,11 +114,47 @@ function bindTodaySwitch(root){
     window.scrollTo({top: 0, behavior: reduced() ? 'auto' : 'smooth'});
   });
 }
+/* THE NEXT SEVEN DAYS' MILESTONES, FIRST. At the very top of Today, in
+   every view of it: the dates the work is running towards that fall in the
+   coming week (and any already missed) — the planner's milestones with how
+   much of their own work is left, and a skill's level due by then. Pressing
+   one goes to it. Nothing is shown when nothing is due. */
+function todayMilestonesHTML(){
+  const plan = typeof planMilestonesAhead === 'function' ? planMilestonesAhead({within: 7, limit: 12}) : [];
+  const skill = typeof milestonesDueSoon === 'function' ? milestonesDueSoon(7) : [];
+  if(!plan.length && !skill.length) return '';
+  const when = d => d < 0 ? `${-d}d overdue` : d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d}d`;
+  const rows = [
+    ...plan.map(({m, list}) => { const d = daysBetween(today(), m.date);
+      const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total: 0, done: 0};
+      return {d, html: `<button class="today-ms-item${d < 0 ? ' late' : d <= 1 ? ' near' : ''}" data-todayms="${esc(m.id)}" style="--c:${esc(list.color || 'var(--page-accent)')}">
+        <span class="today-ms-dot" aria-hidden="true">\u25c6</span><span class="today-ms-name">${esc(m.name)}</span>
+        <span class="mono today-ms-when">${when(d)}${prog.total ? ` \u00b7 ${prog.total - prog.done} left` : ''}</span>
+        <span class="faint today-ms-where">${esc(list.name)}</span></button>`}; }),
+    ...skill.map(({skill: sk, m, days}) => ({d: days, html: `<button class="today-ms-item${days < 0 ? ' late' : days <= 1 ? ' near' : ''}" data-todaymsgo="#/skills/${esc(sk.id)}">
+        <span class="today-ms-dot" aria-hidden="true">\u25b2</span><span class="today-ms-name">${esc(sk.name)} \u2192 ${esc(typeof skillLevelLabel === 'function' ? skillLevelLabel(sk, m.levelTarget) : 'L' + m.levelTarget)}</span>
+        <span class="mono today-ms-when">${when(days)}</span><span class="faint today-ms-where">skill</span></button>`})),
+  ].sort((a, b) => a.d - b.d);
+  return `<section class="today-ms rv" aria-label="milestones in the next seven days">
+    <span class="sc">Milestones \u00b7 the next seven days</span>
+    <div class="today-ms-row">${rows.map(r => r.html).join('')}</div></section>`;
+}
+function bindTodayMilestones(root){
+  root.querySelectorAll('[data-todayms]').forEach(b => b.onclick = () => {
+    const id = b.dataset.todayms;
+    const hit = typeof planFindMilestone === 'function' ? planFindMilestone(id) : null;
+    /* land on the list the date belongs to, already narrowed to its work */
+    if(hit) S._planSel = {kind: 'list', id: hit.list.id};
+    S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
+    navigate('#/planning'); });
+  root.querySelectorAll('[data-todaymsgo]').forEach(b => b.onclick = () => navigate(b.dataset.todaymsgo));
+}
 /* Tasks, Habits, Review and Time tracking: the room itself, under a short head
    — the date, anything to be reminded of, and the switch back to the day. */
 function todayRoomRender(root, view, rest){
   const T = today();
   root.innerHTML = `<div class="page today-page today-room-page" data-tview-room="${view}">
+    ${todayMilestonesHTML()}
     <header class="rv today-head today-head-room">
       <div class="today-date">${fmtDate(T)}</div>
     </header>
@@ -127,6 +163,7 @@ function todayRoomRender(root, view, rest){
     <div class="today-room" id="todayRoom" data-room="${view}"></div>
   </div>`;
   bindTodaySwitch(root);
+  bindTodayMilestones(root);
   if(typeof bindRemindToday === 'function') bindRemindToday(root);
   const box = root.querySelector('#todayRoom');
   if(view === 'tasks' || view === 'habits'){ S._planRoom = view; routes.planning(box, rest, {embedded: true}); }
@@ -309,6 +346,8 @@ routes.today = function(root, params = []){
   const jumps = jumpsFor[view].filter(x => x[2]);
 
   root.innerHTML = `<div class="page today-page">
+
+    ${todayMilestonesHTML()}
 
     <!-- header -->
     <header class="rv today-head">
@@ -564,6 +603,7 @@ routes.today = function(root, params = []){
      it underneath the index. Scroll to the section's own top minus the height
      of the bar that would otherwise be standing on it. */
   bindTodaySwitch(root);
+  bindTodayMilestones(root);
 
   root.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
     const t = root.querySelector('#' + b.dataset.jump); if(!t) return;
@@ -701,8 +741,14 @@ routes.today = function(root, params = []){
   /* the tally is a way back into what was written, not just a number */
   $$('[data-wopen]',root).forEach(b => b.onclick = () => openEntryModal({entryId: b.dataset.wopen}));
   bindDreamEdge(root, T);
-  /* after a night away, catch both ends of the gap before anything else */
-  if(shouldGreetMorning()) setTimeout(openMorningGreeting, 400);
+  /* The first open of the day begins with a card, and then — after a night
+     away — both ends of the gap. The greeting is decided now, before this
+     visit is noted, and asked after the card rather than beside it. */
+  const greet = shouldGreetMorning();
+  if(typeof shouldDrawMorningCard === 'function' && shouldDrawMorningCard())
+    setTimeout(() => { if(shouldDrawMorningCard()) openMorningCard(() => { if(greet) openMorningGreeting(); });
+      else if(greet) openMorningGreeting(); }, 400);
+  else if(greet) setTimeout(openMorningGreeting, 400);
   noteSeen();
 
   /* The line under the date says four things in turn, dissolving from one

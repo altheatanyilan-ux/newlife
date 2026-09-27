@@ -13,6 +13,7 @@ routes.settings = function(root){
            want it, and it is silent anyway while the chimes are off. -->
       <div class="opt"><div><b>Interface sounds ⌁</b><div class="d">A tick almost too quiet to hear as the pointer crosses the sidebar; a breath of air when a panel opens or closes; a wooden knock on anything finished. Needs interaction sounds on. On by default.</div></div><label class="toggle ${SoundManager.state().uiEnabled?'on':''}" id="sUiSound"><span class="sw"></span></label></div>
       <div class="opt"><div><b>Felt time</b><div class="d">Default timeline mode: stretch dense stages, compress thin ones.</div></div><label class="toggle ${S.settings.feltTime?'on':''}" id="sFelt"><span>clock</span><span class="sw"></span><span>felt</span></label></div>
+      <div class="opt"><div><b>A card in the morning 🂠</b><div class="d">On the first open of the day, before anything else, one tarot card: choose a question or write your own, and draw.</div></div><label class="toggle ${S.settings.morningCardOff?'':'on'}" id="sMorningCard"><span class="sw"></span></label></div>
       <!-- The one switch that is about the machine rather than about taste.
            Everything it turns off is decoration; nothing it turns off is
            information. -->
@@ -175,6 +176,7 @@ routes.settings = function(root){
   $('#sAmbient').onclick = function(){ SoundManager.toggleAmbient(); this.classList.toggle('on', SoundManager.state().ambientEnabled); };
   $('#sUiSound').onclick = function(){ SoundManager.toggleUi(); this.classList.toggle('on', SoundManager.state().uiEnabled); };
   $('#sFelt').onclick = function(){ S.settings.feltTime = !S.settings.feltTime; saveNow(); this.classList.toggle('on', S.settings.feltTime); };
+  if($('#sMorningCard')) $('#sMorningCard').onclick = function(){ S.settings.morningCardOff = !S.settings.morningCardOff; saveNow(); this.classList.toggle('on', !S.settings.morningCardOff); };
   $('#sHome').onchange = e => { S.settings.home = e.target.value; saveNow(); };
   bindZoneEditor($('#zoneEditor').parentElement);
   bindSyncSection(document);

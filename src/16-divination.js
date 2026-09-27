@@ -435,11 +435,20 @@ function divinationReadHTML(d){
    three lines that arrive one at a time. The button comes last and on its
    own, so there is a moment where there is nothing to do. */
 function tarotCentering(then){
-  const lines = ['Take a breath.', 'Close your eyes for a moment.', 'Hold your question in your mind.'];
+  return ceremonyVeil(['Take a breath.', 'Close your eyes for a moment.', 'Hold your question in your mind.'],
+    then, {label: 'a moment before the cards'});
+}
+/* The same moment, for every practice that deserves one: the charms before
+   they are thrown, an oracle card before it is turned, a sitting or a round
+   of breathing before the clock starts. Lines of its own for each; the
+   question, where one was written, is set in front of you as the last line
+   so the intention is the thing in the room. */
+function ceremonyVeil(lines, then, {label = 'a moment before', question = ''} = {}){
+  const all = question ? [...lines, `\u201c${question}\u201d`] : lines;
   const soft = typeof reduced === 'function' && reduced();
-  const veil = el(`<div class="dv-veil sheen" role="dialog" aria-label="a moment before the cards">
+  const veil = el(`<div class="dv-veil sheen" role="dialog" aria-label="${esc(label)}">
     <div class="dv-veil-in">
-      ${lines.map((l, i) => `<p class="dv-veil-l" style="--i:${i}">${esc(l)}</p>`).join('')}
+      ${all.map((l, i) => `<p class="dv-veil-l${question && i === all.length - 1 ? ' dv-veil-q' : ''}" style="--i:${i}">${esc(l)}</p>`).join('')}
       <button class="btn primary dv-ready" ${soft ? '' : 'hidden'}>I'm ready</button>
       <button class="dv-skip mono">skip</button>
     </div></div>`);
@@ -448,7 +457,7 @@ function tarotCentering(then){
   veil.querySelector('.dv-ready').onclick = go;
   veil.querySelector('.dv-skip').onclick = go;
   if(!soft) setTimeout(() => { const b = veil.querySelector('.dv-ready'); b.hidden = false; b.focus(); },
-    lines.length * 700 + 1400);
+    all.length * 700 + 1400);
   else veil.querySelector('.dv-ready').focus();
   veil.addEventListener('keydown', e => { if(e.key === 'Escape') go(); });
   return veil;
@@ -925,7 +934,9 @@ function openOracle(deckId){
       <div class="row" style="justify-content:flex-end"><button class="btn primary" id="orDraw">draw one</button></div>
     </div>`, 'narrow');
   m.querySelectorAll('[data-deck]').forEach(b => b.onclick = () => { m.remove(); openOracle(b.dataset.deck); });
-  m.querySelector('#orDraw').onclick = () => {
+  m.querySelector('#orDraw').onclick = () => ceremonyVeil(['Take a breath.', 'Let the question settle.', 'Turn the card when you are ready.'],
+    drawOracle, {label: 'a moment before the card', question: (m.querySelector('#orQ')?.value || '').trim()});
+  function drawOracle(){
     const [i] = oracleDraw(deck.id, 1); const [name, text] = deck.cards[i];
     m.querySelector('#orOut').innerHTML = `
       <div class="or-stage">

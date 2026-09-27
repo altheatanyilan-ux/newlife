@@ -256,7 +256,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* an oracle card is a sentence, and a sentence in a box is a notification:
      it is a card you turn over, with a note on how to sit with it */
   await p.evaluate(() => openOracle('elem')); await p.waitForTimeout(400);
-  await p.evaluate(() => document.querySelector('#orDraw').click()); await p.waitForTimeout(1600);
+  /* the card is turned after the veil (a moment to set the question), which
+     is passed the way a person would, with "skip" */
+  await p.evaluate(() => document.querySelector('#orDraw').click()); await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('.dv-veil .dv-skip')?.click()); await p.waitForTimeout(1400);
   yes('an oracle card is turned over', await p.evaluate(() => document.querySelector('#orCard')?.classList.contains('up')));
   yes('  drawn at a size worth looking at', await p.evaluate(() => {
     const r = document.querySelector('#orCard')?.getBoundingClientRect();
@@ -328,6 +331,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('pressing a length sets it', await p.evaluate(() => stillness().prefs.minutes), 20);
   await p.evaluate(() => { document.querySelector('#t-sacred').open = true;
     document.querySelector('#stBegin').click(); });
+  /* a sitting begins after the veil, too */
+  await p.waitForTimeout(400);
+  await p.evaluate(() => document.querySelector('.dv-veil .dv-skip')?.click());
   await p.waitForTimeout(700);
   yes('pressing begin starts a sitting', await p.evaluate(() => !!document.querySelector('.still-run')));
   yes('  with a circle that breathes', await p.evaluate(() => !!document.querySelector('.still-circle')));

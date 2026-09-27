@@ -362,7 +362,10 @@ function openCharmCast(pre = {}){
     if(typeof sound === 'function') sound('click');
   });
   m.querySelector('#ccPhys').onclick = () => { const q = m.querySelector('#ccQ').value; m.remove(); openPhysicalCast({question: q, size}); };
-  m.querySelector('#ccGo').onclick = () => {
+  m.querySelector('#ccGo').onclick = () => ceremonyVeil(
+    ['Take a breath.', 'Hold the charms loosely in your cupped hands.', 'Ask your question — and let them fall.'],
+    throwThem, {label: 'a moment before the throw', question: (m.querySelector('#ccQ')?.value || '').trim()});
+  function throwThem(){
     const thrown = charmCast(size);
     m.querySelector('#ccSetup').hidden = true;
     castStageInto(m.querySelector('#ccOut'), thrown, {
@@ -370,7 +373,7 @@ function openCharmCast(pre = {}){
       size, projects, modal: m, animate: true,
       recast: () => { m.remove(); openCharmCast({question: m.querySelector('#ccQ')?.value || '', size}); },
     });
-  };
+  }
 }
 
 const castSizeDotsHTML = n => `<svg class="cc-dots" viewBox="0 0 34 26" aria-hidden="true">${
