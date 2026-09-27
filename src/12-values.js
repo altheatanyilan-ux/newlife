@@ -219,6 +219,8 @@ routes.value = function(root, params){
       ${lifeline}
     </div>
 
+    ${additionalEdHTML(`values.#${v.id}.additional`, {cls: 'section rv'})}
+
     <!-- the living record first: what actually happened, before what you said -->
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
       ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div class="vev ${pol==='+'?'pos':'neg'}"><span class="vev-mark">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>

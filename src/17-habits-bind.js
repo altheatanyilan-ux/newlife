@@ -218,6 +218,7 @@ function habPanelHTML(h){
       </div>
       <div class="field"><label>The cue</label>${ed(`${path}.cue`, {multi:true, ph:'After I pour the coffee…'})}</div>
       <div class="field"><label>The set-up</label>${ed(`${path}.environment`, {multi:true, ph:'At the desk, phone in another room, timer set'})}</div>
+      ${additionalEdHTML(`${path}.additional`, {cls: 'field'})}
       ${!br ? `<div class="grid c2" style="gap:10px">
         <div class="field"><label>Before</label>${ed(`${path}.preRitual`, {multi:true, ph:'light the candle, close the door'})}</div>
         <div class="field"><label>After</label>${ed(`${path}.postRitual`, {multi:true, ph:'one sentence about what came'})}</div></div>

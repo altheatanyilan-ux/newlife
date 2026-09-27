@@ -238,6 +238,7 @@ function entryExtraHTML(e){
   if(e.type==='progress' && x.duration) rows.push(`<span class="status-pill">${x.duration} min</span>`);
   if(e.type==='media'){ const r = typeof resonanceMeta==='function' ? resonanceMeta(x.resonanceLevel) : null; rows.push(`<span class="status-pill">${(typeof MEDIA_STATUS_LABEL!=='undefined'&&MEDIA_STATUS_LABEL[x.status])||x.status||''}</span>${r?` <span class="resonance-pill" style="--c:${r[2]}">${r[1]}</span>`:''}`); if(x.oneLineCapture) rows.push(`<div class="quote" style="font-size:.85rem">${esc(x.oneLineCapture)}</div>`); }
   if(x.installed) rows.push(`<div class="installed"><div class="k" style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--terra)">what this installed in me</div>${esc(x.installed)}</div>`);
+  if(x.additional && typeof additionalReadHTML === 'function') rows.push(additionalReadHTML(x.additional));
   return rows.length ? `<div class="stack" style="gap:6px;margin-top:8px;font-size:.85rem">${rows.join('')}</div>` : '';
 }
 function entryCard(e, {clamp:cl=true, tools=true}={}){

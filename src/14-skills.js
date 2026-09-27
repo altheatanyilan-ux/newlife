@@ -1020,6 +1020,7 @@ function openSkillPanel(id){
     </div>
     <div class="faint" style="font-size:.78rem;margin-bottom:10px">${esc(SKILL_HORIZONS[skillHorizon(s)][2])}</div>
     <div class="field" style="margin-bottom:14px"><label>Why this one?</label>${ed(`skills.#${s.id}.why`,{ph:'One line, for the day you have forgotten.'})}</div>
+    ${additionalEdHTML(`skills.#${s.id}.additional`, {cls: 'field'})}
     ${['someday','next'].includes(skillHorizon(s))?`<div class="field" style="margin-bottom:14px"><label>Start by</label>${ed(`skills.#${s.id}.startBy`,{ph:'YYYY-MM-DD',cls:'mono',date:true})}</div>`:''}
     <div class="grid c3" style="gap:10px"><div class="card" style="padding:12px 14px"><div class="mono">last practiced</div><div class="serif" style="font-size:1.2rem">${relDays(since)}</div></div><div class="card" style="padding:12px 14px"><div class="mono">streak</div><div class="serif" style="font-size:1.2rem">${st.cur}d <span class="faint" style="font-size:.8rem">best ${st.best}</span></div></div><div class="card" style="padding:12px 14px"><div class="mono">total hours</div><div class="serif" style="font-size:1.2rem" data-tween="${skillHours(s)}" data-dec="1">0</div></div></div>
     <div class="archetype">${arche}</div>

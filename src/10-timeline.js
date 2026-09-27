@@ -180,6 +180,7 @@ routes.stage = function(root, params){
     </div>
     ${s.photos?.length?`<div class="gallery rv" style="margin:-16px 0 30px">${s.photos.map((p,i)=>photoTile(p,`stages.#${s.id}.photos.${i}`)).join('')}</div>`:''}
 
+    ${additionalEdHTML(`stages.#${s.id}.additional`, {cls: 'section rv'})}
     <section class="section rv"><span class="sc">The story I tell about this stage</span>
       ${ed(`stages.#${s.id}.narrative`,{multi:true,mdr:true,cls:'prose serif-lg',ph:'Your current interpretation of this era. It will change. That is the point.',hook:'stageNarrative:'+s.id})}
       <div class="row" style="margin-top:10px"><button class="btn sm ghost" id="saveVersion">keep this version</button></div>

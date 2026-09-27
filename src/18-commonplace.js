@@ -680,6 +680,8 @@ function openMediaPanel(id){
       <div class="row" style="gap:6px" id="mpRec">${['yes','conditionally','no'].map(v=>`<button class="btn sm ${x.recommend===v?'primary':'ghost'}" data-rec="${v}">${v}</button>`).join('')}</div>
       ${x.recommend && x.recommend!=='no' ? `<div class="field" style="margin-top:8px"><label>Who should read/watch this, and when?</label>${ed(`entries.#${e.id}.extra.recommendWho`,{ph:'…'})}</div>` : ''}</div>
 
+    ${additionalEdHTML(`entries.#${e.id}.extra.additional`)}
+
     <div class="vp-sec"><span class="sc">Hashtags</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">The thread this work belongs to. The research drawer in Writing Studio can pull every entry that shares a tag.</div>
       <input class="inp mono" id="mpTags" value="${esc((e.tags||[]).map(t=>'#'+t).join(' '))}" placeholder="#kyoto #jazz #craft" list="tagList2"><datalist id="tagList2">${allTags().map(([t])=>`<option value="#${esc(t)}">`).join('')}</datalist></div>
 

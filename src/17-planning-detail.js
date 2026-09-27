@@ -101,6 +101,8 @@ function planDetailHTML(t){
 
     <div class="pd-sec"><div class="k mono">notes</div>
       <textarea class="ta" id="pdDesc" placeholder="Anything the title does not carry. Markdown welcome.">${esc(t.desc)}</textarea></div>
+    <div class="pd-sec"><div class="k mono">${ADDITIONAL_LABEL.toLowerCase()}</div>
+      <textarea class="ta" id="pdAdd" placeholder="${esc(ADDITIONAL_HINT)}">${esc(t.additional || '')}</textarea></div>
 
     <div class="pd-sec"><div class="row between"><span class="k mono">subtasks</span>
       <span class="mono faint">${sub ? `${sub.done}/${sub.total}` : ''}</span></div>
@@ -210,6 +212,7 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdNewTag').onclick = () => { const n = prompt('Tag name'); if(!n || !n.trim()) return;
     const tag = planEnsureTag(n); if(tag && !t.tags.includes(tag.name)) t.tags.push(tag.name); touch(); redraw(); };
   p.querySelector('#pdDesc').oninput = debounce(function(){ t.desc = this.value; touch(); }, 400);
+  p.querySelector('#pdAdd').oninput = debounce(function(){ t.additional = this.value; touch(); }, 400);
 
   /* subtasks */
   p.querySelectorAll('[data-pdsubdone]').forEach(b => b.onclick = () => {

@@ -15,6 +15,8 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
       <textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea>
       <div id="extraFields"></div>
+      <div class="field add-field"><label>${ADDITIONAL_LABEL}</label><div class="faint" style="font-size:.76rem;margin-bottom:4px">${esc(ADDITIONAL_HINT)}</div>
+        <textarea class="ta" data-x="additional" style="min-height:60px" placeholder="Anything else.">${esc((e.extra && e.extra.additional) || '')}</textarea></div>
       <!-- Who was there is part of a memory, not an afterthought filed under
            "connect this entry" — a formative event without its people is half
            the record. It sits in the body of every entry now, and the label

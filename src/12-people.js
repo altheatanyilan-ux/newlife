@@ -432,6 +432,7 @@ function renderPersonPage(root, id){
     <div class="value-field rv"><div class="q">What I become around this person</div><div class="faint" style="font-size:.8rem;margin-bottom:8px">Your self-image shifts depending on who you're with. Naming the shift makes it conscious.</div>${ed(`people.#${p.id}.becomeAround`,{multi:true,ph:'Around them, I am…'})}</div>
     ${F('gift','The gift','What this person gives, or gave, that no one else could.')}
     ${F('wound','The wound','Where this relationship has hurt or limited you. Neither this nor the gift negates the other.')}
+    ${additionalEdHTML(`people.#${p.id}.additional`, {cls: 'value-field rv'})}
 
     <section class="section rv"><span class="sc">Threads activated</span><div class="deps">${S.threads.map(t=>`<span class="chip click ${(p.threadsLinked||[]).includes(t.id)?'on':''}" style="--c:${t.color}" data-ppthread="${t.id}">${esc(t.name)}</span>`).join('')||'<span class="faint">No threads yet — name one on the Timeline page.</span>'}</div></section>
     <section class="section rv"><span class="sc">Values embodied</span><p class="muted" style="font-size:.85rem">Who shows you what this actually looks like in practice — different from which values you embody around them.</p><div class="deps">${S.valueOrder.map(vid=>{ const v=byId(S.values,vid); return `<span class="chip click ${(p.valuesEmbodied||[]).includes(vid)?'on':''}" style="--c:${v.color}" data-ppvalue="${vid}">${esc(v.name)}</span>`; }).join('')}</div></section>
