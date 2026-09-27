@@ -247,12 +247,10 @@ Above both day views:
 **Daily check-in.** Its tick is the first step of your morning.
 
 - **Today's intention** — one thing to give attention to (prefilled if you planned the day last night).
-- **Mood right now** — Open, Tender, Charged, Settled or Flat.
 - **How is today going?** — one honest sentence, or as many as it takes.
-- **Energy in four dimensions** — Physical, Emotional, Mental, Spiritual, each 1–5.
 - **Emotional set-point** — where you are on Abraham Hicks' 22-step emotional guidance scale (1 Fear/Despair … 11 Disappointment … 22 Joy/Freedom/Love).
 
-These readings feed the Review's energy and set-point charts and the Days archive. A reading is a reading: the words can be edited later, the numbers are kept as you gave them.
+These feed the Review's set-point chart and the Days archive (energy in the four dimensions is taken in the evening review, §10). A reading is a reading: the words can be edited later, the numbers are kept as you gave them.
 
 **Morning Theatre.** A practice of rehearsing the future you are building — drawn from Maltz (*Psycho-Cybernetics*), Hill (*Think and Grow Rich*), Hicks and Fritz (structural tension). It opens with one question: **How are you feeling about your visions right now?** — 🔥 On fire, 🌫 Foggy, 😤 Resistant, 🙏 Grateful, ✨ Inspired — and how long you have: **5, 15 or 30 minutes**. From that it assembles a session of two to four practices, one to a screen, about one of your projects (a rotation makes sure every project gets its mornings, not just the favourite). The practices:
 
@@ -984,7 +982,7 @@ The house is designed so that you record something **once**, in the place it nat
 | seal a letter or log a decision | Today, on its date |
 | set a skill milestone | Today, within 30 days of it |
 | take a values snapshot | the Review's long view; Maslow; the solar system's brightness |
-| do the morning check-in | the Review's energy and set-point charts; the Days archive |
+| do the morning check-in | the Review's set-point chart; the Days archive |
 | practise the Morning Theatre | manifestation and gratitude entries; structural tension on a project |
 | sit in stillness | a streak and depth reading; an insight can go to the intuition log |
 | make a Tree page | `[[journal:…]]`, `[[library:…]]`, `[[writing:…]]` links back; journal saves offer it |

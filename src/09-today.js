@@ -487,20 +487,18 @@ routes.today = function(root, params = []){
 
     <div class="daybox daybox-solo">
 
-    <!-- daily check-in (intention + mood + energy + setpoint) -->
+    <!-- daily check-in (intention + how it is going + setpoint). The mood
+         shapes and the four energy dimensions were taken out by request; what
+         earlier days recorded in them is kept and still read by the Days
+         archive and the Review. -->
     <!-- Past the small hours the morning check-in is not a form to fill in, it
          is something you did fifteen hours ago. It folds itself away rather
          than sitting open asking to start a morning you are at the end of. -->
-    <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !isLateNight() && (!c.intention || (!c.setpoint && !c.mood)))}>
+    <details class="section rv today-checkin t-sec" id="t-checkin"${fold('t-checkin', !isLateNight() && (!c.intention || !c.setpoint))}>
       <summary><span class="sc">Daily check-in</span><span class="mono">${c.intention ? esc(c.intention.slice(0,40)) : 'not yet set'}</span>${flowTick('checkinAt')}</summary>
       <div class="body stack" style="gap:20px">
         <div class="field"><label>Today's intention ${planT.planned && c.intention ? '<span class="mono faint" style="text-transform:none;letter-spacing:0">· set last night</span>' : ''}</label>
           ${ed('checkins.' + T + '.intention', {ph:'One thing to give attention to today.', cls:'serif-lg'})}</div>
-        <div class="field"><label>Mood right now</label>
-          <div class="mood-shapes row" style="gap:10px;flex-wrap:wrap">
-            ${MOODS.map(m=>`<button class="mood-btn ${c.mood===m.v?'on':''}" data-mood="${m.v}" style="flex-direction:column;gap:3px"><span class="mood-icon">${m.icon}</span><span class="mono" style="font-size:.65rem">${m.label}</span></button>`).join('')}
-          </div>
-        </div>
         <!-- Not one line. It was asked for as one sentence and given a
              single-line box, which is a box that argues with you the moment
              the day needs more than a sentence — and the days that need more
@@ -510,8 +508,6 @@ routes.today = function(root, params = []){
         <div class="field"><label>How is today going?</label>
           ${ed('checkins.' + T + '.sentence',
             {multi: true, ph:'One honest sentence — or as many as it takes.', cls:'serif-lg'})}</div>
-        <div class="field"><label>Energy — four dimensions</label>
-          <div class="energy-row">${DIMS.map(d=>`<div class="energy-dim" style="--c:${d.c}"><div class="lbl"><span>${d.name}</span><span class="mono">${c.energy?.[d.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy?.[d.id]||0)>=n?'on':''}" data-dim="${d.id}" data-n="${n}"></i>`).join('')}</div></div>`).join('')}</div></div>
         <div class="field setpoint"><label>Emotional set-point (Hicks' guidance scale)</label>
           <input type="range" class="slider" min="1" max="22" value="${c.setpoint||14}" id="setpoint" style="--c:var(--rose)">
           <div class="lbls"><span>1 · Fear / Despair</span><span>11 · Disappointment</span><span>22 · Joy / Freedom / Love</span></div>
@@ -656,8 +652,6 @@ routes.today = function(root, params = []){
   });
 
   /* check-in bindings */
-  root.querySelectorAll('.dots i').forEach(i => i.onclick = () => { c.energy = c.energy||{}; c.energy[i.dataset.dim] = +i.dataset.n; saveNow(); const dim = i.closest('.energy-dim'); dim.querySelectorAll('i').forEach(x=>x.classList.toggle('on', +x.dataset.n <= +i.dataset.n)); dim.querySelector('.lbl .mono').textContent = i.dataset.n+'/5'; });
-  root.querySelectorAll('[data-mood]').forEach(b => b.onclick = () => { c.mood = b.dataset.mood; saveNow(); root.querySelectorAll('[data-mood]').forEach(x => x.classList.toggle('on', x === b)); });
   const sp = $('#setpoint'); if(sp){ sp.oninput = () => { $('#spName').textContent = hicksName(+sp.value); $('#spNum').textContent = sp.value; }; sp.onchange = () => { c.setpoint = +sp.value; saveNow(); sound('save'); }; }
 
   /* morning theatre */

@@ -224,9 +224,9 @@ function houseStats(){
   const atro = S.skills.filter(s=>!s.planned && daysSince(skillLastPracticed(s))>90).length; const hrs30 = S.skills.reduce((n,s)=>n+entriesLinked('skills',s.id).filter(e=>daysSince(e.createdAt.slice(0,10))<=30).reduce((m,e)=>m+((+e.extra?.duration||0)/60),0),0);
   const active = S.projects.filter(p=>p.status==='active'); const nods7 = S.nods.filter(x=>daysSince(x.date)<=7).length; const cold = active.filter(p=>daysSince(projectNods(p)[0]?.date)>7).length;
   const j7 = S.entries.filter(e=>daysSince(e.createdAt.slice(0,10))<=7).length; const quotes = S.entries.filter(e=>e.type==='quote').length; const memories = S.entries.filter(e=>e.type==='memory').length;
-  const c = S.checkins[T]; const rem = (S.reminders||[]).filter(r=>!r.done&&r.date<=T).length;
+  const c = S.checkins[T]; const checkedIn = !!(c && (c.intention || c.sentence || c.setpoint || c.mood)); const rem = (S.reminders||[]).filter(r=>!r.done&&r.date<=T).length;
   const stat = {
-    today:    {line:`${c?.mood?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:!!c?.mood, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
+    today:    {line:`${checkedIn?'checked in':'not checked in'} · rings ${done}/${due.length}`, ok:checkedIn, cadence:'daily', tip:`${c?.intention?'Intention: '+c.intention:'No intention set yet'}${rem?` · ${rem} reminder${rem>1?'s':''} waiting`:''}`},
     lifetape: {line:`${done}/${due.length} rings today`, ok:due.length>0&&done===due.length, cadence:'daily', tip:`${rehearsalDoneToday()?'Morning Theatre practised':'Morning Theatre not yet practised'} · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}`},
     journals: {line:`${j7} entr${j7===1?'y':'ies'} this week`, ok:j7>0, cadence:'daily', tip:`${S.entries.length} entries across ${S.journals.length} journals · ${S.stages.length} stages on the timeline`},
     projects: {line:`${active.length} active · ${nods7} nods / 7d`, ok:cold===0, cadence:'daily', tip:cold?`${cold} active project${cold>1?'s':''} without a nod this week`:'every active project nodded this week'},
