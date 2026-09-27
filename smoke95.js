@@ -92,20 +92,42 @@ const yes = (n, c, got='')=> c ? ok(n) : no(n, got);
     const up = !!(await p.$('.tp-pop'));
     yes('touching the field opens the clock', up);
     if(up){
-      const hrs  = await p.$$eval('.tp-pop [data-tph]', n => n.length);
-      const mins = await p.$$eval('.tp-pop [data-tpm]', n => n.length);
-      yes('24 hours down one column and the five-minute marks down the other',
-          hrs === 24 && mins >= 12, `${hrs} hours, ${mins} minutes`);
+      /* morning or afternoon first: asked outright on an empty field, already
+         chosen (and changeable) on one with a time in it */
+      const first = !!(await p.$('.tp-pop .tp-first'));
+      const emptyNow = await p.$eval('#clkV', i => !i.value);
+      yes('an empty field asks AM or PM before anything else', !emptyNow || first);
+      await p.click(first ? '.tp-pop .tp-bighalf [data-tphalf="am"]' : '.tp-pop .tp-half [data-tphalf="am"]');
+      await p.waitForTimeout(150);
+      const hrs = await p.$$eval('.tp-pop .tp-face [data-tph]', n => n.map(x => +x.dataset.tph));
+      yes('then the hours are a clock face, one to twelve round a dial',
+          hrs.length === 12 && hrs.includes(7) && !hrs.includes(19), JSON.stringify(hrs));
       yes('it sits above the modal it belongs to',
           await p.evaluate(() => { const z = n => +getComputedStyle(n).zIndex || 0;
             return z(document.querySelector('.tp-pop')) > z(document.querySelector('.overlay')); }));
       await p.click('.tp-pop [data-tph="7"]');
       await p.waitForTimeout(150);
+      const mins = await p.$$eval('.tp-pop .tp-face [data-tpm]', n => n.length);
+      is('choosing the hour turns the face to the minutes', mins, 12);
       await p.click('.tp-pop [data-tpm="30"]');
-      await p.waitForTimeout(200);
-      is('choosing 07 then 30 sets 07:30', await p.$eval('#clkV', i => i.value), '07:30');
+      await p.waitForTimeout(80);
+      is('choosing 7 then 30 sets 07:30', await p.$eval('#clkV', i => i.value), '07:30');
       is('and the clock says so in the words people use',
          await p.$eval('.tp-pop .tp-val', n => n.textContent), '7:30 am');
+      await p.waitForTimeout(400);
+      yes('  the minutes finish it: the clock puts itself away', !(await p.$('.tp-pop')));
+      await p.click('#clkV'); await p.waitForTimeout(250);
+      await p.click('.tp-pop .tp-half [data-tphalf="pm"]'); await p.waitForTimeout(150);
+      is('PM on a set time moves the same hour to the afternoon', await p.$eval('#clkV', i => i.value), '19:30');
+      /* a minute between the marks: pressed on the dial where 23 would be */
+      await p.click('.tp-pop [data-tpgo="m"]'); await p.waitForTimeout(120);
+      const box = await p.$eval('.tp-pop .tp-face', n => { const r = n.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; });
+      const ang = 23 * 6 * Math.PI / 180;
+      await p.mouse.click(box.x + 70 * Math.sin(ang), box.y - 70 * Math.cos(ang));
+      await p.waitForTimeout(80);
+      is('any minute is wherever the dial is pressed', await p.$eval('#clkV', i => i.value), '19:23');
+      await p.waitForTimeout(400);
+      await p.click('#clkV'); await p.waitForTimeout(250);
       await p.click('.tp-pop [data-tpnow]');
       await p.waitForTimeout(200);
       const nowV = await p.$eval('#clkV', i => i.value);
@@ -133,13 +155,18 @@ const yes = (n, c, got='')=> c ? ok(n) : no(n, got);
     await dueTime.click();
     await p.waitForTimeout(300);
     yes('a task’s due time opens a clock', !!(await p.$('.tp-pop')));
+    await p.click((await p.$('.tp-pop .tp-first')) ? '.tp-pop .tp-bighalf [data-tphalf="am"]' : '.tp-pop .tp-half [data-tphalf="am"]');
+    await p.waitForTimeout(150);
     await p.click('.tp-pop [data-tph="9"]');
     await p.waitForTimeout(150);
     await p.click('.tp-pop [data-tpm="15"]');
     await p.waitForTimeout(300);
     is('and what it chooses is saved on the task',
        await p.evaluate(id => byId(S.tasks, id).dueTime, tid), '09:15');
-    await p.keyboard.press('Escape');
+    /* the minutes finish it and the clock goes by itself; an Escape now would
+       close the task instead */
+    await p.waitForTimeout(300);
+    if(await p.$('.tp-pop')) await p.keyboard.press('Escape');
   }
   const dueDay = await p.$('#pdDay');
   if(dueDay){

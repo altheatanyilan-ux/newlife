@@ -119,15 +119,21 @@ function openDatePicker(input){
   const cursor = dpCursorFor(input);
   cursor.setDate(1);
   const pop = el(`<div class="dp-pop" role="dialog" aria-label="Choose a date">
+    <!-- The month's two arrows stand either side of the month, and the year's
+         either side of the year. They used to be at the two ends of the row,
+         with the year in between, and the next-month arrow read as the
+         year's — so it looked as if a month could only go back. -->
     <div class="dp-head">
-      <button type="button" class="dp-nav" data-dpprev aria-label="Previous month">‹</button>
-      <select class="dp-month" data-dpmonth aria-label="Month">${MONTHS.map((n, i) => `<option value="${i}">${n}</option>`).join('')}</select>
-      <span class="dp-yearwrap">
-        <button type="button" class="dp-nav sm" data-dpyprev aria-label="Previous year">‹</button>
-        <input type="number" class="dp-year" data-dpyear inputmode="numeric" step="1" aria-label="Year">
-        <button type="button" class="dp-nav sm" data-dpynext aria-label="Next year">›</button>
+      <span class="dp-mgroup">
+        <button type="button" class="dp-nav" data-dpprev aria-label="Previous month" title="previous month">‹</button>
+        <select class="dp-month" data-dpmonth aria-label="Month">${MONTHS.map((n, i) => `<option value="${i}">${n}</option>`).join('')}</select>
+        <button type="button" class="dp-nav" data-dpnext aria-label="Next month" title="next month">›</button>
       </span>
-      <button type="button" class="dp-nav" data-dpnext aria-label="Next month">›</button>
+      <span class="dp-yearwrap">
+        <button type="button" class="dp-nav sm" data-dpyprev aria-label="Previous year" title="previous year">‹</button>
+        <input type="number" class="dp-year" data-dpyear inputmode="numeric" step="1" aria-label="Year">
+        <button type="button" class="dp-nav sm" data-dpynext aria-label="Next year" title="next year">›</button>
+      </span>
     </div>
     <div class="dp-dow">${DP_DOW.map(d => `<span>${d}</span>`).join('')}</div>
     <div class="dp-grid"></div>
@@ -221,16 +227,28 @@ addEventListener('resize', () => { if(dpOpen) dpClose(); });
 
 
 /* ============================================================
-   THE TIME PICKER — the same idea, for the hour.
+   THE TIME PICKER — a clock, not a list.
 
    Wherever the house asks what time something happened, the field
    is a real <input type="time">, so every existing read of .value
-   keeps working. What opens on top of it is ours: two columns,
-   hours down one side and five-minute marks down the other, with
-   the field still typeable for the minutes in between.
+   keeps working. What opens on top of it is ours, and it asks the
+   way a person thinks of a time: morning or afternoon first, then
+   the hour on a clock face, then the minutes on the same face. It
+   used to be two columns of numbers to scroll, twenty-four hours
+   and twelve five-minute marks.
+
+   · AM / PM at the top. An empty field asks for it before anything
+     else; a field with a time in it has it chosen already, and
+     switching it moves the same hour to the other half of the day.
+   · The hour face: 1 to 12 round a dial. Press or drag to it; the
+     face turns to minutes by itself.
+   · The minute face: the fives are marked, and any minute between
+     them is where you let go. Choosing the minute finishes it.
+   · The hour and the minute in the header go back to either face.
+   The field stays typeable, and the open clock follows what is typed.
    ============================================================ */
 
-let tpOpen = null;                       // {pop, input} while a clock is up
+let tpOpen = null;                       // {pop, input, face, half} while a clock is up
 const tpValid = s => /^\d{2}:\d{2}/.test(s || '');
 const tpNowHM = () => { const d = new Date(); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 const tpParts = v => tpValid(v) ? {h: +v.slice(0, 2), m: +v.slice(3, 5)} : null;
@@ -240,20 +258,38 @@ function tpLabel(v){
   const h12 = p.h % 12 === 0 ? 12 : p.h % 12;
   return `${h12}:${pad(p.m)} ${p.h < 12 ? 'am' : 'pm'}`;
 }
+const TP_R = 80, TP_C = 100;             // the dial: radius of the numbers, centre
+const tpAt = (deg, r = TP_R) => ({x: TP_C + r * Math.sin(deg * Math.PI / 180), y: TP_C - r * Math.cos(deg * Math.PI / 180)});
 
-function tpColsHTML(v){
-  const p = tpParts(v);
-  const hrs = [], mins = [];
-  for(let h = 0; h < 24; h++)
-    hrs.push(`<button type="button" class="tp-cell${p && p.h === h ? ' on' : ''}" data-tph="${h}">${pad(h)}</button>`);
-  for(let m = 0; m < 60; m += 5)
-    mins.push(`<button type="button" class="tp-cell${p && p.m === m ? ' on' : ''}" data-tpm="${m}">${pad(m)}</button>`);
-  /* a minute that is not a five keeps its own place in the column rather than
-     vanishing, so 07:23 survives being looked at */
-  if(p && p.m % 5) mins.splice(Math.floor(p.m / 5) + 1, 0,
-    `<button type="button" class="tp-cell on odd" data-tpm="${p.m}">${pad(p.m)}</button>`);
-  return `<div class="tp-col" data-tpcol="h" role="listbox" aria-label="Hour">${hrs.join('')}</div>
-    <div class="tp-col" data-tpcol="m" role="listbox" aria-label="Minute">${mins.join('')}</div>`;
+function tpFaceHTML(){
+  const {input, face, half} = tpOpen;
+  const p = tpParts(input.value);
+  const marks = []; let hand = null;
+  if(face === 'h'){
+    for(let i = 1; i <= 12; i++){
+      const h24 = (i % 12) + (half === 'pm' ? 12 : 0);
+      const on = p && p.h === h24;
+      const {x, y} = tpAt(i * 30);
+      marks.push(`<button type="button" class="tp-num${on ? ' on' : ''}" data-tph="${h24}" style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px"
+        aria-label="${i} ${half}">${i}</button>`);
+      if(on) hand = i * 30;
+    }
+  } else {
+    for(let m = 0; m < 60; m += 5){
+      const on = p && p.m === m;
+      const {x, y} = tpAt(m * 6);
+      marks.push(`<button type="button" class="tp-num${on ? ' on' : ''}" data-tpm="${m}" style="left:${x.toFixed(1)}px;top:${y.toFixed(1)}px"
+        aria-label="${m} minutes">${pad(m)}</button>`);
+    }
+    if(p) hand = p.m * 6;
+  }
+  /* a minute between the marks gets a dot of its own at the end of the hand */
+  const odd = face === 'm' && p && p.m % 5 ? tpAt(p.m * 6) : null;
+  return `<div class="tp-face" data-face="${face}" aria-label="${face === 'h' ? 'hour' : 'minute'}">
+    ${hand !== null ? `<i class="tp-hand" style="transform:rotate(${hand}deg)"></i>` : ''}
+    <i class="tp-pin"></i>
+    ${odd ? `<i class="tp-odd" style="left:${odd.x.toFixed(1)}px;top:${odd.y.toFixed(1)}px">${pad(p.m)}</i>` : ''}
+    ${marks.join('')}</div>`;
 }
 
 /* A calendar is wide and sits under its field. A clock is narrow, so it goes
@@ -275,21 +311,83 @@ function tpPlace(pop, input){
 function tpRender(){
   if(!tpOpen) return;
   const {pop, input} = tpOpen;
-  pop.querySelector('.tp-cols').innerHTML = tpColsHTML(input.value);
+  const p = tpParts(input.value);
+  if(p) tpOpen.half = p.h < 12 ? 'am' : 'pm';
+  const {face, half} = tpOpen;
+  const h12 = p ? (p.h % 12 === 0 ? 12 : p.h % 12) : null;
+  pop.querySelector('.tp-head').innerHTML = `
+    <span class="tp-read">
+      <button type="button" class="tp-part${face === 'h' ? ' on' : ''}" data-tpgo="h" ${half ? '' : 'disabled'} title="the hour">${h12 === null ? '––' : h12}</button><span class="tp-colon">:</span><button
+        type="button" class="tp-part${face === 'm' ? ' on' : ''}" data-tpgo="m" ${p ? '' : 'disabled'} title="the minutes">${p ? pad(p.m) : '––'}</button>
+    </span>
+    <span class="seg tp-half" role="group" aria-label="morning or afternoon">
+      <button type="button" data-tphalf="am" class="${half === 'am' ? 'on' : ''}">AM</button>
+      <button type="button" data-tphalf="pm" class="${half === 'pm' ? 'on' : ''}">PM</button></span>`;
   pop.querySelector('.tp-val').textContent = tpLabel(input.value);
-  $$('[data-tph]', pop).forEach(b => b.onclick = () => tpSet(+b.dataset.tph, null));
-  $$('[data-tpm]', pop).forEach(b => b.onclick = () => tpSet(null, +b.dataset.tpm));
-  $$('.tp-col', pop).forEach(col => { const on = col.querySelector('.on');
-    if(on) col.scrollTop = on.offsetTop - col.clientHeight / 2 + on.offsetHeight / 2; });
+  const body = pop.querySelector('.tp-body');
+  body.innerHTML = half ? tpFaceHTML()
+    : `<div class="tp-first"><span class="tp-ask">Morning or afternoon?</span>
+        <div class="tp-bighalf"><button type="button" data-tphalf="am">AM</button><button type="button" data-tphalf="pm">PM</button></div></div>`;
+  $$('[data-tphalf]', pop).forEach(b => b.onclick = () => tpHalf(b.dataset.tphalf));
+  $$('[data-tpgo]', pop).forEach(b => b.onclick = () => { tpOpen.face = b.dataset.tpgo; tpRender(); });
+  const dial = body.querySelector('.tp-face');
+  if(dial) tpBindFace(dial);
 }
 
-/* Either column can be touched first, so a half-set time needs a whole one to
-   land on: an unset field starts from the hour you are in, at the top of it. */
-function tpSet(h, m){
+/* morning or afternoon: chosen first on an empty field; on a set one, the
+   same hour moves to the other half of the day */
+function tpHalf(half){
   const {input} = tpOpen;
-  const cur = tpParts(input.value) || {h: new Date().getHours(), m: 0};
-  tpCommit(input, `${pad(h === null ? cur.h : h)}:${pad(m === null ? cur.m : m)}`);
+  const p = tpParts(input.value);
+  tpOpen.half = half;
+  if(p){
+    const h = (p.h % 12) + (half === 'pm' ? 12 : 0);
+    if(h !== p.h) tpCommit(input, `${pad(h)}:${pad(p.m)}`);
+  } else tpOpen.face = 'h';
   tpRender();
+}
+
+/* The dial answers to where the pointer is, not to which number was hit, so a
+   drag round the face works as well as a press on a number, and a minute
+   between the marks is wherever you let go. A number pressed from the
+   keyboard (Enter or Space on it) is taken as that number. */
+function tpBindFace(dial){
+  const valueAt = ev => {
+    const r = dial.getBoundingClientRect();
+    const dx = ev.clientX - (r.left + r.width / 2), dy = ev.clientY - (r.top + r.height / 2);
+    let deg = Math.atan2(dx, -dy) * 180 / Math.PI; if(deg < 0) deg += 360;
+    if(tpOpen.face === 'h'){ const i = Math.round(deg / 30) % 12; return (i % 12) + (tpOpen.half === 'pm' ? 12 : 0); }
+    return Math.round(deg / 6) % 60;
+  };
+  const show = v => {
+    const hand = dial.querySelector('.tp-hand') || dial.insertBefore(el('<i class="tp-hand"></i>'), dial.firstChild);
+    hand.style.transform = `rotate(${tpOpen.face === 'h' ? (v % 12) * 30 : v * 6}deg)`;
+    dial.querySelectorAll('.tp-num').forEach(n => n.classList.toggle('on',
+      +(tpOpen.face === 'h' ? n.dataset.tph : n.dataset.tpm) === v));
+  };
+  let down = false;
+  dial.onpointerdown = ev => { down = true; try { dial.setPointerCapture(ev.pointerId); } catch(e){} ev.preventDefault(); show(valueAt(ev)); };
+  dial.onpointermove = ev => { if(down) show(valueAt(ev)); };
+  dial.onpointerup = ev => { if(!down) return; down = false; tpChoose(valueAt(ev)); };
+  dial.onpointercancel = () => { down = false; tpRender(); };
+  $$('.tp-num', dial).forEach(b => b.onclick = ev => { if(ev.detail !== 0) return;
+    tpChoose(+(tpOpen.face === 'h' ? b.dataset.tph : b.dataset.tpm)); });
+}
+
+/* the hour turns the face to minutes; the minutes finish the time */
+function tpChoose(v){
+  if(!tpOpen) return;
+  const {input, face} = tpOpen;
+  const cur = tpParts(input.value);
+  if(face === 'h'){
+    tpCommit(input, `${pad(v)}:${pad(cur ? cur.m : 0)}`);
+    tpOpen.face = 'm'; tpRender();
+  } else {
+    const h = cur ? cur.h : (tpOpen.half === 'pm' ? 12 : 0);
+    tpCommit(input, `${pad(h)}:${pad(v)}`);
+    tpRender();
+    const was = tpOpen; setTimeout(() => { if(tpOpen === was) tpClose(); }, 260);
+  }
 }
 
 function tpCommit(input, val){
@@ -309,21 +407,22 @@ function tpClose(){
 function openTimePicker(input){
   if(tpOpen && tpOpen.input === input){ tpClose(); return; }
   tpClose(); dpClose();
+  const p = tpParts(input.value);
   const pop = el(`<div class="tp-pop" role="dialog" aria-label="Choose a time">
-    <div class="tp-head"><span class="tp-val mono"></span></div>
-    <div class="tp-dow"><span>hour</span><span>min</span></div>
-    <div class="tp-cols"></div>
+    <div class="tp-head"></div>
+    <div class="tp-body"></div>
     <div class="dp-foot">
       <button type="button" class="dp-lnk" data-tpnow>now</button>
+      <span class="tp-val mono" aria-live="polite"></span>
       <button type="button" class="dp-lnk" data-tpclear>clear</button>
     </div>
   </div>`);
   document.body.appendChild(pop);
   input.classList.add('dp-active');
-  tpOpen = {pop, input};
+  tpOpen = {pop, input, face: 'h', half: p ? (p.h < 12 ? 'am' : 'pm') : null};
   tpRender();
   tpPlace(pop, input);
-  pop.querySelector('[data-tpnow]').onclick = () => { tpCommit(input, tpNowHM()); tpRender(); };
+  pop.querySelector('[data-tpnow]').onclick = () => { tpCommit(input, tpNowHM()); tpOpen.face = 'm'; tpRender(); };
   pop.querySelector('[data-tpclear]').onclick = () => { tpCommit(input, ''); tpClose(); };
   pop.addEventListener('mousedown', ev => ev.stopPropagation());
 }

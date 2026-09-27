@@ -3983,7 +3983,10 @@ input[type="date"].dp-active{border-color:var(--page-accent);box-shadow:0 0 0 2p
   backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
   box-shadow:0 14px 40px rgba(10,8,6,.28);animation:dpIn .16s var(--ease)}
 @keyframes dpIn{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}
-.dp-head{display:flex;align-items:center;gap:4px;margin-bottom:8px}
+.dp-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
+.dp-mgroup{display:flex;align-items:center;gap:2px;flex:1 1 auto;min-width:0}
+.dp-mgroup .dp-nav{width:26px;height:26px;font-size:1.1rem}
+.dp-mgroup .dp-month{text-align:center;text-align-last:center}
 .dp-nav{width:22px;height:24px;flex:0 0 auto;border:none;background:none;color:var(--muted);
   font-size:1rem;line-height:1;cursor:pointer;border-radius:6px;transition:background .15s var(--ease),color .15s}
 .dp-nav:hover{background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text)}
@@ -4034,33 +4037,52 @@ input[data-dp].dp-active{border-color:var(--page-accent);
 .ed.ed-date.editing input{min-width:9em}
 
 /* ---------- THE TIME PICKER ----------
-   Two columns under the field: the hours of the day, and the five-minute
-   marks. The field stays typeable, which is how an odd minute gets in. */
+   Morning or afternoon at the top, then a dial: the hours round it, and
+   then the minutes. The field stays typeable. */
 input[type="time"]{cursor:pointer;font-family:var(--mono);font-size:.8rem}
 input[type="time"]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
 input[type="time"]::-webkit-inner-spin-button,input[type="time"]::-webkit-clear-button{display:none;-webkit-appearance:none}
 input[type="time"].dp-active{border-color:var(--page-accent);
   box-shadow:0 0 0 2px color-mix(in srgb,var(--page-accent) 18%,transparent)}
-.tp-pop{position:fixed;z-index:400;width:158px;padding:10px;border-radius:14px;
-  background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid var(--line-2);
+.tp-pop{position:fixed;z-index:400;width:228px;padding:10px 12px;border-radius:16px;
+  background:color-mix(in srgb,var(--surface) 95%,transparent);border:1px solid var(--line-2);
   backdrop-filter:blur(14px) saturate(1.15);-webkit-backdrop-filter:blur(14px) saturate(1.15);
   box-shadow:0 14px 40px rgba(10,8,6,.28);animation:dpIn .16s var(--ease)}
-.tp-head{text-align:center;padding-bottom:7px;margin-bottom:7px;border-bottom:1px dashed var(--line)}
-.tp-val{font-size:.82rem;color:var(--text);letter-spacing:.02em}
-.tp-dow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:3px}
-.tp-dow span{text-align:center;font-family:var(--mono);font-size:.56rem;letter-spacing:.06em;color:var(--faint)}
-.tp-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.tp-col{max-height:188px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;
-  scrollbar-width:thin;scroll-behavior:smooth}
-.tp-col::-webkit-scrollbar{width:5px}
-.tp-col::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:3px}
-.tp-cell{flex:0 0 auto;height:26px;border:none;background:none;border-radius:7px;cursor:pointer;
-  color:var(--text);font-family:var(--mono);font-size:.76rem;
-  transition:background .14s var(--ease),color .14s var(--ease)}
-.tp-cell:hover{background:color-mix(in srgb,var(--page-accent) 16%,transparent)}
-.tp-cell.on{background:var(--page-accent);color:var(--page-accent-ink)}
-.tp-cell.odd{font-style:italic}
-@media (prefers-reduced-motion:reduce){.tp-pop{animation:none}.tp-cell{transition:none}.tp-col{scroll-behavior:auto}}
+.tp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.tp-read{display:flex;align-items:baseline;font-family:var(--mono)}
+.tp-part{border:none;background:none;cursor:pointer;color:var(--muted);font-family:var(--mono);
+  font-size:1.35rem;line-height:1;padding:3px 4px;border-radius:7px;transition:background .14s var(--ease),color .14s var(--ease)}
+.tp-part.on{color:var(--text);background:color-mix(in srgb,var(--page-accent) 14%,transparent)}
+.tp-part:disabled{cursor:default;opacity:.55}
+.tp-colon{font-size:1.2rem;color:var(--faint);padding:0 1px}
+.seg.tp-half{margin:0;padding:2px;flex:0 0 auto}
+.seg.tp-half button{flex:0 0 auto;padding:4px 9px;font-size:.72rem;font-family:var(--mono)}
+.tp-body{display:flex;justify-content:center}
+.tp-face{position:relative;width:200px;height:200px;border-radius:50%;flex:0 0 auto;touch-action:none;cursor:pointer;
+  background:color-mix(in srgb,var(--page-accent) 7%,var(--surface-2));
+  box-shadow:inset 0 0 0 1px var(--line)}
+.tp-num{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border:none;border-radius:50%;
+  background:none;color:var(--text);font-family:var(--mono);font-size:.78rem;cursor:pointer;z-index:2;
+  transition:background .12s var(--ease),color .12s var(--ease)}
+.tp-face[data-face="m"] .tp-num{font-size:.7rem}
+.tp-num:hover{background:color-mix(in srgb,var(--page-accent) 18%,transparent)}
+.tp-num.on{background:var(--page-accent);color:var(--page-accent-ink)}
+.tp-pin{position:absolute;left:50%;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;
+  background:var(--page-accent);z-index:1}
+.tp-hand{position:absolute;left:50%;top:20px;width:2px;height:80px;margin-left:-1px;background:var(--page-accent);
+  transform-origin:50% 100%;z-index:1;transition:transform .12s var(--ease);pointer-events:none}
+.tp-odd{position:absolute;min-width:24px;height:22px;margin:-11px 0 0 -12px;padding:0 3px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-style:normal;font-family:var(--mono);font-size:.66rem;
+  background:var(--page-accent);color:var(--page-accent-ink);z-index:3;pointer-events:none}
+.tp-first{width:200px;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.tp-ask{font-family:var(--quote);font-style:italic;color:var(--muted);font-size:.9rem}
+.tp-bighalf{display:flex;gap:10px}
+.tp-bighalf button{width:74px;height:74px;border-radius:50%;border:1px solid var(--line-2);cursor:pointer;
+  background:var(--surface-2);color:var(--text);font-family:var(--mono);font-size:1.05rem;
+  transition:background .14s var(--ease),border-color .14s var(--ease)}
+.tp-bighalf button:hover{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 14%,var(--surface-2))}
+.tp-val{font-size:.7rem;color:var(--muted);letter-spacing:.02em;align-self:center}
+@media (prefers-reduced-motion:reduce){.tp-pop{animation:none}.tp-num,.tp-hand,.tp-part{transition:none}}
 
 /* ---------- THE OPENING QUESTION ----------
    Two swatches and two switches. The swatches are the palette itself rather
