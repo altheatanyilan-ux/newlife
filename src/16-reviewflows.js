@@ -115,6 +115,43 @@ function flowEvening(opts = {}){
 }
 
 /* ---------- 3. the weekly review ---------- */
+/* The Life Tape's views inside a review. On the Life Tape page their arrows,
+   "this week", and the days themselves are bound by the page (_bindLtBody),
+   which redraws the page; drawn inside a review they were never bound, so ‹ ›
+   and "click a day to read it" did nothing. Here they redraw the step in
+   place — an earlier week, a day read in full, and back — and the review
+   stays where it is. `home` is the view the step opens on. */
+function flowTapeStep(home){
+  const st = {view: home.view, day: home.day};
+  const html = () => {
+    const away = st.view !== home.view;
+    const back = away ? `<div class="row" style="margin-bottom:10px"><button class="btn sm ghost" data-flowtapeback>← back to the ${esc(home.view === 'span' ? home.label : home.view)}</button></div>` : '';
+    let inner;
+    if(st.view === 'day') inner = tapeDayHTML(st.day);
+    else if(st.view === 'month') inner = tapeMonthHTML(st.day);
+    else if(st.view === 'year') inner = tapeYearHTML(+st.day.slice(0, 4));
+    else if(st.view === 'span') inner = tapeSpanHTML(st.day, home.months, home.label);
+    else inner = tapeWeekHTML(st.day);
+    return back + inner;
+  };
+  const bind = (body, m) => {
+    const draw = () => { body.innerHTML = html(); body.querySelectorAll('.rv').forEach(n => n.classList.add('in')); bind(body, m); };
+    const go = (view, day) => { st.view = view; st.day = day; draw(); };
+    body.querySelectorAll('[data-tapeday]').forEach(n => n.onclick = e => {
+      if(e.target.closest('.entry,a,button:not([data-tapeday])')) return;
+      go('day', n.dataset.tapeday); });
+    body.querySelectorAll('[data-tapeweek]').forEach(b => b.onclick = () => go('week', b.dataset.tapeweek));
+    body.querySelectorAll('[data-tapemonth]').forEach(b => b.onclick = e => { e.stopPropagation(); go('month', b.dataset.tapemonth); });
+    body.querySelectorAll('[data-tapeyear]').forEach(b => b.onclick = () => go('year', b.dataset.tapeyear + '-01-01'));
+    body.querySelectorAll('[data-tapespan]').forEach(b => b.onclick = () => go('span', b.dataset.tapespan));
+    const back = body.querySelector('[data-flowtapeback]');
+    if(back) back.onclick = () => go(home.view, home.view === 'year' ? st.day.slice(0, 4) + '-01-01' : st.day);
+    /* a thing on the tape that opens its own page leaves the review, as "open the …" does */
+    body.querySelectorAll('[data-tapego]').forEach(n => n.onclick = () => { if(m) m.remove(); navigate(n.dataset.tapego); });
+    if(typeof bindHabitRings === 'function') bindHabitRings(body);
+  };
+  return {body: () => { if(home.before) home.before(); return html(); }, bind};
+}
 function flowWeekly(opts = {}){
   const T = today(); const days = planDaysFrom(T);
   /* The bench, but only when there is something to say about it — a review
@@ -138,7 +175,7 @@ function flowWeekly(opts = {}){
       <div class="row"><button class="btn sm ghost" data-flowgo="#/time/week">open the week</button></div></div>`}] : [];
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
-     body: () => tapeWeekHTML(T)},
+     ...flowTapeStep({view: 'week', day: T})},
     {title:'The habits held, or they did not.',
      body: () => { const list = S.habits.filter(h => !h.archived && !h.negative);
        const due = sum(days.map(d => list.filter(h => habitDue(h,d)).length));
@@ -169,7 +206,7 @@ function flowWeekly(opts = {}){
 function flowSeasonal(){
   guidedFlow('Quarterly review', [
     {title:'Ninety days, at once.', hint:'Dry spells, surges, the weeks you cannot remember. Look before you interpret.',
-     body: () => { const t = tapeState(); t.mode = 'total'; return tapeYearHTML(new Date().getFullYear()); }},
+     ...flowTapeStep({view: 'year', day: new Date().getFullYear() + '-01-01', before: () => { tapeState().mode = 'total'; }})},
     {title:'Re-rank what matters.', hint:'The order changes. The previous ranking is kept.',
      body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/values">open the compass</button></div>`},
     {title:'Re-read one past stage. Does it still feel true?',
@@ -199,7 +236,7 @@ function flowAnnual(){
   const year = new Date().getFullYear();
   guidedFlow('Annual rite', [
     {title:'The year, all of it.', hint:'Toggle the modes. What do you see that you did not live through consciously?',
-     body: () => tapeYearHTML(year)},
+     ...flowTapeStep({view: 'year', day: year + '-01-01'})},
     {title:"Write the year's narrative.", hint:'It saves as a reflection you can tag to the stage it belongs to.',
      body: () => `<div class="row"><button class="btn sm primary" data-flowquick="reflection">write it</button></div>`},
     {title:'Mint the year into the Timeline.', hint:'A sub-stage for what this year was.',
@@ -240,7 +277,7 @@ function flowMonthly(){
   const items = () => tapeFilter(tapeItems(from, to));
   guidedFlow('Monthly review', [
     {title:'The month, at once.', hint:'Before you interpret it, look at it.',
-     body: () => { const t = tapeState(); t.day = T; return tapeMonthHTML(T); }},
+     ...flowTapeStep({view: 'month', day: T, before: () => { tapeState().day = T; }})},
     {title:'The milestones you named.', hint:'Tick what landed. An unticked milestone is information, not a failure.',
      body: () => { const named = mp.milestones.map((ms,i) => ({...ms, i})).filter(ms => ms.text);
        return named.length ? `<div class="stack" style="gap:4px">${named.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}</span></label>`).join('')}</div>`
@@ -280,7 +317,7 @@ function flowHalf(){
   const hn = halfNote(halfKey(T));
   guidedFlow('Half-year review', [
     {title:'Six months, side by side.', hint:'Long enough to see a season change, short enough to remember it.',
-     body: () => tapeSpanHTML(T, 6, 'half')},
+     ...flowTapeStep({view: 'span', day: T, months: 6, label: 'half'})},
     {title:'What actually moved?', hint:'Movement is evidence, not enthusiasm.',
      body: () => { const done = S.projects.filter(p => p.status === 'completed');
        const skills = S.skills.filter(x => !x.archived && (x.currentLevel||0) > 0);
