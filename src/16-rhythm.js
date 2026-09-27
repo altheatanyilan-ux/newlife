@@ -438,8 +438,10 @@ function renderPlanPanel(box, d){
   const wk = weekStart(d); const wp = weekPlan(wk); const mp = monthPlan(monthKey(d));
   box.innerHTML = `
     <div class="row between"><span class="sc" style="margin:0">${d === T ? 'Today' : fmtDate(d,'med')}</span><span class="mono">${totalN ? `${doneN}/${totalN} done` : 'nothing planned'}</span></div>
-    ${(wp.theme || weekGoalsNamed(wp).length || weekWins(wp).length) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">
+    ${(wp.theme || weekGoalsNamed(wp).length || weekWins(wp).length || weekPeriodOn(wp, d)) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">
       ${wp.theme ? `<b>${esc(wp.theme)}</b>` : ''}
+      ${(() => { const per = weekPeriodOn(wp, d); return per ? `<div class="wk-period"><span class="mono">${esc(wpSpan(per))}${
+        per.name ? ` \u00b7 ${esc(per.name)}` : ''}</span>${per.focus ? `<span>${esc(per.focus)}</span>` : ''}</div>` : ''; })()}
       ${/* a goal written on Sunday and never seen again is a goal that does
             nothing. Each one says how much of its own work has gone, so the
             week is answerable on any day of it rather than only at the end. */
@@ -1076,6 +1078,9 @@ function weekPlan(wk){
      plain summary of the lists from here on. */
   if(!Array.isArray(p.wins)) p.wins = p.win ? [{id: uid(), text: p.win, why: ''}] : [];
   if(!Array.isArray(p.risks)) p.risks = p.guard ? [{id: uid(), text: p.guard, prevent: ''}] : [];
+  /* the week in parts: a span of its days, each with a focus of its own
+     (added later; a plan made before simply has none) */
+  if(!Array.isArray(p.periods)) p.periods = [];
   return p;
 }
 /* what a week said would make it a win, and what would take it away — from
@@ -1084,6 +1089,18 @@ const weekWins = p => Array.isArray(p && p.wins) ? p.wins.filter(w => (w.text ||
   : (p && p.win ? [{text: p.win, why: ''}] : []);
 const weekRisks = p => Array.isArray(p && p.risks) ? p.risks.filter(r => (r.text || '').trim())
   : (p && p.guard ? [{text: p.guard, prevent: ''}] : []);
+/* THE WEEK IN PERIODS. A week is not always one thing: three days of a
+   deadline and then a lighter end, a trip in the middle. Each period is a span
+   of the week's days ({id, from, to, name, focus}), and on every day it
+   covers, Today says which period it is and what it is for. Only periods with
+   a name or a focus count; where two overlap, the first one written wins. */
+const weekPeriods = p => (Array.isArray(p && p.periods) ? p.periods : [])
+  .filter(x => x && x.from && x.to && ((x.focus || '').trim() || (x.name || '').trim()))
+  .slice().sort((a, b) => a.from.localeCompare(b.from));
+const weekPeriodOn = (p, d) => (Array.isArray(p && p.periods) ? p.periods : [])
+  .find(x => x && x.from && x.to && x.from <= d && d <= x.to && ((x.focus || '').trim() || (x.name || '').trim())) || null;
+const wpDayShort = d => DOW[parseDay(d).getDay()].slice(0, 3);
+const wpSpan = x => x.from === x.to ? wpDayShort(x.from) : `${wpDayShort(x.from)}\u2013${wpDayShort(x.to)}`;
 /* last week's plan as it was left, without writing an empty one for a week
    nobody ever planned — reading a record should not create it */
 const weekPlanSeen = wk => (S.weekPlans && S.weekPlans[wk])
@@ -1136,13 +1153,21 @@ function openWeeklyPlan(d = today()){
       p.guard = p.risks.map(r => r.text).filter(Boolean).join('; ');
     }
     all('[data-wpaim]').forEach(i => p.aims[i.dataset.wpaim] = i.value.trim());
-    all('[data-wpout]').forEach(i => p.outcomes[+i.dataset.wpout].text = i.value.trim());
+    all('[data-wpout]').forEach(i => { const o = p.outcomes[+i.dataset.wpout]; if(o) o.text = i.value.trim(); });
     all('[data-wplink]').forEach(sl => {
       const [t, id] = (sl.value || '').split(':');
-      const o = p.outcomes[+sl.dataset.wplink];
+      const o = p.outcomes[+sl.dataset.wplink]; if(!o) return;
       o.linkType = t || ''; o.linkId = id || null;
     });
     all('[data-wpenergy]').forEach(i => p.energyBudget[i.dataset.wpenergy] = +i.value || 0);
+    if(q('[data-wpperfrom]')){
+      p.periods = all('[data-wpperfrom]').map(sl => { const i = sl.dataset.wpperfrom;
+        let from = sl.value, to = (q(`[data-wpperto="${i}"]`) || {value: from}).value || from;
+        if(to < from) [from, to] = [to, from];
+        return {id: sl.dataset.wpid || uid(), from, to,
+          name: (q(`[data-wppername="${i}"]`) || {value: ''}).value.trim(),
+          focus: (q(`[data-wpperfocus="${i}"]`) || {value: ''}).value.trim()}; });
+    }
   };
   const redraw = () => { read(); draw(); };
   /* which task rows are open for editing, and which goals' work is showing —
@@ -1252,21 +1277,24 @@ function openWeeklyPlan(d = today()){
           placeholder="${moved || open ? 'what progress here?' : 'or nothing, on purpose'}">
       </div>`; }).join('')}</div>`;
 
-  const goalsHTML = () => `<div class="stack" style="gap:12px">${p.outcomes.slice(0, 3).map((o, i) => {
+  /* as many goals as the week really holds — three rows to start with, and
+     another whenever it is asked for */
+  const goalsHTML = () => `<div class="stack" style="gap:12px">${p.outcomes.map((o, i) => {
     const pool = goalPool(o), picked = new Set(o.taskIds);
     const named = !!(o.text || '').trim();
     return `<div class="wp-goal">
       <div class="row" style="gap:6px"><span class="in-n">${i + 1}</span>
         <input class="inp serif-lg" data-wpout="${i}" value="${esc(o.text)}" placeholder="${
-          ['the one the week is really about', 'the second thing worth carrying', 'and a third, if there is one'][i]}">
+          ['the one the week is really about', 'the second thing worth carrying', 'and a third, if there is one'][i] || 'and another'}">
         <select class="sel" data-wplink="${i}" style="width:auto">
           <option value="">— which part of a life —</option>
           <optgroup label="lists">${lists.map(l => `<option value="list:${esc(l.id)}" ${
             o.linkType === 'list' && o.linkId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</optgroup>
           <optgroup label="projects">${(S.projects || []).map(pr => `<option value="project:${esc(pr.id)}" ${
             o.linkType === 'project' && o.linkId === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</optgroup>
-        </select></div>
-      ${named ? `<details class="wp-under" data-wpunder="${i}" ${(goalOpen[i] ?? o.taskIds.length > 0) ? 'open' : ''}>
+        </select>
+        ${p.outcomes.length > 1 ? `<button class="del-x inline" data-wpgoaldel="${i}" title="take this goal off the week (the work under it stays where it is)">\u00d7</button>` : ''}</div>
+      <details class="wp-under" data-wpunder="${i}" ${(goalOpen[i] ?? o.taskIds.length > 0) ? 'open' : ''} ${named ? '' : 'hidden'}>
         <summary><span class="mono">${o.taskIds.length
           ? `${o.taskIds.length} thing${o.taskIds.length === 1 ? '' : 's'} under it`
           : 'nothing under it yet \u2014 choose the work'}</span></summary>
@@ -1276,8 +1304,32 @@ function openWeeklyPlan(d = today()){
         <div class="wp-tadd">
           <input class="inp" data-wpadd="${i}" placeholder="\uff0b a task in ${esc(goalUnder(o) || 'the Inbox')} \u2014 e.g. draft the intro ~45m friday !high">
           <button class="btn sm" data-wpaddgo="${i}">Add</button></div>
-      </details>` : `<p class="faint" style="font-size:.78rem;margin:4px 0 0 28px">Name it and the work already written down can be put under it.</p>`}
-    </div>`; }).join('')}</div>`;
+      </details>
+      <p class="faint wp-unnamed" data-wpunnamed="${i}" style="font-size:.78rem;margin:4px 0 0 28px" ${named ? 'hidden' : ''}>Name it and the work already written down can be put under it.</p>
+    </div>`; }).join('')}
+    <div><button class="btn sm ghost" id="wpMoreGoal">\uff0b another goal</button></div></div>`;
+
+  /* the week's days, for choosing where a period starts and ends */
+  const wkDays = [0, 1, 2, 3, 4, 5, 6].map(n => addDays(wk, n));
+  const dayOpts = sel => wkDays.map(d => `<option value="${d}" ${d === sel ? 'selected' : ''}>${
+    esc(wpDayShort(d))} ${parseDay(d).getDate()}</option>`).join('');
+  const periodsHTML = () => {
+    const rows = p.periods;
+    const clash = wkDays.filter(d => rows.filter(x => x.from <= d && d <= x.to).length > 1);
+    return `<div class="field"><label>The week in periods</label>
+      <p class="muted" style="font-size:.84rem;margin:0 0 8px">If the week has parts \u2014 three days of a deadline and then a lighter end \u2014 give each its days and its focus. On every day it covers, Today says which part of the week it is and what it is for.</p>
+      <div class="wp-periods">${rows.map((x, i) => `<div class="wp-period" data-wpid="${esc(x.id)}">
+        <div class="wp-period-when">
+          <select class="sel sm" data-wpperfrom="${i}" data-wpid="${esc(x.id)}" aria-label="from">${dayOpts(x.from)}</select>
+          <span class="faint">to</span>
+          <select class="sel sm" data-wpperto="${i}" aria-label="to">${dayOpts(x.to)}</select>
+          <input class="inp" data-wppername="${i}" value="${esc(x.name || '')}" placeholder="what to call it (optional)">
+          <button class="del-x inline" data-wpperdel="${i}" title="take this period out">\u00d7</button></div>
+        <textarea class="ta" rows="2" data-wpperfocus="${i}" placeholder="the focus for these days">${esc(x.focus || '')}</textarea>
+      </div>`).join('')}</div>
+      ${clash.length ? `<p class="faint" style="font-size:.78rem;margin:6px 0 0">${clash.map(wpDayShort).join(', ')} ${clash.length === 1 ? 'is' : 'are'} in two periods \u2014 Today will show the first.</p>` : ''}
+      <button class="btn sm ghost" id="wpAddPeriod" style="margin-top:8px">\uff0b a period</button></div>`;
+  };
 
   const recapHTML = () => { const named = weekGoalsNamed(p);
     const aims = lists.filter(l => (p.aims[l.id] || '').trim());
@@ -1289,6 +1341,9 @@ function openWeeklyPlan(d = today()){
       ${aims.length ? `<div class="sc" style="margin:12px 0 6px">And in each part of a life</div>
         <div class="stack" style="gap:3px">${aims.map(l => `<div class="row" style="gap:8px">
           <b style="color:${esc(l.color)};min-width:110px">${esc(l.name)}</b><span>${esc(p.aims[l.id])}</span></div>`).join('')}</div>` : ''}
+      ${weekPeriods(p).length ? `<div class="sc" style="margin:12px 0 6px">In periods</div>
+        <div class="stack" style="gap:4px">${weekPeriods(p).map(x => `<div class="row" style="gap:8px;align-items:baseline">
+          <b class="mono" style="min-width:74px;font-size:.78rem">${esc(wpSpan(x))}</b><span>${x.name ? `<b>${esc(x.name)}</b>${x.focus ? ' \u2014 ' : ''}` : ''}${esc(x.focus || '')}</span></div>`).join('')}</div>` : ''}
       ${weekWins(p).length ? `<div class="sc" style="margin:12px 0 4px">A win would be</div>${wpWinListHTML(weekWins(p))}` : ''}
       ${weekRisks(p).length ? `<div class="sc" style="margin:12px 0 4px">What could take it away, and what you will do</div>${wpRiskListHTML(weekRisks(p))}` : ''}
     </div>`; };
@@ -1302,7 +1357,7 @@ function openWeeklyPlan(d = today()){
        <p class="muted" style="font-size:.88rem">Your lists, with what is open in each and what moved last week. Say what progress you want \u2014 and star the two or three the week actually goes to. Leaving one blank is a decision too, and a better one than letting it slide without noticing.</p>
        ${aspectsHTML()}`,
       `<h2>What the week is carrying</h2>
-       <p class="muted" style="font-size:.88rem">Two or three bigger things, and the work already written down that would finish them. A goal with nothing under it is a wish; a goal with four tasks under it is a week.</p>
+       <p class="muted" style="font-size:.88rem">The bigger things \u2014 as many as the week really holds \u2014 and the work already written down that would finish them. A goal with nothing under it is a wish; a goal with four tasks under it is a week.</p>
        ${goalsHTML()}`,
       `<h2>What would make this a win?</h2>
        <p class="muted" style="font-size:.88rem">One at a time, concretely, with the goals still in view \u2014 each something you could hold up on Sunday and know the answer to, and why it would matter.</p>
@@ -1317,6 +1372,7 @@ function openWeeklyPlan(d = today()){
       `<h2>And the shape of it</h2>
        <div class="field"><label>A phrase that names the week</label>
          <input class="inp serif-lg" id="wpTheme" value="${esc(p.theme)}" placeholder="One phrase that names what this week is for"></div>
+       ${periodsHTML()}
        ${recapHTML()}`,
     ][step];
     /* a redraw rebuilds the step, so where it was scrolled to — the dialog,
@@ -1342,7 +1398,38 @@ function openWeeklyPlan(d = today()){
     /* changing what a goal sits under changes which work it can reach for, so
        the list below it is redrawn rather than left showing another list's */
     m.querySelectorAll('[data-wplink]').forEach(sl => sl.onchange = () => redraw());
-    m.querySelectorAll('[data-wpout]').forEach(i => i.onchange = () => redraw());
+    /* Naming a goal shows the work that can go under it. It used to redraw
+       the whole step when the box lost focus — which is also the moment you
+       click into the next goal, so the redraw took that click, and what you
+       typed next went nowhere. Now it only shows or hides the part below. */
+    m.querySelectorAll('[data-wpout]').forEach(i => i.oninput = () => {
+      const named = !!i.value.trim(), n = i.dataset.wpout;
+      const u = m.querySelector(`[data-wpunder="${n}"]`), h = m.querySelector(`[data-wpunnamed="${n}"]`);
+      if(u) u.hidden = !named; if(h) h.hidden = named; });
+    /* A goal's box redraws the step when it loses focus, and a press on a
+       button beside it is exactly how it loses focus — so the redraw ran
+       first and the press landed on a button that was no longer there. The
+       step's own buttons keep the focus where it is; each reads the boxes
+       itself before it changes anything. */
+    m.querySelectorAll('#wpMoreGoal, [data-wpgoaldel], #wpAddPeriod, [data-wpperdel], [data-wpdel]')
+      .forEach(b => b.addEventListener('mousedown', ev => ev.preventDefault()));
+    const more = m.querySelector('#wpMoreGoal');
+    if(more) more.onclick = () => { read(); p.outcomes.push({id: uid(), text: '', linkType: '', linkId: null, taskIds: []});
+      draw(); const ins = m.querySelectorAll('[data-wpout]'); ins[ins.length - 1]?.focus(); };
+    m.querySelectorAll('[data-wpgoaldel]').forEach(b => b.onclick = () => { read();
+      p.outcomes.splice(+b.dataset.wpgoaldel, 1);
+      Object.keys(goalOpen).forEach(k => delete goalOpen[k]);
+      draw(); });
+    const addPer = m.querySelector('#wpAddPeriod');
+    if(addPer) addPer.onclick = () => { read();
+      const last = p.periods.reduce((a, x) => x.to > a ? x.to : a, '');
+      const from = last && last < wkDays[6] ? addDays(last, 1) : wkDays[0];
+      const to = addDays(from, 2) > wkDays[6] ? wkDays[6] : addDays(from, 2);
+      p.periods.push({id: uid(), from, to, name: '', focus: ''});
+      draw(); const f = m.querySelectorAll('[data-wpperfocus]'); f[f.length - 1]?.focus(); };
+    m.querySelectorAll('[data-wpperdel]').forEach(b => b.onclick = () => { read();
+      p.periods.splice(+b.dataset.wpperdel, 1); draw(); });
+    m.querySelectorAll('[data-wpperfrom], [data-wpperto]').forEach(sl => sl.onchange = () => redraw());
     m.querySelectorAll('[data-wptask]').forEach(c => c.onchange = () => {
       const o = p.outcomes[+c.dataset.wptask], at = o.taskIds.indexOf(c.value);
       c.checked ? (at < 0 && o.taskIds.push(c.value)) : (at >= 0 && o.taskIds.splice(at, 1));

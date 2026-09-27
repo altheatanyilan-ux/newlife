@@ -231,12 +231,21 @@ routes.today = function(root, params = []){
   const wkGoals = (wkPlan && typeof weekGoalsNamed === 'function') ? weekGoalsNamed(wkPlan) : [];
   const wkWins = wkPlan && typeof weekWins === 'function' ? weekWins(wkPlan) : [];
   const wkRisks = wkPlan && typeof weekRisks === 'function' ? weekRisks(wkPlan) : [];
-  const weekCarryHTML = () => (!wkPlan || (!wkGoals.length && !wkPlan.theme && !wkWins.length && !wkRisks.length)) ? '' :
+  /* which part of the week today is in, if the week was planned in parts */
+  const wkPers = wkPlan && typeof weekPeriods === 'function' ? weekPeriods(wkPlan) : [];
+  const wkNow = wkPlan && typeof weekPeriodOn === 'function' ? weekPeriodOn(wkPlan, T) : null;
+  const weekCarryHTML = () => (!wkPlan || (!wkGoals.length && !wkPlan.theme && !wkWins.length && !wkRisks.length && !wkPers.length)) ? '' :
     `<div class="wk-carry">
       <div class="row between" style="align-items:baseline">
         <span class="sc" style="margin:0">This week</span>
         <button class="tbtn" id="planWeekHere" title="open the week's plan">edit</button></div>
       ${wkPlan.theme ? `<p class="wk-theme">${esc(wkPlan.theme)}</p>` : ''}
+      ${wkPers.length ? `<div class="wk-periods">
+        ${wkNow ? `<div class="wk-period now"><span class="mono">now \u00b7 ${esc(wpSpan(wkNow))}${wkNow.name ? ` \u00b7 ${esc(wkNow.name)}` : ''}</span>${
+          wkNow.focus ? `<span class="wk-period-focus">${esc(wkNow.focus)}</span>` : ''}</div>` : ''}
+        ${wkPers.length > 1 || !wkNow ? `<div class="wk-period-strip">${wkPers.map(x => `<span class="${x === wkNow ? 'on' : ''}" title="${esc(x.focus || '')}">${
+          esc(wpSpan(x))}${x.name ? ` ${esc(x.name)}` : ''}</span>`).join('')}</div>` : ''}
+      </div>` : ''}
       ${wkGoals.length ? `<div class="wk-goals">${wkGoals.map(o => {
         const g = weekGoalProgress(o);
         return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
