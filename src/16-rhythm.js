@@ -438,7 +438,7 @@ function renderPlanPanel(box, d){
   const wk = weekStart(d); const wp = weekPlan(wk); const mp = monthPlan(monthKey(d));
   box.innerHTML = `
     <div class="row between"><span class="sc" style="margin:0">${d === T ? 'Today' : fmtDate(d,'med')}</span><span class="mono">${totalN ? `${doneN}/${totalN} done` : 'nothing planned'}</span></div>
-    ${(wp.theme || weekGoalsNamed(wp).length || wp.win) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">
+    ${(wp.theme || weekGoalsNamed(wp).length || weekWins(wp).length) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">
       ${wp.theme ? `<b>${esc(wp.theme)}</b>` : ''}
       ${/* a goal written on Sunday and never seen again is a goal that does
             nothing. Each one says how much of its own work has gone, so the
@@ -447,7 +447,8 @@ function renderPlanPanel(box, d){
           const g = weekGoalProgress(o);
           return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
             g ? `<span class="mono faint">${g.done}/${g.total}</span>` : ''}</div>`; }).join('')}</div>` : ''}
-      ${wp.win ? `<div class="faint" style="font-size:.74rem;margin-top:5px">a win: ${esc(wp.win)}</div>` : ''}
+      ${weekWins(wp).map(w => `<div class="faint" style="font-size:.74rem;margin-top:5px">a win: ${esc(w.text)}</div>`).join('')}
+      ${weekRisks(wp).map(r => `<div class="faint" style="font-size:.74rem;margin-top:3px">in the way: ${esc(r.text)}${r.prevent ? ` \u2192 ${esc(r.prevent)}` : ''}</div>`).join('')}
     </div>` : ''}
     ${p.planned ? '' : `<button class="btn primary" id="planStart" style="width:100%;margin-top:10px">◎ Plan my day</button>`}
     ${p.intentions.some(Boolean) ? `<div class="intentions">${p.intentions.map((t,i)=> t ? `<div class="intention"><span class="in-n">${i+1}</span><span>${esc(t)}</span></div>` : '').join('')}</div>` : ''}
@@ -1068,8 +1069,21 @@ function weekPlan(wk){
   p.focus = Array.isArray(p.focus) ? p.focus : [];
   p.win = p.win || '';
   p.guard = p.guard || '';
+  /* A win and a threat are lists now, each with its reason beside it: a win
+     with why it matters, a threat with how you would head it off. A plan
+     written before, as one sentence each, keeps that sentence as its first
+     item; the sentences themselves are left as they were, and are kept as a
+     plain summary of the lists from here on. */
+  if(!Array.isArray(p.wins)) p.wins = p.win ? [{id: uid(), text: p.win, why: ''}] : [];
+  if(!Array.isArray(p.risks)) p.risks = p.guard ? [{id: uid(), text: p.guard, prevent: ''}] : [];
   return p;
 }
+/* what a week said would make it a win, and what would take it away — from
+   the lists where there are lists, from the old single sentence where not */
+const weekWins = p => Array.isArray(p && p.wins) ? p.wins.filter(w => (w.text || '').trim())
+  : (p && p.win ? [{text: p.win, why: ''}] : []);
+const weekRisks = p => Array.isArray(p && p.risks) ? p.risks.filter(r => (r.text || '').trim())
+  : (p && p.guard ? [{text: p.guard, prevent: ''}] : []);
 /* last week's plan as it was left, without writing an empty one for a week
    nobody ever planned — reading a record should not create it */
 const weekPlanSeen = wk => (S.weekPlans && S.weekPlans[wk])
@@ -1109,8 +1123,18 @@ function openWeeklyPlan(d = today()){
     const q = sel => m.querySelector(sel);
     const all = sel => [...m.querySelectorAll(sel)];
     if(q('#wpTheme')) p.theme = q('#wpTheme').value.trim();
-    if(q('#wpWin')) p.win = q('#wpWin').value.trim();
-    if(q('#wpGuard')) p.guard = q('#wpGuard').value.trim();
+    /* the rows of wins and threats, each with the box beside it; a row
+       left empty on both sides is not kept */
+    if(q('[data-wpwin]')){
+      p.wins = all('[data-wpwin]').map(i => ({id: i.dataset.wpid || uid(), text: i.value.trim(),
+        why: (q(`[data-wpwhy="${i.dataset.wpwin}"]`) || {value: ''}).value.trim()})).filter(w => w.text || w.why);
+      p.win = p.wins.map(w => w.text).filter(Boolean).join('; ');
+    }
+    if(q('[data-wprisk]')){
+      p.risks = all('[data-wprisk]').map(i => ({id: i.dataset.wpid || uid(), text: i.value.trim(),
+        prevent: (q(`[data-wpprev="${i.dataset.wprisk}"]`) || {value: ''}).value.trim()})).filter(r => r.text || r.prevent);
+      p.guard = p.risks.map(r => r.text).filter(Boolean).join('; ');
+    }
     all('[data-wpaim]').forEach(i => p.aims[i.dataset.wpaim] = i.value.trim());
     all('[data-wpout]').forEach(i => p.outcomes[+i.dataset.wpout].text = i.value.trim());
     all('[data-wplink]').forEach(sl => {
@@ -1171,17 +1195,45 @@ function openWeeklyPlan(d = today()){
       </div>` : ''}
     </div>`; };
 
+  /* Step 4's two lists. Each row is one item and, right under it, its
+     reason: why a win would matter, how a threat will be headed off. There
+     is always one empty row at the end, so the next item is already waiting;
+     writing in it makes it a row of its own and puts another under it. */
+  const WP_ROWS = {
+    win:  {list: () => p.wins,  item: 'wpwin',  side: 'wpwhy',  sideKey: 'why',
+           ph: ['It would be a win if\u2026', 'Another win\u2026'], sidePh: 'Why is this significant? What would it change?',
+           add: '\uff0b another win', del: 'take this win out'},
+    risk: {list: () => p.risks, item: 'wprisk', side: 'wpprev', sideKey: 'prevent',
+           ph: ['What could get in the way\u2026', 'Something else that could\u2026'], sidePh: 'How I would prevent it \u2014 or what I will do when it comes',
+           add: '\uff0b another', del: 'take this out'},
+  };
+  const wpRowsHTML = kind => { const R = WP_ROWS[kind], rows = [...R.list(), {id: '', text: '', [R.sideKey]: ''}];
+    return `<div class="wp-items wp-items-${kind}">${rows.map((r, i) => { const last = i === rows.length - 1;
+      return `<div class="wp-item${last ? ' is-new' : ''}">
+        <span class="in-n">${i + 1}</span>
+        <div class="wp-item-body">
+          <input class="inp serif-lg wp-item-main" data-${R.item}="${i}" data-wpid="${esc(r.id || '')}" value="${esc(r.text || '')}"
+            placeholder="${esc(R.ph[i ? 1 : 0])}">
+          <textarea class="ta wp-item-side" data-${R.side}="${i}" rows="2" placeholder="${esc(R.sidePh)}">${esc(r[R.sideKey] || '')}</textarea>
+        </div>
+        ${last ? '' : `<button class="del-x inline" data-wpdel="${kind}:${i}" title="${esc(R.del)}">\u00d7</button>`}
+      </div>`; }).join('')}</div>`; };
+  const wpWinListHTML = ws => `<ul class="wp-list">${ws.map(w => `<li><span class="serif">${esc(w.text)}</span>${
+    w.why ? `<span class="wp-list-why">${esc(w.why)}</span>` : ''}</li>`).join('')}</ul>`;
+  const wpRiskListHTML = rs => `<ul class="wp-list">${rs.map(r => `<li><span>${esc(r.text)}</span>${
+    r.prevent ? `<span class="wp-list-why">\u2192 ${esc(r.prevent)}</span>` : ''}</li>`).join('')}</ul>`;
+
   const lastWeekHTML = () => {
     const named = weekGoalsNamed(lp);
-    if(!named.length && !lastDone.length && !lp.win) return `<div class="empty">Last week was not planned here, so there is nothing to look back at. This one can be the first.</div>`;
+    if(!named.length && !lastDone.length && !weekWins(lp).length) return `<div class="empty">Last week was not planned here, so there is nothing to look back at. This one can be the first.</div>`;
     return `<div class="plan-yest">
       ${lp.theme ? `<div class="intention-card" style="margin-bottom:10px">${esc(lp.theme)}</div>` : ''}
       ${named.length ? `<div class="sc" style="margin:10px 0 6px">What last week was carrying</div>
         <div class="stack" style="gap:5px">${named.map(o => { const g = weekGoalProgress(o);
           return `<div class="row between"><span>${esc(o.text)}</span><span class="mono faint">${
             g ? `${g.done} of ${g.total} done` : 'nothing was put under it'}</span></div>`; }).join('')}</div>` : ''}
-      ${lp.win ? `<div class="sc" style="margin:12px 0 4px">You said it would be a win if</div>
-        <p class="serif" style="margin:0">${esc(lp.win)}</p>` : ''}
+      ${weekWins(lp).length ? `<div class="sc" style="margin:12px 0 4px">You said it would be a win if</div>
+        ${wpWinListHTML(weekWins(lp))}` : ''}
       <p class="mono faint" style="margin-top:10px">${lastDone.length} task${lastDone.length === 1 ? '' : 's'} finished between ${
         fmtDate(lastWk, 'med')} and ${fmtDate(lastEnd, 'med')}</p>
     </div>`;
@@ -1237,7 +1289,8 @@ function openWeeklyPlan(d = today()){
       ${aims.length ? `<div class="sc" style="margin:12px 0 6px">And in each part of a life</div>
         <div class="stack" style="gap:3px">${aims.map(l => `<div class="row" style="gap:8px">
           <b style="color:${esc(l.color)};min-width:110px">${esc(l.name)}</b><span>${esc(p.aims[l.id])}</span></div>`).join('')}</div>` : ''}
-      ${p.win ? `<div class="sc" style="margin:12px 0 4px">A win would be</div><p class="serif" style="margin:0">${esc(p.win)}</p>` : ''}
+      ${weekWins(p).length ? `<div class="sc" style="margin:12px 0 4px">A win would be</div>${wpWinListHTML(weekWins(p))}` : ''}
+      ${weekRisks(p).length ? `<div class="sc" style="margin:12px 0 4px">What could take it away, and what you will do</div>${wpRiskListHTML(weekRisks(p))}` : ''}
     </div>`; };
 
   function draw(){
@@ -1252,10 +1305,11 @@ function openWeeklyPlan(d = today()){
        <p class="muted" style="font-size:.88rem">Two or three bigger things, and the work already written down that would finish them. A goal with nothing under it is a wish; a goal with four tasks under it is a week.</p>
        ${goalsHTML()}`,
       `<h2>What would make this a win?</h2>
-       <p class="muted" style="font-size:.88rem">Concretely, with the goals still in view \u2014 something you could hold up on Sunday and know the answer to.</p>
-       <textarea class="ta serif-lg" id="wpWin" placeholder="It would be a win if\u2026">${esc(p.win)}</textarea>
-       <div class="field" style="margin-top:14px"><label>And what would take it away?</label>
-         <textarea class="ta" id="wpGuard" placeholder="The week you already know is coming \u2014 the trip, the deadline, the tiredness.">${esc(p.guard)}</textarea></div>
+       <p class="muted" style="font-size:.88rem">One at a time, concretely, with the goals still in view \u2014 each something you could hold up on Sunday and know the answer to, and why it would matter.</p>
+       ${wpRowsHTML('win')}
+       <h3 class="wp-subh">And what would take it away?</h3>
+       <p class="muted" style="font-size:.88rem">The week you already know is coming \u2014 the trip, the deadline, the tiredness. One at a time, and for each, what you will do about it before it happens.</p>
+       ${wpRowsHTML('risk')}
        ${weekGoalsNamed(p).length ? `<div class="plan-focus" style="margin-top:14px"><div class="pf-rows">${
          weekGoalsNamed(p).map(o => { const g = weekGoalProgress(o);
            return `<div class="pf-row"><span class="pf-ico">\u25c6</span><span class="pf-name">${esc(o.text)}</span>
@@ -1263,17 +1317,16 @@ function openWeeklyPlan(d = today()){
       `<h2>And the shape of it</h2>
        <div class="field"><label>A phrase that names the week</label>
          <input class="inp serif-lg" id="wpTheme" value="${esc(p.theme)}" placeholder="One phrase that names what this week is for"></div>
-       <div class="field"><label>Hours you mean to give each, roughly</label>
-         <div class="grid c2" style="gap:8px">${DIMS.map(dm => `<div class="row between">
-           <span style="color:${dm.c}">${dm.name}</span>
-           <input class="inp mono" type="number" min="0" max="60" style="width:70px" data-wpenergy="${dm.id}" value="${p.energyBudget[dm.id] || 0}"></div>`).join('')}</div>
-         <div class="faint" style="font-size:.74rem">Not a ledger \u2014 a leaning.</div></div>
        ${recapHTML()}`,
     ][step];
     /* a redraw rebuilds the step, so where it was scrolled to — the dialog,
        and each goal's list of work — is put back afterwards */
     const md = m.querySelector('.modal');
     const keep = {top: md ? md.scrollTop : 0, over: m.scrollTop, lists: {}};
+    /* and whichever box had the caret gets it back */
+    const af = document.activeElement; let fsel = null, caret = null;
+    if(af && m.contains(af)) for(const at of af.attributes) if(at.name.startsWith('data-wp')){
+      fsel = `[${at.name}="${CSS.escape(at.value)}"]`; caret = typeof af.selectionStart === 'number' ? af.selectionStart : null; break; }
     m.querySelectorAll('[data-wptlist]').forEach(el => keep.lists[el.dataset.wptlist] = el.scrollTop);
     m.querySelector('.modal').innerHTML = `<button class="close">\u00d7</button>${body}
       <div class="row between" style="margin-top:18px"><span class="mono">step ${step + 1} of ${STEPS}</span>
@@ -1347,6 +1400,28 @@ function openWeeklyPlan(d = today()){
     m.querySelectorAll('[data-wpadd]').forEach(inp => inp.onkeydown = ev => {
       if(ev.key === 'Enter'){ ev.preventDefault(); ev.stopPropagation(); addTo(inp.dataset.wpadd); } });
     m.querySelectorAll('[data-wpaddgo]').forEach(b => b.onclick = () => addTo(b.dataset.wpaddgo));
+    /* step 4's rows: Enter goes from an item to its reason; writing in the
+       empty last row makes it a row and puts a fresh one under it */
+    const growIfLast = (kind, i) => { const R = WP_ROWS[kind];
+      if(+i === R.list().length){ const main = m.querySelector(`[data-${R.item}="${i}"]`), side = m.querySelector(`[data-${R.side}="${i}"]`);
+        if((main && main.value.trim()) || (side && side.value.trim())){ redraw(); return true; } }
+      return false; };
+    Object.entries(WP_ROWS).forEach(([kind, R]) => {
+      m.querySelectorAll(`[data-${R.item}]`).forEach(inp => {
+        const i = inp.getAttribute(`data-${R.item}`);
+        inp.onkeydown = ev => { if(ev.key !== 'Enter') return; ev.preventDefault();
+          growIfLast(kind, i);
+          const side = m.querySelector(`[data-${R.side}="${i}"]`); if(side) side.focus(); };
+        inp.onchange = () => growIfLast(kind, i);
+      });
+      m.querySelectorAll(`[data-${R.side}]`).forEach(ta => ta.onchange = () => growIfLast(kind, ta.getAttribute(`data-${R.side}`)));
+    });
+    m.querySelectorAll('[data-wpdel]').forEach(bt => bt.onclick = () => {
+      const [kind, i] = bt.dataset.wpdel.split(':'); read(); WP_ROWS[kind].list().splice(+i, 1);
+      p.win = weekWins(p).map(w => w.text).join('; '); p.guard = weekRisks(p).map(r => r.text).join('; ');
+      saveNow(); draw(); });
+    if(fsel){ const n = m.querySelector(fsel); if(n && n !== document.activeElement){ n.focus();
+      if(caret != null && typeof n.setSelectionRange === 'function') try { n.setSelectionRange(caret, caret); } catch(e){} } }
     if(md){ const md2 = m.querySelector('.modal'); md2.scrollTop = keep.top; }
     m.scrollTop = keep.over;
     m.querySelectorAll('[data-wptlist]').forEach(el => { if(keep.lists[el.dataset.wptlist]) el.scrollTop = keep.lists[el.dataset.wptlist]; });

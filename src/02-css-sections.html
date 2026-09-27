@@ -2535,6 +2535,20 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .wp-under > summary::-webkit-details-marker{display:none}
 .wp-under > summary::before{content:'\25b8 ';opacity:.6}
 .wp-under[open] > summary::before{content:'\25be '}
+/* step 4: a win and its reason, a threat and its answer, one at a time */
+.wp-subh{font-size:1.05rem;margin:22px 0 4px}
+.wp-items{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.wp-item{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.wp-item.is-new{border-style:dashed}
+.wp-item .in-n{flex:0 0 auto;margin-top:6px}
+.wp-item-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.wp-item-main{width:100%}
+.wp-item-side{width:100%;min-height:52px;font-size:.88rem;margin-left:0;
+  border-left:2px solid color-mix(in srgb,var(--page-accent) 45%,transparent)}
+.wp-item .del-x{margin-top:6px}
+.wp-list{margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.wp-list-why{display:block;font-size:.8rem;color:var(--muted);margin-top:1px}
+.wk-carry .wp-list{padding-left:16px;gap:3px;font-size:.86rem}
 /* the work under a goal: chosen, renamed and scheduled where it stands */
 .wp-tlist{gap:3px;max-height:42vh;overflow:auto;margin-top:6px;padding-right:2px}
 .wp-trow{border:1px solid transparent;border-radius:9px;padding:3px 8px;

@@ -229,7 +229,9 @@ routes.today = function(root, params = []){
      week must not write an empty plan for it. */
   const wkPlan = typeof weekPlanSeen === 'function' ? weekPlanSeen(weekStart(T)) : null;
   const wkGoals = (wkPlan && typeof weekGoalsNamed === 'function') ? weekGoalsNamed(wkPlan) : [];
-  const weekCarryHTML = () => (!wkPlan || (!wkGoals.length && !wkPlan.theme && !wkPlan.win)) ? '' :
+  const wkWins = wkPlan && typeof weekWins === 'function' ? weekWins(wkPlan) : [];
+  const wkRisks = wkPlan && typeof weekRisks === 'function' ? weekRisks(wkPlan) : [];
+  const weekCarryHTML = () => (!wkPlan || (!wkGoals.length && !wkPlan.theme && !wkWins.length && !wkRisks.length)) ? '' :
     `<div class="wk-carry">
       <div class="row between" style="align-items:baseline">
         <span class="sc" style="margin:0">This week</span>
@@ -240,7 +242,10 @@ routes.today = function(root, params = []){
         return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
           g ? `<span class="mono faint">${g.done}/${g.total}</span>` : '<span class="mono faint">—</span>'}</div>`;
       }).join('')}</div>` : ''}
-      ${wkPlan.win ? `<p class="wk-win"><span class="mono">a win</span> ${esc(wkPlan.win)}</p>` : ''}
+      ${wkWins.length ? `<div class="wk-win"><span class="mono">a win would be</span><ul class="wp-list">${wkWins.map(w =>
+        `<li><span>${esc(w.text)}</span>${w.why ? `<span class="wp-list-why">${esc(w.why)}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
+      ${wkRisks.length ? `<div class="wk-win"><span class="mono">what could take it away</span><ul class="wp-list">${wkRisks.map(r =>
+        `<li><span>${esc(r.text)}</span>${r.prevent ? `<span class="wp-list-why">\u2192 ${esc(r.prevent)}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
     </div>`;
   const threeTom = (planTom.intentions || []).filter(Boolean);
   const isSunday = parseDay(T).getDay() === 0;

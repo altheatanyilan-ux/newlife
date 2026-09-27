@@ -161,8 +161,11 @@ const step = async (p, n) => p.evaluate(async n => {
   await step(p, 1);
   const win = await p.evaluate(async () => {
     const t = document.querySelector('.modal').textContent.replace(/\s+/g, ' ');
-    document.querySelector('#wpWin').value = 'both months reconciled and signed off';
-    document.querySelector('#wpGuard').value = 'wednesday is gone to the inspection';
+    /* one item at a time now, each with its reason right under it */
+    document.querySelector('[data-wpwin="0"]').value = 'both months reconciled and signed off';
+    document.querySelector('[data-wpwhy="0"]').value = 'the year can start clean';
+    document.querySelector('[data-wprisk="0"]').value = 'wednesday is gone to the inspection';
+    document.querySelector('[data-wpprev="0"]').value = 'do the reconciling monday and tuesday';
     return {t, goalShown: /the books, closed/.test(t)};
   });
   yes('the win is written with the goals still on the screen', win.goalShown, win.t.slice(0, 220));
@@ -173,6 +176,7 @@ const step = async (p, n) => p.evaluate(async n => {
     await saveNow(); await load();
     const wp = weekPlan(weekStart(today()));
     return {win: wp.win, guard: wp.guard, focus: wp.focus.length,
+      wins: wp.wins.map(w => [w.text, w.why]), risks: wp.risks.map(r => [r.text, r.prevent]),
       aims: Object.values(wp.aims).filter(Boolean),
       goal: wp.outcomes[0].text, under: wp.outcomes[0].taskIds.slice(),
       set: !!wp.setAt, closed: !document.querySelector('.modal')};
@@ -180,6 +184,8 @@ const step = async (p, n) => p.evaluate(async n => {
   yes('the flow closes on the last step', saved.closed);
   is('  the win survives a reload', saved.win, 'both months reconciled and signed off');
   is('  and what would take it away', saved.guard, 'wednesday is gone to the inspection');
+  is('  each win keeps why it matters', saved.wins, [['both months reconciled and signed off', 'the year can start clean']]);
+  is('  each risk keeps how it is to be met', saved.risks, [['wednesday is gone to the inspection', 'do the reconciling monday and tuesday']]);
   is('  and what each part of a life is owed', saved.aims, ['the accounts finally straight']);
   is('  and the goal', saved.goal, 'the books, closed');
   is('  and the work under it', saved.under, ['w-2', 'w-3']);
