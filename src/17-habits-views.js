@@ -1,12 +1,13 @@
 /* ============================================================
    HABITS — the three ways of looking at them
 
-   Dashboard: every habit as a card, filterable, with the day's balance
-     across the four dimensions at the top.
+   Dashboard: every habit as a card, filterable, with the day at the top.
+     (The four energy dimensions were taken out of habits by request; a
+     habit that had one keeps it, unread.)
    Today: only what is due, grouped by when in the day it belongs, one
      column, nothing else on screen.
-   Analytics: ninety days of heat, a health score per habit, the energy
-     quadrant, the milestones reached and the longest runs.
+   Analytics: ninety days of heat, a health score per habit, the
+     milestones reached and the longest runs.
    ============================================================ */
 
 const HAB_VIEWS = [['dashboard','▦','Dashboard'], ['today','◉','Today'], ['analytics','◫','Analytics']];
@@ -20,7 +21,6 @@ function habFiltered(){
   return habList().filter(h =>
     (f.type === 'all' || habType(h) === f.type) &&
     (!f.cat || h.category === f.cat) &&
-    (!f.dim || h.dimension === f.dim) &&
     (!f.value || (h.links.values || []).includes(f.value)));
 }
 
@@ -43,8 +43,6 @@ function habSummaryHTML(){
   const due = habDueOn(T), kept = due.filter(h => habKept(h, T));
   const b = all.filter(h => !habIsBreaking(h)).length, k = all.length - b;
   const best = all.map(h => ({h, s: habStreak(h)})).sort((a, c) => c.s.cur - a.s.cur)[0];
-  const bal = habEnergyBalance(T);
-  const unpaid = DIMS.filter(x => bal[x.id].due && !bal[x.id].done).map(x => x.name.toLowerCase());
   const pct = due.length ? kept.length / due.length : 0;
   const R = 15, C = 2 * Math.PI * R;
   return `<div class="hb-strip card">
@@ -59,11 +57,6 @@ function habSummaryHTML(){
     <div class="hb-s1"><div class="k">longest run</div>
       <div class="num">${best?.s.cur ? `${habRunMark(habIsBreaking(best.h))} ${best.s.cur}` : '—'}</div>
       <div class="mono faint">${best?.s.cur ? esc(best.h.name) : 'nothing running yet'}</div></div>
-    <div class="hb-s1 hb-bal"><div class="k">energy today</div>
-      <div class="hb-dots">${DIMS.map(x => { const v = bal[x.id];
-        const state = !v.due ? 'none' : v.done === v.due ? 'ok' : v.done ? 'part' : 'over';
-        return `<span class="hb-dot ${state}" style="--c:${x.c}" title="${esc(x.name)} — ${v.done} of ${v.due} kept">${x.name[0]}</span>`; }).join('')}</div>
-      ${unpaid.length ? `<div class="hb-warn">Nothing kept yet in ${esc(unpaid.join(' or '))}.</div>` : ''}</div>
   </div>`;
 }
 
@@ -77,9 +70,7 @@ function habDashboardHTML(){
         `<button class="chip click${f.type === k ? ' on' : ''}" data-hbf="type:${k}">${n}</button>`).join('')}
       <span class="hb-fsep"></span>
       ${cats.map(c => `<button class="chip click${f.cat === c ? ' on' : ''}" data-hbf="cat:${c}">${esc(c)}</button>`).join('')}
-      <span class="hb-fsep"></span>
-      ${DIMS.map(d => `<button class="chip click${f.dim === d.id ? ' on' : ''}" style="--c:${d.c}" data-hbf="dim:${d.id}">${esc(d.name)}</button>`).join('')}
-      ${(f.type !== 'all' || f.cat || f.dim || f.value) ? '<button class="tbtn" data-hbf="clear:">clear</button>' : ''}
+      ${(f.type !== 'all' || f.cat || f.value) ? '<button class="tbtn" data-hbf="clear:">clear</button>' : ''}
     </div>
     ${hs.length ? `<div class="hb-grid">${hs.map(habCardHTML).join('')}</div>`
       : `<div class="empty">Nothing here yet. ${habList().length ? 'Nothing matches those filters.' : 'A habit is a ritual, not a rule — start with one you could keep on your worst day.'}</div>`}
@@ -113,7 +104,6 @@ function habCardHTML(h){
       return `<i class="${cls}" title="${esc(fmtDate(d, 'short'))}${s ? ' — ' + HAB_SESSION_STATUS[s][1] : ''}"></i>`; }).join('')}</div>
     <div class="hb-meta mono">
       <span>${!due ? 'not due today' : kept ? '✓ done today' : 'due today'}</span>
-      <span class="hb-dim">${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</span>
     </div>
     ${(h.links.values || []).length ? `<div class="hb-vals">${(h.links.values || []).map(id =>
       byId(S.values, id)).filter(Boolean).map(v => `<span class="hb-val" style="--c:${v.color}">${esc(v.name)}</span>`).join('')}</div>` : ''}
@@ -197,7 +187,6 @@ function habTodayRowHTML(h){
 function habAnalyticsHTML(){
   const hs = habList();
   if(!hs.length) return '<div class="empty">Nothing to read yet.</div>';
-  const bal = habEnergyBalance();
   const reached = habMilestonesReached();
   const runs = hs.map(h => ({h, s:habStreak(h)}));
   return `<div class="hb-an">
@@ -224,18 +213,6 @@ function habAnalyticsHTML(){
             return `<i class="${cls}"></i>`; }).join('')}</span>
           <span class="mono hb-htrend ${t.dir}">${t.dir === 'up' ? '↑ improving' : t.dir === 'down' ? '↓ slipping' : '→ steady'}</span>
           <span class="mono faint">${st.cur} / ${st.best}</span></div>`; }).join('')}</div>
-    </section>
-
-    <section class="hb-asec"><span class="sc">The four dimensions, and what got kept</span>
-      <div class="hb-quad">${DIMS.map(x => { const v = bal[x.id];
-        const none = v.due === 0;
-        return `<div class="hb-q${none ? ' empty-dim' : ''}" style="--c:${x.c}">
-          <div class="hb-qname">${esc(x.name)}</div>
-          <div class="hb-qbars">
-            <div class="hb-qb"><span class="k">kept</span><div class="bar"><i style="width:${v.due ? v.done / v.due * 100 : 0}%"></i></div><span class="mono">${v.done} / ${v.due}</span></div>
-          </div>
-          ${none ? '<div class="hb-warn">nothing due here</div>' : ''}</div>`; }).join('')}</div>
-      <div class="hb-quote">“${esc(HAB_QUOTES.ritual[1])}” <cite>${esc(HAB_QUOTES.ritual[0])}</cite></div>
     </section>
 
     <section class="hb-asec"><span class="sc">Milestones reached</span>

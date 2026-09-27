@@ -834,6 +834,65 @@ function scoreLayersPaint(x){
   if(ov.chords) out.push(scoreChordsHTML(x, notes, u, size));
   if(ov.fingerings) out.push(scoreFingerHTML(x, notes, u, size));
   box.innerHTML = out.join('');
+  if(ov.chords) scoreChordsSettle(box, u);
+}
+/* CHORD SYMBOLS THAT DO NOT SIT ON ANYTHING.
+   A symbol used to be pinned a fixed distance over the top staff, which is
+   where a lead sheet puts it — on a lead sheet. On a piano score the right
+   hand lives above the staff half the time, and every high chord, up-stem
+   and accidental went straight through the letters; and where the harmony
+   moves every beat in a narrow bar, the names ran into each other.
+
+   So once the page is drawn, each system's symbols are laid out against
+   what is actually there: all of them on one line (the way a lead sheet
+   reads), lifted clear of the highest ink over the top staff — stems,
+   heads, accidentals, and the other labels — and, where two would touch,
+   the later one steps over or, if that would take it too far from its
+   beat, up a line. */
+function scoreChordsSettle(box, u){
+  const labs = [...box.querySelectorAll('.sc-lab-chord')];
+  if(!labs.length) return;
+  const br = box.getBoundingClientRect();
+  const rel = r => ({l: r.left - br.left, r: r.right - br.left, t: r.top - br.top, b: r.bottom - br.top});
+  const ink = [];
+  document.querySelectorAll('#scCanvas svg').forEach(svg =>
+    svg.querySelectorAll('.vf-stavenote, .vf-modifiers, .vf-stem, .vf-notehead, .vf-flag, .vf-beam').forEach(g => {
+      const r = g.getBoundingClientRect();
+      if(r.width > 0 && r.height > 0 && r.height < u * 40) ink.push(rel(r)); }));
+  box.querySelectorAll('.sc-lab:not(.sc-lab-chord)').forEach(n => ink.push(rel(n.getBoundingClientRect())));
+  const gap = u * 0.5, lift = u * 0.35;
+  /* one system each: the symbols were all anchored to their bar's top staff */
+  const systems = new Map();
+  labs.forEach(el => { const k = Math.round(parseFloat(el.style.top) || 0);
+    if(!systems.has(k)) systems.set(k, []); systems.get(k).push(el); });
+  systems.forEach((els, anchor) => {
+    const items = els.map(el => { const r = el.getBoundingClientRect();
+      return {el, x: parseFloat(el.style.left) || 0, w: r.width, h: r.height}; }).sort((a, b) => a.x - b.x);
+    const h = Math.max(...items.map(i => i.h));
+    const staffTop = anchor + u * 1.1;
+    const lo = items[0].x - items[0].w, hi = items[items.length - 1].x + items[items.length - 1].w;
+    /* the highest ink that belongs to this staff: anything reaching down to
+       near the staff (a stem, a chord) but not the system above */
+    let base = anchor;
+    ink.forEach(o => {
+      if(o.r < lo - u || o.l > hi + u) return;
+      if(o.b < staffTop - u * 6 || o.t < staffTop - u * 16 || o.t > staffTop + u * 2) return;
+      if(o.t - lift < base) base = o.t - lift;
+    });
+    /* along the line, with a second and third line for what will not fit */
+    const right = [-Infinity, -Infinity, -Infinity];
+    items.forEach(it => {
+      let left = it.x - it.w / 2, tier = right.findIndex(r => left >= r + gap);
+      if(tier < 0 || (tier > 0 && left - (right[0] + gap) < u * 2.5)){
+        /* close enough to its beat to step over on the first line */
+        const moved = right[0] + gap;
+        if(tier < 0 || moved - left < u * 2.5){ left = Math.max(left, moved); tier = 0; }
+      }
+      right[tier] = left + it.w;
+      it.el.style.left = (left + it.w / 2).toFixed(1) + 'px';
+      it.el.style.top = (base - tier * (h + u * 0.2)).toFixed(1) + 'px';
+    });
+  });
 }
 /* one staff space, in pixels, at whatever size the engraving is now */
 function scoreUnitPx(){

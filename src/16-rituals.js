@@ -42,7 +42,9 @@ const HABIT_KINDS = [
 ];
 function habitDefaults(){
   return {id:uid(), createdAt:new Date().toISOString(), name:'', freq:{type:'daily',days:[],count:3}, timeOfDay:'morning',
-    dimension:'physical', links:{values:[],skills:[]},
+    /* no energy dimension: taken out of habits by request (an older habit
+       keeps the one it had, and nothing reads it) */
+    dimension:null, links:{values:[],skills:[]},
     min:'', ideal:'', prompt:'', negative:false, archived:false, stackAfter:null,
     relational:'', standard:'', trigger:'', instead:'', cost:'', order:S.habits.length};
 }
@@ -68,7 +70,6 @@ function openHabitModal(id){
     </div>
     <div class="row" id="hDays">${DOW.map((d,i)=>`<button class="btn sm ${h.freq.days.includes(i)?'primary':''}" data-day="${i}">${d.slice(0,3)}</button>`).join('')}</div>
     <div class="row" id="hCount"><span class="mono">how many times</span><input class="inp" type="number" min="1" max="31" id="hCountN" value="${h.freq.count||3}" style="width:80px"></div>
-    <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="grid c2" style="gap:10px">
       <div class="field"><label>Minimum version</label><textarea class="ta hb-grow" rows="1" id="hMin" placeholder="1 pushup">${esc(h.min)}</textarea></div>
       <div class="field"><label>Ideal version</label><textarea class="ta hb-grow" rows="1" id="hIdeal" placeholder="30-minute workout">${esc(h.ideal)}</textarea></div>
@@ -113,7 +114,6 @@ function openHabitModal(id){
     <div class="field"><label>When the urge hits</label>
       <textarea class="ta" id="hProtocol" style="min-height:56px" placeholder="1) Name it aloud. 2) Five breaths. 3) Phone in the drawer. 4) Open the book.">${esc(h.protocol || '')}</textarea>
       <div class="faint" style="font-size:.76rem;margin-top:4px">Written now, in the calm, because the moment you need it is the moment you cannot write it.</div></div>
-    <div class="field"><label>Energy dimension</label><select class="sel" id="hDim">${DIMS.map(d=>`<option value="${d.id}" ${h.dimension===d.id?'selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="field"><label>Micro-journal prompt (optional)</label><textarea class="ta hb-grow" rows="1" id="hPrompt" placeholder="What was going on just before?">${esc(h.prompt)}</textarea></div>`;
 
   const m = openModal(`<h2>${id?'Edit habit':'A new habit'}</h2><div class="stack">

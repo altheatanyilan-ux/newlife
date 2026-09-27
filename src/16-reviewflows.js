@@ -184,10 +184,6 @@ function flowWeekly(opts = {}){
     {title:'A congruence snapshot.', hint:'Sliders pre-filled with last week — move only what actually moved.',
      body: () => `<div class="row"><button class="btn sm primary" id="fwSnap">log a snapshot</button></div>`,
      bind: b => b.querySelector('#fwSnap').onclick = () => openSnapshotModal(() => {})},
-    {title:'Which dimension got the week?', hint:'And which one went unpaid?',
-     body: () => { const load = dimensionLoad(true);
-       return `<div class="stack" style="gap:6px">${DIMS.map(d => { const t = load[d.id] || 0;
-         return `<div class="row between"><span style="color:${d.c};min-width:6em">${d.name}</span><span class="bar" style="flex:1;--c:${d.c}"><i style="width:${Math.min(100,t*12)}%"></i></span><span class="mono">${t} kept</span></div>`; }).join('')}</div>`; }},
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
     ...jaWeekStep,
@@ -286,7 +282,7 @@ function flowMonthly(){
     {title:'The habits, across the whole month.',
      body: () => { const days = []; let d = from; while(d <= (to > T ? T : to)){ days.push(d); d = addDays(d,1); }
        const rows = S.habits.filter(h => !h.archived && !h.negative).map(h => ({h, rate: habitMonthRate(h, days)})).filter(o => o.rate !== null);
-       return rows.length ? `<div class="stack" style="gap:5px">${rows.map(({h,rate}) => `<div class="row between"><span style="min-width:7em">${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('')}</div>${habitOscillationHTML(30)}` : '<div class="empty">No habits tracked this month.</div>'; }},
+       return rows.length ? `<div class="stack" style="gap:5px">${rows.map(({h,rate}) => `<div class="row between"><span style="min-width:7em">${esc(h.name)}</span><span class="bar" style="flex:1;--c:${habitHue(h)}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('')}</div>${habitOscillationHTML(30)}` : '<div class="empty">No habits tracked this month.</div>'; }},
     {title:'What the month was made of.', hint:'Which rooms of the house got used, and which stayed shut?',
      body: () => { const tally = {}; items().forEach(x => { const sec = tapeKind(x.kind)[0]; tally[sec] = (tally[sec]||0)+1; });
        const list = Object.entries(tally).sort((a,b)=>b[1]-a[1]); const max = Math.max(1, ...list.map(x=>x[1]));

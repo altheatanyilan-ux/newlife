@@ -186,8 +186,7 @@ function habPanelHTML(h){
       <span class="hb-pface">${habFaceHTML(h, br)}</span>
       <div style="min-width:0;flex:1">
         <textarea class="inp pd-title hb-grow hb-oneline" rows="1" id="hpName">${esc(h.name)}</textarea>
-        <div class="mono hb-psub">${habKindMark(br, '')} ${br ? 'breaking' : 'building'} · ${esc(h.category)} ·
-          ${esc(DIMS.find(d => d.id === h.dimension)?.name || '')}</div>
+        <div class="mono hb-psub">${habKindMark(br, '')} ${br ? 'breaking' : 'building'} · ${esc(h.category)}</div>
       </div>
       <div class="hb-pstreak">${habRunMark(br)} ${st.cur}</div>
     </div>

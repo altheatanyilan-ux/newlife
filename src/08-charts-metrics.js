@@ -118,8 +118,7 @@ function signals(){
   const pr = S.projects.filter(p=>p.status==='active').map(p=>({p, last:projectNods(p)[0]?.date})).sort((a,b)=>daysSince(b.last)-daysSince(a.last))[0];
   if(pr) out.push({k:'Coldest project', v:pr.p.name, d:`last nod ${relDays(daysSince(pr.last))}`, go:'#/projects/'+pr.p.id});
   const y = S.checkins[addDays(today(),-1)]; out.push({k:"Yesterday's intention", v:y?.intention || '—', d:y?.intention ? 'did you give it attention?' : 'no intention was set yesterday', go:'#/today'});
-  const load = dimensionLoad(true); const thin = DIMS.map(d=>({d, n:load[d.id]})).sort((a,b)=>a.n-b.n)[0];
-  if(thin) out.push({k:'Thinnest dimension', v:thin.d.name, d:thin.n ? `${thin.n} kept this week — the fewest of the four` : 'nothing kept here this week', go:'#/rituals'});
+  /* "Thinnest dimension" is gone with the energy dimensions of habits */
   return out;
 }
 function onThisDay(){ const d = parseDay(today()); const md_ = x => { const dd = parseDay(x); return {m:dd.getMonth(), d:dd.getDate(), y:dd.getFullYear()}; }; return S.entries.filter(e => /^\d{4}-\d{2}-\d{2}/.test(e.occurredAt||'') && (()=>{ const o = md_(e.occurredAt.slice(0,10)); if(o.y >= d.getFullYear()) return false; const a = new Date(d.getFullYear(), o.m, o.d); return Math.abs((a - d)/DAY) <= 3; })()).sort((a,b)=>occurredSort(b)-occurredSort(a)); }

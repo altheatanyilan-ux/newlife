@@ -97,15 +97,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await room();
   yes('there are three views', await p.evaluate(() => document.querySelectorAll('[data-hbview]').length === 3));
   yes('  the dashboard is one', !!(await p.$('.hb-grid')));
-  yes('  with the day\'s energy across the four dimensions',
-      await p.evaluate(() => document.querySelectorAll('.hb-dot').length === 4));
+  /* the four energy dimensions were taken out of habits by request */
+  yes('  with no energy dimensions on it any more',
+      await p.evaluate(() => !document.querySelector('.hb-dot, .hb-dim, [data-hbf^="dim:"]')));
   await p.click('[data-hbview="today"]'); await p.waitForTimeout(1000);
   yes('Today is a single column of what is due', !!(await p.$('.hb-focus')));
   yes('  grouped by when in the day', await p.evaluate(() => document.querySelectorAll('.hb-tgroup').length > 0));
   await p.click('[data-hbview="analytics"]'); await p.waitForTimeout(1100);
   yes('Analytics has ninety days of heat', !!(await p.$('.hb-heat')));
   yes('  a health score per habit', await p.evaluate(() => document.querySelectorAll('.hb-hrow').length > 0));
-  yes('  the four dimensions spent and renewed', await p.evaluate(() => document.querySelectorAll('.hb-q').length === 4));
+  yes('  and no dimension quadrant', await p.evaluate(() => !document.querySelector('.hb-q')));
   yes('  and the longest runs', await p.evaluate(() => /longest runs/i.test(document.querySelector('.hb-an').textContent)));
   await p.click('[data-hbview="dashboard"]'); await p.waitForTimeout(900);
 

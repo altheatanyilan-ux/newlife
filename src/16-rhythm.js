@@ -66,7 +66,7 @@ function openDayPage(d){
     ${c?.sentence?`<blockquote class="rehearsal-epigraph" style="font-size:.98rem">${esc(c.sentence)}<cite>how the day was, in one line</cite></blockquote>`:''}
     ${sec('Energy', c?.energy && Object.keys(c.energy).length ? `<div class="energy-row">${DIMS.map(x=>`<div class="energy-dim" style="--c:${x.c}"><div class="lbl"><span>${x.name}</span><span class="mono">${c.energy[x.id]||'–'}/5</span></div><div class="dots">${[1,2,3,4,5].map(n=>`<i class="${(c.energy[x.id]||0)>=n?'on':''}"></i>`).join('')}</div></div>`).join('')}</div>${c.setpoint?`<div class="mono" style="margin-top:8px">set-point ${c.setpoint} · ${esc(hicksName(c.setpoint))}</div>`:''}` : '')}
     ${sec('Tasks', r.tasks.length ? `<div class="stack" style="gap:2px">${r.tasks.map(t=>`<div class="task-row ${t.done?'done':''}"><span class="task-check" style="pointer-events:none">${t.done?'✓':''}</span><span class="task-text">${esc(t.text)}</span>${t.where?`<span class="task-where">${esc(t.where)}</span>`:''}</div>`).join('')}</div>` : '')}
-    ${sec('Habits', r.habits.length ? `<div class="row" style="flex-wrap:wrap;gap:6px">${r.habits.map(h=>{ const done = habitDone(h,d); const dim = DIMS.find(x=>x.id===h.dimension); return `<span class="chip ${done?'on':''}" style="--c:${dim?dim.c:'var(--muted)'}">${done?(done.level==='min'?'½':'✓'):'○'} ${esc(h.name)}</span>`; }).join('')}</div>` : '')}
+    ${sec('Habits', r.habits.length ? `<div class="row" style="flex-wrap:wrap;gap:6px">${r.habits.map(h=>{ const done = habitDone(h,d); return `<span class="chip ${done?'on':''}" style="--c:${habitHue(h)}">${done?(done.level==='min'?'½':'✓'):'○'} ${esc(h.name)}</span>`; }).join('')}</div>` : '')}
     ${sec('Nods', r.nods.length ? r.nods.map(n=>`<div class="nod"><span class="mono">${esc(byId(S.projects,n.projectId)?.name||'')}</span><span>${esc(n.text)}</span></div>`).join('') : '')}
     ${sec(`Written that day${r.entries.length?` · ${r.entries.length}`:''}`, r.entries.length ? sortEntries(r.entries).map(e=>entryCard(e,{clamp:false})).join('') : '<div class="empty">Nothing written on this day.</div>')}
     <div class="row" style="margin-top:20px;gap:8px;flex-wrap:wrap">
@@ -147,8 +147,7 @@ function dayBlocks(d){
   allTaskRefs().filter(r => taskOnDay(r.task, d)).forEach(r => { const at = r.task.at; if(at == null) return;
     out.push({kind:'task', id:r.id, title:r.text, start:+at, dur:+(r.task.est || 1), color:'var(--terra)', done:r.done, ref:r}); });
   S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d) && h.at != null).forEach(h => {
-    const dim = DIMS.find(x => x.id === h.dimension);
-    out.push({kind:'habit', id:h.id, title:`${h.icon||''} ${h.name}`.trim(), start:+h.at, dur:+(h.dur || 0.5), color:dim ? dim.c : 'var(--sage)', done:!!habitDone(h,d), ref:h});
+    out.push({kind:'habit', id:h.id, title:`${h.icon||''} ${h.name}`.trim(), start:+h.at, dur:+(h.dur || 0.5), color:habitHue(h), done:!!habitDone(h,d), ref:h});
   });
   return out.sort((a,b) => a.start - b.start);
 }
@@ -756,25 +755,22 @@ function microJournalPrompt(h, d){
   };
   attachDictationIn(m);
 }
-/* four small arcs — how each energy dimension's habits are going today */
-function energyBalanceArcsHTML(d){
-  const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
-  if(!due.length) return '';
-  const arcs = DIMS.map(dim => { const hs = due.filter(h => h.dimension === dim.id); if(!hs.length) return ''; const n = hs.filter(h => habitDone(h,d)).length;
-    return `<div class="earc">${ringSVG(n/hs.length, {size:48, stroke:5, color:dim.c})}<span class="mono">${dim.name}</span></div>`; }).filter(Boolean);
-  return arcs.length ? `<div class="energy-arcs">${arcs.join('')}</div>` : '';
-}
+/* The four energy-dimension arcs were taken out of habits by request. The
+   name stays so a caller finds nothing rather than an error. */
+function energyBalanceArcsHTML(){ return ''; }
+/* a habit's colour, now that it is no longer its energy dimension's */
+const habitHue = h => (h && h.color) || 'var(--page-accent)';
 /* ---------- the ring row for one day ----------
    Morning on the left, evening on the right, anytime in the middle, each ring
    in its dimension's colour. This is the face of the habits on Today and in
    the Life Tape; the grid below is for reading the record. */
 function habitRingHTML(h, d, size = 46){
   const done = habitDone(h, d); const pct = done ? (done.level === 'min' ? .5 : 1) : 0;
-  const dim = DIMS.find(x => x.id === h.dimension); const st = habitStreak(h);
+  const st = habitStreak(h);
   const future = d > today();
   const cls = [future?'future':'', window._bloomHabit === `${h.id}:${d}` ? 'bloom' : '', (window._pulseHabitId === h.id && d === today()) ? 'pulse-once' : ''].filter(Boolean).join(' ');
   return `<button class="hring-btn ${cls}" data-hring="${h.id}:${d}" ${future?'disabled':''} title="${esc(h.name)}${st.cur?` · ${st.cur}d streak`:''}${future?' · not yet':' · right-click for the minimum version'}">
-    ${ringSVG(pct, {size, color: dim ? dim.c : 'var(--sage)', stroke: Math.max(3, Math.round(size/9))})}
+    ${ringSVG(pct, {size, color: habitHue(h), stroke: Math.max(3, Math.round(size/9))})}
     ${st.cur ? `<span class="hring-streak mono">${st.cur}</span>` : ''}
     <span class="hring-name">${esc(h.name)}</span></button>`;
 }
@@ -797,10 +793,10 @@ function habitRingsRow(days, size){
     if(!due.length) return `<div class="cal-rings-col"></div>`;
     return `<div class="cal-rings-col">${due.map(h => {
       const done = habitDone(h,d); const pct = done ? (done.level==='min'?0.5:1) : 0; const future = d > T;
-      const dim = DIMS.find(x => x.id === h.dimension); const st = habitStreak(h);
+      const st = habitStreak(h);
       const cls = [future?'future':'', bloomKey === `${h.id}:${d}` ? 'bloom' : '', (pulseId === h.id && d === T) ? 'pulse-once' : ''].filter(Boolean).join(' ');
       return `<button class="hring-btn ${cls}" data-hring="${h.id}:${d}" ${future?'disabled':''} title="${esc(h.name)}${st.cur?` · ${st.cur}d streak`:''}${future?' · not yet':''}">
-        ${ringSVG(pct, {size, color: dim?dim.c:'var(--sage)', stroke: Math.max(3, Math.round(size/9))})}
+        ${ringSVG(pct, {size, color: habitHue(h), stroke: Math.max(3, Math.round(size/9))})}
         ${st.cur ? `<span class="hring-streak mono">${st.cur}</span>` : ''}</button>`;
     }).join('')}</div>`;
   });
@@ -846,28 +842,9 @@ function bindHabitRings(box){
     ['pointerup','pointerleave','pointercancel'].forEach(ev => b.addEventListener(ev, () => { if(timer){ clearTimeout(timer); timer = null; } }));
   });
 }
-/* Where the habits are landing across the four energy dimensions. This used
-   to be a single expenditure-against-recovery bar, drawn from a field every
-   habit carried saying which of the two it was. That field is gone: a run is
-   expenditure on Tuesday and recovery on Sunday, and asking somebody to
-   settle it once at the moment they create the habit produced an answer the
-   whole panel then reasoned from. Which dimension a habit belongs to is a
-   question with an answer, so that is what is drawn. */
-function habitOscillationHTML(days = 14){
-  const ds = lastDays(days);
-  const tally = {}; DIMS.forEach(d => tally[d.id] = 0);
-  S.habits.filter(h => !h.archived && !h.negative)
-    .forEach(h => ds.forEach(d => { if(habitDone(h,d) && tally[h.dimension] != null) tally[h.dimension]++; }));
-  const total = DIMS.reduce((n, d) => n + tally[d.id], 0); if(!total) return '';
-  const thin = DIMS.filter(d => !tally[d.id]);
-  const verdict = thin.length === 3 ? 'All of it in one dimension. The other three are not being paid at all.'
-    : thin.length ? `Nothing kept in ${thin.map(d => d.name.toLowerCase()).join(', ')}.`
-    : 'Something kept in all four. That is the shape you want.';
-  return `<div class="osc"><div class="row between"><span class="sc" style="margin:0">Where it landed · ${days} days</span><span class="mono">${total} kept</span></div>
-    <div class="osc-bar">${DIMS.map(d => tally[d.id]
-      ? `<i style="width:${tally[d.id]/total*100}%;background:${d.c}" title="${esc(d.name)} · ${tally[d.id]}"></i>` : '').join('')}</div>
-    <div class="faint" style="font-size:.78rem;margin-top:4px">${verdict}</div></div>`;
-}
+/* Where the habits landed across the four energy dimensions — taken out of
+   habits by request, with the dimensions themselves. */
+function habitOscillationHTML(){ return ''; }
 function habit90HTML(h){
   return `<div class="h90">${lastDays(90).map(d => { const done = habitDone(h,d), due = habitDue(h,d);
     return `<i class="${done ? (done.level === 'min' ? 'half' : 'full') : due ? 'miss' : 'off'}" title="${fmtDate(d,'med')}"></i>`; }).join('')}</div>`;
@@ -883,7 +860,7 @@ function habitChainsHTML(list){
   const chains = list.filter(h => !h.stackAfter && after[h.id]).map(r => walk(r, []));
   if(!chains.length) return '';
   return `<div class="hab-stats"><div class="sc">Chains</div>
-    ${chains.map(c => `<div class="chain">${c.map(h => `<span class="chain-node" style="--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}" data-hopen="${h.id}">${h.icon||'○'} ${esc(h.name)}</span>`).join('<span class="chain-link"></span>')}</div>`).join('')}</div>`;
+    ${chains.map(c => `<div class="chain">${c.map(h => `<span class="chain-node" style="--c:${habitHue(h)}" data-hopen="${h.id}">${h.icon||'○'} ${esc(h.name)}</span>`).join('<span class="chain-link"></span>')}</div>`).join('')}</div>`;
 }
 function renderHabitsPanel(box, focus){
   const T = today(); const week = planDaysFrom(focus);
@@ -900,17 +877,17 @@ function renderHabitsPanel(box, focus){
     <div class="row between" style="margin-top:16px"><span class="sc" style="margin:0">The grid</span><span class="mono">${weekRate === null ? '' : `${weekRate}% this week`}</span></div>
     ${list.length ? `<div class="habit-grid" style="--cols:${week.length}">
       <div class="hg-corner"></div>${week.map(d=>`<div class="hg-dow ${d===T?'today':''}">${DOW[parseDay(d).getDay()][0]}<span class="mono">${parseDay(d).getDate()}</span></div>`).join('')}
-      ${list.map(h => { const st = habitStreak(h); const dim = DIMS.find(x=>x.id===h.dimension);
-        return `<div class="hg-name" data-hopen="${h.id}" style="--c:${dim?dim.c:'var(--page-accent)'}"><span class="hg-ico">${h.icon||'○'}</span><span class="hg-t">${esc(h.name)}</span>${st.cur?`<span class="hg-streak mono">${st.cur}d</span>`:''}</div>
+      ${list.map(h => { const st = habitStreak(h);
+        return `<div class="hg-name" data-hopen="${h.id}" style="--c:${habitHue(h)}"><span class="hg-ico">${h.icon||'○'}</span><span class="hg-t">${esc(h.name)}</span>${st.cur?`<span class="hg-streak mono">${st.cur}d</span>`:''}</div>
         ${week.map(d => { const done = habitDone(h,d); const due = habitDue(h,d); const past = d < T; const future = d > T; const bloom = bloomKey === `${h.id}:${d}` ? 'bloom' : '';
-          return `<button class="hg-cell ${done?(done.level==='min'?'half':'full'):past&&due?'miss':''} ${future?'future':''} ${due?'':'off'} ${bloom}" data-hcell="${h.id}:${d}" ${future?'disabled':''} style="--c:${dim?dim.c:'var(--page-accent)'}" title="${fmtDate(d,'med')}${due?'':' · not due'}"></button>`; }).join('')}`; }).join('')}
+          return `<button class="hg-cell ${done?(done.level==='min'?'half':'full'):past&&due?'miss':''} ${future?'future':''} ${due?'':'off'} ${bloom}" data-hcell="${h.id}:${d}" ${future?'disabled':''} style="--c:${habitHue(h)}" title="${fmtDate(d,'med')}${due?'':' · not due'}"></button>`; }).join('')}`; }).join('')}
     </div>` : `<div class="empty">No habits yet. One is enough to start — the grid is more persuasive than any argument.</div>`}
     <div class="row" style="gap:6px;margin-top:10px"><button class="btn sm primary" id="hNew">＋ Habit</button>${S.habits.some(h=>h.archived)?'<button class="btn sm ghost" id="hArch">archived</button>':''}</div>
 
     ${habitChainsHTML(list)}
     ${list.length ? `<div class="hab-stats">
       <div class="sc">Habit by habit</div>
-      <div class="stack" style="gap:4px;margin-top:8px">${list.map((h,i) => { const st = habitStreak(h); const c = (DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)';
+      <div class="stack" style="gap:4px;margin-top:8px">${list.map((h,i) => { const st = habitStreak(h); const c = habitHue(h);
         return `<details class="habit-detail" style="--c:${c}"><summary><span class="hs-n">${h.icon||'○'} ${esc(h.name)}</span><span class="bar" style="flex:1;--c:${c}"><i style="width:${Math.round(rates[i]*100)}%"></i></span><span class="mono">${Math.round(rates[i]*100)}%</span></summary>
           <div class="body">
             <div class="row between mono" style="margin-bottom:6px"><span>${st.cur?`${st.cur}-day streak`:'not running'}${st.best?` · best ${st.best}`:''}</span><span>${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></div>
@@ -952,7 +929,7 @@ function renderHabitsPanel(box, focus){
 }
 function celebrateStreak(h, n){
   toast(`${h.icon||'✦'} ${h.name} — ${n} days.`, 5000);
-  if(typeof levelUpBurst === 'function' && !reduced()) levelUpBurst(innerWidth/2, innerHeight/3, (DIMS.find(x=>x.id===h.dimension)||{}).c || 'var(--gold)');
+  if(typeof levelUpBurst === 'function' && !reduced()) levelUpBurst(innerWidth/2, innerHeight/3, habitHue(h));
   else sound('success');
 }
 function openArchivedHabits(){
@@ -1571,7 +1548,7 @@ function openMonthlyReview(d = today()){
       <div><span class="sc">Milestones</span>
         <div class="stack" style="gap:4px;margin-top:8px">${namedMilestones.length ? namedMilestones.map(ms => `<label class="pick-row ${ms.done?'on':''}"><input type="checkbox" data-mrms="${ms.i}" ${ms.done?'checked':''}><span>${esc(ms.text)}</span></label>`).join('') : '<div class="empty">No milestones were set this month.</div>'}</div></div>
       <div><span class="sc">Habits, across the month</span>
-        <div class="stack" style="gap:5px;margin-top:8px">${habitRates.length ? habitRates.map(({h,rate}) => `<div class="row between"><span>${esc(h.name)}</span><span class="bar" style="flex:1;--c:${(DIMS.find(x=>x.id===h.dimension)||{}).c||'var(--page-accent)'}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('') : '<div class="empty">No habits tracked.</div>'}</div></div>
+        <div class="stack" style="gap:5px;margin-top:8px">${habitRates.length ? habitRates.map(({h,rate}) => `<div class="row between"><span>${esc(h.name)}</span><span class="bar" style="flex:1;--c:${habitHue(h)}"><i style="width:${rate}%"></i></span><span class="mono">${rate}%</span></div>`).join('') : '<div class="empty">No habits tracked.</div>'}</div></div>
     </div>
     <div class="grid c2" style="gap:14px;align-items:start;margin-top:16px">
       <div><span class="sc">The running log said</span>

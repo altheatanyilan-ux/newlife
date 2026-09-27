@@ -349,7 +349,7 @@ Habits here are **energy rituals, not willpower**. There are two kinds, and they
 
 **Three views:**
 
-- **▦ Dashboard** — every habit as a card; filter by building/breaking, category and energy dimension; the day's balance across Physical, Emotional, Mental and Spiritual at the top.
+- **▦ Dashboard** — every habit as a card; filter by building/breaking and category; the day's count at the top.
 - **◉ Today** — only what is due, grouped by when in the day it belongs.
 - **◫ Analytics** — ninety days of heat, a health score per habit, the milestones reached and the longest runs.
 
@@ -389,7 +389,7 @@ The Review brings together what used to be three rooms: the Compass charts, the 
 |---|---|
 | **Morning** | Sit quietly; visualise for fifteen to twenty minutes; read your Definite Chief Aim aloud; place yourself on the scale; mark the practice. |
 | **Evening (daily)** | The rings before the day closes; tonight in four dimensions; where the set-point landed; what actually got done; anything else from today; plan tomorrow. |
-| **Weekly** | What you kept and are keeping; the week in Japanese; the week at the score; where the hours went; **the week, in shape** (the Life Tape, below); the habits; a congruence snapshot; which dimension got the week; the week against the lists you made; anything else. |
+| **Weekly** | What you kept and are keeping; the week in Japanese; the week at the score; where the hours went; **the week, in shape** (the Life Tape, below); the habits; a congruence snapshot; the week against the lists you made; anything else. |
 | **Monthly** | The month at once; the milestones you named; the habits across the month; what the month was made of; energy and mood over thirty days. |
 | **Quarterly** | Ninety days at once; re-rank what matters; re-read one past stage — does it still feel true?; revisit flagged synchronicities; what is going quiet; the five closest people; the money, honestly. |
 | **Half-year** | Six months on the tape, and the same questions at a longer range. |
