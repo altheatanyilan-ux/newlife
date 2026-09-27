@@ -1121,17 +1121,55 @@ function openWeeklyPlan(d = today()){
     all('[data-wpenergy]').forEach(i => p.energyBudget[i.dataset.wpenergy] = +i.value || 0);
   };
   const redraw = () => { read(); draw(); };
+  /* which task rows are open for editing, and which goals' work is showing —
+     kept here so a redraw (adding a task, changing a list) does not fold
+     everything back up under you */
+  const editing = new Set(), goalOpen = {};
 
   /* which work a goal may reach for: the open work of the part of a life it
      was put under, or all of it while it has not been put anywhere */
   const goalPool = o => {
     if(o.linkType === 'list') return listOpenTasks(o.linkId).map(taskRef);
-    if(o.linkType === 'project') return projectTaskRefs().filter(r =>
-      !r.done && r.project && r.project.id === o.linkId);
+    /* a project is a planner list under the same id now, so its work is that
+       list's open tasks — plus any phase task from before the move */
+    if(o.linkType === 'project') return [...listOpenTasks(o.linkId).map(taskRef),
+      ...projectTaskRefs().filter(r => !r.done && r.project && r.project.id === o.linkId)];
     return allTaskRefs().filter(r => !r.done);
   };
   const goalUnder = o => o.linkType === 'list' ? (planList(o.linkId) || {}).name
     : o.linkType === 'project' ? ((S.projects || []).find(x => x.id === o.linkId) || {}).name : '';
+
+  /* A row of work under a goal: the tick puts it under the goal, the name can
+     be changed where it stands, and ✎ opens the things a week is planned by —
+     when you will sit down with it, when it is owed, how long it will take,
+     and how much it matters. Every change is written to the task itself, the
+     same task Planning and Today show. */
+  const wpChipsHTML = r => { const t = r.task || {}, mins = taskEstOf(t);
+    const pr = r.kind === 'own' ? planPriority(t.priority) : null;
+    return [pr && pr.n ? `<span class="wp-tprio" style="--c:${pr.color}" title="${esc(pr.name)} priority"></span>` : '',
+      [t.doDay ? `do ${fmtDate(t.doDay, 'short')}` : '', t.day ? `due ${fmtDate(t.day, 'short')}${t.dueTime ? ' ' + t.dueTime : ''}` : '',
+       mins ? fmtEst(mins) : '', r.where || ''].filter(Boolean).map(esc).join(' \u00b7 ')].join(''); };
+  const wpTaskRowHTML = (i, r, on) => { const t = r.task || {}, ed = editing.has(r.id);
+    const fromSteps = typeof taskHasSubEst === 'function' && taskHasSubEst(t);
+    return `<div class="wp-trow${on ? ' on' : ''}${ed ? ' editing' : ''}" data-wptrow="${esc(r.id)}">
+      <div class="wp-tline">
+        <input type="checkbox" data-wptask="${i}" value="${esc(r.id)}" ${on ? 'checked' : ''} title="put it under this goal">
+        <input class="inp wp-ttext" data-wptext="${esc(r.id)}" value="${esc(r.text)}" aria-label="the task">
+        <span class="mono wp-tchips">${wpChipsHTML(r)}</span>
+        <button class="tbtn wp-tedbtn" data-wptedit="${esc(r.id)}" title="${ed ? 'done' : 'dates, estimate and priority'}">${ed ? 'done' : '\u270e'}</button>
+      </div>
+      ${ed ? `<div class="wp-tedit">
+        <label><span>do on</span><input type="date" class="inp mono" data-wptf="doDay" data-wpid="${esc(r.id)}" value="${esc(t.doDay || '')}"></label>
+        <label><span>due</span><input type="date" class="inp mono" data-wptf="day" data-wpid="${esc(r.id)}" value="${esc(t.day || '')}"></label>
+        <label><span>at</span><input type="time" class="inp mono" data-wptf="dueTime" data-wpid="${esc(r.id)}" value="${esc(t.dueTime || '')}"></label>
+        <label class="wp-test"><span>how long</span>${fromSteps
+          ? `<span class="mono">${esc(fmtEst(taskEstOf(t)))}, from its steps</span>`
+          : `<input type="number" min="0" step="5" class="inp mono" data-wptf="duration" data-wpid="${esc(r.id)}" value="${+t.duration || ''}" placeholder="min">
+             <span class="wp-qest">${[15, 30, 45, 60, 90, 120].map(n => `<button type="button" class="tbtn" data-wptq="${n}" data-wpid="${esc(r.id)}">${fmtEst(n)}</button>`).join('')}</span>`}</label>
+        ${r.kind === 'own' ? `<label><span>priority</span><select class="sel" data-wptf="priority" data-wpid="${esc(r.id)}">${
+          PLAN_PRIORITY.map(x => `<option value="${x.n}"${(+t.priority || 0) === x.n ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>` : ''}
+      </div>` : ''}
+    </div>`; };
 
   const lastWeekHTML = () => {
     const named = weekGoalsNamed(lp);
@@ -1176,15 +1214,16 @@ function openWeeklyPlan(d = today()){
           <optgroup label="projects">${(S.projects || []).map(pr => `<option value="project:${esc(pr.id)}" ${
             o.linkType === 'project' && o.linkId === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</optgroup>
         </select></div>
-      ${named ? `<details class="wp-under" ${o.taskIds.length ? 'open' : ''}>
+      ${named ? `<details class="wp-under" data-wpunder="${i}" ${(goalOpen[i] ?? o.taskIds.length > 0) ? 'open' : ''}>
         <summary><span class="mono">${o.taskIds.length
           ? `${o.taskIds.length} thing${o.taskIds.length === 1 ? '' : 's'} under it`
           : 'nothing under it yet \u2014 choose the work'}</span></summary>
-        <div class="stack" style="gap:2px;max-height:26vh;overflow:auto;margin-top:6px">${
-          pool.length ? pool.slice(0, 60).map(r => `<label class="pick-row sm ${picked.has(r.id) ? 'on' : ''}">
-            <input type="checkbox" data-wptask="${i}" value="${esc(r.id)}" ${picked.has(r.id) ? 'checked' : ''}>
-            <span>${esc(r.text)}${r.where ? `<span class="d">${esc(r.where)}</span>` : ''}</span></label>`).join('')
-            : `<div class="empty">Nothing open in ${esc(goalUnder(o) || 'the planner')}.</div>`}</div>
+        <div class="stack wp-tlist" data-wptlist="${i}">${
+          pool.length ? pool.slice(0, 60).map(r => wpTaskRowHTML(i, r, picked.has(r.id))).join('')
+            : `<div class="empty">Nothing open in ${esc(goalUnder(o) || 'the planner')} yet.</div>`}</div>
+        <div class="wp-tadd">
+          <input class="inp" data-wpadd="${i}" placeholder="\uff0b a task in ${esc(goalUnder(o) || 'the Inbox')} \u2014 e.g. draft the intro ~45m friday !high">
+          <button class="btn sm" data-wpaddgo="${i}">Add</button></div>
       </details>` : `<p class="faint" style="font-size:.78rem;margin:4px 0 0 28px">Name it and the work already written down can be put under it.</p>`}
     </div>`; }).join('')}</div>`;
 
@@ -1231,6 +1270,11 @@ function openWeeklyPlan(d = today()){
          <div class="faint" style="font-size:.74rem">Not a ledger \u2014 a leaning.</div></div>
        ${recapHTML()}`,
     ][step];
+    /* a redraw rebuilds the step, so where it was scrolled to — the dialog,
+       and each goal's list of work — is put back afterwards */
+    const md = m.querySelector('.modal');
+    const keep = {top: md ? md.scrollTop : 0, over: m.scrollTop, lists: {}};
+    m.querySelectorAll('[data-wptlist]').forEach(el => keep.lists[el.dataset.wptlist] = el.scrollTop);
     m.querySelector('.modal').innerHTML = `<button class="close">\u00d7</button>${body}
       <div class="row between" style="margin-top:18px"><span class="mono">step ${step + 1} of ${STEPS}</span>
       <span class="row">${step ? '<button class="btn sm ghost" id="wpBack">back</button>' : ''}
@@ -1249,12 +1293,63 @@ function openWeeklyPlan(d = today()){
     m.querySelectorAll('[data-wptask]').forEach(c => c.onchange = () => {
       const o = p.outcomes[+c.dataset.wptask], at = o.taskIds.indexOf(c.value);
       c.checked ? (at < 0 && o.taskIds.push(c.value)) : (at >= 0 && o.taskIds.splice(at, 1));
-      c.closest('.pick-row').classList.toggle('on', c.checked);
+      c.closest('.wp-trow').classList.toggle('on', c.checked);
       const sum = c.closest('.wp-goal').querySelector('summary .mono');
       if(sum) sum.textContent = o.taskIds.length
         ? `${o.taskIds.length} thing${o.taskIds.length === 1 ? '' : 's'} under it`
         : 'nothing under it yet \u2014 choose the work';
     });
+    /* the work itself, edited where it is chosen */
+    const taskOf = id => { const r = findTaskRef(id); return r ? r.task : null; };
+    const touched = t => { t.updatedAt = new Date().toISOString(); save(); };
+    const chipsOf = id => { const r = findTaskRef(id), row = m.querySelector(`[data-wptrow="${CSS.escape(id)}"] .wp-tchips`);
+      if(r && row) row.innerHTML = wpChipsHTML(r); };
+    m.querySelectorAll('[data-wpunder]').forEach(d => d.addEventListener('toggle', () => { goalOpen[d.dataset.wpunder] = d.open; }));
+    m.querySelectorAll('[data-wptext]').forEach(inp => {
+      inp.oninput = () => { const t = taskOf(inp.dataset.wptext); if(t && inp.value.trim()){ t.text = inp.value.trim(); touched(t); } };
+      inp.onchange = () => { const t = taskOf(inp.dataset.wptext); if(!t) return;
+        if(!inp.value.trim()) inp.value = t.text; saveNow(); };
+      inp.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); inp.blur(); } };
+    });
+    m.querySelectorAll('[data-wptedit]').forEach(b => b.onclick = () => {
+      const id = b.dataset.wptedit; editing.has(id) ? editing.delete(id) : editing.add(id); saveNow(); redraw(); });
+    m.querySelectorAll('[data-wptf]').forEach(inp => inp.onchange = () => {
+      const t = taskOf(inp.dataset.wpid), k = inp.dataset.wptf; if(!t) return;
+      if(k === 'duration') t.duration = +inp.value > 0 ? Math.round(+inp.value) : null;
+      else if(k === 'priority') t.priority = +inp.value || 0;
+      else t[k] = inp.value || '';
+      /* a reminder is stored as a moment worked out from the due date, so
+         moving the date moves it */
+      if((k === 'day' || k === 'dueTime') && typeof planSyncReminders === 'function') planSyncReminders(t);
+      touched(t); saveNow(); chipsOf(inp.dataset.wpid);
+    });
+    m.querySelectorAll('[data-wptq]').forEach(b => b.onclick = () => {
+      const t = taskOf(b.dataset.wpid); if(!t) return;
+      t.duration = +b.dataset.wptq; touched(t); saveNow();
+      const n = b.closest('.wp-tedit').querySelector('[data-wptf="duration"]'); if(n) n.value = t.duration;
+      chipsOf(b.dataset.wpid);
+    });
+    /* a new piece of work, written straight into the part of a life the goal
+       sits under — in the planner's own grammar, so "~45m friday !high" is
+       an estimate, a day and a priority — and put under the goal at once */
+    const addTo = i => {
+      const inp = m.querySelector(`[data-wpadd="${i}"]`); if(!inp || !inp.value.trim()) return;
+      read();
+      const o = p.outcomes[+i];
+      if(o.linkType === 'project' && !planList(o.linkId) && typeof projectListsSync === 'function') projectListsSync();
+      const listId = (o.linkType === 'list' || o.linkType === 'project') && planList(o.linkId) ? o.linkId : 'inbox';
+      const t = commitQuickTask(inp.value, {listId});
+      if(!t) return;
+      if(!o.taskIds.includes(t.id)) o.taskIds.push(t.id);
+      goalOpen[i] = true; sound('success'); saveNow(); draw();
+      const again = m.querySelector(`[data-wpadd="${i}"]`); if(again) again.focus();
+    };
+    m.querySelectorAll('[data-wpadd]').forEach(inp => inp.onkeydown = ev => {
+      if(ev.key === 'Enter'){ ev.preventDefault(); ev.stopPropagation(); addTo(inp.dataset.wpadd); } });
+    m.querySelectorAll('[data-wpaddgo]').forEach(b => b.onclick = () => addTo(b.dataset.wpaddgo));
+    if(md){ const md2 = m.querySelector('.modal'); md2.scrollTop = keep.top; }
+    m.scrollTop = keep.over;
+    m.querySelectorAll('[data-wptlist]').forEach(el => { if(keep.lists[el.dataset.wptlist]) el.scrollTop = keep.lists[el.dataset.wptlist]; });
     const back = m.querySelector('#wpBack');
     if(back) back.onclick = () => { read(); step--; draw(); };
     m.querySelector('#wpNext').onclick = () => {

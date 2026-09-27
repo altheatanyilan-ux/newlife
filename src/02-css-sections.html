@@ -2535,6 +2535,33 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .wp-under > summary::-webkit-details-marker{display:none}
 .wp-under > summary::before{content:'\25b8 ';opacity:.6}
 .wp-under[open] > summary::before{content:'\25be '}
+/* the work under a goal: chosen, renamed and scheduled where it stands */
+.wp-tlist{gap:3px;max-height:42vh;overflow:auto;margin-top:6px;padding-right:2px}
+.wp-trow{border:1px solid transparent;border-radius:9px;padding:3px 8px;
+  transition:border-color .18s var(--ease),background .18s var(--ease)}
+.wp-trow:hover,.wp-trow.editing{border-color:var(--line)}
+.wp-trow.on{border-color:color-mix(in srgb,var(--page-accent) 55%,transparent);
+  background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.wp-tline{display:flex;align-items:center;gap:8px;min-width:0}
+.wp-ttext{flex:1 1 0;width:auto;min-width:6ch;padding:3px 6px;font-size:.86rem;background:transparent}
+.wp-tchips{flex:0 0 auto;max-width:50%;display:inline-flex;align-items:center;gap:5px;
+  font-size:.64rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wp-tprio{width:7px;height:7px;border-radius:50%;background:var(--c);flex:0 0 auto}
+.wp-tedbtn{flex:0 0 auto}
+.wp-tedit{display:flex;flex-wrap:wrap;gap:8px 16px;padding:8px 2px 6px 26px}
+.wp-tedit label{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.64rem;
+  color:var(--muted);letter-spacing:.03em}
+.wp-tedit .inp,.wp-tedit .sel{padding:3px 6px;font-size:.8rem;width:auto}
+.wp-tedit input[type=number]{width:72px}
+.wp-qest{display:inline-flex;gap:2px;flex-wrap:wrap}
+.wp-tadd{display:flex;gap:6px;margin-top:8px}
+.wp-tadd .inp{flex:1;min-width:0;padding:5px 8px;font-size:.84rem}
+@media (max-width:640px){
+  .wp-tline{flex-wrap:wrap}
+  .wp-tchips{order:5;max-width:none;width:100%;padding-left:26px;white-space:normal}
+  .wp-tedit label{flex-wrap:wrap}
+  .wp-tedit{padding-left:0}
+}
 .wk-carry{border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin:0 0 12px;
   background:color-mix(in srgb,var(--line) 14%,transparent)}
 .wk-carry .sc{font-size:.6rem}
