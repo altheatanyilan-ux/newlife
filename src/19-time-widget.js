@@ -93,9 +93,55 @@ function bindTimeDock(dock){
 
 /* ---------- the forms ---------- */
 function timeCategoryPickHTML(id, sel){
-  return `<select class="sel" id="${sel}"><option value="">— no category —</option>${
+  /* searchable: type a few letters of the category rather than scroll for it */
+  return `<select class="sel" id="${sel}" data-search><option value="">— no category —</option>${
     timeCategories().map(c => `<option value="${esc(c.id)}" ${c.id === id ? 'selected' : ''}>${
       esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select>`;
+}
+/* WRITING ABOUT A SITTING. Any kind of journal entry — a reflection, a
+   memory, a question — can be written about a sitting, from the sitting. The
+   kind is chosen from a list you can search, since there are a score of
+   them; the entry is dated to the sitting's day, carries the sitting's id in
+   extra.sittingId, and the sitting keeps the entry's id (entryIds), so each
+   can find the other. An entry deleted later just drops out of the list. */
+const TIME_WRITE_SKIP = ['nod', 'drink'];
+const timeWriteTypes = () => ENTRY_TYPES.filter(([k]) => !TIME_WRITE_SKIP.includes(k));
+function timeWritePickHTML(id, cls = ''){
+  return `<select class="sel sm tm-write ${cls}" data-search data-tmwrite="${esc(id)}" aria-label="write a journal entry about this sitting">
+    <option value="">✎ write about it…</option>${timeWriteTypes().map(([k, n, ic]) =>
+      `<option value="${esc(k)}">${esc(ic)} ${esc(n)}</option>`).join('')}</select>`;
+}
+function timeEntriesOf(e){
+  return (e && Array.isArray(e.entryIds) ? e.entryIds : []).map(id => byId(S.entries, id)).filter(Boolean);
+}
+function timeWrittenHTML(e){
+  const list = timeEntriesOf(e);
+  return list.length ? `<div class="tm-written">${list.map(x =>
+    `<button class="tm-wchip" data-tmentry="${esc(x.id)}" title="open it">${esc(typeIcon(x.type))} ${
+      esc(x.title || typeName(x.type))}</button>`).join('')}</div>` : '';
+}
+function timeWriteAbout(id, type, after){
+  const e = byId(S.timeEntries, id); if(!e || !type) return;
+  const before = new Set(S.entries.map(x => x.id));
+  const c = timeCategory(e.categoryId);
+  openEntryModal({type, occurredAt: timeDayOf(e.startTime),
+    heading: `${typeName(type)} — about “${e.what || c.name}”`,
+    after: () => {
+      const made = S.entries.find(x => !before.has(x.id));
+      if(made){
+        made.extra = made.extra || {}; made.extra.sittingId = e.id;
+        e.entryIds = [...(Array.isArray(e.entryIds) ? e.entryIds : []), made.id];
+        saveNow();
+      }
+      if(after) after(); else rerender();
+    }});
+}
+/* one binding for wherever the picker and the chips appear */
+function bindTimeWrite(root, after){
+  $$('[data-tmwrite]', root).forEach(sel => sel.onchange = () => {
+    const type = sel.value; sel.value = ''; if(type) timeWriteAbout(sel.dataset.tmwrite, type, after); });
+  $$('[data-tmentry]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    openEntryModal({entryId: b.dataset.tmentry, after}); });
 }
 function openTimeStartModal(){
   timeState();
@@ -164,6 +210,8 @@ function openTimeEntryModal(id, day){
          the room that started them, and asking by hand for every sitting was
          two selects nobody filled in. Whatever an entry already carries is
          still carried, credited and shown. -->
+    ${e ? `<div class="pd-q" style="margin-top:10px"><span class="k">written about it</span>
+      <div class="tm-writebox">${timeWrittenHTML(e)}${timeWritePickHTML(e.id)}</div></div>` : ''}
     <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
       ${e ? `<button class="btn sm ghost danger" id="teDel">Delete</button><span class="grow"></span>` : ''}
       <button class="btn primary" id="teSave">Save</button></div>`, 'narrow');
@@ -196,6 +244,10 @@ function openTimeEntryModal(id, day){
     }
     m.remove(); sound('success'); paintTimeDock(); rerender();
   };
+  /* writing about it from here closes nothing: the sitting's form stays, and
+     the new entry is listed on it when it comes back */
+  if(e) bindTimeWrite(m, () => { const box = m.querySelector('.tm-writebox');
+    if(box){ box.innerHTML = timeWrittenHTML(e) + timeWritePickHTML(e.id); bindTimeWrite(m); } rerender(); });
   const del = m.querySelector('#teDel');
   if(del) del.onclick = () => { removeTimeEntry(e.id); m.remove(); sound('click');
     paintTimeDock(); rerender(); };

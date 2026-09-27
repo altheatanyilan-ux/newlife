@@ -125,7 +125,8 @@ const THIN = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1
     document.querySelector('#scBack').click();
     await new Promise(r => setTimeout(r, 1400));
     return {was, now: location.hash, id: scoreUi().id,
-      shelf: !!document.querySelector('.sc-shelf'), viewer: !!document.querySelector('.sc-open')};
+      /* the shelf is the inventory now: the cards were taken out by request */
+      shelf: !!document.querySelector('#scInv'), viewer: !!document.querySelector('.sc-open')};
   });
   yes('the address still had the score in it', /#\/score\/.+/.test(back.was), back.was);
   /* one press: the shelf, and the address that goes with it */

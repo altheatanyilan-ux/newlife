@@ -146,7 +146,8 @@ const piece = (title, composer) => `<?xml version="1.0" encoding="UTF-8"?><score
 
   console.log('\n4. the library on the shelf page');
   const shelf = await p.evaluate(async () => {
-    scoreUi().id = null; location.hash = '#/score';
+    /* the rules are a view of their own now, behind the switch at the top */
+    scoreUi().id = null; scoreUi().libView = 'rules'; location.hash = '#/score';
     await new Promise(r => setTimeout(r, 1200));
     return {there: !!document.querySelector('#scRules'),
       rows: document.querySelectorAll('.scr-row').length,

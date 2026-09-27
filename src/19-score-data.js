@@ -119,7 +119,10 @@ const SCORE_STALE_AFTER = 90;
 function scoreFamiliarDoubt(x){
   const last = scoreLastPractised(x);
   const at = scoreFamiliarAt(x.familiar);
-  if(!last) return at >= 4 ? 'never practised in this room, so nothing here can vouch for it' : '';
+  /* A piece never practised here says nothing at all — taken out by request:
+     how well you know it is yours to say, and a piece learnt before this
+     room existed is not in doubt for having no sittings in it. */
+  if(!last) return '';
   const days = daysSince(last);
   if(at >= 5 && x.familiar !== 'rusty' && days > SCORE_STALE_AFTER)
     return `called ${scoreFamiliarName(x.familiar).toLowerCase()}, not practised in ${Math.round(days / 30)} months`;
@@ -155,6 +158,109 @@ function scorePeriodGuess(composer){
   const hit = SCORE_PERIOD_BY_NAME.find(([re]) => re.test(n));
   return hit ? hit[1] : null;
 }
+/* THE COMPOSERS — one name for one person.
+   A file names its composer however its maker typed it, so the same person
+   arrived as "Chopin", "Frédéric Chopin" and "CHOPIN, F." on three pieces and
+   the composer filter counted three people. So the composer is chosen from
+   a list (the names already on the shelf, and any you have added), a new one
+   is added from the same place, and names that look like one person written
+   different ways are offered for tidying — never merged on their own, since
+   two Bachs are two people. A name a file gave that was changed is kept on
+   the piece (composerFile), and a merge is remembered so the next file that
+   spells it that way arrives already under the name you chose.
+   Kept in settings: scoreComposers (names added by hand), scoreComposerAliases
+   (folded spelling → the name), scoreComposerApart (groups you said are
+   different people). */
+const scoreComposerFold = n => String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase().replace(/\([^)]*\)|\[[^\]]*\]|\d/g, ' ').replace(/[^a-z,]+/g, ' ').replace(/\s+/g, ' ').trim();
+/* the name's own spelling, folded, and with "Surname, First" turned round */
+function scoreComposerKey(n){
+  let t = scoreComposerFold(n);
+  if(t.includes(',')){ const [a, ...b] = t.split(','); t = `${b.join(' ')} ${a}`; }
+  return t.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+}
+/* the surname, spelt so that transliterations meet: Rachmaninoff and
+   Rachmaninov, Tchaikovsky and Tschaikowsky */
+function scoreComposerSurname(n){
+  const f = scoreComposerFold(n);
+  if(!f) return '';
+  const parts = f.includes(',') ? f.split(',')[0].trim().split(' ') : f.split(' ');
+  const skip = new Set(['jr', 'sr', 'ii', 'iii', 'arr', 'trad']);
+  const words = parts.filter(w => w && !skip.has(w));
+  let w = words[words.length - 1] || '';
+  return w.replace(/ff$/, 'v').replace(/w/g, 'v').replace(/tsch|tch/g, 'ch').replace(/ph/g, 'f').replace(/y$/, 'i');
+}
+function scoreComposerSettings(){
+  const st = S.settings = S.settings || {};
+  if(!Array.isArray(st.scoreComposers)) st.scoreComposers = [];
+  if(!st.scoreComposerAliases || typeof st.scoreComposerAliases !== 'object') st.scoreComposerAliases = {};
+  if(!Array.isArray(st.scoreComposerApart)) st.scoreComposerApart = [];
+  return st;
+}
+/* every name, with how many pieces carry it: the shelf's, then the added */
+function scoreComposerNames(){
+  const m = new Map();
+  scoreState().forEach(x => { const n = (x.composer || '').trim(); if(n) m.set(n, (m.get(n) || 0) + 1); });
+  scoreComposerSettings().scoreComposers.forEach(n => { n = String(n || '').trim(); if(n && !m.has(n)) m.set(n, 0); });
+  return [...m].sort((a, b) => a[0].localeCompare(b[0], undefined, {sensitivity: 'base'}));
+}
+function scoreComposerAdd(name){
+  const n = String(name || '').trim(); if(!n) return '';
+  const st = scoreComposerSettings();
+  const same = scoreComposerNames().find(([k]) => scoreComposerKey(k) === scoreComposerKey(n));
+  if(same) return same[0];
+  st.scoreComposers.push(n); saveNow();
+  return n;
+}
+/* the name a newly arriving file's composer should be filed under */
+function scoreComposerCanonical(name){
+  const n = String(name || '').trim(); if(!n) return '';
+  const k = scoreComposerKey(n);
+  const al = scoreComposerSettings().scoreComposerAliases[k];
+  if(al) return al;
+  const same = scoreComposerNames().find(([x]) => scoreComposerKey(x) === k);
+  return same ? same[0] : n;
+}
+const scoreLev = (a, b) => { if(Math.abs(a.length - b.length) > 1) return 2;
+  const d = Array.from({length: b.length + 1}, (_, i) => i);
+  for(let i = 1; i <= a.length; i++){ let prev = d[0]; d[0] = i;
+    for(let j = 1; j <= b.length; j++){ const t = d[j];
+      d[j] = Math.min(d[j] + 1, d[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = t; } }
+  return d[b.length]; };
+/* names that look like one person written more than one way */
+function scoreComposerGroups(){
+  const names = scoreComposerNames().filter(([, c]) => c > 0);
+  const apart = new Set(scoreComposerSettings().scoreComposerApart);
+  const groups = [];
+  names.forEach(([n, c]) => {
+    const sn = scoreComposerSurname(n); if(!sn) return;
+    const g = groups.find(g => g.sn === sn || (sn.length >= 7 && g.sn.length >= 7 && scoreLev(sn, g.sn) <= 1));
+    if(g) g.names.push([n, c]); else groups.push({sn, names: [[n, c]]});
+  });
+  return groups.filter(g => g.names.length > 1)
+    .map(g => ({...g, sig: g.names.map(([n]) => n).sort().join('|')}))
+    .filter(g => !apart.has(g.sig));
+}
+/* every piece under any of `from` goes under `to`; each keeps the name it had */
+function scoreComposerMerge(from, to){
+  to = String(to || '').trim(); if(!to) return 0;
+  const st = scoreComposerSettings();
+  const set = new Set(from.map(n => String(n || '').trim()));
+  let n = 0;
+  scoreState().forEach(x => { const c = (x.composer || '').trim();
+    if(set.has(c) && c !== to){ if(!x.composerFile) x.composerFile = c; x.composer = to; n++; } });
+  set.forEach(c => { if(c && c !== to) st.scoreComposerAliases[scoreComposerKey(c)] = to; });
+  st.scoreComposers = st.scoreComposers.filter(c => !set.has(c) || c === to);
+  if(!scoreState().some(x => x.composer === to) && !st.scoreComposers.includes(to)) st.scoreComposers.push(to);
+  saveNow();
+  return n;
+}
+function scoreComposerApart(sig){
+  const st = scoreComposerSettings();
+  if(!st.scoreComposerApart.includes(sig)) st.scoreComposerApart.push(sig);
+  saveNow();
+}
+
 /* What the room will show for a piece: what you said, or failing that what it
    guessed. The two are kept apart so the inventory can say which it is. */
 const scorePeriodOf = x => x && x.period ? x.period : scorePeriodGuess(x && x.composer);

@@ -71,45 +71,40 @@ routes.score = function(root, params){
   }
 };
 
-/* ---------- the shelf ---------- */
+/* ---------- the shelf ----------
+   One list, and one other view. The cards that used to stand above the
+   inventory are gone by request: the inventory, with its filters, is the
+   list, and it is at the top. The unwritten rules are a second view behind
+   a switch rather than a section under it. */
 function scoreLibraryHTML(){
-  const list = scoreState().slice().sort((a, b) =>
-    (b.lastOpened || b.createdAt || '').localeCompare(a.lastOpened || a.createdAt || ''));
+  const all = scoreState();
   const weight = scoreLibraryWeight();
-  return `<h1 class="serif">Repertoire</h1>
-    <p class="muted sc-lede">The notation, and what you have written on it. Bring a MusicXML file and the score is engraved here; then mark the sections, write what each one needs, and practise one of them at a time. A sentence about bar 60 belongs at bar 60 — in a practice diary it is something you read in three weeks, on the page it is something you cannot miss.</p>
-    ${osmdBuiltIn() ? '' : `<div class="sc-warn">The engraver is not built into this copy, so nothing can be drawn. Everything you have written is safe; run <code>npm install</code> and build again to get the notation back.</div>`}
-    <div class="sc-drop" id="scDrop" tabindex="0" role="button" aria-label="Add a score">
-      <span class="sc-drop-i">📄</span>
-      <span class="sc-drop-t serif">Drop a MusicXML file here</span>
-      <span class="sc-drop-s mono">.musicxml or .mxl — or press to choose one</span>
-      <span class="sc-drop-h">Export one from MuseScore, Flat.io or Dorico. This room reads notation, not pictures of it: a PDF or a photograph has nothing in it to mark up.</span>
+  const ui = scoreUi();
+  const view = ui.libView === 'rules' ? 'rules' : 'inv';
+  const rulesN = typeof scoreRules === 'function' ? scoreRules().length : 0;
+  /* No heading and no lede, by request: the page opens on the controls. The
+     Add button is mounted into the row's slot, and the drop box sits beside
+     it — small, because it only has to catch a file; its explanation is in
+     its title. The whole page catches a dropped file as well, so the small
+     target never has to be hit exactly. */
+  return `<div class="sc-addrow" data-ctx-slot>
+      <div class="sc-drop" id="scDrop" tabindex="0" role="button" aria-label="Add a score — drop a MusicXML file here, or press to choose one"
+        title="Drop a .musicxml or .mxl file here, or press to choose one. Export one from MuseScore, Flat.io or Dorico — a PDF or a photograph has no notation in it to mark up.">
+        <span class="sc-drop-i" aria-hidden="true">📄</span><span class="sc-drop-t">drop .musicxml / .mxl</span>
+      </div>
+      <span class="sc-addgrow"></span>
+      <div class="seg sc-libswitch" role="tablist" aria-label="What to look at">
+        <button class="${view === 'inv' ? 'on' : ''}" role="tab" aria-selected="${view === 'inv'}" data-sclib="inv">Scores <span class="mono faint">${all.length}</span></button>
+        <button class="${view === 'rules' ? 'on' : ''}" role="tab" aria-selected="${view === 'rules'}" data-sclib="rules">The unwritten rules <span class="mono faint">${rulesN}</span></button>
+      </div>
     </div>
+    ${osmdBuiltIn() ? '' : `<div class="sc-warn">The engraver is not built into this copy, so nothing can be drawn. Everything you have written is safe; run <code>npm install</code> and build again to get the notation back.</div>`}
     <input type="file" id="scFile" accept=".musicxml,.mxl,.xml,application/vnd.recordare.musicxml+xml" hidden>
-    ${list.length ? `<div class="sc-shelf">${list.map(x => {
-      const n = (x.sections || []).length;
-      const done = (x.sections || []).filter(s => s.status === 'solid' || s.status === 'polished').length;
-      return `<div class="sc-item" data-scitem="${esc(x.id)}">
-        <button class="sc-item-face" data-scopen="${esc(x.id)}">
-          <span class="sc-item-t serif">${esc(x.title)}</span>
-          <span class="sc-item-c">${esc(x.composer || '')}</span>
-          <span class="sc-item-m mono">${x.totalMeasures ? `${x.totalMeasures} bars · ` : ''}${
-            n ? `${done} of ${n} section${n === 1 ? '' : 's'} solid` : 'no sections yet'} · ${scoreSaid(scoreWeight(x))}</span>
-          ${n ? `<span class="sc-item-bar">${(x.sections || []).map(s =>
-            `<i style="--c:${esc(s.color)};flex:${Math.max(1, s.endMeasure - s.startMeasure + 1)}"
-              title="${esc(s.name)} — ${esc(scoreStatusName(s.status))}"></i>`).join('')}</span>` : ''}
-        </button>
-        <div class="sc-item-tools">
-          <span class="mono faint">${x.lastOpened ? `opened ${esc(fmtDate(x.lastOpened, 'short'))}` : 'never opened'}</span>
-          <span class="grow"></span>
-          <button class="del-x inline" data-scdel="${esc(x.id)}" title="take this score off the shelf">×</button>
-        </div>
-      </div>`; }).join('')}</div>
-      <div class="sc-weigh mono${scoreLibraryHeavy() ? ' heavy' : ''}">${list.length} score${list.length === 1 ? '' : 's'} · ${scoreSaid(weight)} of notation kept${
+    ${view === 'rules' ? scoreRulesHTML()
+      : all.length ? `${scoreInventoryHTML()}
+      <div class="sc-weigh mono${scoreLibraryHeavy() ? ' heavy' : ''}">${all.length} score${all.length === 1 ? '' : 's'} · ${scoreSaid(weight)} of notation kept${
         scoreLibraryHeavy() ? ' — heavy enough to be slowing every save. Take off what you are not working on; the sections and notes go with it.' : ''}</div>`
-      : '<div class="empty">Nothing on the shelf yet.</div>'}
-    ${scoreInventoryHTML()}
-    ${scoreRulesHTML()}`;
+      : '<div class="empty">Nothing on the shelf yet. Add a score, or drop a MusicXML file anywhere on this page.</div>'}`;
 }
 
 /* ---------- the inventory ----------
@@ -198,10 +193,15 @@ function scoreInventoryHTML(){
   const periods = tally(x => scorePeriodOf(x) || '\u2014');
   const byCount = t => Object.keys(t).sort((a, b) => t[b] - t[a] || a.localeCompare(b));
   const someGuessed = all.some(x => !x.period && scorePeriodGuess(x.composer));
+  const twice = scoreComposerGroups();
   return `<section class="section rv sc-inv" id="scInv">
     <div class="row between"><span class="sc" style="margin:0">Inventory</span>
-      <span class="mono">${list.length} of ${all.length} shown</span></div>
-    <p class="muted" style="font-size:.85rem">Everything you have brought in, including the pieces you have not started marking up. The shelf is what you are working on; this is what you have.${
+      <span class="row" style="gap:10px;align-items:baseline"><span class="mono">${list.length} of ${all.length} shown</span>
+        <button class="btn sm ghost" id="scComposers" title="the names, and the ones written more than one way">Composers</button></span></div>
+    ${twice.length ? `<div class="sc-twice"><span>${twice.length === 1 ? 'One composer looks' : `${twice.length} composers look`} to be written more than one way \u2014 ${
+      twice.slice(0, 3).map(g => g.names.map(([n]) => `\u201c${esc(n)}\u201d`).join(' / ')).join('; ')}${twice.length > 3 ? '; \u2026' : ''}.</span>
+      <button class="btn sm" id="scTidy">Tidy them</button></div>` : ''}
+    <p class="muted" style="font-size:.85rem">Everything you have brought in, including the pieces you have not started marking up.${
       someGuessed ? ' A period in lighter type was guessed from the composer\u2019s name \u2014 press it to say for certain, or to correct it.' : ''}</p>
     <div class="filter-bar">
       <input class="inp" id="scinvq" placeholder="search title, composer, section" value="${esc(f.q)}">
@@ -210,7 +210,7 @@ function scoreInventoryHTML(){
           >${esc(n)}${fams[k] ? ` (${fams[k]})` : ''}</option>`).join('')}</select>
       <select class="sel" id="scinvState"><option value="all">any section standing</option>${states.map(([k, n]) =>
         `<option value="${k}" ${f.state === k ? 'selected' : ''}>${esc(n)}${counts[k] ? ` (${counts[k]})` : ''}</option>`).join('')}</select>
-      <select class="sel" id="scinvComposer"><option value="all">any composer</option>${
+      <select class="sel" id="scinvComposer" data-search><option value="all">any composer</option>${
         byCount(comps).map(k => `<option value="${esc(k)}" ${f.composer === k ? 'selected' : ''}>${
           k === '\u2014' ? 'no composer named' : esc(k)} (${comps[k]})</option>`).join('')}</select>
       <select class="sel" id="scinvPeriod"><option value="all">any period</option>${
@@ -1259,7 +1259,11 @@ async function takeScoreFile(file){
       return null;
     }
     const {title, composer} = musicXmlTitle(xml, file.name);
-    const rec = addScore({title, composer, musicXml:xml});
+    /* filed under the name already on the shelf for that person, if there
+       is one; the file's own spelling is kept on the piece */
+    const named = typeof scoreComposerCanonical === 'function' ? scoreComposerCanonical(composer) : composer;
+    const rec = addScore(Object.assign({title, composer: named, musicXml:xml},
+      named !== (composer || '').trim() && composer ? {composerFile: composer} : {}));
     sound('success');
     toast(`${title} is on the shelf — ${scoreSaid(scoreWeight(rec))}.`);
     scoreUi().id = rec.id; scoreUi().focus = null;
@@ -1269,6 +1273,75 @@ async function takeScoreFile(file){
     toast(`That file could not be read — ${e.message}`, 6000);
     return null;
   }
+}
+
+/* ---------- the composers ----------
+   One place for the names: the ones that look like one person written more
+   than one way, each put to you with the spellings side by side; and every
+   name there is, with how many pieces it is on, to rename or to add to. A
+   merge changes the name on the pieces and nothing else — each piece keeps
+   the name it had, and "they are different people" is remembered. */
+function openScoreComposers(){
+  const draw = () => {
+    const groups = scoreComposerGroups();
+    const names = scoreComposerNames();
+    return `<h2>Composers</h2>
+      ${groups.length ? `<div class="scc-sec"><span class="sc" style="margin:0">Written more than one way</span>
+        ${groups.map((g, gi) => { const best = g.names.slice().sort((a, b) => b[1] - a[1] || a[0].length - b[0].length)[0][0];
+          return `<div class="scc-group" data-sccg="${gi}">
+          ${g.names.map(([n, c]) => `<label class="scc-opt"><input type="radio" name="sccg${gi}" value="${esc(n)}" ${n === best ? 'checked' : ''}>
+            <span>${esc(n)}</span><span class="mono faint">${c} piece${c === 1 ? '' : 's'}</span></label>`).join('')}
+          <label class="scc-opt"><input type="radio" name="sccg${gi}" value="" data-sccown>
+            <input class="inp sm" data-sccname="${gi}" placeholder="or write it another way"></label>
+          <div class="row" style="gap:8px;margin-top:6px;flex-wrap:wrap">
+            <button class="btn sm primary" data-sccmerge="${gi}">Use that name for all ${g.names.reduce((t, [, c]) => t + c, 0)}</button>
+            <button class="btn sm ghost" data-sccapart="${gi}">They are different people</button></div>
+        </div>`; }).join('')}</div>` : ''}
+      <div class="scc-sec"><span class="sc" style="margin:0">Every name</span>
+        ${names.length ? `<div class="scc-rows">${names.map(([n, c], i) => `<div class="scc-row">
+          <input class="inp sm" data-sccren="${i}" value="${esc(n)}" data-was="${esc(n)}">
+          <span class="mono faint">${c ? `${c} piece${c === 1 ? '' : 's'}` : 'none yet'}</span>
+          ${c ? '' : `<button class="del-x inline" data-sccdrop="${i}" title="take this name off the list">\u00d7</button>`}
+        </div>`).join('')}</div>
+        <p class="faint sm">Change a name and press Enter: every piece under it follows. Rename it to a name that is already here and the two become one.</p>`
+          : '<div class="empty sm">No composers named yet.</div>'}
+        <div class="row" style="gap:8px;margin-top:8px"><input class="inp sm" id="sccNew" placeholder="add a composer to the list" style="flex:1">
+          <button class="btn sm" id="sccAdd">Add</button></div></div>`;
+  };
+  const m = openModal(`<div data-scc-host>${draw()}</div>`);
+  const redo = () => { m.querySelector('[data-scc-host]').innerHTML = draw(); bind(); };
+  const bind = () => {
+    const groups = scoreComposerGroups(), names = scoreComposerNames();
+    m.querySelectorAll('[data-sccname]').forEach(i => i.oninput = () => {
+      const r = i.closest('.scc-opt').querySelector('[data-sccown]'); if(r) r.checked = true; });
+    m.querySelectorAll('[data-sccmerge]').forEach(b => b.onclick = () => {
+      const g = groups[+b.dataset.sccmerge]; if(!g) return;
+      const box = m.querySelector(`[data-sccg="${b.dataset.sccmerge}"]`);
+      const pick = box.querySelector('input[type=radio]:checked');
+      const to = pick && pick.hasAttribute('data-sccown') ? box.querySelector('[data-sccname]').value.trim() : pick && pick.value;
+      if(!to){ toast('Choose the name to use, or write it.'); return; }
+      const n = scoreComposerMerge(g.names.map(([x]) => x), to);
+      sound('success'); toast(`${n} piece${n === 1 ? '' : 's'} now under \u201c${to}\u201d.`); redo(); rerender(); });
+    m.querySelectorAll('[data-sccapart]').forEach(b => b.onclick = () => {
+      const g = groups[+b.dataset.sccapart]; if(!g) return;
+      scoreComposerApart(g.sig); sound('click'); redo(); rerender(); });
+    m.querySelectorAll('[data-sccren]').forEach(i => i.onkeydown = ev => {
+      if(ev.key !== 'Enter') return; ev.preventDefault();
+      const was = i.dataset.was, to = i.value.trim(); if(!to || to === was) return;
+      const target = names.find(([x]) => scoreComposerKey(x) === scoreComposerKey(to) && x !== was);
+      scoreComposerMerge([was], target ? target[0] : to);
+      sound('success'); redo(); rerender(); });
+    m.querySelectorAll('[data-sccdrop]').forEach(b => b.onclick = () => {
+      const [n] = names[+b.dataset.sccdrop] || []; if(!n) return;
+      const st = scoreComposerSettings(); st.scoreComposers = st.scoreComposers.filter(x => x !== n);
+      saveNow(); redo(); });
+    const add = () => { const i = m.querySelector('#sccNew'); const n = scoreComposerAdd(i.value);
+      if(n){ sound('click'); redo(); } };
+    const ab = m.querySelector('#sccAdd'); if(ab) ab.onclick = add;
+    const ai = m.querySelector('#sccNew'); if(ai) ai.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); add(); } };
+  };
+  bind();
+  return m;
 }
 
 /* ---------- what the piece is ----------
@@ -1285,8 +1358,11 @@ function openScoreDetails(id){
     <label class="pd-q"><span class="k">title</span>
       <input class="inp" id="sdTitle" autofocus value="${esc(x.title)}"></label>
     <label class="pd-q" style="margin-top:8px"><span class="k">composer</span>
-      <input class="inp" id="sdComposer" value="${esc(x.composer)}"
-        placeholder="the way you want it to sort \u2014 Chopin, not Fr\u00e9d\u00e9ric Fran\u00e7ois Chopin"></label>
+      <select class="sel" id="sdComposer" data-search data-add><option value="">\u2014 nobody named \u2014</option>${
+        scoreComposerNames().map(([n, c]) => `<option value="${esc(n)}" ${x.composer === n ? 'selected' : ''}>${esc(n)}${
+          c ? ` (${c})` : ''}</option>`).join('')}</select></label>
+    ${x.composerFile && x.composerFile !== x.composer ? `<p class="faint sm" style="margin:4px 0 0">the file said \u201c${esc(x.composerFile)}\u201d</p>` : ''}
+    <p class="faint sm" style="margin:4px 0 0">Choose from the names you already have \u2014 type to search; a name that is not there yet can be added from the same box.</p>
     <label class="pd-q" style="margin-top:8px"><span class="k">how well you know it</span>
       <select class="sel" id="sdFam">${SCORE_FAMILIAR.map(([k, n, hint]) =>
         `<option value="${k}" ${x.familiar === k ? 'selected' : ''}>${esc(n)} \u2014 ${esc(hint)}</option>`).join('')}</select></label>
@@ -1301,6 +1377,7 @@ function openScoreDetails(id){
   m.querySelector('#sdSave').onclick = () => {
     x.title = m.querySelector('#sdTitle').value.trim() || x.title;
     x.composer = m.querySelector('#sdComposer').value.trim();
+    if(x.composer) scoreComposerAdd(x.composer);
     x.period = m.querySelector('#sdPeriod').value || null;
     x.familiar = m.querySelector('#sdFam').value;
     saveNow(); m.remove(); sound('success'); rerender();
@@ -1347,8 +1424,17 @@ function bindScoreLibrary(root){
     drop.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); file && file.click(); } };
     drop.addEventListener('dragover', ev => { ev.preventDefault(); drop.classList.add('over'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-    drop.addEventListener('drop', ev => { ev.preventDefault(); drop.classList.remove('over');
+    drop.addEventListener('drop', ev => { ev.preventDefault(); ev.stopPropagation(); drop.classList.remove('over');
       takeScoreFile(ev.dataTransfer.files && ev.dataTransfer.files[0]); });
+    /* the box is small now, so a file let go anywhere on the shelf is taken too */
+    const page = root.querySelector('.sc-page');
+    const hasFile = ev => [...((ev.dataTransfer && ev.dataTransfer.types) || [])].includes('Files');
+    if(page){
+      page.addEventListener('dragover', ev => { if(!hasFile(ev)) return; ev.preventDefault(); drop.classList.add('over'); });
+      page.addEventListener('dragleave', ev => { if(!page.contains(ev.relatedTarget)) drop.classList.remove('over'); });
+      page.addEventListener('drop', ev => { if(!hasFile(ev)) return; ev.preventDefault(); drop.classList.remove('over');
+        takeScoreFile(ev.dataTransfer.files && ev.dataTransfer.files[0]); });
+    }
   }
   $$('[data-scopen]', root).forEach(b => b.onclick = () => {
     scoreUi().id = b.dataset.scopen; scoreUi().focus = null; navigate('#/score/' + b.dataset.scopen); });
@@ -1357,6 +1443,9 @@ function bindScoreLibrary(root){
     requestDelete({label: x.title, node: b.closest('.sc-item, .sc-invrow'), after: rerender,
       remove: () => removeScore(x.id)});
   });
+  $$('[data-sclib]', root).forEach(b => b.onclick = () => {
+    const ui = scoreUi(); if(ui.libView === b.dataset.sclib) return;
+    ui.libView = b.dataset.sclib; sound('click'); rerender(); });
   bindScoreInventory(root);
   bindScoreRules(root);
 }
@@ -1380,6 +1469,9 @@ function bindScoreInventory(root){
     const x = scoreById(n.dataset.scfam); if(!x) return;
     x.familiar = n.value; sound('click'); redraw(); });
   $$('[data-scdetails]', root).forEach(b => b.onclick = () => openScoreDetails(b.dataset.scdetails));
+  const comp = root.querySelector('#scComposers'), tidy = root.querySelector('#scTidy');
+  if(comp) comp.onclick = () => openScoreComposers();
+  if(tidy) tidy.onclick = () => openScoreComposers();
   const clear = root.querySelector('#scinvClear');
   if(clear) clear.onclick = () => { f.q = ''; f.state = 'all'; f.shape = 'all';
     f.composer = 'all'; f.period = 'all'; f.familiar = 'all'; redraw(); };

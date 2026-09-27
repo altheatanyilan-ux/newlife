@@ -109,8 +109,10 @@ function timeRowHTML(e){
         e.source === 'auto' ? ' · started by the room' : ''}</div>
       ${e.notes.length ? `<div class="tm-notes">${e.notes.map(n =>
         `<span class="mono sm">${esc(timeClockOf(n.at))}</span> ${esc(n.text)}`).join('<br>')}</div>` : ''}
+      ${timeWrittenHTML(e)}
     </div>
     <span class="mono tm-mins">${e.endTime ? timeSaid(timeMinutes(e)) : 'running'}</span>
+    ${timeWritePickHTML(e.id)}
     <button class="tbtn" data-tmedit="${esc(e.id)}" title="change it">✎</button>
   </div>`;
 }
@@ -274,6 +276,7 @@ function bindTimePage(root){
   $$('[data-tmedit]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     openTimeEntryModal(b.dataset.tmedit); });
   $$('[data-tmgo]', root).forEach(b => b.onclick = () => openTimeEntryModal(b.dataset.tmgo));
+  bindTimeWrite(root);
   const add = root.querySelector('#tmAdd');
   if(add) add.onclick = () => openTimeEntryModal(null, timeDay());
   const pick = (sel, key, num) => { const n = root.querySelector(sel); if(!n) return;

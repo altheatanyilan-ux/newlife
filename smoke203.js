@@ -272,6 +272,8 @@ const ARP = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"
     const sel = document.querySelector('#scinvPeriod'); sel.value = 'all'; sel.onchange();
     await new Promise(r => setTimeout(r, 600));
     const x = scores().find(y => y.title === 'Eight Changes');
+    /* the composer is chosen from a list now; a new name goes on the list first */
+    scoreComposerAdd('Chopin');
     openScoreDetails(x.id);
     await new Promise(r => setTimeout(r, 400));
     document.querySelector('#sdComposer').value = 'Chopin';

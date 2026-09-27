@@ -196,6 +196,9 @@ function timeEntryDefaults(e){
   e.source = ['timer','manual','auto'].includes(e.source) ? e.source : 'timer';
   e.feature = e.feature || null;
   e.notes = Array.isArray(e.notes) ? e.notes : [];
+  /* journal entries written about this sitting, by id (added later; an older
+     sitting simply has none) */
+  e.entryIds = Array.isArray(e.entryIds) ? e.entryIds.filter(Boolean) : [];
   e.createdAt = e.createdAt || e.startTime;
   return e;
 }
