@@ -93,7 +93,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(i => { FocusTimer.reset(); FocusTimer.setMode('countdown'); FocusTimer.setLength(30);
     FocusTimer.setTask(i, null); FocusTimer.start(); }, live);
   await p.clock.runFor(7 * 60 * 1000);
-  is('nothing is written while it runs', await p.evaluate(i => taskSpentOn(i), live), 0);
+  /* written as it runs, minute by minute — so a page that goes away mid-sitting
+     loses at most the minute it was in (and the time tracker reads the same row) */
+  is('it is written down as it runs, minute by minute', await p.evaluate(i => taskSpentOn(i), live), 7);
   await p.evaluate(() => FocusTimer.pause()); await p.clock.runFor(200);
   is('pausing writes down what has been done', await p.evaluate(i => taskSpentOn(i), live), 7);
   is('  on the sitting\'s own row', await p.evaluate(i => focusSessionsFor(i).length, live), 1);

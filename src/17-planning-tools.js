@@ -15,6 +15,36 @@ const FocusTimer = (() => {
   const cfg = () => planState().timer;
   let pendingSub = null;
   const notify = () => listeners.forEach(f => { try { f(state()); } catch(e){} });
+  /* Every reading of the clock goes through here, so that a sitting can be
+     closed as of a moment other than now — a countdown that ran out while the
+     house was shut is written down as ending when it ran out. */
+  let clockAt = null;
+  const nowMs = () => clockAt != null ? clockAt : Date.now();
+  const nowISO = () => new Date(nowMs()).toISOString();
+  /* Kept with the rest of the planner, so a reload — or the browser closing —
+     does not end the sitting: the next page carries on from it. What is kept
+     is the timer's own state, which is all absolute times, so nothing needs
+     adjusting on the way back in. */
+  function persist(soon = false){
+    try {
+      planState().timerLive = st ? Object.assign(JSON.parse(JSON.stringify(st)),
+        {pendingTask, pendingSub, savedAt: nowISO()}) : null;
+      /* words typed into a note are kept a moment later, not on every key */
+      if(soon && typeof save === 'function') save(); else saveNow();
+    } catch(e){}
+  }
+  /* the time tracker's copy of the sitting, brought into line with the record
+     (19-time-focus.js); the part still running is the tracker's live entry */
+  function partStart(){
+    if(!st || st.phase !== 'focus') return null;
+    const marks = [st.startedAt, st.segMark].concat((st.breaks || []).filter(br => br.to).map(br => br.to)).filter(Boolean);
+    return marks.reduce((m, x) => Date.parse(x) > Date.parse(m) ? x : m, marks[0]);
+  }
+  function syncTime(rec){
+    if(!rec || typeof timeSyncFocus !== 'function') return;
+    try { timeSyncFocus(rec, {openFrom: st && st.running && st.phase === 'focus' ? partStart() : null}); }
+    catch(e){ console.warn('the time tracker could not follow the sitting', e); }
+  }
   /* Two ways to time a piece of work, and they are different questions.
      A countdown asks "can I hold this for twenty-five minutes"; a stopwatch
      asks "how long did that actually take". The second has no end to reach,
@@ -23,13 +53,13 @@ const FocusTimer = (() => {
   /* seconds of work done in the current sitting, whichever way it is counted */
   function elapsedSecs(){
     if(!st) return 0;
-    if(st.up) return Math.round(st.acc + (st.running ? (Date.now() - st.since) / 1000 : 0));
-    return Math.max(0, phaseLen(st.phase) - (st.running ? Math.round((st.endsAt - Date.now()) / 1000) : st.remaining));
+    if(st.up) return Math.round(st.acc + (st.running ? (nowMs() - st.since) / 1000 : 0));
+    return Math.max(0, phaseLen(st.phase) - (st.running ? Math.round((st.endsAt - nowMs()) / 1000) : st.remaining));
   }
   function state(){
     if(!st) return {running:false, phase:'focus', left:cfg().focusDuration * 60, elapsed:0,
       mode:timerMode(), round:1, taskId:pendingTask, subId:pendingSub, idle:true};
-    const left = st.up ? 0 : (st.running ? Math.max(0, Math.round((st.endsAt - Date.now()) / 1000)) : st.remaining);
+    const left = st.up ? 0 : (st.running ? Math.max(0, Math.round((st.endsAt - nowMs()) / 1000)) : st.remaining);
     const onBreak = !st.running && st.phase === 'focus' && (st.breaks || []).some(b => !b.to);
     const cur = (st.breaks || []).find(b => !b.to) || null;
     return {running:st.running, phase:st.phase, left, elapsed: elapsedSecs(), subId: st.subId || null,
@@ -49,11 +79,11 @@ const FocusTimer = (() => {
     const secs = st && st.phase === p && !st.running && st.remaining > 0 ? st.remaining : phaseLen(p);
     const carried = st ? st.breaks : null;
     st = {phase:p, running:true, up,
-      endsAt: up ? 0 : Date.now() + secs * 1000, remaining: up ? 0 : secs,
-      acc: st && st.up ? (st.acc || 0) : 0, since: Date.now(),
+      endsAt: up ? 0 : nowMs() + secs * 1000, remaining: up ? 0 : secs,
+      acc: st && st.up ? (st.acc || 0) : 0, since: nowMs(),
       taskId: taskId !== undefined ? taskId : (st ? st.taskId : pendingTask),
       subId: st ? (st.subId || pendingSub) : pendingSub,
-      round: st ? st.round : 1, startedAt: st?.startedAt || new Date().toISOString(),
+      round: st ? st.round : 1, startedAt: st?.startedAt || nowISO(),
       notes: st ? (st.notes || '') : '',
       /* a rest remembers the sitting it follows, which is where it is written */
       restOf: st && st.phase === p ? (st.restOf || null) : null,
@@ -66,6 +96,7 @@ const FocusTimer = (() => {
       segMark: st && st.phase === p ? (st.segMark || null) : null,
       breaks: carried || []};
     closeBreak();                       // resuming ends whatever break was open
+    persist();
     tick(); notify();
   }
   /* A pause is a break, and a break is worth knowing about: it is the part of
@@ -76,21 +107,21 @@ const FocusTimer = (() => {
     if(!st || st.phase !== 'focus') return;
     st.breaks = st.breaks || [];
     if(st.breaks.some(b => !b.to)) return;
-    st.breaks.push({from: new Date().toISOString(), to: null, note: ''});
+    st.breaks.push({from: nowISO(), to: null, note: ''});
   }
   function closeBreak(){
     if(!st || !st.breaks) return;
     const open = st.breaks.find(b => !b.to);
-    if(open) open.to = new Date().toISOString();
+    if(open) open.to = nowISO();
   }
   function noteBreak(text){
     if(!st || !st.breaks) return;
     const open = st.breaks.find(b => !b.to) || st.breaks[st.breaks.length - 1];
-    if(open){ open.note = String(text || ''); notify(); }
+    if(open){ open.note = String(text || ''); persist(true); notify(); }
   }
   function pause(){ if(!st || !st.running) return;
-    if(st.up) st.acc = (st.acc || 0) + (Date.now() - st.since) / 1000;
-    else st.remaining = Math.max(0, Math.round((st.endsAt - Date.now()) / 1000));
+    if(st.up) st.acc = (st.acc || 0) + (nowMs() - st.since) / 1000;
+    else st.remaining = Math.max(0, Math.round((st.endsAt - nowMs()) / 1000));
     st.running = false; openBreak();
     /* Pausing writes down what has been done so far. The work happened
        whether or not the sitting is finished, and waiting until the end to
@@ -98,6 +129,7 @@ const FocusTimer = (() => {
        and that a task's own figure was wrong for as long as you were sitting
        with it — which is exactly when you are looking at it. */
     logSession(false);
+    persist();
     notify(); }
   function stop(logIt = true){
     /* The sitting is over, so a break still open is over with it. Pausing is
@@ -109,7 +141,7 @@ const FocusTimer = (() => {
     closeBreak();
     if(st && logIt && st.phase === 'focus') logSession(false);
     if(st && logIt && st.phase !== 'focus') logRest();
-    st = null; pendingTask = null; notify();
+    st = null; pendingTask = null; persist(); notify();
   }
   /* A countdown's short and long breaks are rests in their own right. Each is
      written on the sitting it followed, beside that sitting's pauses, with
@@ -118,7 +150,7 @@ const FocusTimer = (() => {
   function logRest(){
     if(!st || st.phase === 'focus' || !st.restOf) return;
     const rec = (planState().focusSessions || []).find(x => x.id === st.restOf); if(!rec) return;
-    const from = st.startedAt, to = new Date().toISOString(), note = st.notes || '';
+    const from = st.startedAt, to = nowISO(), note = st.notes || '';
     if(!note && new Date(to) - new Date(from) < 30000) return;
     rec.breaks = rec.breaks || [];
     const had = rec.breaks.find(b => b.rest && b.from === from);
@@ -146,17 +178,18 @@ const FocusTimer = (() => {
     const breaks = (st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}));
     const segments = (st.segments || []).map(x => Object.assign({}, x));
     if(rec){
-      rec.duration = Math.max(+rec.duration || 0, mins); rec.endedAt = new Date().toISOString();
+      rec.taskId = st.taskId || null; rec.subId = st.subId || null;
+      rec.duration = Math.max(+rec.duration || 0, mins); rec.endedAt = nowISO();
       rec.completed = !!completed; rec.note = st.notes || ''; rec.breaks = breaks; rec.segments = segments;
     } else {
       rec = {id:uid(), taskId:st.taskId || null, subId:st.subId || null, startedAt:st.startedAt,
-        endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
+        endedAt:nowISO(), duration:mins, type:'focus', completed:!!completed,
         mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '', breaks, segments};
       sessions.push(rec); st.sessionId = rec.id;
     }
-    if(delta < 1){ saveNow(); return; }
+    if(delta < 1){ saveNow(); syncTime(rec); return; }
     st.logged = mins;
-    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + delta; t.updatedAt = new Date().toISOString();
+    if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + delta; t.updatedAt = nowISO();
       /* a focus session on a task booked for a piece is writing time on
          that piece: one session, counted in both rooms rather than twice */
       (t.links?.content || []).forEach(id => { const e = byId(S.entries, id);
@@ -164,6 +197,7 @@ const FocusTimer = (() => {
         const c = pieceContent(e); c.focusMinutes = (c.focusMinutes || 0) + delta;
         if(typeof wsRecordWords === 'function') wsRecordWords(e); }); } }
     saveNow();
+    syncTime(rec);
   }
   function finish(skipped){
     const c = cfg(), was = st.phase, taskId = st.taskId, round = st.round;
@@ -174,10 +208,10 @@ const FocusTimer = (() => {
     const nextRound = was === 'focus' ? round + 1 : round;
     const nextPhase = was === 'focus' ? (round % c.longBreakAfter === 0 ? 'long' : 'short') : 'focus';
     st = {phase:nextPhase, running:false, remaining:phaseLen(nextPhase), endsAt:0,
-      taskId, subId: pendingSub, round:nextRound, startedAt:new Date().toISOString(), restOf};
+      taskId, subId: pendingSub, round:nextRound, startedAt:nowISO(), restOf};
     if(!skipped) sound('success');
     const auto = nextPhase === 'focus' ? c.autoStartFocus : c.autoStartBreaks;
-    if(auto) start(undefined, nextPhase); else notify();
+    if(auto) start(undefined, nextPhase); else { persist(); notify(); }
     if(!skipped) toast(nextPhase === 'focus' ? 'Break over.' : `Interval done${taskId ? '' : ''} — take ${nextPhase === 'long' ? 'the long' : 'a short'} break.`, 6000);
   }
   let timer = null;
@@ -186,15 +220,18 @@ const FocusTimer = (() => {
     if(!st || !st.running) return;
     /* a stopwatch has nowhere to arrive, so it only ever keeps counting */
     if(!st.up){
-      const left = Math.max(0, st.endsAt - Date.now());
+      const left = Math.max(0, st.endsAt - nowMs());
       if(left <= 0){ finish(false); return; }
     }
+    /* the record is kept current as the sitting goes — every minute, not only
+       when it pauses or stops — so nothing is lost if the page goes away */
+    if(st.phase === 'focus' && Math.round(elapsedSecs() / 60) > (st.logged || 0)){ logSession(false); persist(); }
     notify();
     timer = setTimeout(tick, 1000);
   }
   /* what the sitting was actually spent on, written while it is happening —
      the same courtesy the breaks already had */
-  function noteWork(text){ if(!st) return; st.notes = String(text || ''); notify(); }
+  function noteWork(text){ if(!st) return; st.notes = String(text || ''); persist(true); notify(); }
 
   /* ---------- stretches ----------
      One sitting is often several things in a row: the email, then the
@@ -209,13 +246,13 @@ const FocusTimer = (() => {
     if(!(b > a)) return 0;
     let ms = b - a;
     (st.breaks || []).forEach(br => {
-      const lo = Math.max(a, Date.parse(br.from)), hi = Math.min(b, br.to ? Date.parse(br.to) : Date.now());
+      const lo = Math.max(a, Date.parse(br.from)), hi = Math.min(b, br.to ? Date.parse(br.to) : nowMs());
       if(hi > lo) ms -= hi - lo; });
     return Math.max(0, Math.round(ms / 6000) / 10);
   }
   function markStretch(text, {final = false} = {}){
     if(!st || st.phase !== 'focus') return null;
-    const to = new Date().toISOString(), from = st.segMark || st.startedAt;
+    const to = nowISO(), from = st.segMark || st.startedAt;
     const words = String(text || '').trim();
     const minutes = workMinutes(from, to);
     /* the tail of a marked sitting that nobody wrote anything about, and that
@@ -226,13 +263,12 @@ const FocusTimer = (() => {
     st.segments.push(seg);
     st.segMark = to;
     st.notes = '';
-    /* the time tracker's own entry for the sitting is cut at the same place,
-       so each stretch is there too, with its own times and its own words */
-    if(typeof timeStretchAuto === 'function'){
-      const e = timeStretchAuto('focus', words, {split: !final});
-      if(e) seg.timeEntryId = e.id;
-    }
+    /* the task it was on, so a stretch keeps its own if the task changes */
+    seg.taskId = st.taskId || null;
+    /* the time tracker's copy is cut at the same place when the record is
+       written, so each stretch is its own entry there, with its words */
     keepStretches();
+    persist();
     notify();
     return seg;
   }
@@ -243,24 +279,71 @@ const FocusTimer = (() => {
      page being closed; a record is made once there is a minute to put on it */
   function keepStretches(){
     const rec = st.sessionId ? (planState().focusSessions || []).find(s => s.id === st.sessionId) : null;
-    if(rec){ rec.segments = (st.segments || []).map(x => Object.assign({}, x)); rec.note = st.notes || ''; saveNow(); }
+    if(rec){ rec.segments = (st.segments || []).map(x => Object.assign({}, x)); rec.note = st.notes || ''; saveNow(); syncTime(rec); }
     else logSession(false);
   }
   function editStretch(id, text){
     const seg = st && (st.segments || []).find(x => x.id === id); if(!seg) return false;
     seg.text = String(text || '').trim();
-    if(seg.timeEntryId && typeof timeStretchReword === 'function') timeStretchReword(seg.timeEntryId, seg.text);
-    keepStretches(); notify();
+    keepStretches(); persist(); notify();
     return true;
+  }
+  /* ---------- after a reload ----------
+     The sitting carries on where it was. A countdown that ran out while the
+     house was shut is finished as of the moment it ran out; a stopwatch left
+     running longer than the time tracker lets any clock run is closed at that
+     limit, as the tracker closes its own. Asked once, on the way in. */
+  function restore(){
+    const snap = planState().timerLive;
+    if(st || !snap || typeof snap !== 'object' || !snap.phase) return null;
+    const s0 = Object.assign({}, snap);
+    pendingTask = s0.pendingTask ?? null; pendingSub = s0.pendingSub ?? null;
+    delete s0.pendingTask; delete s0.pendingSub; delete s0.savedAt;
+    st = s0;
+    const limit = (typeof TIME_RUNAWAY !== 'undefined' ? TIME_RUNAWAY : 360) * 60;
+    let said = st.running ? 'resumed' : 'held';
+    const closeAt = at => {
+      clockAt = at;
+      try {
+        if(st.phase === 'focus'){ closeStretches(); closeBreak(); logSession(said === 'finished'); }
+        else if(st.restOf) logRest();
+      } finally { clockAt = null; }
+      st = null; pendingTask = null;
+    };
+    if(st.running && !st.up && st.endsAt <= Date.now()){ said = 'finished'; closeAt(st.endsAt); }
+    else if(st.running && st.up && (st.acc || 0) + (Date.now() - st.since) / 1000 > limit){
+      said = 'runaway'; closeAt(st.since + Math.max(0, limit - (st.acc || 0)) * 1000); }
+    persist();
+    if(st && st.running) tick();
+    notify();
+    return said;
+  }
+  /* A sitting is on one thing. Moving the clock to another task part-way
+     through closes this sitting and opens the next, so each sitting — and its
+     entry in the time tracker — belongs to exactly the task it was spent on.
+     A sitting only just begun simply changes what it is on. */
+  function setTask(id, subId){
+    const was = st && st.phase === 'focus' && (st.running || (st.breaks || []).some(b => !b.to));
+    if(was && (id || null) !== (st.taskId || null) && (st.sessionId || elapsedSecs() >= 30)){
+      const running = st.running;
+      stop(true);
+      pendingTask = id; pendingSub = subId || null;
+      if(running) start();
+      else { persist(); notify(); }
+      return;
+    }
+    pendingTask = id; pendingSub = subId || null;
+    if(st){ st.taskId = id; st.subId = pendingSub; }
+    persist(); notify();
   }
   const stretches = () => st ? (st.segments || []).slice() : [];
   const stretchSince = () => st ? (st.segMark || st.startedAt) : null;
-  return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
+  return {start, pause, stop, skip, state, reset: () => { st = null; persist(); notify(); },
     /* A step of a task is a thing you sit down with in its own right, so the
        timer carries which step as well as which task — otherwise a session on
        one step is indistinguishable from a session on the whole thing. */
-    setTask(id, subId){ pendingTask = id; pendingSub = subId || null;
-      if(st){ st.taskId = id; st.subId = pendingSub; } notify(); },
+    setTask,
+    restore, partStart,
     mode: timerMode,
     setMode(m){ if(st) return false; cfg().mode = m === 'stopwatch' ? 'stopwatch' : 'countdown'; saveNow(); notify(); return true; },
     setLength(mins){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);

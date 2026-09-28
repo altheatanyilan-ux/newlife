@@ -97,7 +97,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.keyboard.press('Control+A'); await p.keyboard.type('emails to the grant committee'); await p.keyboard.press('Enter'); await p.waitForTimeout(300);
   const fixed = await p.evaluate(() => ({live: FocusTimer.stretches()[0].text,
     rec: planState().focusSessions.slice(-1)[0].segments[0].text,
-    entry: (S.timeEntries.find(e => e.id === FocusTimer.stretches()[0].timeEntryId)?.notes || []).map(n => n.text)}));
+    entry: (S.timeEntries.find(e => e.focusFrom === FocusTimer.stretches()[0].from)?.notes || []).map(n => n.text)}));
   yes('corrected in the sitting, on its record and on its time entry',
     fixed.live === 'emails to the grant committee' && fixed.rec === fixed.live && fixed.entry.includes(fixed.live), fixed);
   yes('  and what was being typed in the box is untouched', await p.evaluate(() => document.querySelector('.pf-desk #fpDid').value === 'first page'));
@@ -108,7 +108,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   const rec = await p.evaluate(() => { const r = planState().focusSessions.slice(-1)[0];
     return {dur: r.duration, segs: r.segments.map(x => ({t: x.text, m: x.minutes})), sum: r.segments.reduce((a, x) => a + x.minutes, 0),
       contiguous: r.segments.every((x, i) => !i || x.from === r.segments[i - 1].to), first: r.segments[0].from === r.startedAt}; });
-  is('what was written when it stopped is the last stretch', rec.segs[2], {t: 'first page', m: 7});
+  is('what was written when it stopped is the last stretch', {t: rec.segs[2].t, m: Math.round(rec.segs[2].m)}, {t: 'first page', m: 7});
   yes('the stretches follow each other with no gaps, from the start', rec.contiguous && rec.first, rec);
   yes('  and add up to the sitting', Math.abs(rec.sum - rec.dur) <= 1, rec);
   const te = await p.evaluate(() => S.timeEntries.filter(e => e.feature === 'focus').map(e => ({mins: Math.round(timeMinutes(e)), notes: (e.notes || []).map(n => n.text).join('|')})));

@@ -20,30 +20,14 @@
 
 /* The pomodoro, and every other sitting on a task, through the timer that
    already exists for them. Subscribed rather than wired into its innards:
-   the focus timer has four ways in and one place where its state changes. */
-let _timeFocusWas = null;
+   the focus timer has four ways in and one place where its state changes.
+   What the subscription does — one live clock per part of a sitting, closed
+   and corrected by the sitting's own record — is in 19-time-focus.js. */
 function timeWatchFocus(){
   if(typeof FocusTimer === 'undefined' || !FocusTimer.subscribe) return;
-  FocusTimer.subscribe(() => {
-    let st = null;
-    try { st = FocusTimer.state(); } catch(e){ return; }
-    const on = !!(st && st.running && st.phase === 'focus');
-    const id = on ? (st.taskId || null) : null;
-    const sig = on ? `${id || 'none'}` : null;
-    if(sig === _timeFocusWas) return;
-    _timeFocusWas = sig;
-    if(!on){ timeAutoStop('focus'); return; }
-    const t = id ? taskById(id) : null;
-    /* the task's own category, falling back to the general one. A task that
-       has been told what part of a life it belongs to should never come out
-       of the week's report as "Tasks". */
-    /* a planner task keeps its words in .text; older kinds of task in .title */
-    const name = t ? (t.title || t.text || '') : '';
-    timeAutoStart({categoryId: (t && t.timeCategory) || 'tasks', feature:'focus',
-      what: name || 'a sitting',
-      linkedType: t ? 'task' : null, linkedId: t ? t.id : null,
-      linkedLabel: name});
-  });
+  FocusTimer.subscribe(() => { try { timeFollowFocus(); } catch(e){ console.warn('the focus clock was not followed', e); } });
+  /* and once now, for a sitting carried over from before a reload */
+  try { timeFollowFocus(); } catch(e){}
 }
 /* the small helper the above needs, and the room's own way of finding a task
    is behind four different shapes of reference */

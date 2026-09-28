@@ -151,37 +151,6 @@ function timeAutoStop(feature){
      sat, and it is silent because nobody pressed anything to cause it. */
   return done && done.dropped ? null : done;
 }
-/* A stretch marked inside a focus sitting (see markStretch in
-   17-planning-tools.js) cuts the entry the sitting started, so each stretch
-   is its own entry with its own times — the words go on it as its note, and
-   an entry for no task in particular is named by them. The last stretch of a
-   sitting is only noted: the sitting ending stops the entry itself. */
-function timeStretchAuto(feature, text, {split = true} = {}){
-  const e = timeRunning();
-  if(!e || e.source !== 'auto' || (feature && e.feature !== feature)) return null;
-  const words = String(text || '').trim();
-  if(words){
-    e.notes = Array.isArray(e.notes) ? e.notes : [];
-    e.notes.push({at: new Date().toISOString(), text: words, stretch: true});
-    if(!e.linkedId) e.what = words;
-  }
-  if(!split){ saveNow(); return e; }
-  const again = {source: 'auto', categoryId: e.categoryId, feature: e.feature,
-    what: e.linkedId ? e.what : 'a sitting', linkedType: e.linkedType || null, linkedId: e.linkedId || null,
-    linkedLabel: e.linkedLabel || '', tags: Array.isArray(e.tags) ? e.tags.slice() : []};
-  const done = stopTimer();
-  startTimer(again);
-  if(typeof paintTimeDock === 'function') paintTimeDock();
-  return done && !done.dropped ? done : null;
-}
-/* a stretch's words corrected afterwards, on the entry they went onto */
-function timeStretchReword(entryId, text){
-  const e = (S.timeEntries || []).find(x => x.id === entryId); if(!e) return;
-  const n = (e.notes || []).filter(x => x.stretch).pop();
-  if(n) n.text = text; else if(text) (e.notes = e.notes || []).push({at: new Date().toISOString(), text, stretch: true});
-  if(!e.linkedId && text) e.what = text;
-  saveNow();
-}
 /* A habit made of minutes. Answered rather than recorded: the day's tracked
    time in that category either reaches the number or it does not, so the
    habit follows the hours instead of needing to be ticked beside them — and

@@ -397,6 +397,12 @@ function focusFaceIn(dock){
 /* Built once, at boot, and never again. Everything after that is a repaint of
    its inside, so the element the timer lives in outlives every navigation. */
 function mountFocusDock(){
+  /* a sitting that was running when the page went away carries on */
+  try {
+    const was = FocusTimer.restore && FocusTimer.restore();
+    if(was === 'finished') setTimeout(() => toast('Your sitting finished while the page was closed. It is written down, ending when it ran out.', 6000), 800);
+    else if(was === 'runaway') setTimeout(() => toast('A focus sitting had been left running. It was closed at six hours.', 6000), 800);
+  } catch(e){ console.warn('the sitting could not be carried over', e); }
   if(document.getElementById('focusDock')) return;
   const dock = el('<div id="focusDock" class="fdock" aria-live="polite"></div>');
   document.body.appendChild(dock);

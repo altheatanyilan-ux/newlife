@@ -27,6 +27,7 @@ function mountTimeDock(){
   } catch(e){}
   paintTimeDock();
   try { timeWatchFocus(); } catch(e){ console.warn('the focus timer is not being followed', e); }
+  try { timeRepairFocus(); } catch(e){ console.warn('the focus clock could not be squared', e); }
   if(_timeTick) clearInterval(_timeTick);
   /* the face only; anything that changes what the pill says repaints it */
   _timeTick = setInterval(timeDockFace, 1000);
@@ -255,6 +256,8 @@ function openTimeEntryModal(id, day){
       categoryId: m.querySelector('#teCat').value || null,
       tags: timeTagsOf(m.querySelector('#teTags').value)};
     if(e){
+      /* a sitting the focus timer wrote, corrected here, is left as corrected */
+      if(e.focusSit) e.edited = true;
       Object.assign(e, common);
       if(from) e.startTime = timeAtOn(dayV, from);
       if(toEl && toEl.value) e.endTime = timeAtOn(dayV, toEl.value);
@@ -279,7 +282,10 @@ function openTimeEntryModal(id, day){
   if(e) bindTimeWrite(m, () => { const box = m.querySelector('.tm-writebox');
     if(box){ box.innerHTML = timeWrittenHTML(e) + timeWritePickHTML(e.id); bindTimeWrite(m); } rerender(); });
   const del = m.querySelector('#teDel');
-  if(del) del.onclick = () => { removeTimeEntry(e.id); m.remove(); sound('click');
+  if(del) del.onclick = () => {
+    /* and one deleted here is not put back by the sitting it came from */
+    if(e.focusSit){ const p = planState(); p.focusTimeSkip = (p.focusTimeSkip || []).concat(e.focusSit + '|' + e.focusFrom); }
+    removeTimeEntry(e.id); m.remove(); sound('click');
     paintTimeDock(); rerender(); };
   return m;
 }
