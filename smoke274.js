@@ -129,6 +129,32 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     yes('a skill pin goes to the skill', await p.evaluate(() => /skills/.test(location.hash)), await p.evaluate(() => location.hash));
   }
 
+  console.log('\n6. it folds away, and stays as it was left');
+  /* the skill page left a panel open; start again from a fresh load, which
+     also shows the fold is kept with everything else */
+  await p.evaluate(() => { saveNow(); S.settings.todayView = 'do'; });
+  await p.waitForTimeout(600);
+  await p.goto('file://' + path.join(__dirname, 'index.html') + '#/today'); await p.waitForTimeout(1600);
+  await p.evaluate(() => { closeModals(); document.querySelectorAll('.dv-veil').forEach(n => n.remove());
+    S.settings.todayView = 'do'; if(location.hash !== '#/today') location.hash = '#/today'; rerender(); }); await p.waitForTimeout(900);
+  yes('it starts open', await p.evaluate(() => document.querySelector('.today-ms').open));
+  await p.click('.today-ms-sum'); await p.waitForTimeout(400);
+  const folded = await p.evaluate(() => { const d = document.querySelector('.today-ms'); const r = d.getBoundingClientRect();
+    return {open: d.open, remembered: (S.settings.todayOpen || {})['t-ms'], h: r.height,
+      next: (d.querySelector('.today-ms-next')?.offsetParent ? d.querySelector('.today-ms-next').textContent : '').replace(/\s+/g, ' ').trim()}; });
+  yes('a press on its heading folds it to one line', folded.open === false && folded.h < 60, folded);
+  yes('  and that is remembered', folded.remembered === false, folded);
+  /* the skill level is due in two days, the proofs in three: the next date is the skill's */
+  yes('  folded, it still says which date is next', ids.skill ? /next: .+, in 2 days/.test(folded.next) : /next: Proofs to the printer, in 3 days/.test(folded.next), folded.next);
+  await p.evaluate(() => { S.settings.todayView = 'tasks'; location.hash = '#/today/tasks'; }); await p.waitForTimeout(1000);
+  yes('it stays folded in the other views', await p.evaluate(() => document.querySelector('.today-ms') && !document.querySelector('.today-ms').open));
+  await p.evaluate(() => { location.hash = '#/today'; S.settings.todayView = 'do'; }); await p.waitForTimeout(900);
+  yes('  and on coming back', await p.evaluate(() => !document.querySelector('.today-ms').open));
+  await p.click('.today-ms-sum'); await p.waitForTimeout(400);
+  yes('another press opens it again, remembered too', await p.evaluate(() => document.querySelector('.today-ms').open && S.settings.todayOpen['t-ms'] === true));
+  await p.click(`.today-ms [data-plmsfilter="${ids.m}"] .pl-mslabel`); await p.waitForTimeout(1100);
+  yes('  and its pins still open their work', await p.evaluate(m => location.hash === '#/today/tasks' && (S._planFilter || {}).milestone === m, ids.m));
+
   console.log('\n5. nothing broke on the way');
   yes('no page errors', !errs.length, errs.join(' | '));
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

@@ -179,6 +179,17 @@ function openTimeNoteModal(){
   };
   return m;
 }
+/* The sitting that finished last on a day — the one a sitting written down
+   afterwards most likely picks up from. Only finished ones: a clock still
+   running has not ended anywhere yet. */
+function timeLastEndedOn(day){
+  let best = null;
+  timeState().forEach(x => {
+    if(!x.endTime || timeDayOf(x.endTime) !== day) return;
+    if(!best || Date.parse(x.endTime) > Date.parse(best.endTime)) best = x;
+  });
+  return best;
+}
 /* One form for correcting an entry and for writing one down afterwards, since
    they ask for exactly the same things. A running entry has no end yet, so
    the end field is left out rather than shown empty and ignored. */
@@ -187,6 +198,12 @@ function openTimeEntryModal(id, day){
   const e = id ? byId(S.timeEntries, id) : null;
   const running = e && !e.endTime;
   const on = e ? timeDayOf(e.startTime) : (day || today());
+  /* A sitting written down afterwards usually starts where the last one
+     stopped, so that is where "from" starts: at the end of that day's last
+     finished sitting, said underneath so it is plain where the time came
+     from. Change the day and it follows, until "from" is set by hand. */
+  const after = e ? null : timeLastEndedOn(on);
+  const afterSaid = x => x ? `picks up where ${x.what ? `“${esc(x.what)}”` : 'the last sitting'} ended` : '';
   const m = openModal(`<h2>${e ? (running ? 'What is running' : 'That sitting') : '+ A sitting'}</h2>
     <label class="pd-q"><span class="k">the thing</span>
       <input class="inp" id="teWhat" autofocus value="${esc(e ? e.what : '')}" placeholder="read the Jazz Piano Book"></label>
@@ -194,10 +211,11 @@ function openTimeEntryModal(id, day){
       <label class="pd-q" style="flex:1"><span class="k">day</span>
         <input class="inp mono" type="date" id="teDay" value="${esc(on)}"></label>
       <label class="pd-q" style="flex:1"><span class="k">from</span>
-        <input class="inp mono" type="time" id="teFrom" value="${esc(e ? timeClockOf(e.startTime) : '')}"></label>
+        <input class="inp mono" type="time" id="teFrom" value="${esc(e ? timeClockOf(e.startTime) : after ? timeClockOf(after.endTime) : '')}"></label>
       ${running ? '' : `<label class="pd-q" style="flex:1"><span class="k">to</span>
         <input class="inp mono" type="time" id="teTo" value="${esc(e && e.endTime ? timeClockOf(e.endTime) : '')}"></label>`}
     </div>
+    ${e ? '' : `<div class="mono faint te-after" id="teAfter"${after ? '' : ' hidden'}>${afterSaid(after)}</div>`}
     ${running ? '' : `<label class="pd-q" style="margin-top:4px"><span class="k">or just how long, in minutes</span>
       <input class="inp mono" type="number" id="teMins" min="0" max="1440" placeholder="120"></label>`}
     <label class="pd-q" style="margin-top:10px"><span class="k">category</span>
@@ -215,6 +233,18 @@ function openTimeEntryModal(id, day){
     <div class="row" style="justify-content:flex-end;margin-top:14px;gap:8px">
       ${e ? `<button class="btn sm ghost danger" id="teDel">Delete</button><span class="grow"></span>` : ''}
       <button class="btn primary" id="teSave">Save</button></div>`, 'narrow');
+  if(!e){
+    const fromEl = m.querySelector('#teFrom'), dayEl = m.querySelector('#teDay'), note = m.querySelector('#teAfter');
+    let byHand = false;
+    const mine = () => { byHand = true; if(note) note.hidden = true; };
+    fromEl.addEventListener('input', mine); fromEl.addEventListener('change', mine);
+    dayEl.addEventListener('change', () => {
+      if(byHand) return;
+      const x = timeLastEndedOn(dayEl.value || today());
+      fromEl.value = x ? timeClockOf(x.endTime) : '';
+      if(note){ note.innerHTML = afterSaid(x); note.hidden = !x; }
+    });
+  }
   m.querySelector('#teSave').onclick = () => {
     const dayV = m.querySelector('#teDay').value || today();
     const from = m.querySelector('#teFrom').value;

@@ -147,12 +147,19 @@ function todayMilestonesHTML(){
   const first = items[0].m.date || T;
   const lo = first < T ? (daysBetween(first, T) > 14 ? addDays(T, -14) : first) : T;
   const late = items.filter(x => x.m.date && x.m.date < T).length;
-  return `<section class="today-ms pl-ms rv" aria-label="milestones in the next seven days">
-    <div class="row between" style="align-items:baseline;gap:8px;flex-wrap:wrap">
+  /* It folds, like every section on Today, and stays as it was left — in
+     every view, since it is the same line in all of them. Folded, the line it
+     keeps says which date is next, so closing it does not hide the one thing
+     it is there to say. */
+  const open = (S.settings.todayOpen || {})['t-ms'] !== false;
+  const next = items.find(x => x.m.date && x.m.date >= T) || items[0];
+  return `<details class="today-ms pl-ms rv" id="t-ms"${open ? ' open' : ''} aria-label="milestones in the next seven days">
+    <summary class="today-ms-sum">
       <span class="k mono">Milestones · the next seven days</span>
-      <span class="mono faint">${items.length - late} ahead${late ? ` · <span class="today-ms-late">${late} gone by</span>` : ''}</span>
-    </div>
-    ${planMilestoneLineHTML(items, {from: addDays(lo, -1), to: addDays(T, 8)}, {step: 2, lit: false})}</section>`;
+      <span class="today-ms-next faint">next: <b>${esc(next.m.name)}</b>, ${esc(planWhenAway(next.m.date))}</span>
+      <span class="mono faint today-ms-count">${items.length - late} ahead${late ? ` · <span class="today-ms-late">${late} gone by</span>` : ''}</span>
+    </summary>
+    ${planMilestoneLineHTML(items, {from: addDays(lo, -1), to: addDays(T, 8)}, {step: 2, lit: false})}</details>`;
 }
 /* the same two acts as the pin in Tasks: choosing the list it belongs to (which
    is what clears any other filter there) and then pressing the date */
@@ -168,6 +175,7 @@ function openMilestoneInTasks(id){
 }
 function bindTodayMilestones(root){
   const box = root.querySelector('.today-ms'); if(!box) return;
+  box.addEventListener('toggle', () => rememberFold('t-ms', box.open));
   box.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
     if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
     openMilestoneInTasks(b.dataset.plmsfilter); });
