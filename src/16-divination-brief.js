@@ -207,7 +207,10 @@ function rbPlanPart(ctx){
       const ts = (o.taskIds || []).map(id => (S.tasks || []).find(t => t.id === id)).filter(Boolean);
       md.push(`- **Goal:** ${rbLine(o.text)}${l ? ` (${l.name})` : ''}${ts.length ? ` — ${ts.filter(t => t.done).length} of ${ts.length} of its tasks done` : ''}`);
     });
-    periods.forEach(x => md.push(`- **${rbShort(x.from)}–${rbShort(x.to)}${x.name ? ', ' + rbLine(x.name) : ''}:** ${rbLine(x.focus || '')}`));
+    /* each stage of the week, with the work it was given and how much is done */
+    periods.forEach(x => { const ts = (x.taskIds || []).map(id => (S.tasks || []).find(t => t.id === id)).filter(Boolean);
+      md.push(`- **Stage, ${rbShort(x.from)}–${rbShort(x.to)}${x.name ? ', ' + rbLine(x.name) : ''}:** ${rbLine(x.focus || '')}${
+        ts.length ? `${(x.focus || '').trim() ? ' — ' : ''}${ts.filter(t => t.done).length} of ${ts.length} of its tasks done (${ts.map(t => rbLine(t.text)).join('; ')})` : ''}`); });
     wins.forEach(w => md.push(`- **A win would be:** ${rbLine(w.text)}${(w.why || '').trim() ? ` — because ${rbLine(w.why)}` : ''}`));
     risks.forEach(r => md.push(`- **What could take it away:** ${rbLine(r.text)}${(r.prevent || '').trim() ? ` — heading it off by ${rbLine(r.prevent)}` : ''}`));
     md.push('');

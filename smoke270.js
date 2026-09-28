@@ -49,12 +49,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('× takes one off, and the rest keep what was typed', await p.$$eval('[data-wpout]', n => n.map(x => x.value)),
     ['the essay', 'the move', 'the tax return', 'a letter to Anna']);
 
-  console.log('\n2. the week in periods');
-  for(let i = 0; i < 2; i++){ await p.click('#wpNext'); await p.waitForTimeout(220); }
-  is('the last step', await p.$eval('.modal h2', h => h.textContent), 'And the shape of it');
+  console.log('\n2. the week in stages');
+  await p.click('#wpNext'); await p.waitForTimeout(220);
+  is('straight after the goals, a step of its own', await p.$eval('.modal h2', h => h.textContent), 'The week in stages');
   await p.click('#wpAddPeriod'); await p.waitForTimeout(200);
   const d = await p.evaluate(() => { const wk = weekStart(today()); return [0,1,2,3,4,5,6].map(n => addDays(wk, n)); });
-  yes('"a period" adds one, from the start of the week, three days long', await p.evaluate(d =>
+  yes('"a stage" adds one, from the start of the week, three days long', await p.evaluate(d =>
     document.querySelector('[data-wpperfrom="0"]').value === d[0] && document.querySelector('[data-wpperto="0"]').value === d[2], d));
   await p.fill('[data-wppername="0"]', 'the sprint');
   await p.fill('[data-wpperfocus="0"]', 'the essay, before anything else');
@@ -63,6 +63,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     document.querySelector('[data-wpperfrom="1"]').value === d[3], d));
   await p.selectOption('[data-wpperto="1"]', d[6]); await p.waitForTimeout(200);
   await p.fill('[data-wpperfocus="1"]', 'the move, and rest');
+  for(let i = 0; i < 2; i++){ await p.click('#wpNext'); await p.waitForTimeout(220); }
+  is('the last step', await p.$eval('.modal h2', h => h.textContent), 'And the shape of it');
   await p.fill('#wpTheme', 'two halves');
   await p.click('#wpNext'); await p.waitForTimeout(500);
   const saved = await p.evaluate(async () => { await saveNow(); await load(); const wp = weekPlan(weekStart(today()));

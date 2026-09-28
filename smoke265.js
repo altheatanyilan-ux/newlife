@@ -90,7 +90,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
 
   console.log('\n3. a goal under a project');
   await p.fill('[data-wpout="1"]', 'Get the garden going'); await p.dispatchEvent('[data-wpout="1"]', 'change'); await p.waitForTimeout(200);
-  await p.evaluate(v => { const s = document.querySelector('[data-wplink="1"]'); s.value = v; s.dispatchEvent(new Event('change')); }, 'project:' + ids.proj);
+  /* a project is a planner list under the same id now, and is offered as one */
+  await p.evaluate(v => { const s = document.querySelector('[data-wplink="1"]'); s.value = v; s.dispatchEvent(new Event('change')); }, 'list:' + ids.proj);
   await p.waitForTimeout(300);
   await p.evaluate(() => { const d = document.querySelector('[data-wpunder="1"]'); if(d && !d.open){ d.open = true; d.dispatchEvent(new Event('toggle')); } });
   const prow = await p.$$eval('[data-wpunder="1"] [data-wptrow]', r => r.map(x => x.dataset.wptrow));
@@ -99,7 +100,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('  and adds to the project', await p.evaluate(pid => { const t = S.tasks.find(x => x.text === 'Dig the beds'); return t && t.listId === pid; }, ids.proj), true);
 
   console.log('\n4. and the plan saves');
-  await p.click('#wpNext'); await p.waitForTimeout(150); await p.click('#wpNext'); await p.waitForTimeout(150); await p.click('#wpNext'); await p.waitForTimeout(300);
+  for(let i = 0; i < 4; i++){ await p.click('#wpNext'); await p.waitForTimeout(150); }
   const saved = await p.evaluate(() => { const o = weekPlan(weekStart(addDays(today(), 7))).outcomes; return [o[0].taskIds.length, o[1].taskIds.length]; });
   yes('both goals keep the work put under them', saved[0] >= 1 && saved[1] >= 1, saved);
 

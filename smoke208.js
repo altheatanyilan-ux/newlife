@@ -74,7 +74,7 @@ const step = async (p, n) => p.evaluate(async n => {
     openWeeklyPlan(today());
     await new Promise(r => setTimeout(r, 500));
     const t = document.querySelector('.modal').textContent.replace(/\s+/g, ' ');
-    return {t, steps: /step 1 of 5/.test(t)};
+    return {t, steps: /step 1 of 6/.test(t)};
   });
   yes('planning the week is a flow, not a box', look.steps, look.t.slice(0, 90));
   yes('  showing what last week said it was carrying',
@@ -159,7 +159,8 @@ const step = async (p, n) => p.evaluate(async n => {
   is('  which is a number, not a wish', put.prog, {done:0, total:2, lost:0});
 
   console.log('\n4. and what a win would be');
-  await step(p, 1);
+  /* past the week's stages, which come straight after the goals */
+  await step(p, 2);
   const win = await p.evaluate(async () => {
     const t = document.querySelector('.modal').textContent.replace(/\s+/g, ' ');
     /* one item at a time now, each with its reason right under it */

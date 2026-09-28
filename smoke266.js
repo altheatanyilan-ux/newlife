@@ -42,8 +42,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     location.hash = '#/today'; });
   await p.waitForTimeout(700);
   await p.evaluate(() => openWeeklyPlan(today())); await p.waitForTimeout(400);
-  for(let i = 0; i < 3; i++){ await p.click('#wpNext'); await p.waitForTimeout(220); }
-  is('step 4 is "What would make this a win?"', await p.$eval('.modal h2', h => h.textContent), 'What would make this a win?');
+  /* past the goals and the week's stages */
+  for(let i = 0; i < 4; i++){ await p.click('#wpNext'); await p.waitForTimeout(220); }
+  is('step 5 is "What would make this a win?"', await p.$eval('.modal h2', h => h.textContent), 'What would make this a win?');
 
   console.log('\n1. nothing lost');
   const first = await p.evaluate(() => ({win: document.querySelector('[data-wpwin="0"]').value, risk: document.querySelector('[data-wprisk="0"]').value,
@@ -67,12 +68,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.click('[data-wpdel="win:2"]'); await p.waitForTimeout(250);
   is('× takes a row out', await p.$$eval('[data-wpwin]', r => r.map(x => x.value)), ['The draft is with the editor', 'Two long walks', '']);
 
-  console.log('\n3. step 5, and the plan saved');
+  console.log('\n3. the last step, and the plan saved');
   await p.click('#wpNext'); await p.waitForTimeout(300);
   const s5 = await p.evaluate(() => ({h: document.querySelector('.modal h2').textContent, energy: document.querySelectorAll('[data-wpenergy]').length,
     hoursText: /Hours you mean to give each/.test(document.querySelector('.modal').textContent),
     recap: document.querySelector('.plan-recap') ? document.querySelector('.plan-recap').textContent : ''}));
-  yes('step 5 no longer asks for hours in each dimension', s5.h === 'And the shape of it' && !s5.energy && !s5.hoursText, s5);
+  yes('the last step no longer asks for hours in each dimension', s5.h === 'And the shape of it' && !s5.energy && !s5.hoursText, s5);
   yes('  the recap lists the wins with their reasons, and the threats with what you will do',
     /Two long walks/.test(s5.recap) && /Thinking happens on them/.test(s5.recap) && /Laptop shut at eleven/.test(s5.recap), s5.recap);
   await p.click('#wpNext'); await p.waitForTimeout(400);

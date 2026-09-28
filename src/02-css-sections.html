@@ -2535,6 +2535,8 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .wp-under > summary::-webkit-details-marker{display:none}
 .wp-under > summary::before{content:'\25b8 ';opacity:.6}
 .wp-under[open] > summary::before{content:'\25be '}
+/* its own open and shut marks, so the house's turning › is not also applied */
+.wp-under > summary::before,.wp-under[open] > summary::before{transform:none;font-family:inherit;font-size:inherit}
 /* step 4: a win and its reason, a threat and its answer, one at a time */
 .wp-subh{font-size:1.05rem;margin:22px 0 4px}
 .wp-items{display:flex;flex-direction:column;gap:10px;margin-top:8px}
@@ -2645,6 +2647,7 @@ details.today-ms > summary.today-ms-sum{padding:2px 0;align-items:baseline;gap:6
   border-radius:4px;background:color-mix(in srgb,var(--page-accent) 7%,transparent);font-size:.86rem}
 .wk-period .mono{font-size:.66rem;letter-spacing:.04em;color:var(--muted)}
 .wk-period-focus{white-space:pre-wrap}
+.wk-period-open{font-size:.76rem;color:var(--muted)}
 .wk-period-strip{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .wk-period-strip span{font-family:var(--mono);font-size:.64rem;padding:2px 7px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
 .wk-period-strip span.on{border-color:var(--page-accent);color:var(--text)}
@@ -2652,9 +2655,33 @@ details.today-ms > summary.today-ms-sum{padding:2px 0;align-items:baseline;gap:6
 .wp-periods{display:flex;flex-direction:column;gap:8px}
 .wp-period{display:flex;flex-direction:column;gap:6px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius)}
 .wp-period-when{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.wp-period-when .sel{width:auto}
+.wp-period-when .sel{width:auto;padding-right:26px}
 .wp-period-when .inp{flex:1 1 160px;min-width:0}
 .wp-period .ta{min-height:0}
+/* the week in stages: the days at a glance, and a card per stage in its hue */
+.wp-weekstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:4px 0 10px}
+.wp-wday{display:flex;flex-direction:column;gap:2px;min-width:0;padding:5px 6px 6px;border-radius:6px;
+  border-top:3px solid var(--c);background:color-mix(in srgb,var(--c) 12%,transparent)}
+.wp-wday.free{border-top-style:dashed;background:transparent;opacity:.7}
+.wp-wday .mono{font-size:.6rem;color:var(--muted);white-space:nowrap}
+.wp-wstage{font-size:.72rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.wp-wday.free .wp-wstage{color:var(--muted);font-style:italic}
+.wp-stage{border-left:4px solid var(--c)}
+.wp-stage-n{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--c)}
+.wp-unplaced{font-size:.8rem;margin:0 0 10px}
+.wp-pwork{margin:2px 0 0}
+.wp-pwork .wp-tline{cursor:pointer}
+.wp-ptext{flex:1 1 0;min-width:0;font-size:.86rem;display:flex;flex-direction:column}
+.wp-pgoal{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
+.wp-palso{color:var(--c,var(--page-accent))}
+.wp-trow.is-done .wp-ptext{text-decoration:line-through;color:var(--muted)}
+.wp-pfound:empty{display:none}
+/* planning a day: the week's work, the stage's first */
+.plan-week-pick{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px;max-height:40vh;overflow:auto}
+.plan-stage-focus{margin:2px 0 6px 12px;font-size:.84rem;color:var(--muted);white-space:pre-wrap}
+.pick-row.is-placed{display:flex;align-items:center;gap:8px;opacity:.75}
+.pick-placed{color:var(--sage);font-size:.9rem;width:1.1em;text-align:center}
+@media (max-width:560px){ .wp-weekstrip{gap:2px} .wp-wday{padding:4px 3px} .wp-wstage{font-size:.64rem} }
 .wk-win{margin:6px 0 0;font-size:.8rem;color:var(--muted)}
 .wk-win .mono{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;margin-right:6px}
 .wk-goals{display:flex;flex-direction:column;gap:2px;font-size:.8rem;margin-top:5px}

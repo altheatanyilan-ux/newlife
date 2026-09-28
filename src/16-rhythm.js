@@ -511,7 +511,20 @@ function planMyDay(d = today()){
      question twice, and it was burying the ones that had never been placed.
      So: only the undated, and grouped under the list each one lives in
      rather than a flat run of names with no idea where they came from. */
-  const unscheduled = unscheduledTasks();
+  /* ---------- the week's work, and the stage this day is in ----------
+     The week was planned with its work chosen and, where it was cut into
+     stages, each stage's share of it. So a day in that week is planned from
+     there: the stage's work first, then the rest of the week's, and only
+     after them whatever is waiting with no day at all. A task already on
+     this day is shown as placed; one on another day can be brought here. */
+  const wkP = typeof weekPlanSeen === 'function' ? weekPlanSeen(weekStart(d)) : null;
+  const stage = wkP && typeof weekPeriodOn === 'function' ? weekPeriodOn(wkP, d) : null;
+  const onDay = r => r.doDay === d || (!r.doDay && r.day === d);
+  const openRefs = ids => ids.map(id => findTaskRef(id)).filter(r => r && !r.done && !taskIsAside(r.task));
+  const stageRefs = stage ? openRefs(stage.taskIds || []) : [];
+  const weekRefs = wkP ? openRefs(weekWorkIds(wkP)).filter(r => !stageRefs.some(x => x.id === r.id)) : [];
+  const weekIds = new Set([...stageRefs, ...weekRefs].map(r => r.id));
+  const unscheduled = unscheduledTasks().filter(r => !weekIds.has(r.id));
   const planGroups = (() => {
     const by = new Map();
     unscheduled.forEach(r => {
@@ -523,7 +536,7 @@ function planMyDay(d = today()){
     });
     return [...by.values()].sort((a, b) => a.label.localeCompare(b.label));
   })();
-  const pool = unscheduled;
+  const pool = [...stageRefs, ...weekRefs, ...unscheduled];
   /* ---------- what you are supposed to be moving forward ----------
      A day gets given to whatever was already written down. The skills in
      focus, the projects under way and the pieces being written are the
@@ -582,6 +595,22 @@ function planMyDay(d = today()){
           prog.total ? ` · ${prog.total - prog.done} left` : ' · nothing under it'}</span></a>`; }).join('')}</div>
   </div>` : '';
 
+  const weekRowHTML = r => onDay(r)
+    ? `<div class="pick-row on is-placed"><span class="pick-placed">✓</span><span><b>${esc(r.text)}</b><span class="d">already on ${dayWord}</span></span></div>`
+    : `<div class="pick-row ${chosen.has(r.id) ? 'on' : ''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id) ? 'checked' : ''}><span><b>${esc(r.text)}</b>${
+        r.doDay ? `<span class="d">on ${esc(fmtDate(r.doDay, 'short'))} — ticking brings it to ${dayWord}</span>`
+        : r.day ? `<span class="d">due ${esc(fmtDate(r.day, 'short'))}</span>` : ''}</span></label></div>`;
+  const weekPickHTML = () => (!stage && !weekRefs.length) ? '' : `<div class="plan-week-pick">
+    ${stage ? `<div class="pick-group plan-stage">
+      <div class="pick-glabel" style="--c:var(--page-accent)"><span>${esc(stage.name || 'This stage of the week')} <span class="faint">· ${esc(wpSpan(stage))}</span></span><span class="mono">${stageRefs.length}</span></div>
+      ${stage.focus ? `<p class="plan-stage-focus">${esc(stage.focus)}</p>` : ''}
+      ${stageRefs.length ? stageRefs.map(weekRowHTML).join('') : `<div class="empty" style="font-size:.8rem">No work was chosen for this stage.</div>`}</div>` : ''}
+    ${weekRefs.length ? `<div class="pick-group">
+      <div class="pick-glabel">${stage ? 'The rest of the week’s work' : 'The week’s work'}<span class="mono">${weekRefs.length}</span></div>
+      ${weekRefs.map(weekRowHTML).join('')}</div>` : ''}
+  </div>`;
+  const fromWeek = !!(stage || weekRefs.length);
+
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   /* nothing is pre-ticked now that only undated work is offered: a task
      already dated to this day is not waiting to be chosen, and counting it
@@ -606,7 +635,10 @@ function planMyDay(d = today()){
        </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
        <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
-      `<h2>Anything waiting?</h2>${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">Everything with no day on it, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
+      `${fromWeek ? `<h2>What from the week is ${dayPoss}?</h2><p class="muted" style="font-size:.88rem">${
+          stage ? 'The stage this day is in, and the work you gave it when you planned the week' : 'The work you chose when you planned the week'}. Tick what belongs to ${dayWord}.</p>
+        ${weekPickHTML()}` : '<h2>Anything waiting?</h2>'}${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">${
+        fromWeek ? 'And anything else with no day on it' : 'Everything with no day on it'}, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
          ${g.rows.map(r=>`<div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><!--
@@ -1086,6 +1118,9 @@ function weekPlan(wk){
   /* the week in parts: a span of its days, each with a focus of its own
      (added later; a plan made before simply has none) */
   if(!Array.isArray(p.periods)) p.periods = [];
+  /* and each period its own work, chosen from the week's (added later still;
+     a period made before has none under it) */
+  p.periods.forEach(x => { if(x && !Array.isArray(x.taskIds)) x.taskIds = []; });
   return p;
 }
 /* what a week said would make it a win, and what would take it away — from
@@ -1098,12 +1133,26 @@ const weekRisks = p => Array.isArray(p && p.risks) ? p.risks.filter(r => (r.text
    deadline and then a lighter end, a trip in the middle. Each period is a span
    of the week's days ({id, from, to, name, focus}), and on every day it
    covers, Today says which period it is and what it is for. Only periods with
-   a name or a focus count; where two overlap, the first one written wins. */
+   a name, a focus or some work under them count; where two overlap, the
+   first one written wins. */
+const weekPeriodSaid = x => !!((x.focus || '').trim() || (x.name || '').trim() || (x.taskIds || []).length);
 const weekPeriods = p => (Array.isArray(p && p.periods) ? p.periods : [])
-  .filter(x => x && x.from && x.to && ((x.focus || '').trim() || (x.name || '').trim()))
+  .filter(x => x && x.from && x.to && weekPeriodSaid(x))
   .slice().sort((a, b) => a.from.localeCompare(b.from));
 const weekPeriodOn = (p, d) => (Array.isArray(p && p.periods) ? p.periods : [])
-  .find(x => x && x.from && x.to && x.from <= d && d <= x.to && ((x.focus || '').trim() || (x.name || '').trim())) || null;
+  .find(x => x && x.from && x.to && x.from <= d && d <= x.to && weekPeriodSaid(x)) || null;
+/* THE WEEK'S WORK: everything put under one of its goals, and everything
+   given to one of its periods — each task once, in the order it was chosen. */
+const weekWorkIds = p => [...new Set([
+  ...((p && p.outcomes) || []).flatMap(o => o.taskIds || []),
+  ...((p && p.periods) || []).flatMap(x => (x && x.taskIds) || [])])];
+/* how much of a period's work is done — null for a period with none */
+function weekPeriodProgress(x){
+  const ids = (x && x.taskIds) || [];
+  if(!ids.length) return null;
+  const refs = ids.map(id => findTaskRef(id)).filter(Boolean);
+  return {done: refs.filter(r => r.done).length, total: refs.length};
+}
 const wpDayShort = d => DOW[parseDay(d).getDay()].slice(0, 3);
 const wpSpan = x => x.from === x.to ? wpDayShort(x.from) : `${wpDayShort(x.from)}\u2013${wpDayShort(x.to)}`;
 /* last week's plan as it was left, without writing an empty one for a week
@@ -1134,7 +1183,7 @@ function openWeeklyPlan(d = today()){
   const lastDone = tasksDoneBetween(lastWk, lastEnd);
   while(p.outcomes.length < 3) p.outcomes.push({id:uid(), text:'', linkType:'', linkId:null, taskIds:[]});
   const lists = planLists();
-  const STEPS = 5;
+  const STEPS = 6;
   let step = 0;
   const m = openModal('', 'wide');
 
@@ -1169,9 +1218,13 @@ function openWeeklyPlan(d = today()){
       p.periods = all('[data-wpperfrom]').map(sl => { const i = sl.dataset.wpperfrom;
         let from = sl.value, to = (q(`[data-wpperto="${i}"]`) || {value: from}).value || from;
         if(to < from) [from, to] = [to, from];
-        return {id: sl.dataset.wpid || uid(), from, to,
+        const id = sl.dataset.wpid || uid(), was = p.periods.find(x => x.id === id);
+        return {id, from, to,
           name: (q(`[data-wppername="${i}"]`) || {value: ''}).value.trim(),
-          focus: (q(`[data-wpperfocus="${i}"]`) || {value: ''}).value.trim()}; });
+          focus: (q(`[data-wpperfocus="${i}"]`) || {value: ''}).value.trim(),
+          /* the work chosen for it is not a box on the screen, so it is
+             carried over from the period as it was */
+          taskIds: was && Array.isArray(was.taskIds) ? was.taskIds : []}; });
     }
   };
   const redraw = () => { read(); draw(); };
@@ -1321,22 +1374,90 @@ function openWeeklyPlan(d = today()){
   const wkDays = [0, 1, 2, 3, 4, 5, 6].map(n => addDays(wk, n));
   const dayOpts = sel => wkDays.map(d => `<option value="${d}" ${d === sel ? 'selected' : ''}>${
     esc(wpDayShort(d))} ${parseDay(d).getDate()}</option>`).join('');
+  /* EACH PERIOD'S WORK. The week's work — what was put under its goals — is
+     offered under every period, to be given to the days it belongs to; a
+     task can go to more than one (a long piece of work runs across two), and
+     each row says where else it is. Anything else open can be found by name,
+     and a new task written in the same box goes straight into the period.
+     Planning a day in that period then offers this work first. */
+  const perOpen = {}, perFind = {};
+  const wpPerSum = n => n ? `${n} thing${n === 1 ? '' : 's'} for these days` : 'no work chosen for these days yet';
+  const wpPerPool = x => {
+    const mine = x.taskIds || [];
+    const ids = [...new Set([...p.outcomes.flatMap(o => o.taskIds || []), ...mine])];
+    return ids.map(id => findTaskRef(id)).filter(r => r && (!r.done || mine.includes(r.id)));
+  };
+  const wpPerRowHTML = (x, r, on) => {
+    const also = p.periods.filter(y => y !== x && (y.taskIds || []).includes(r.id));
+    /* the goal it was chosen for, so the list reads as the week's goals */
+    const goal = p.outcomes.find(o => (o.text || '').trim() && (o.taskIds || []).includes(r.id));
+    return `<div class="wp-trow${on ? ' on' : ''}${r.done ? ' is-done' : ''}" data-wpprow="${esc(r.id)}"><label class="wp-tline">
+      <input type="checkbox" data-wpptask="${esc(x.id)}" value="${esc(r.id)}" ${on ? 'checked' : ''} title="for these days">
+      <span class="wp-ptext">${esc(r.text)}${goal ? `<span class="wp-pgoal">\u25c6 ${esc(goal.text)}</span>` : ''}</span>
+      <span class="mono wp-tchips">${also.length ? `<span class="wp-palso">also ${esc(also.map(stageLabel).join(', '))}</span>` : ''}${
+        r.done ? 'done' : wpChipsHTML(r)}</span></label></div>`; };
+  const wpPerFoundHTML = x => {
+    const q = (perFind[x.id] || '').trim().toLowerCase(); if(!q) return '';
+    const shown = new Set(wpPerPool(x).map(r => r.id));
+    const hits = allTaskRefs().filter(r => !r.done && !shown.has(r.id) && !taskIsAside(r.task)
+      && (r.text || '').toLowerCase().includes(q)).slice(0, 12);
+    return hits.length ? hits.map(r => wpPerRowHTML(x, r, false)).join('')
+      : `<div class="empty" style="font-size:.8rem">Nothing open by that name — press Enter to write it as a new task for these days.</div>`;
+  };
+  const wpPerWorkHTML = x => {
+    const pool = wpPerPool(x), on = new Set(x.taskIds || []), n = (x.taskIds || []).length;
+    return `<details class="wp-under wp-pwork" data-wppunder="${esc(x.id)}" ${(perOpen[x.id] ?? true) ? 'open' : ''}>
+      <summary><span class="mono">${wpPerSum(n)}</span></summary>
+      <div class="stack wp-tlist" data-wpplist="${esc(x.id)}">${pool.length ? pool.map(r => wpPerRowHTML(x, r, on.has(r.id))).join('')
+        : `<div class="empty" style="font-size:.8rem">Nothing is under the week’s goals yet — put work under them in step 3, or find it here by name.</div>`}</div>
+      <div class="wp-tadd"><input class="inp" data-wppfind="${esc(x.id)}" value="${esc(perFind[x.id] || '')}"
+        placeholder="find other open work by name — or write a new task and press Enter"></div>
+      <div class="stack wp-tlist wp-pfound" data-wppfound="${esc(x.id)}">${wpPerFoundHTML(x)}</div>
+    </details>`; };
+  /* THE WEEK IN STAGES — its own step, straight after the goals, because
+     that is where the week's work has just been chosen. A stage is a run of
+     the week's days with a focus of its own and its share of the work: three
+     days on the deadline, two on the move, a lighter end. Stored as
+     p.periods ({id, from, to, name, focus, taskIds}). */
+  const STAGE_HUES = ['var(--page-accent)', 'var(--sage)', 'var(--terra)', 'var(--gold)', 'var(--rose)'];
+  const stageHue = x => STAGE_HUES[Math.max(0, p.periods.indexOf(x)) % STAGE_HUES.length];
+  const stageLabel = x => x.name || `Stage ${p.periods.indexOf(x) + 1}`;
+  /* the week at a glance: every day, under the stage that has it */
+  const weekStripHTML = () => `<div class="wp-weekstrip">${wkDays.map(d => {
+    const x = p.periods.find(y => y.from <= d && d <= y.to);
+    return `<div class="wp-wday${x ? '' : ' free'}" style="--c:${x ? stageHue(x) : 'var(--line)'}">
+      <span class="mono">${esc(wpDayShort(d))} ${parseDay(d).getDate()}</span>
+      <span class="wp-wstage">${x ? esc(stageLabel(x)) : 'no stage'}</span></div>`; }).join('')}</div>`;
+  /* the week's work that no stage has yet — the thing to look at before
+     calling the week planned */
+  const unplacedHTML = () => {
+    if(!p.periods.length) return '';
+    const inStage = new Set(p.periods.flatMap(x => x.taskIds || []));
+    const loose = [...new Set(p.outcomes.flatMap(o => o.taskIds || []))].filter(id => !inStage.has(id))
+      .map(id => findTaskRef(id)).filter(r => r && !r.done);
+    return loose.length ? `<p class="faint wp-unplaced">${loose.length} of the week’s things ${loose.length === 1 ? 'is' : 'are'} in no stage yet: ${
+      loose.slice(0, 6).map(r => esc(r.text)).join(', ')}${loose.length > 6 ? ', …' : ''}</p>` : '';
+  };
   const periodsHTML = () => {
     const rows = p.periods;
     const clash = wkDays.filter(d => rows.filter(x => x.from <= d && d <= x.to).length > 1);
-    return `<div class="field"><label>The week in periods</label>
-      <p class="muted" style="font-size:.84rem;margin:0 0 8px">If the week has parts \u2014 three days of a deadline and then a lighter end \u2014 give each its days and its focus. On every day it covers, Today says which part of the week it is and what it is for.</p>
-      <div class="wp-periods">${rows.map((x, i) => `<div class="wp-period" data-wpid="${esc(x.id)}">
+    return `${weekStripHTML()}${unplacedHTML()}
+      <div class="wp-periods">${rows.map((x, i) => `<div class="wp-period wp-stage" data-wpid="${esc(x.id)}" style="--c:${stageHue(x)}">
         <div class="wp-period-when">
+          <span class="wp-stage-n mono">stage ${i + 1}</span>
           <select class="sel sm" data-wpperfrom="${i}" data-wpid="${esc(x.id)}" aria-label="from">${dayOpts(x.from)}</select>
           <span class="faint">to</span>
           <select class="sel sm" data-wpperto="${i}" aria-label="to">${dayOpts(x.to)}</select>
-          <input class="inp" data-wppername="${i}" value="${esc(x.name || '')}" placeholder="what to call it (optional)">
-          <button class="del-x inline" data-wpperdel="${i}" title="take this period out">\u00d7</button></div>
-        <textarea class="ta" rows="2" data-wpperfocus="${i}" placeholder="the focus for these days">${esc(x.focus || '')}</textarea>
+          <input class="inp" data-wppername="${i}" value="${esc(x.name || '')}" placeholder="what to call it — e.g. the deadline push">
+          <button class="del-x inline" data-wpperdel="${i}" title="take this stage out (its work stays where it is)">×</button></div>
+        <textarea class="ta" rows="2" data-wpperfocus="${i}" placeholder="what these days are for">${esc(x.focus || '')}</textarea>
+        ${wpPerWorkHTML(x)}
       </div>`).join('')}</div>
-      ${clash.length ? `<p class="faint" style="font-size:.78rem;margin:6px 0 0">${clash.map(wpDayShort).join(', ')} ${clash.length === 1 ? 'is' : 'are'} in two periods \u2014 Today will show the first.</p>` : ''}
-      <button class="btn sm ghost" id="wpAddPeriod" style="margin-top:8px">\uff0b a period</button></div>`;
+      ${clash.length ? `<p class="faint" style="font-size:.78rem;margin:6px 0 0">${clash.map(wpDayShort).join(', ')} ${clash.length === 1 ? 'is' : 'are'} in two stages — Today will show the first.</p>` : ''}
+      <div class="row wp-stage-add" style="gap:6px;flex-wrap:wrap;margin-top:10px">
+        ${rows.length ? '' : [1, 2, 3].map(n => `<button class="btn sm" data-wpsplit="${n}">${
+          n === 1 ? 'one stage — the whole week' : `${n === 2 ? 'two' : 'three'} stages`}</button>`).join('')}
+        <button class="btn sm ghost" id="wpAddPeriod">＋ a stage</button></div>`;
   };
 
   const recapHTML = () => { const named = weekGoalsNamed(p);
@@ -1349,9 +1470,10 @@ function openWeeklyPlan(d = today()){
       ${aims.length ? `<div class="sc" style="margin:12px 0 6px">And in each part of a life</div>
         <div class="stack" style="gap:3px">${aims.map(l => `<div class="row" style="gap:8px">
           <b style="color:${esc(l.color)};min-width:110px">${esc(l.name)}</b><span>${esc(p.aims[l.id])}</span></div>`).join('')}</div>` : ''}
-      ${weekPeriods(p).length ? `<div class="sc" style="margin:12px 0 6px">In periods</div>
+      ${weekPeriods(p).length ? `<div class="sc" style="margin:12px 0 6px">In stages</div>
         <div class="stack" style="gap:4px">${weekPeriods(p).map(x => `<div class="row" style="gap:8px;align-items:baseline">
-          <b class="mono" style="min-width:74px;font-size:.78rem">${esc(wpSpan(x))}</b><span>${x.name ? `<b>${esc(x.name)}</b>${x.focus ? ' \u2014 ' : ''}` : ''}${esc(x.focus || '')}</span></div>`).join('')}</div>` : ''}
+          <b class="mono" style="min-width:74px;font-size:.78rem">${esc(wpSpan(x))}</b><span>${x.name ? `<b>${esc(x.name)}</b>${x.focus ? ' \u2014 ' : ''}` : ''}${esc(x.focus || '')}${
+            (x.taskIds || []).length ? ` <span class="mono faint">\u00b7 ${x.taskIds.length} thing${x.taskIds.length === 1 ? '' : 's'}</span>` : ''}</span></div>`).join('')}</div>` : ''}
       ${weekWins(p).length ? `<div class="sc" style="margin:12px 0 4px">A win would be</div>${wpWinListHTML(weekWins(p))}` : ''}
       ${weekRisks(p).length ? `<div class="sc" style="margin:12px 0 4px">What could take it away, and what you will do</div>${wpRiskListHTML(weekRisks(p))}` : ''}
     </div>`; };
@@ -1367,6 +1489,9 @@ function openWeeklyPlan(d = today()){
       `<h2>What the week is carrying</h2>
        <p class="muted" style="font-size:.88rem">The bigger things \u2014 as many as the week really holds \u2014 and the work already written down that would finish them. A goal with nothing under it is a wish; a goal with four tasks under it is a week.</p>
        ${goalsHTML()}`,
+      `<h2>The week in stages</h2>
+       <p class="muted" style="font-size:.88rem">A week is rarely one thing. Split it into stages — a few days on one thing, then a few on another — and give each its days, what it is for, and its share of the work you just chose. Planning a day in a stage starts from that stage’s work, and Today says which stage you are in.</p>
+       ${periodsHTML()}`,
       `<h2>What would make this a win?</h2>
        <p class="muted" style="font-size:.88rem">One at a time, concretely, with the goals still in view \u2014 each something you could hold up on Sunday and know the answer to, and why it would matter.</p>
        ${wpRowsHTML('win')}
@@ -1380,7 +1505,6 @@ function openWeeklyPlan(d = today()){
       `<h2>And the shape of it</h2>
        <div class="field"><label>A phrase that names the week</label>
          <input class="inp serif-lg" id="wpTheme" value="${esc(p.theme)}" placeholder="One phrase that names what this week is for"></div>
-       ${periodsHTML()}
        ${recapHTML()}`,
     ][step];
     /* a redraw rebuilds the step, so where it was scrolled to — the dialog,
@@ -1392,6 +1516,7 @@ function openWeeklyPlan(d = today()){
     if(af && m.contains(af)) for(const at of af.attributes) if(at.name.startsWith('data-wp')){
       fsel = `[${at.name}="${CSS.escape(at.value)}"]`; caret = typeof af.selectionStart === 'number' ? af.selectionStart : null; break; }
     m.querySelectorAll('[data-wptlist]').forEach(el => keep.lists[el.dataset.wptlist] = el.scrollTop);
+    m.querySelectorAll('[data-wpplist]').forEach(el => keep.lists['p:' + el.dataset.wpplist] = el.scrollTop);
     m.querySelector('.modal').innerHTML = `<button class="close">\u00d7</button>${body}
       <div class="row between" style="margin-top:18px"><span class="mono">step ${step + 1} of ${STEPS}</span>
       <span class="row">${step ? '<button class="btn sm ghost" id="wpBack">back</button>' : ''}
@@ -1419,7 +1544,7 @@ function openWeeklyPlan(d = today()){
        first and the press landed on a button that was no longer there. The
        step's own buttons keep the focus where it is; each reads the boxes
        itself before it changes anything. */
-    m.querySelectorAll('#wpMoreGoal, [data-wpgoaldel], #wpAddPeriod, [data-wpperdel], [data-wpdel]')
+    m.querySelectorAll('#wpMoreGoal, [data-wpgoaldel], #wpAddPeriod, [data-wpperdel], [data-wpdel], [data-wpsplit]')
       .forEach(b => b.addEventListener('mousedown', ev => ev.preventDefault()));
     const more = m.querySelector('#wpMoreGoal');
     if(more) more.onclick = () => { read(); p.outcomes.push({id: uid(), text: '', linkType: '', linkId: null, taskIds: []});
@@ -1433,8 +1558,18 @@ function openWeeklyPlan(d = today()){
       const last = p.periods.reduce((a, x) => x.to > a ? x.to : a, '');
       const from = last && last < wkDays[6] ? addDays(last, 1) : wkDays[0];
       const to = addDays(from, 2) > wkDays[6] ? wkDays[6] : addDays(from, 2);
-      p.periods.push({id: uid(), from, to, name: '', focus: ''});
+      p.periods.push({id: uid(), from, to, name: '', focus: '', taskIds: []});
       draw(); const f = m.querySelectorAll('[data-wpperfocus]'); f[f.length - 1]?.focus(); };
+    /* a start: the week cut into one, two or three runs of days, as even as
+       seven allows — the days can be moved after */
+    m.querySelectorAll('[data-wpsplit]').forEach(b => b.onclick = () => { read();
+      const n = +b.dataset.wpsplit; let at = 0;
+      for(let k = 0; k < n; k++){
+        const len = Math.floor(7 / n) + (k < 7 % n ? 1 : 0);
+        p.periods.push({id: uid(), from: wkDays[at], to: wkDays[at + len - 1], name: '', focus: '', taskIds: []});
+        at += len;
+      }
+      saveNow(); draw(); m.querySelector('[data-wpperfocus]')?.focus(); });
     m.querySelectorAll('[data-wpperdel]').forEach(b => b.onclick = () => { read();
       p.periods.splice(+b.dataset.wpperdel, 1); draw(); });
     m.querySelectorAll('[data-wpperfrom], [data-wpperto]').forEach(sl => sl.onchange = () => redraw());
@@ -1446,6 +1581,34 @@ function openWeeklyPlan(d = today()){
       if(sum) sum.textContent = o.taskIds.length
         ? `${o.taskIds.length} thing${o.taskIds.length === 1 ? '' : 's'} under it`
         : 'nothing under it yet \u2014 choose the work';
+    });
+    /* a period's work: ticking gives a task to those days (or takes it
+       back); the step is drawn again so every row's "also …" stays true */
+    const bindPerRows = box => box.querySelectorAll('[data-wpptask]').forEach(c => c.onchange = () => {
+      const x = p.periods.find(y => y.id === c.dataset.wpptask); if(!x) return;
+      x.taskIds = Array.isArray(x.taskIds) ? x.taskIds : [];
+      const at = x.taskIds.indexOf(c.value);
+      c.checked ? (at < 0 && x.taskIds.push(c.value)) : (at >= 0 && x.taskIds.splice(at, 1));
+      saveNow(); redraw();
+    });
+    bindPerRows(m);
+    m.querySelectorAll('[data-wppunder]').forEach(d => d.addEventListener('toggle', () => { perOpen[d.dataset.wppunder] = d.open; }));
+    m.querySelectorAll('[data-wppfind]').forEach(inp => {
+      const id = inp.dataset.wppfind;
+      inp.oninput = () => { perFind[id] = inp.value;
+        const x = p.periods.find(y => y.id === id), box = m.querySelector(`[data-wppfound="${CSS.escape(id)}"]`);
+        if(x && box){ box.innerHTML = wpPerFoundHTML(x); bindPerRows(box); } };
+      /* Enter writes what is in the box as a new task, in the planner's own
+         grammar ("draft the intro ~45m !high"), into the Inbox and this period */
+      inp.onkeydown = ev => { if(ev.key !== 'Enter') return; ev.preventDefault(); ev.stopPropagation();
+        if(!inp.value.trim()) return;
+        read();
+        const x = p.periods.find(y => y.id === id); if(!x) return;
+        const t = commitQuickTask(inp.value, {listId: 'inbox'}); if(!t) return;
+        x.taskIds = Array.isArray(x.taskIds) ? x.taskIds : [];
+        if(!x.taskIds.includes(t.id)) x.taskIds.push(t.id);
+        perFind[id] = ''; perOpen[id] = true; sound('success'); saveNow(); draw();
+        const again = m.querySelector(`[data-wppfind="${CSS.escape(id)}"]`); if(again) again.focus(); };
     });
     /* the work itself, edited where it is chosen */
     const taskOf = id => { const r = findTaskRef(id); return r ? r.task : null; };
@@ -1520,6 +1683,7 @@ function openWeeklyPlan(d = today()){
     if(md){ const md2 = m.querySelector('.modal'); md2.scrollTop = keep.top; }
     m.scrollTop = keep.over;
     m.querySelectorAll('[data-wptlist]').forEach(el => { if(keep.lists[el.dataset.wptlist]) el.scrollTop = keep.lists[el.dataset.wptlist]; });
+    m.querySelectorAll('[data-wpplist]').forEach(el => { const k = 'p:' + el.dataset.wpplist; if(keep.lists[k]) el.scrollTop = keep.lists[k]; });
     const back = m.querySelector('#wpBack');
     if(back) back.onclick = () => { read(); step--; draw(); };
     m.querySelector('#wpNext').onclick = () => {

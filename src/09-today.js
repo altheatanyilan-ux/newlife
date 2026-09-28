@@ -315,8 +315,16 @@ routes.today = function(root, params = []){
         <button class="tbtn" id="planWeekHere" title="open the week's plan">edit</button></div>
       ${wkPlan.theme ? `<p class="wk-theme">${esc(wkPlan.theme)}</p>` : ''}
       ${wkPers.length ? `<div class="wk-periods">
-        ${wkNow ? `<div class="wk-period now"><span class="mono">now \u00b7 ${esc(wpSpan(wkNow))}${wkNow.name ? ` \u00b7 ${esc(wkNow.name)}` : ''}</span>${
-          wkNow.focus ? `<span class="wk-period-focus">${esc(wkNow.focus)}</span>` : ''}</div>` : ''}
+        ${wkNow ? (() => {
+          /* the stage's own work: how much of it is done, and what is still open */
+          const g = typeof weekPeriodProgress === 'function' ? weekPeriodProgress(wkNow) : null;
+          const open = (wkNow.taskIds || []).map(id => findTaskRef(id)).filter(r => r && !r.done);
+          /* numbered as the week's plan numbers them: every stage it was cut into */
+          const all = wkPlan.periods || [], k = all.indexOf(wkNow);
+          return `<div class="wk-period now"><span class="mono">now \u00b7 ${all.length > 1 && k >= 0 ? `stage ${k + 1} of ${all.length} \u00b7 ` : ''}${esc(wpSpan(wkNow))}${
+            wkNow.name ? ` \u00b7 ${esc(wkNow.name)}` : ''}${g ? ` \u00b7 ${g.done} of ${g.total} done` : ''}</span>${
+            wkNow.focus ? `<span class="wk-period-focus">${esc(wkNow.focus)}</span>` : ''}${
+            open.length ? `<span class="wk-period-open">${open.slice(0, 5).map(r => esc(r.text)).join(' \u00b7 ')}${open.length > 5 ? ' \u00b7 \u2026' : ''}</span>` : ''}</div>`; })() : ''}
         ${wkPers.length > 1 || !wkNow ? `<div class="wk-period-strip">${wkPers.map(x => `<span class="${x === wkNow ? 'on' : ''}" title="${esc(x.focus || '')}">${
           esc(wpSpan(x))}${x.name ? ` ${esc(x.name)}` : ''}</span>`).join('')}</div>` : ''}
       </div>` : ''}
