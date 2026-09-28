@@ -538,10 +538,7 @@ function planMyDay(d = today()){
       out.push({kind:'skill', icon:'▲', name: sk.name, go:'#/skills/' + sk.id,
         cold: typeof skillLastPracticed === 'function' ? daysSince(skillLastPracticed(sk)) : Infinity,
         what:'practised'}));
-    (S.projects || []).filter(x => x.status === 'active').forEach(pr =>
-      out.push({kind:'project', icon:'🎨', name: pr.name, go:'#/projects/' + pr.id,
-        cold: typeof projectNods === 'function' ? daysSince(projectNods(pr)[0]?.date) : Infinity,
-        what:'nodded'}));
+    /* active projects were offered here; they went with the Projects page */
     (S.entries || []).filter(e => e.extra?.content &&
       ['draft','refining','outline'].includes(e.extra.content.stage)).forEach(e =>
       out.push({kind:'piece', icon:'✍', name: e.title || 'an untitled piece', go:'#/content',
@@ -1266,9 +1263,12 @@ function openWeeklyPlan(d = today()){
         <select class="sel" data-wplink="${i}" style="width:auto">
           <option value="">— which part of a life —</option>
           <optgroup label="lists">${lists.map(l => `<option value="list:${esc(l.id)}" ${
-            o.linkType === 'list' && o.linkId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</optgroup>
-          <optgroup label="projects">${(S.projects || []).map(pr => `<option value="project:${esc(pr.id)}" ${
-            o.linkType === 'project' && o.linkId === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}</optgroup>
+            (o.linkType === 'list' || o.linkType === 'project') && o.linkId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</optgroup>
+          ${/* Projects are not offered on their own any more (the page went, and a
+               project is a list under the same id). A goal already set to a
+               project with no list of its own keeps its link, shown here. */
+            o.linkType === 'project' && o.linkId && !lists.some(l => l.id === o.linkId) && byId(S.projects || [], o.linkId)
+            ? `<option value="project:${esc(o.linkId)}" selected>${esc(byId(S.projects, o.linkId).name)}</option>` : ''}
         </select>
         ${p.outcomes.length > 1 ? `<button class="del-x inline" data-wpgoaldel="${i}" title="take this goal off the week (the work under it stays where it is)">\u00d7</button>` : ''}</div>
       <details class="wp-under" data-wpunder="${i}" ${(goalOpen[i] ?? o.taskIds.length > 0) ? 'open' : ''} ${named ? '' : 'hidden'}>

@@ -17,7 +17,8 @@ const is  = (n,a,b) => JSON.stringify(a)===JSON.stringify(b) ? ok(n) : no(n, `go
 const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
 /* the seven, and the rooms that still open with a banner */
-const BARE = [['Planning','#/planning'], ['Content Studio','#/writing'], ['Projects','#/projects'],
+/* (Projects was one of the seven; its page was taken out) */
+const BARE = [['Planning','#/planning'], ['Content Studio','#/writing'],
               ['Finance','#/finance'], ['Skill Tree','#/skills'], ['Values','#/values'], ['People','#/people']];
 /* #/compass leads to Today's Review view now, which has no banner */
 const KEPT = ['#/journals', '#/commonplace', '#/timeline', '#/settings'];
@@ -54,27 +55,7 @@ const KEPT = ['#/journals', '#/commonplace', '#/timeline', '#/settings'];
   }
 
   console.log('\n3. nothing the banner carried was lost with it');
-  await go('#/projects');
-  const pr = await p.evaluate(() => {
-    const bar = document.querySelector('#main .page-bar'); if(!bar) return null;
-    const body = document.querySelector('#pcards, .kanban, .gantt');
-    return {views: [...bar.querySelectorAll('.view-toggle button')].map(x => x.dataset.pview),
-      on: bar.querySelector('.view-toggle button.on')?.dataset.pview,
-      sort: !!bar.querySelector('#psort'), nod: !!bar.querySelector('#addNod'),
-      /* over the work, not under it */
-      aboveBody: !!body && bar.getBoundingClientRect().bottom <= body.getBoundingClientRect().top + 1};
-  });
-  yes('Projects has a bar where the banner was', pr !== null);
-  is('  carrying all three views', pr && pr.views, ['cards','kanban','timeline']);
-  is('  with the current one marked', pr && pr.on, 'cards');
-  yes('  the sort is still there', pr && pr.sort);
-  yes('  and so is the button that makes a nod', pr && pr.nod);
-  yes('  and the bar sits above the work it governs', pr && pr.aboveBody);
-  /* and it still works */
-  await p.click('#main .page-bar [data-pview="kanban"]'); await p.waitForTimeout(800);
-  is('  switching view from the bar still switches the view',
-    await p.evaluate(() => S.settings.projectView), 'kanban');
-  await p.click('#main .page-bar [data-pview="cards"]'); await p.waitForTimeout(800);
+  /* (the Projects bar was checked here; the Projects page was taken out) */
 
   await go('#/people');
   const pl = await p.evaluate(() => {
@@ -95,7 +76,8 @@ const KEPT = ['#/journals', '#/commonplace', '#/timeline', '#/settings'];
 
   console.log('\n4. the bar wraps rather than overflowing a narrow window');
   await p.setViewportSize({width: 560, height: 900}); await p.waitForTimeout(700);
-  for(const route of ['#/projects', '#/people']){
+  /* People is the one room left with a bar (Projects had the other) */
+  for(const route of ['#/people']){
     await go(route);
     const fit = await p.evaluate(() => {
       const bar = document.querySelector('#main .page-bar'), pg = bar.closest('.page');

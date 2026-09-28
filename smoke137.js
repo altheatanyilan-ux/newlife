@@ -110,7 +110,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      the top of the page now, not a button that opens the task panel (smoke180).
      It is checked here for the absence, so that a page losing its button by
      accident still shows up as a failure somewhere. */
-  for(const [hash, page] of [['#/people','People'], ['#/projects','Projects']]){
+  /* Projects was the second page here; it was taken out, so Repertoire stands in */
+  for(const [hash, page] of [['#/people','People'], ['#/score','Repertoire']]){
     await go(hash);
     yes(`${page} still has one`, await p.evaluate(() => !!document.querySelector('#ctxAdd')));
   }

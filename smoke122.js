@@ -35,12 +35,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  named after the project', (await cards()).includes(pname), (await cards()).join(' | '));
   yes('  even with no figures filled in', await p.evaluate(i =>
     !byId(S.projects, i).income.current && !byId(S.projects, i).income.target, pid));
-  yes('  and it links through to the project',
-      !!(await p.$(`.stream-card a[href="#/projects/${pid}"]`)));
+  /* the Projects page was taken out: the card says it is a project, and no longer links to a page that is gone */
+  yes('  and says it is a project, without a link to a page that is gone',
+      await p.evaluate(() => [...document.querySelectorAll('.stream-card .chip')].some(n => /project/.test(n.textContent))
+        && !document.querySelector('.stream-card a[href^="#/projects"]')));
   yes('  the project knows it is a stream', await p.evaluate(i => byId(S.projects, i).income.isStream === true, pid));
-  /* the link is the point: the plan is worked out in one room, the earnings read in the other */
-  await p.click(`.stream-card a[href="#/projects/${pid}"]`); await p.waitForTimeout(1600);
-  yes('following it lands on the project', await p.evaluate(() => location.hash.includes('/projects')));
   await fin();
 
   console.log('\n2. a stream can be written down for later');
@@ -170,8 +169,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await fin();
   yes('it is still on Finance, now under the project\'s name',
       (await cards()).includes(emptyProj.name), (await cards()).join(' | '));
-  yes('  and links through to the project',
-      !!(await p.$(`.stream-card a[href="#/projects/${emptyProj.id}"]`)));
+  /* the Projects page was taken out: the card names the project, with no link to a page that is gone */
+  yes('  and says it is a project, without a link to a page that is gone',
+      !(await p.$('.stream-card a[href^="#/projects"]')));
 
   console.log('\n5b. tying it to a project that already earns says so first');
   const sid6 = await p.evaluate(() => {

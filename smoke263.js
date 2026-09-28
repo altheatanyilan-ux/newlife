@@ -75,7 +75,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   };
   await room('a person', `#/people/${ids.person}`, `byId(S.people, '${ids.person}').additional`, 'Met at the lake');
   await room('a skill', `#/skills/${ids.skill}`, `byId(S.skills, '${ids.skill}').additional`, 'Charcoal first');
-  await room('a project', `#/projects/${ids.project}`, `byId(S.projects, '${ids.project}').additional`, 'South-facing');
+  /* (a project's Additional box was checked here; the Projects page was taken out, and the project keeps its text) */
   if(ids.value) await room('a value', `#/value/${ids.value}`, `byId(S.values, '${ids.value}').additional`, 'Since school');
   if(ids.stage) await room('a timeline chapter', `#/stage/${ids.stage}`, `byId(S.stages, '${ids.stage}').additional`, 'The flat on Hill St');
 

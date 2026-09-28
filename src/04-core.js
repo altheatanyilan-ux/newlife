@@ -784,14 +784,17 @@ function linkedChipsHTML(links){
   L.people.forEach(id => { const o = byId(S.people,id); if(o) out.push(`<span class="chip on" style="--c:var(--rose)">${esc(o.name)}</span>`); });
   return out.join('');
 }
-function linksEditorHTML(links, {legend=true, stages=false}={}){
+/* projects:false leaves the Projects row out (the Projects page was taken out); what a
+   record already links to is kept in links.projects, untouched, and callers that do not
+   pass it draw exactly what they always drew */
+function linksEditorHTML(links, {legend=true, stages=false, projects=true}={}){
   links.threads = links.threads||[]; links.values = links.values||[]; links.visions = links.visions||[]; links.skills = links.skills||[]; links.projects = links.projects||[]; links.stages = links.stages||[];
   return `
     ${stages ? `<div class="field"><label>Life stage ${legend?'— which chapter of the Timeline was this consumed during?':''}</label><div class="deps">${S.stages.filter(s=>!s.notyet).map(s=>`<span class="chip click" style="--c:${s.hue}" data-lk="stages" data-id="${s.id}">${s.char} ${esc(s.name)}</span>`).join('') || '<span class="faint">no stages yet</span>'}</div></div>` : ''}
     <div class="field"><label>Values ${legend?'— click to link, click again to flip polarity, third click to unlink':''}</label><div class="deps">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<span class="chip click" style="--c:${v.color}" data-lk="values" data-id="${v.id}"><span class="pol"></span>${esc(v.name)}</span>`; }).join('') || '<span class="faint">no values yet</span>'}</div></div>
     <div class="field"><label>Threads</label><div class="deps">${S.threads.map(t=>`<span class="chip click" style="--c:${t.color}" data-lk="threads" data-id="${t.id}">${esc(t.name)}</span>`).join('') || '<span class="faint">no threads yet</span>'}</div></div>
     <div class="field"><label>Skills</label><div class="deps">${S.skills.map(s=>`<span class="chip click" style="--c:var(--ment)" data-lk="skills" data-id="${s.id}">${esc(s.name)}</span>`).join('') || '<span class="faint">no skills yet</span>'}</div></div>
-    <div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('') || '<span class="faint">no projects yet</span>'}</div></div>`;
+    ${projects ? `<div class="field"><label>Projects</label><div class="deps">${S.projects.map(p=>`<span class="chip click" style="--c:var(--terra)" data-lk="projects" data-id="${p.id}">${esc(p.name)}</span>`).join('') || '<span class="faint">no projects yet</span>'}</div></div>` : ''}`;
 }
 function bindLinksEditor(container, links, onChange){
   const sync = () => { container.querySelectorAll('[data-lk]').forEach(c => { const k = c.dataset.lk, id = c.dataset.id; const arr = links[k]||(links[k]=[]); const hit = arr.find(v => (typeof v==='string'?v:v.id)===id); c.classList.toggle('on', !!hit); if(k==='values') c.querySelector('.pol').textContent = hit ? hit.pol : ''; }); };

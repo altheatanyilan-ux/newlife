@@ -115,8 +115,7 @@ function signals(){
   const gaps = valueGaps(); if(gaps.length) out.push({k:'Biggest values gap', v:gaps[0].name, d:`ranked #${gaps[0].rank}, congruence ${gaps[0].congruence}%`, go:'#/value/'+gaps[0].id});
   const sk = S.skills.filter(s=>!s.planned).map(s=>({s, d:skillLastPracticed(s)})).sort((a,b)=>daysSince(b.d)-daysSince(a.d))[0];
   if(sk) out.push({k:'Longest-untouched skill', v:sk.s.name, d:`last practiced ${relDays(daysSince(sk.d))}`, go:'#/skills/'+sk.s.id});
-  const pr = S.projects.filter(p=>p.status==='active').map(p=>({p, last:projectNods(p)[0]?.date})).sort((a,b)=>daysSince(b.last)-daysSince(a.last))[0];
-  if(pr) out.push({k:'Coldest project', v:pr.p.name, d:`last nod ${relDays(daysSince(pr.last))}`, go:'#/projects/'+pr.p.id});
+  /* "Coldest project" went with the Projects page */
   const y = S.checkins[addDays(today(),-1)]; out.push({k:"Yesterday's intention", v:y?.intention || '—', d:y?.intention ? 'did you give it attention?' : 'no intention was set yesterday', go:'#/today'});
   /* "Thinnest dimension" is gone with the energy dimensions of habits */
   return out;
@@ -157,7 +156,7 @@ function linkChips(e, {click=true}={}){
   (e.links?.threads||[]).forEach(id => { const t = byId(S.threads,id); if(t) out.push(`<span class="chip on ${click?'click':''}" style="--c:${t.color}" data-go="#/journals/timeline/threads"><span class="dot"></span>${esc(t.name)}</span>`); });
   (e.links?.values||[]).forEach(x => { const v = byId(S.values,x.id); if(v) out.push(`<span class="chip on ${click?'click':''}" style="--c:${v.color}" data-go="#/value/${v.id}"><span class="pol">${x.pol||'+'}</span>${esc(v.name)}</span>`); });
   (e.links?.skills||[]).forEach(id => { const s = byId(S.skills,id); if(s) out.push(`<span class="chip on ${click?'click':''}" style="--c:var(--ment)" data-go="#/skills/${s.id}">🛠 ${esc(s.name)}</span>`); });
-  (e.links?.projects||[]).forEach(id => { const p = byId(S.projects,id); if(p) out.push(`<span class="chip on ${click?'click':''}" style="--c:var(--terra)" data-go="#/projects/${p.id}">🎨 ${esc(p.name)}</span>`); });
+  /* a link to a project is kept on the entry; it is not shown, the page it pointed at being gone */
   (e.people||[]).forEach(p => out.push(`<span class="chip">@ ${esc(p)}</span>`));
   (e.places||[]).forEach(p => out.push(`<span class="chip">⌖ ${esc(p)}</span>`));
   (e.emotions||[]).forEach(p => out.push(`<span class="chip">~ ${esc(p)}</span>`));

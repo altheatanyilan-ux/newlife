@@ -286,8 +286,7 @@ function habPanelHTML(h){
         `<span class="chip click${(h.links.values || []).includes(v.id) ? ' on' : ''}" style="--c:${v.color}" data-hplk="values:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
       ${!br ? `<div class="field"><label>Skills</label><div class="deps">${S.skills.map(v =>
         `<span class="chip click${(h.links.skills || []).includes(v.id) ? ' on' : ''}" style="--c:var(--ment)" data-hplk="skills:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>` : ''}
-      <div class="field"><label>Projects</label><div class="deps">${S.projects.map(v =>
-        `<span class="chip click${(h.links.projects || []).includes(v.id) ? ' on' : ''}" style="--c:var(--terra)" data-hplk="projects:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>`)}
+      <!-- Projects went with the Projects page; a habit's link to one is kept -->`)}
 
     ${sec('every check-in', log.length ? `<div class="hb-log">${log.map(({d, e}) => {
         const s = e.status || (e.level === 'min' ? 'partial' : 'completed');

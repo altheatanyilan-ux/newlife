@@ -45,13 +45,11 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.selectOption('#pcProject', prid); await p.waitForTimeout(1200);
   is('the piece is filed under it',
      await p.evaluate(i => (byId(S.entries, i).links.projects || [])[0], eid), prid);
+  /* the Projects page was taken out: the piece still says which project it serves, as words rather than a link */
   const link = await p.$('#pcProjSec .pcd-projlink');
-  yes('a link to the project appears with the choice', !!link);
-  yes('  named after it', /↗ open/.test(await p.evaluate(() =>
-    document.querySelector('.pcd-projlink').textContent)) &&
-    (await p.evaluate(() => document.querySelector('.pcd-projlink').textContent)).includes(prname), prname);
-  is('  pointing at that project',
-     await p.evaluate(() => document.querySelector('.pcd-projlink').getAttribute('href')), '#/projects/' + prid);
+  yes('the project it serves is named with the choice', !!link);
+  yes('  named after it', (await p.evaluate(() => document.querySelector('.pcd-projlink').textContent)).includes(prname), prname);
+  yes('  and not a link to a page that is gone', await p.evaluate(() => !document.querySelector('#pcProjSec a[href^="#/projects"]')));
   yes('  and the empty note is gone', await p.evaluate(() =>
     !/Not part of anything bigger/.test(document.querySelector('#pcProjSec').textContent)));
 

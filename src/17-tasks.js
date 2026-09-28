@@ -21,7 +21,7 @@ function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', do
 function projectTaskRefs(){
   const out = [];
   (S.projects||[]).forEach(p => (p.phases||[]).filter(ph => !ph.movedAt).forEach(ph => (ph.tasks||[]).forEach(t => {
-    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:`#/projects/${p.id}`});
+    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:'#/today/tasks'});
   })));
   return out;
 }

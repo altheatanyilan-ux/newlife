@@ -75,7 +75,6 @@ const NAV_PAGES = {
   planning: {label:'Tasks',            short:'Tasks',    ico:NAV_ICONS.planning, route:'#/today/tasks'},
   today:    {label:'Today',            short:'Today',    ico:NAV_ICONS.today,    route:'#/today'},
   journals: {label:'Lived Record',     short:'Record',   ico:NAV_ICONS.journals, route:'#/journals'},
-  projects: {label:'Projects',         short:'Projects', ico:NAV_ICONS.projects, route:'#/projects'},
   writing:  {label:'Writing',          short:'Writing',  ico:NAV_ICONS.writing,  route:'#/content/shelf'},
   people:   {label:'People',           short:'People',   ico:NAV_ICONS.people,   route:'#/people'},
   finance:  {label:'Finance',          short:'Money',    ico:NAV_ICONS.finance,  route:'#/finance'},
@@ -110,7 +109,9 @@ const NAV_PAGES = {
 const NAV_TOP = ['today'];
 const NAV_PINNED = [];
 const NAV_DEFAULT = {
-  create:   ['content','projects','score','jazz','songwriting','japanese'],
+  /* Projects was here; the page was taken out by request (a project's work
+     lives in its planner list, which is where its old address now goes) */
+  create:   ['content','score','jazz','songwriting','japanese'],
   identity: ['identityRoom','journals','tree','study'],
   standalone:[],
 };
@@ -216,7 +217,7 @@ NAV_PAGES.import = {label:'Import Station', short:'Import', ico:NAV_ICONS.import
 /* which level of the hierarchy each room mostly feeds — the annotation the
    house carries, so the map and the pyramid are reading the same building */
 const HOUSE_LEVEL = {today:1, finance:2, people:3, skills:4, projects:6, commonplace:5, journals:5, values:7, content:6};
-const HOUSE_EDGES = [['journals','values','retrospective readings fill the values history'],['projects','skills','projects exercise skills'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['finance','projects','a project that earns is an income stream'],['people','journals','the people in a chapter are part of it'],['commonplace','content','what you read becomes what you write'],['journals','content','a journal entry can be promoted to a piece'],['content','projects','a piece can be a project of its own']];
+const HOUSE_EDGES = [['journals','values','retrospective readings fill the values history'],['today','values','the biggest values gap is a daily signal'],['today','journals','the day is where most entries start'],['commonplace','journals','quotes are journal entries with a source'],['people','journals','the people in a chapter are part of it'],['commonplace','content','what you read becomes what you write'],['journals','content','a journal entry can be promoted to a piece']];
 function houseStats(){
   const T = today(); const n = navConfig();
   const due = S.habits.filter(h=>!h.archived&&!h.negative&&habitDue(h,T)); const done = due.filter(h=>habitDone(h,T)).length;
@@ -287,6 +288,10 @@ function compassBodyHTML(){
   const snaps = allSnapshotsWithRetro(); const avgCong = snaps.map(s => avg(S.valueOrder.map(id => s.ratings[id]).filter(x=>x!=null)));
   const habitRate = weeks12.map(days => { let due=0, done=0; days.forEach(d => S.habits.forEach(h => { if(!h.archived&&!h.negative&&habitDue(h,d)){ due++; if(habitDone(h,d)) done++; } })); return due ? Math.round(done/due*100) : null; });
   const nodsW = weeks12.map(days => S.nods.filter(x => days.includes(x.date)).length);
+  /* where the Projects card was: the hours the clock has written down, a
+     week at a time — the work, whatever list it belongs to */
+  const hoursW = weeks12.map(days => Math.round((S.timeEntries || []).filter(e => typeof timeDayOf === 'function'
+    && days.includes(timeDayOf(e.startTime))).reduce((n, e) => n + (typeof timeMinutes === 'function' ? timeMinutes(e) : 0), 0) / 6) / 10);
   const entriesW = weeks12.map(days => S.entries.filter(e => days.includes(e.createdAt.slice(0,10))).length);
   const stageCounts = S.stages.map(s => ({s, n: stageEntries(s).length})); const maxStage = Math.max(...stageCounts.map(x=>x.n),1);
   const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);
@@ -324,8 +329,8 @@ function compassBodyHTML(){
 
       <div class="card span4"><div class="k">Habits, 12 weeks <a href="#/today">→</a></div><div class="big" data-tween="${habitRate.slice(-1)[0]||0}" data-suffix="%">0<small>this week</small></div><div class="chart-fill heat-fill">${heatGrid(lastDays(84), 12, d => { const r = habitDayRatio(d); return r == null ? '' : r >= 1 ? 'l3' : r >= .5 ? 'l2' : r > 0 ? 'l1' : ''; })}</div><div class="sub">every day, twelve weeks · best streak ${Math.max(0,...S.habits.filter(h=>!h.archived&&!h.negative).map(h=>habitStreak(h).best))} days · weekly review ${relDays(daysSince(S.reviews.lastWeekly))}</div></div>
       <div class="card span4"><div class="k">Skills <a href="#/skills">→</a></div><div class="big" data-tween="${st.hrs30}" data-dec="1">0<small>hours / 30d</small></div>${skillHrs.length?skillHrs.map(x=>`<div class="vbar"><span>${esc(x.s.name)}</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.min(100,x.h/Math.max(skillHrs[0].h,1)*100)}%"></i></div><span class="mono">${x.h.toFixed(0)}h</span></div>`).join(''):'<div class="sub">no practice logged yet</div>'}<div class="sub">${st.atro?`<span style="color:var(--gold)">${st.atro} atrophying</span> · `:''}${S.skills.filter(s=>s.planned).length} buds planned</div></div>
-      <div class="card span4"><div class="k">Projects <a href="#/projects">→</a></div><div class="big" data-tween="${st.nods7}">0<small>nods this week</small></div><div class="chart-fill">${sparkline(nodsW,{h:56,min:0,color:'var(--terra)'})}</div><div class="sub">${st.active.length} active · ${openTasks} open task${openTasks===1?'':'s'} · ${fmtYen(income)}/mo across ${S.projects.filter(p=>p.income?.current>0).length} stream${S.projects.filter(p=>p.income?.current>0).length===1?'':'s'}</div></div>
 
+      <div class="card span4"><div class="k">Hours tracked, 12 weeks <a href="#/today/time">→</a></div><div class="big" data-tween="${hoursW.slice(-1)[0] || 0}" data-dec="1">0<small>hours this week</small></div><div class="chart-fill">${sparkline(hoursW,{h:56,min:0,color:'var(--gold)'})}</div><div class="sub">${(() => { const t = hoursW.reduce((a, b) => a + b, 0); return t ? `${Math.round(t)} hours in twelve weeks` : 'nothing on the clock yet'; })()}</div></div>
       <div class="card span4"><div class="k">The record <a href="#/journals">→</a></div><div class="big" data-tween="${S.entries.length}">0<small>entries</small></div><div class="chart-fill">${sparkline(entriesW,{h:56,min:0,color:'var(--rose)'})}</div><div class="sub">${st.j7} this week · ${st.memories} memories · ${st.quotes} quotes</div><div class="stagebars" title="entries per stage">${stageCounts.map(x=>`<i style="--c:${x.s.hue};height:${Math.max(4,x.n/maxStage*44)}px" title="${esc(x.s.name)} · ${x.n}"></i>`).join('')}</div></div>
       <div class="card span4"><div class="k">People, within cadence <a href="#/people">→</a></div><div class="ring-row">${ringSVG(cadencePct,{size:88,stroke:8,color:overduePpl.length?'var(--gold)':'var(--sage)',label:Math.round(cadencePct*100)+'%'})}<div class="ring-lines"><div class="sub">${tended} of ${withCadence.length} kept to the rhythm you chose${withCadence.length?'':' — no cadences set'}</div>${overduePpl.slice(0,3).map(o=>`<div class="sub" style="color:var(--gold)">${esc(o.p.name)} · ${o.days===Infinity?'never spoken':o.days+'d ago'}</div>`).join('')}</div></div><div class="sub">${bdays.length?`next: ${esc(bdays[0].p.name)}'s birthday in ${bdays[0].days} day${bdays[0].days===1?'':'s'}`:'no birthdays in the next month'}</div></div>
       <div class="card span4"><div class="k">Money, current against target <a href="#/finance">→</a></div><div class="big">${money(pf.totalCurrentBase)}<small>per month</small></div><div class="vbar"><span>of target</span><div class="bar" style="--c:var(--sage)"><i style="width:${pf.totalTargetBase?Math.min(100,pf.totalCurrentBase/pf.totalTargetBase*100).toFixed(0):0}%"></i></div><span class="mono">${pf.totalTargetBase?Math.round(pf.totalCurrentBase/pf.totalTargetBase*100)+'%':'—'}</span></div><div class="vbar"><span>passive</span><div class="bar" style="--c:var(--ment)"><i style="width:${Math.round(pf.passiveShare*100)}%"></i></div><span class="mono">${Math.round(pf.passiveShare*100)}%</span></div><div class="chart-fill">${sparkline(moneyMonths,{h:56,min:0,color:'var(--sage)'})}</div><div class="sub">${!pf.totalCurrentBase ? 'nothing coming in yet' : rw.sustainable?`<span style="color:var(--sage)">covered</span> — ${money(rw.surplus)}/mo over what the life costs`:`<span style="color:var(--gold)">${rw.months===Infinity?'no savings to run on':`${rw.months.toFixed(1)} months of runway`}</span> — ${money(monthlyBurn())}/mo short`}</div></div>

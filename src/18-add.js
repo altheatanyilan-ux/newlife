@@ -86,7 +86,6 @@ const SPEED_DIAL = [
   {zone:'Library', icon:'📚',     label:'Library entry — guided', run: ()=>EntryActions.guidedMedia()},
   {zone:'Finance', icon:'💰',     label:'Income stream — guided', run: ()=>EntryActions.guidedStream()},
   {zone:'Timeline', icon:'🕰',    label:'Timeline chapter — guided', run: ()=>EntryActions.guidedStage()},
-  {zone:'Creative Projects', icon:'📋', label:'Project',    run: ()=>EntryActions.newProject()},
   {zone:'Content', icon:'✍',      label:'Content idea',        run: ()=>EntryActions.contentIdea()},
 ];
 function buildSpeedDial(){

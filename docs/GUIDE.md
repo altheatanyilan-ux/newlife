@@ -26,7 +26,7 @@ It is long because the house is large. You do not need to read it in order. Star
 **Part III — Create: what you are making**
 12. [Content Studio and the Writing Studio](#12-content-studio-and-the-writing-studio)
 13. [Brand Strategy](#13-brand-strategy)
-14. [Projects](#14-projects)
+14. [Projects (taken out)](#14-projects-taken-out)
 15. [Repertoire (and Score Study)](#15-repertoire-and-score-study)
 16. [Jazz Studio](#16-jazz-studio)
 17. [Songwriting Studio](#17-songwriting-studio)
@@ -60,7 +60,7 @@ The Life Instrument is a private, single-file website for **examining a life and
 It has three kinds of room:
 
 - **Today** is where you spend most of your time: the plan for the day, the focus timer, tasks, habits, the morning practice, the evening review, and time tracking. It is deliberately the landing page.
-- **Create** holds what you are making: writing and content, projects, piano repertoire, jazz, songwriting, and Japanese.
+- **Create** holds what you are making: writing and content, piano repertoire, jazz, songwriting, and Japanese.
 - **Identity** holds who you are and have been: the people in your life, your values, your skills, your money, your life's record (journals, timeline, library), a personal wiki (the Knowledge Tree) and a spaced-repetition deck (the Study Deck).
 
 **What it is not.**
@@ -107,7 +107,7 @@ Browsers without folder access can use **Merge a sync file by hand…** and **wr
 ### The sidebar
 
 - **Today** sits alone at the top.
-- **Create** — Content Studio, Projects, Repertoire, Jazz Studio, Songwriting Studio, Japanese Studio.
+- **Create** — Content Studio, Repertoire, Jazz Studio, Songwriting Studio, Japanese Studio.
 - **Identity** — Identity (People, Values, Skill Tree, Finance), Lived Record, Knowledge Tree, Study Deck.
 
 Zones fold, the whole sidebar collapses to icons (the « button), and both are remembered. You can drag rooms between zones in **Settings → Navigation zones**. On a phone, a bottom bar holds the most-used rooms and **More** opens the full menu.
@@ -118,7 +118,7 @@ Some rooms you may remember as separate pages now live *inside* others: **Planni
 
 | Button | What it does |
 |---|---|
-| **search** (`/` or `⌘K`/`Ctrl+K`) | Searches everything: entries, values, skills, projects, habits, people, pages. |
+| **search** (`/` or `⌘K`/`Ctrl+K`) | Searches everything: entries, values, skills, habits, people, pages. |
 | **⛶** (`Z`) | **Focus mode**: this page full screen, with nothing else on the glass. On Today's Execution view and in Tasks, focus mode becomes a *desk*: the stopwatch, today's tasks and the notes for each sitting. `Esc` brings everything back. |
 | **?** | The keyboard card for the room you are in. |
 | **🔕 / 🔔** | Interaction sounds on or off (a synthesised singing bowl — clicks, completions, deletions). |
@@ -128,7 +128,7 @@ Some rooms you may remember as separate pages now live *inside* others: **Planni
 
 ### The ＋ button (bottom right, or press `N`)
 
-On most pages ＋ first offers what makes sense *there* (on a journal, a new entry of that type; in Projects, a project). The full **speed dial** lets you add anything from anywhere — a task, a quick note, an unfinished thought, a journal entry, a memory, a quote or saved link, a values snapshot, a skill (guided or quick), a person (guided), a Library entry (guided), an income stream (guided), a Timeline chapter (guided), a project, a content idea. Type to filter the list, `Enter` for the first match.
+On most pages ＋ first offers what makes sense *there* (on a journal, a new entry of that type). The full **speed dial** lets you add anything from anywhere — a task, a quick note, an unfinished thought, a journal entry, a memory, a quote or saved link, a values snapshot, a skill (guided or quick), a person (guided), a Library entry (guided), an income stream (guided), a Timeline chapter (guided), a content idea. Type to filter the list, `Enter` for the first match.
 
 ### Editing: there are no save buttons
 
@@ -142,7 +142,7 @@ On most pages ＋ first offers what makes sense *there* (on a journal, a new ent
 ### Hashtags, links and pictures
 
 - Type `#something` in any entry's body (or the Hashtags field). `#/tag/something` gathers everything carrying it, and the Content Studio's writing desk uses tags to pull source material beside the page.
-- The **Connect this entry** fold on every entry links it to stages, sub-stages, threads, values (with polarity: a click links it as *embodied*, a second click flips it to *betrayed*, a third unlinks), skills, projects and people. Those links are what make the entry appear in the other rooms.
+- The **Connect this entry** fold on every entry links it to stages, sub-stages, threads, values (with polarity: a click links it as *embodied*, a second click flips it to *betrayed*, a third unlinks), skills and people. Those links are what make the entry appear in the other rooms.
 - Any project, skill, value, person, entry or Timeline sub-stage can carry **images**; the first becomes the background its card is printed on. Drag to reorder.
 
 ### Worked examples
@@ -159,7 +159,7 @@ You can start anywhere, but this order gives each room something to work with.
 2. **Identity → Values.** Name the values you want to live by (up to ten) and rank them. Take one **congruence snapshot** (0–100 per value: how well did you live it this week?). Everything that asks "is my life lined up with what I say matters?" reads these.
 3. **Identity → People.** Add the five to fifteen people who matter most. Put each in a circle (Core, Close, Warm, Orbit, Aspirational) and give the ones you want to stay close to a contact cadence (weekly, monthly…).
 4. **Identity → Skill Tree.** Add the skills you are building. Mark two or three *In focus*; the rest *Active*, *Up next*, *Future* or *Resting*.
-5. **Projects.** Add what you are actually building. Each project automatically becomes a list in the planner.
+5. **Today → Tasks, lists.** Make a list for each thing you are actually building.
 6. **Today → Tasks.** Put tomorrow's work into lists, give it do-dates and estimates.
 7. **Today → Habits.** Add two or three habits — no more to begin with.
 8. **The Lived Record → Timeline.** Sketch the chapters of your life so far (years, a one-character name, a line). Memories you write later land on them.
@@ -277,7 +277,7 @@ What you write cross-posts into the Lived Record (as manifestation or gratitude 
 **My sacred space.** The receptive half of the practice, drawn as a house you walk through. Two views: **the house** and the plain controls (**what to do here** explains it).
 
 - **The sanctuary** (upstairs): the **cushion** opens stillness; **your quiet room** is the sanctuary you build once and return to; the **table** holds the four divination systems — **Tarot**, **I Ching**, **Oracle cards** and **Charm casting**.
-- **The main room**: the **shelf** (your Library), the **card box** (Study Deck), the **desk** (the writing shelf of the Content Studio), **the band** (your projects), the **medicine cupboard** (Values), the **crystals** (charm casting), the **bar** (the Drink Naming Ceremony — draw a card and its keywords decide a drink, which you name and keep on a menu; the one purely playful thing in the house), the **nook** (reflections), and synchronicities.
+- **The main room**: the **shelf** (your Library), the **card box** (Study Deck), the **desk** (the writing shelf of the Content Studio), **the band** (the planner — the work you are building), the **medicine cupboard** (Values), the **crystals** (charm casting), the **bar** (the Drink Naming Ceremony — draw a card and its keywords decide a drink, which you name and keep on a menu; the one purely playful thing in the house), the **nook** (reflections), and synchronicities.
 - **The garden**: herbs (Japanese Studio), the fire (letters), a chest (the Timeline's artefacts), the tree (Skill Tree).
 - **The roof**: the sky (Values), the stars (People), a telescope (manifestations), the plans (the planner).
 
@@ -306,7 +306,7 @@ The planner is where work is *moved*. It has a sidebar of where work lives and a
 **The sidebar.**
 
 - **Smart lists:** **Today** (due today, and anything late), **Tomorrow**, **Next 7 days**, **All tasks** (every open task, whatever list it is in), **Completed** (the last thirty days).
-- **Folders and lists.** Group lists into folders (＋ folder, ＋ in a folder for a new list). The **Projects** folder holds one list per project (§14).
+- **Folders and lists.** Group lists into folders (＋ folder, ＋ in a folder for a new list). The **Projects** folder holds one list per project you kept before the Projects page was taken out (§14).
 - **Tags** — every `#tag` in use, with counts.
 - **⚟ Filter** — narrow by list, tag, priority, dates or steps.
 - **Inbox** — everything written down and not yet placed. Empty it into lists regularly.
@@ -366,7 +366,7 @@ Habits here are **energy rituals, not willpower**. There are two kinds, and they
 - *When, and what sets it off* — **The cue**, **The set-up** (the environment), **Before** and **After** (the rituals around it), frequency, time of day, stacking after another habit, and optionally a time-tracking category with minutes a day.
 - *How it is going* — **On the worst day** (the minimum version), **On a good one** (the ideal), **Best ever** (a personal best with a unit), **Target each time**, **What follows it** (the reward), **Who knows** (self, partner, public), **How hard it is** (1–5).
 - For a breaking habit: **What I do instead**, **What it costs me**, **When the urge hits** (your protocol), a map of **triggers** (emotional, situational, social, temporal, environmental, each with intensity and a strategy) and an **urge log**.
-- Links to **Values**, **Skills** and **Projects**, and the **Additional** box.
+- Links to **Values** and **Skills**, and the **Additional** box.
 
 **Milestones**: first week (7), the Maltz threshold (21), one month (30), Loehr's acquisition point (60), a quarter (90), a year (365). Each is marked when reached.
 
@@ -384,7 +384,7 @@ The Review brings together what used to be three rooms: the Compass charts, the 
 - **The Spiral lens** — eight stages, each given a resonance strength from your behaviour.
 - **Log a check-in** jumps to the check-in.
 
-**The long view** — nine readings, over months rather than days: the ten values (radar), congruence over a lifetime, energy and set-point over 30 days, habits over 12 weeks (heat grid), skills (hours in 30 days), projects (nods this week), the record (entries), people within their cadence, and money (current against target). Each links to its room.
+**The long view** — nine readings, over months rather than days: the ten values (radar), congruence over a lifetime, energy and set-point over 30 days, habits over 12 weeks (heat grid), skills (hours in 30 days), hours tracked (12 weeks, from the clock), the record (entries), people within their cadence, and money (current against target). Each links to its room.
 
 **Tasks and focus** — finished today, kept to the date, overdue now, from writing it to doing it (how long tasks wait), focus today, intervals, the day scored, where the focus went, ninety days of focus, and breakdowns by priority, list and tag.
 
@@ -539,24 +539,13 @@ A view of the Content Studio (`#/content/brand`) for anyone running one or more 
 
 **Views:** the dashboard for the account in hand, the notebook, the inbox, plans, one plan, the calendar, decisions, the account profile, the matrix, and the studio-wide view. **Export / Import Brand Strategy** moves just this part.
 
-## 14. Projects
+## 14. Projects (taken out)
 
-Projects are the gardens you tend — concrete work with an end.
+The Projects page is gone. What it held has not gone anywhere:
 
-**Two modes:**
-
-- **◌ Ideation** — before anything is a project: **sparks** (something that struck you) and **questions** (something you do not know), in two equal columns. A spark can later become a project.
-- **◉ Tracking** — the work already under way, in three views: **▦ Cards**, **▥ Board** (kanban by status) and **▬ Timeline** (a Gantt of phases).
-
-**Status:** future, not started, in progress, on hold, completed, archived, abandoned. The **inventory** counts each. **＋ Future project** keeps a project you intend but have not started, the counterpart of a Future skill.
-
-**A project's page:** name, description, tags, start and target dates, a link, **phases & tasks**, **resources**, **develops skills** (links to the Skill Tree), **notes**, **activity over twelve weeks** (a heatmap of nods), an **income stream** (model, current and target monthly income, milestones), images, and **Additional**.
-
-**Nods.** A nod is the atomic unit of creative work: *"I showed up and did this."* One line, a duration (15 min … a full day), your energy afterwards (drained → energized), and optionally a link or image. Press **+ nod** on a project; time tracked against a project also writes a nod automatically. The Review's *Projects* card counts nods per week; Maslow's creative levels read them.
-
-**A project is also a Planning list.** Every project has a list of the same name in the planner's **Projects** folder; its **phases are the list's sections**, and its tasks are ordinary tasks — with do dates, reminders, estimates, time categories, the matrix and Today. There is one task, shown in both places. Renaming either renames both, and any planner list can be made a project from its settings.
-
-**How Projects connect:** tasks (Planning and Today), nods (from time tracking and the focus timer), skills it develops (the Skill Tree shows *linked projects — am I practising what I claim to build?*), an income stream (Finance), the Morning Theatre (the visions you rehearse are your projects; structural tension is written back here), content pieces that serve it, journal entries linked to it, and images for its vision board.
+- **The work** of every project is in the planner — each project was already a list of the same name in **Today → Tasks**, in the **Projects** folder, with its phases as the list's sections. Old links to a project (and the house's band) open that list.
+- **Every project record is kept** as it was: its dates, phases, nods, notes and links are stored and carried in backups; the Morning Theatre still reads them; an entry, a habit or a week goal that was linked to one keeps the link.
+- What went with the page: its own screen, the Projects entry in the sidebar and the Compass, *＋ Project* in the speed dial, the project pickers on entries, habits and skills, the Review's Projects section, and every link that pointed at the page.
 
 ## 15. Repertoire (and Score Study)
 
@@ -832,7 +821,7 @@ The record of a life, in three views (keys `1`, `2`, `3`).
 
 A journal per kind of entry, listed down the left with counts. **＋ new journal type** adds your own; **manage journals…** shows, hides and reorders them. Every journal page has **On this day** (what you wrote on this date in earlier years, and 🎲 for a random past entry), a search over title and body, a date range, a tag filter and a filter by stage, thread, value, skill or project.
 
-**Writing an entry** (`N`, or the ＋ on a journal). Every entry has a title, a body (markdown), its type's own questions, **Additional**, **People** (the question changes with the type), **Hashtags**, **Occurred at** (a date, or fuzzy — "Summer 2019", "age 15" — so memories can be logged today about decades ago), images, and **Connect this entry** (stages, sub-stages, threads, values with polarity, skills, projects, places, emotions, and a confidence ladder for future-facing entries: hunch → exploring → plan → committed → in motion → lived). How long you actually spent writing it is recorded (time away from the form is not counted). The painting across the top changes with the type.
+**Writing an entry** (`N`, or the ＋ on a journal). Every entry has a title, a body (markdown), its type's own questions, **Additional**, **People** (the question changes with the type), **Hashtags**, **Occurred at** (a date, or fuzzy — "Summer 2019", "age 15" — so memories can be logged today about decades ago), images, and **Connect this entry** (stages, sub-stages, threads, values with polarity, skills, places, emotions, and a confidence ladder for future-facing entries: hunch → exploring → plan → committed → in motion → lived). How long you actually spent writing it is recorded (time away from the form is not counted). The painting across the top changes with the type.
 
 **The kinds of entry, and what each asks:**
 
@@ -961,7 +950,7 @@ The house is designed so that you record something **once**, in the place it nat
 ### 25.1 The five mechanisms
 
 1. **Entries are the hallway.** A journal entry, a quote, a kept reading, a memory, a decision, a Library work, a piece of writing — all are *entries* in one shared record. That is why one entry can sit in your Journals, on a person's page, in a value's evidence, in a stage of the Timeline and in a writing project's research drawer at the same time.
-2. **Links and tags are the doors.** *Connect this entry* (stages, threads, values with polarity, skills, projects, people) and `#hashtags` are what let one room find another's material. A minute spent linking an entry when you write it is what lets your future self — and your future essays — find it.
+2. **Links and tags are the doors.** *Connect this entry* (stages, threads, values with polarity, skills, people) and `#hashtags` are what let one room find another's material. A minute spent linking an entry when you write it is what lets your future self — and your future essays — find it.
 3. **One clock.** Time is tracked once. A sitting on a task becomes minutes on the task, a nod on its project, hours on its skill and a stretch on the day's bar; time with a person becomes time with them.
 4. **Today is where things meet you.** Rooms *keep* things; Today *brings them to you* on the day they matter — do-dates, reminders, due letters and decisions, pinned passages, due cards, milestones, the Tree's tending card.
 5. **The reviews are the reading room.** Every review, from the evening one to the annual one, reads the same records for its period, so looking back never means re-entering anything.
@@ -1002,7 +991,7 @@ The house is designed so that you record something **once**, in the place it nat
 
 **A book that changes you.** Log it in the Library (paste its Goodreads or Open Library link) → keep quotes as you read, each with *why it caught me* (they appear in your Quotes journal and can be pinned to Today) → on finishing, set its resonance and write *what it installed in me* → answer the Knowledge Tree's prompt (which position did it move?) → press ◆ on the line you want to remember for years → if it *changed you*, accept the offer to seed an essay, where its quotes wait in the drawer.
 
-**A project, from spark to income.** A spark in *Ideation* → make it a project; its list appears in the planner's Projects folder → give it phases (they become the list's sections) and tasks with do-dates and estimates → each morning, the day's work is on Today; drag it to the clock → every sitting writes a nod and adds hours to the skills it develops → link its income stream in Finance; watch the gap close → it is one of the visions the Morning Theatre rotates through, and structural tension is written back onto it → the weekly review shows the week against the lists you made.
+**A piece of work, from list to income.** Make it a list in **Today → Tasks** → give it sections and tasks with do-dates and estimates → each morning, the day's work is on Today; drag it to the clock → every sitting adds hours to the skills it trains → link its income stream in Finance and watch the gap close → set it as a week goal in *Plan the week* → the weekly review shows the week against the lists you made.
 
 **Learning a piece of music.** Add the score → mark sections with target tempos → *practise this* each section; the gap between comfortable and target tempo is your progress → pins at the bars that catch you; mark the general lessons as unwritten rules → your piano skill collects the hours → sync a great recording and let the score follow it; play back its performance memory to hear the phrasing → ◈ study: confirm the harmony and form, and *Reflect* on a section in a journal entry, or send the insight *To the Tree* → the weekly review's *week at the score*.
 

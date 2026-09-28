@@ -129,8 +129,9 @@ const step = async (p, n) => p.evaluate(async n => {
     const offered = [...document.querySelectorAll('[data-wptask="0"]')].map(c => c.value);
     return {opts, offered, summary: document.querySelector('.wp-under summary').textContent.trim()};
   });
-  yes('a goal can be put under a list or under a project',
-    goal.opts.some(v => v.startsWith('list:')) && goal.opts.some(v => v.startsWith('project:')),
+  /* a project is a planner list (the Projects page was taken out), so lists are the whole choice */
+  yes('a goal can be put under a list',
+    goal.opts.some(v => v.startsWith('list:')) && !goal.opts.some(v => v.startsWith('project:')),
     JSON.stringify(goal.opts.slice(0, 4)));
   yes('  and then offers that list’s open work',
     goal.offered.includes('w-2') && goal.offered.includes('w-3'), JSON.stringify(goal.offered));

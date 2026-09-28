@@ -80,14 +80,16 @@ const { chromium } = require('playwright');
   }));
   console.log('4. cross-tag editors:', JSON.stringify(tagging));
 
-  // 5. link a project to the existing standalone stream (the reported bug)
+  // 5. the Projects page was taken out: the stream no longer offers projects to link, but a
+  //    link it already had is kept when something else on it is linked
   const linkProj = await page.evaluate(() => {
     const box = [...document.querySelectorAll('[data-finlinks]')].find(b => b.dataset.finlinks.includes('incomeStreams'));
-    const chip = box.querySelector('[data-lk="projects"][data-id="p1"]');
-    chip.click();
-    return { linkedProjects: S.incomeStreams[0].links.projects, chipOn: chip.classList.contains('on') };
+    const before = (S.incomeStreams[0].links.projects || []).slice();
+    const val = box.querySelector('[data-lk="values"]'); if(val) val.click();
+    return { offersProjects: !!box.querySelector('[data-lk="projects"]'), kept: JSON.stringify(S.incomeStreams[0].links.projects) === JSON.stringify(before) };
   });
-  console.log('5. link project to existing standalone stream:', JSON.stringify(linkProj));
+  console.log('5. no project row, existing links kept:', JSON.stringify(linkProj));
+  if(linkProj.offersProjects || !linkProj.kept) console.log('FAIL stream links: ' + JSON.stringify(linkProj));
 
   // 6. editable scenario categories: add, rename, move, delete
   await page.evaluate(() => { location.hash='#/finance'; });

@@ -57,7 +57,7 @@ function tapeItems(from, to){
     out.push({date:d, kind, title:e.title || '', body:e.body || '', entry:e, id:e.id});
   });
   (S.nods || []).forEach(n => { const d = String(n.date||'').slice(0,10); if(!inRange(d)) return;
-    out.push({date:d, kind:'nod', title:byId(S.projects, n.projectId)?.name || 'A nod', body:n.text || '', go:'#/projects/'+n.projectId, id:n.id}); });
+    out.push({date:d, kind:'nod', title:byId(S.projects, n.projectId)?.name || 'A nod', body:n.text || '', go:null, id:n.id}); });
   (S.interactions || []).forEach(i => { const d = String(i.date||'').slice(0,10); if(!inRange(d)) return;
     out.push({date:d, kind:'interaction', title:byId(S.people, i.personId)?.name || 'Someone', body:i.description || '', go:'#/people/'+i.personId, id:i.id}); });
   Object.entries(S.habitLog || {}).forEach(([d, log]) => { if(!inRange(d)) return;

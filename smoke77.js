@@ -24,33 +24,13 @@ const PNG='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEh
     wordsDropped: !(S.projects[0].images||[]).some(x=>!x.src),
     boardsEmptied: S.boards.length })));
 
-  await page.evaluate(() => { location.hash='#/projects'; });
-  await page.waitForTimeout(900);
-  console.log('project card:', await page.evaluate(() => ({
-    plated: document.querySelectorAll('.pcard.plated').length,
-    backdrop: !!document.querySelector('.pcard .rec-plate-img'),
-    bgSet: /data:image/.test(document.querySelector('.rec-plate-img')?.style.backgroundImage||''),
-    contentAbove: getComputedStyle(document.querySelector('.pcard.plated .hd')).zIndex })));
-
-  // uploading from a project panel
-  await page.evaluate(() => document.querySelector('[data-popen]').click());
-  await page.waitForTimeout(700);
-  const up = await page.evaluate(async (PNG) => {
-    const bin=atob(PNG); const arr=new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-    const dt=new DataTransfer(); dt.items.add(new File([arr],'b.png',{type:'image/png'}));
-    const inp=document.querySelector('#panel [data-imgfile]');
-    if(!inp) return {noInput:true};
-    inp.files=dt.files; inp.dispatchEvent(new Event('change'));
-    await new Promise(r=>setTimeout(r,900));
-    return {images:(S.projects[0].images||[]).length, allStrings:(S.projects[0].images||[]).every(x=>typeof x.src==='string')};
-  }, PNG);
-  console.log('panel upload:', JSON.stringify(up));
+  // (the project card's picture and the project panel's upload were checked here;
+  //  the Projects page was taken out — the fold-in above still proves the data move)
 
   // no board UI survives anywhere
   const gone = await page.evaluate(async () => {
     const out={};
-    for(const r of ['projects','values','people','skills','vision','timeline','compass']){
+    for(const r of ['values','people','skills','vision','timeline','compass']){
       location.hash='#/'+r; await new Promise(x=>setTimeout(x,450));
       out[r] = document.querySelectorAll('.board-wrap, .pin, .board-strip').length;
     }

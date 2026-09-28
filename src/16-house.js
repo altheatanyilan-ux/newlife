@@ -421,7 +421,7 @@ function mainRoomHTML(){
       </g>
 
       <!-- the rest of the band: a different kind of making, so a different door -->
-      <g class="zone zone-band" data-room="band" tabindex="0" role="button" aria-label="The band — your projects">
+      <g class="zone zone-band" data-room="band" tabindex="0" role="button" aria-label="The band — the work you are building">
         <ellipse class="hm-bass" cx="790" cy="452" rx="34" ry="52"/>
         <path class="hm-bass-neck" d="M790,400 V318"/>
         <path class="hm-bass-str" d="M782,404 V330 M790,404 V326 M798,404 V330"/>
@@ -868,7 +868,9 @@ const HOUSE_PORTALS = {
   writing:   () => navigate('#/content/shelf'),
   /* The Fazioli opens the room the practice actually lives in. The skills it
      used to open are still one link away, and are not what you sit down to. */
-  band:      () => navigate('#/projects'),
+  /* the Projects page was taken out; what the band is building is the
+     work in the planner's lists, so that is where it opens */
+  band:      () => navigate('#/today/tasks'),
   medicine:  () => navigate('#/values'),
   crystals:  () => openCharmCast(),
   drinks:    () => openDrinkCeremony(),

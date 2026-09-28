@@ -72,7 +72,7 @@ function pieceDetailHTML(e){
           `<option value="${pr.id}" ${pieceProject(e) === pr.id ? 'selected' : ''}>${esc(pr.name)}</option>`).join('')}
       </select>
       ${(() => { const pr = byId(S.projects, pieceProject(e));
-        return pr ? `<a class="pcd-projlink" href="#/projects/${pr.id}">↗ open ${esc(pr.name)}</a>`
+        return pr ? `<span class="pcd-projlink faint">part of ${esc(pr.name)}</span>`
           : '<div class="pk-empty">Not part of anything bigger yet. A piece that serves a project gets finished more often than one that serves nothing.</div>'; })()}
     </div>
 
@@ -151,7 +151,7 @@ const CONTENT_SOURCE_ICON = {journal_entry:'✍', timeline_event:'◷', library_
   library_note:'▤', value_entry:'◈', skill_milestone:'⋔', project_update:'▲', book_vault_quote:'❞'};
 const CONTENT_SOURCE_PAGE = {journal_entry:'#/journals', timeline_event:'#/journals/timeline',
   library_media:'#/commonplace', library_quote:'#/commonplace', library_note:'#/commonplace',
-  value_entry:'#/values', skill_milestone:'#/skills', project_update:'#/projects'};
+  value_entry:'#/values', skill_milestone:'#/skills', project_update:'#/today/tasks'};
 function contentSourceHref(l){ return CONTENT_SOURCE_PAGE[l.sourceType] || '#/content'; }
 
 function bindPieceDetail(p, e){

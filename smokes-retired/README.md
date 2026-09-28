@@ -16,3 +16,11 @@ promised; the rebuilt deck is tested by `smoke240.js` (and its connections by
   own order and graduation, sub-decks.
 
 They are not run by the sweep.
+
+
+## The Projects page
+
+- `smoke108.js` — the Projects page's inventory with its filters, and a
+  Future project. The page was taken out by request (its work lives in the
+  planner's lists, and `#/projects` redirects there); every project record is
+  kept. The removal itself is tested by `smoke273.js`.

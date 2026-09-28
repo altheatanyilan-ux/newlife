@@ -381,8 +381,10 @@ function openPlanListModal(id, {folderId = null} = {}){
     <div class="field"><label>Opens as</label><select class="sel" id="plnView">
       ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || PLAN_VIEW_DEFAULT) === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
     <div class="row between" style="margin-top:8px">
-      ${l && l.projectId ? `<a class="btn sm ghost" href="#/projects/${esc(l.projectId)}">the project’s page →</a>`
-        : l && !l.isDefault ? `<span class="row" style="gap:6px"><button class="btn sm ghost danger" id="plnDel">delete list</button><button class="btn sm ghost" id="plnProj" title="keep its tasks here, and give it a project record: status, dates, phases, nods">make this a project</button></span>` : '<span></span>'}
+      ${/* the project's page and "make this a project" went with the Projects
+            page; a list that carries a project record keeps it, untouched */
+        l && l.projectId ? '<span></span>'
+        : l && !l.isDefault ? `<span class="row" style="gap:6px"><button class="btn sm ghost danger" id="plnDel">delete list</button></span>` : '<span></span>'}
       <button class="btn primary" id="plnSave">${l ? 'Save' : 'Create'}</button></div></div>`, 'narrow');
   let color = l?.color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length];
   m.querySelectorAll('[data-plc]').forEach(b => b.onclick = () => { color = b.dataset.plc;

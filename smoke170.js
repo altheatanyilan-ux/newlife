@@ -63,7 +63,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  and the rest of the list is untouched', await p.evaluate(() =>
     /* the sidebar as it is now: Planning inside Today, Values, People and
        the Skill Tree inside the Identity room */
-    ['#/today','#/projects','#/identity','#/journals']
+    /* (Projects was in this list; its page was taken out) */
+    ['#/today','#/score','#/identity','#/journals']
       .every(h => [...document.querySelectorAll('.nav a')].some(a => a.getAttribute('href') === h))));
   /* anything still pointing at the old address lands where the house went */
   await p.evaluate(() => { location.hash = '#/house/garden'; });

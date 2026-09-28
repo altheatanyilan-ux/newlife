@@ -48,7 +48,8 @@ function xml(bars){
       return {finished: Promise.resolve(), skipTransition(){ skipped = true; }}; };
     let n = 0; const ro = window.renderRoute; window.renderRoute = function(...a){ n++; return ro.apply(this, a); };
     /* (#/values is an old address that redirects now, which is two routes; a room that is one) */
-    location.hash = '#/projects';
+    /* (#/projects was the room here; it redirects now, so Journals stands in) */
+    location.hash = '#/journals';
     setTimeout(() => { window.renderRoute = ro; if(real) document.startViewTransition = real; res({n, off: _vtOff}); }, 1200);
   }));
   yes('a crossfade that answers after the timer does not build the page a second time', R.n === 1, R);

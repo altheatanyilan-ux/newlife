@@ -41,17 +41,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('and the panel is still open, where you left it', !!(await p.$('#panel')));
   await p.evaluate(() => closePanel());
 
-  console.log('\n2. the same, in Projects');
-  await go('#/projects');
-  const pid = await p.evaluate(() => S.projects[0].id);
-  await p.evaluate(i => openProjectPanel(i), pid); await p.waitForTimeout(1000);
-  await retype('#panel .ed[data-path$=".name"]', 'A renamed project');
-  yes('the inventory row updates', await p.evaluate(() =>
-    [...document.querySelectorAll('#pInv .inv-name b')].some(n => n.textContent === 'A renamed project')));
-  yes('  and the card in the grid too', await p.evaluate(() =>
-    [...document.querySelectorAll('#pcards .hd h3')].some(n => n.textContent === 'A renamed project')));
-  yes('  the panel survived', !!(await p.$('#panel')));
-  await p.evaluate(() => closePanel());
+  /* section 2 renamed a project on the Projects page; the page was taken out */
 
   console.log('\n3. the same, in the Library');
   await go('#/commonplace');

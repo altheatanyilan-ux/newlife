@@ -33,7 +33,6 @@ const REVIEW_SECTIONS = [
   ['habits',   'Habits',             '#c9a84c'],
   ['tasks',    'Work and attention', '#a0727e'],
   ['skills',   'Skills',             '#5f8d49'],
-  ['projects', 'Projects',           '#b4462f'],
   ['values',   'Values',             '#8f7bb0'],
   ['people',   'People',             '#4b7d9c'],
   ['record',   'What you wrote',     '#6b5e53'],

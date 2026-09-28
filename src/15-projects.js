@@ -150,35 +150,19 @@ function bindProjectInventory(root){
     p.status = s2.value; saveNow(); sound('click'); rerender(); });
 }
 
+/* THE PROJECTS PAGE IS GONE — taken out by request, with the links to it
+   from the other rooms. Nothing stored is deleted: every project is kept as
+   it was (the backup carries it, the Morning Theatre still reads it, an
+   entry linked to one keeps the link), and a project was already a list in
+   the planner under the same id — so its work, its milestones and its dates
+   are where they have been, in Today's Tasks. An old address to a project
+   goes to that list; the bare address goes to the lists. The history entry
+   is replaced rather than added, so Back is never caught on a redirect. */
 routes.projects = function(root, params){
-  registerPageEntry({pageName:'Projects', addLabel:'New project', defaultEntryType:'project', prefilledFields:{}, hint:'Nods have their own button — they must stay fast.', options:[{label:'New project', run:()=>EntryActions.newProject()}]});
-  migrateProjects(); if(typeof projectListsSync === 'function') projectListsSync();
-  const sort = S._psort || 'activity'; const view = S.settings.projectView || 'cards';
-  const ps = [...S.projects].filter(p => !projectIsFuture(p) || view === 'kanban').sort((a,b) => sort==='name' ? a.name.localeCompare(b.name) : sort==='status' ? Object.keys(PSTATUS).indexOf(a.status)-Object.keys(PSTATUS).indexOf(b.status) : sort==='priority' ? (a.priority||'P3').localeCompare(b.priority||'P3') : daysSince(projectNods(a)[0]?.date) - daysSince(projectNods(b)[0]?.date));
-  const income = S.projects.filter(p=>p.income?.current>0); const total = sum(income.map(p=>p.income.current)); const diversified = income.filter(p=>p.income.current/total > .1).length;
-  const mode = S.settings.projectMode || 'tracking';
-  if(mode === 'ideation'){ renderIdeation(root); return; }
-  root.innerHTML = `<div class="page">
-    <button class="btn primary nod-fab" id="nodFab" title="quick nod">+ nod</button>
-    <div class="mode-switch rv">${[['ideation','◌ Ideation','sparks and open questions'],['tracking','◉ Tracking','the work already under way']].map(([k,l,d])=>`<button class="${mode===k?'on':''}" data-pmode="${k}" title="${d}">${l}</button>`).join('')}</div>
-    <div class="page-bar rv"><div class="view-toggle">${[['cards','▦ Cards'],['kanban','▥ Board'],['timeline','▬ Timeline']].map(([k,l])=>`<button class="${view===k?'on':''}" data-pview="${k}">${l}</button>`).join('')}</div><select class="sel" style="width:auto" id="psort"><option value="activity" ${sort==='activity'?'selected':''}>by last activity</option><option value="priority" ${sort==='priority'?'selected':''}>by priority</option><option value="status" ${sort==='status'?'selected':''}>by status</option><option value="name" ${sort==='name'?'selected':''}>by name</option></select><button class="btn primary" id="addNod" style="margin-left:auto">+ nod</button></div>
-    <div class="card rv" style="margin-bottom:22px"><div class="income-strip"><div><div class="k">monthly income, all streams</div><div class="num">${fmtYen(total)}</div><div class="mono">per month</div></div><div><div class="k">active streams</div><div class="num">${income.length}</div></div><div><div class="k">diversification</div><div class="num">${diversified}</div><div class="mono">contribute &gt;10%</div></div><div><div class="k">open tasks</div><div class="num">${sum(S.projects.filter(p=>!['future','completed','archived','abandoned'].includes(p.status)).map(p=>{ const r = projectTaskRatio(p); return r.total-r.done; }))}</div></div></div></div>
-    ${view==='cards' ? `<div class="grid c3" id="pcards">${ps.map(projectCardHTML).join('')}</div>` : view==='kanban' ? kanbanHTML(ps) : `<div class="card rv"><div class="row between" style="margin-bottom:8px"><span class="sc" style="margin:0">Phases over time</span><span class="mono">bars are phases · lighter fill is tasks done · click a bar to open</span></div>${ganttHTML(ps)}</div>`}
-    ${projectInventoryHTML()}
-  </div>`;
-  $('#psort').onchange = e => { S._psort = e.target.value; rerender(); };
-  $$('[data-pmode]',root).forEach(b => b.onclick = () => { S.settings.projectMode = b.dataset.pmode; saveNow(); rerender(); });
-  $$('[data-pview]',root).forEach(b => b.onclick = () => { S.settings.projectView = b.dataset.pview; saveNow(); rerender(); });
-  { const gt = root.querySelector('.gantt'); const tl = gt?.querySelector('.g-today'); if(gt && tl){ gt.scrollLeft = Math.max(0, +tl.getAttribute('x1') - (gt.clientWidth-170)*0.6); } }
-  $('#addNod').onclick = () => openNodModal(); $('#nodFab').onclick = () => openNodModal();
-  bindProjectInventory(root);
-  $$('[data-popen]',root).forEach(c => c.addEventListener('click', e => { if(e.target.closest('.del-x,.ed,.inv-set')) return; openProjectPanel(c.dataset.popen); }));
-  // kanban drag between columns
-  let kdrag = null;
-  $$('[data-kdrag]',root).forEach(card => { card.addEventListener('dragstart', ev => { if(ev.target.closest('.ed')){ ev.preventDefault(); return; } kdrag = card.dataset.kdrag; card.classList.add('dragging'); ev.dataTransfer.effectAllowed='move'; try { ev.dataTransfer.setData('text/plain', kdrag); } catch(e){} }); card.addEventListener('dragend', () => { card.classList.remove('dragging'); $$('.kcol.over',root).forEach(c=>c.classList.remove('over')); }); });
-  $$('.kcol',root).forEach(col => { col.addEventListener('dragover', ev => { ev.preventDefault(); col.classList.add('over'); }); col.addEventListener('dragleave', () => col.classList.remove('over')); col.addEventListener('drop', ev => { ev.preventDefault(); col.classList.remove('over'); const id = kdrag || ev.dataTransfer.getData('text/plain'); const p = byId(S.projects,id); if(!p) return; const to = col.dataset.kcol; if(p.status === to || (to==='archived' && p.status==='abandoned')) return; p.status = to; saveNow(); sound('success'); rerender(); }); });
-  /* the id is consumed, not kept: a re-render must not reopen the panel */
-  if(params[0]){ const _id = params[0]; consumeHashParam('#/projects'); setTimeout(() => openProjectPanel(_id), 0); }
+  const id = params && params[0];
+  try { if(typeof projectListsSync === 'function') projectListsSync(); } catch(e){}
+  if(id && typeof planList === 'function' && planList(id)) S._planSel = {kind: 'list', id};
+  location.replace('#/today/tasks');
 };
 function createProject(name='', pre={}){ const p = {id:uid(),name:name||(pre.status==='future'?'A project for later':'New project'),description:'',tags:[],status:pre.status||'idea',priority:'P3',startDate:today(),targetDate:'',phases:[],resources:[],linkedSkills:[],linkedVisionEra:null,notes:'',link:'',income:{model:'',current:0,target:0,milestones:[]},createdAt:today()}; S.projects.push(p); saveNow(); rerender(); openProjectPanel(p.id); }
 function deleteProject(p, node, after){

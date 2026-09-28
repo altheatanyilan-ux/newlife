@@ -106,7 +106,7 @@ const MASLOW = [
   {level:3, key:'belonging', name:'Love & Belonging',    short:'BELONGING',  hue:'#d8a53c', ask:'Who do you belong to? Who belongs to you?',             go:'#/people'},
   {level:4, key:'esteem',    name:'Esteem',              short:'ESTEEM',     hue:'#9fae4a', ask:'Do you respect yourself? Does your work feel like it matters?', go:'#/skills'},
   {level:5, key:'mind',      name:'Cognitive',           short:'MIND',       hue:'#4f9e70', ask:'Is your mind alive? Are you learning, exploring, questioning?', go:'#/commonplace'},
-  {level:6, key:'beauty',    name:'Aesthetic',           short:'BEAUTY',     hue:'#4a8fa8', ask:'Is there beauty in your daily life?',                   go:'#/projects'},
+  {level:6, key:'beauty',    name:'Aesthetic',           short:'BEAUTY',     hue:'#4a8fa8', ask:'Is there beauty in your daily life?',                   go:'#/content'},
   {level:7, key:'becoming',  name:'Self-Actualization',  short:'BECOMING',   hue:'#6b6fb5', ask:'Are you becoming who you are capable of becoming?',     go:'#/values'},
   {level:8, key:'beyond',    name:'Self-transcendence',  short:'BEYOND',     hue:'#9a63ab', ask:'What are you part of that is larger than you?',         go:'#/journals'},
 ];

@@ -188,7 +188,7 @@ function streamCardHTML(s){
       <b class="serif" style="font-size:1.05rem">${esc(s.name)}</b>
       <span class="row" style="gap:6px">
         <select class="sel" style="width:auto;padding:2px 6px;font-size:.74rem;--c:${STREAM_STATUS_COLOR[inc.status]};color:${STREAM_STATUS_COLOR[inc.status]};padding-right:22px" data-streamstatus="${path}">${Object.entries(STREAM_STATUS).map(([k,[ic,l]])=>`<option value="${k}" ${inc.status===k?'selected':''}>${ic} ${l}</option>`).join('')}</select>
-        ${s.kind==='project'?`<a class="chip on click" style="--c:var(--terra);text-decoration:none" href="#/projects/${s.project.id}">🎨 project</a>`
+        ${s.kind==='project'?`<span class="chip on" style="--c:var(--terra)" title="an income stream that is also a project">🎨 project</span>`
           : `<!-- A stream said to be standalone at the moment it was created could
                   never afterwards be tied to a project, though that is exactly
                   the order things happen in: the way of earning comes first and
@@ -257,7 +257,7 @@ function streamCardHTML(s){
     </div>
     ${linkedChipsHTML(inc.links) ? `<div class="row" style="gap:4px;flex-wrap:wrap;margin-bottom:6px">${linkedChipsHTML(inc.links)}</div>` : ''}
     <details class="fin-links"><summary class="mono">what this stream is for</summary>
-      <div class="body" data-finlinks="${path}">${linksEditorHTML(inc.links, {legend:false})}</div>
+      <div class="body" data-finlinks="${path}">${linksEditorHTML(inc.links, {legend:false, projects:false})}</div>
     </details>
     <div class="row between" style="margin-top:6px;align-items:center">
       <span class="k mono">milestones</span>
@@ -396,7 +396,7 @@ function scenarioHTML(sc){
     <button class="btn sm ghost" data-catadd="${sc.id}" style="margin-top:8px">＋ category</button>
     ${linkedChipsHTML(sc.links) ? `<div class="row" style="gap:4px;flex-wrap:wrap;margin-top:10px">${linkedChipsHTML(sc.links)}</div>` : ''}
     <details class="fin-links"><summary class="mono">what this life is for</summary>
-      <div class="body" data-finlinks="finance.scenarios.#${sc.id}">${linksEditorHTML(sc.links, {legend:false})}</div>
+      <div class="body" data-finlinks="finance.scenarios.#${sc.id}">${linksEditorHTML(sc.links, {legend:false, projects:false})}</div>
     </details>
   </div>`;
 }
