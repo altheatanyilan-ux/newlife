@@ -124,18 +124,17 @@ const { chromium } = require('playwright');
     const titles = [];
     for(let i=0;i<n;i++){ titles.push(document.querySelector('.modal h2').textContent);
       if(i<n-1){ document.querySelector('#fwNext').click(); await new Promise(r=>setTimeout(r,90)); } }
-    const prompts = [...document.querySelectorAll('.plan-lbl')].map(x=>x.textContent);
-    const f = document.querySelector('[data-plan="protect"]');
-    f.value='the first hour'; f.dispatchEvent(new Event('input',{bubbles:true}));
-    const saved = dayPlan(addDays(today(),1)).protect;
+    /* tomorrow is planned from its own button now, not inside the review */
+    const planInside = !!document.querySelector('.modal .plan-lbl, .modal [data-plan]');
     document.querySelector('.modal .close').click();
-    return {n, titles, prompts, saved, tasks: titles.includes('What actually got done.')};
+    return {n, titles, planInside, tasks: titles.includes('What actually got done.')};
   });
-  console.log('evening flow:', JSON.stringify({steps:flow.n, planPrompts:flow.prompts.length,
-    prompts:flow.prompts, savesAsTyped:flow.saved, surfacesTasks:flow.tasks}));
+  console.log('evening flow:', JSON.stringify({steps:flow.n, titles:flow.titles, planStepInside:flow.planInside, surfacesTasks:flow.tasks}));
+  if(flow.n !== 4 || flow.planInside || !flow.tasks || flow.titles.some(t => /Plan tomorrow|four dimensions/i.test(t))){
+    console.log('FAIL the evening review is the four steps about today'); process.exitCode = 1; }
 
   const ret = await page.evaluate(async () => {
-    flowEvening({startAt:4}); await new Promise(r=>setTimeout(r,250));
+    flowEvening({startAt:3}); await new Promise(r=>setTimeout(r,250));
     const step = document.querySelector('.modal .mono').textContent;
     document.querySelector('[data-cap="reflection"]').click(); await new Promise(r=>setTimeout(r,250));
     const stashed = localStorage.getItem('lifeInstrument_reviewReturn');

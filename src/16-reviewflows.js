@@ -81,14 +81,13 @@ function flowMorning(){
 
 /* ---------- 2. the evening review ---------- */
 function flowEvening(opts = {}){
-  const T = today(); const c = checkin(T); const r = dayReview(T); const TOM = addDays(T, 1);
+  const T = today(); const c = checkin(T); const r = dayReview(T);
   guidedFlow('Evening review', [
     {title:'The rings, before the day closes.', hint:'Anything unfilled? Fill it, or let it stand as a miss — both are honest.',
      body: () => habitRingRow(T), bind: b => bindHabitRings(b)},
-    {title:'Tonight, in four dimensions.', hint:'Where the energy actually ended up.',
-     body: () => `<div class="energy-row">${DIMS.map(x => `<div class="energy-dim" style="--c:${x.c}"><div class="lbl"><span>${x.name}</span></div><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-fwen="${x.id}:${n}" class="${(c.energy?.[x.id]||0)===n?'on':''}">${n}</button>`).join('')}</div></div>`).join('')}</div>`,
-     bind: b => b.querySelectorAll('[data-fwen]').forEach(btn => btn.onclick = () => { const [id,n] = btn.dataset.fwen.split(':'); c.energy = c.energy || {}; c.energy[id] = +n; saveNow();
-       b.querySelectorAll(`[data-fwen^="${id}:"]`).forEach(x => x.classList.toggle('on', x === btn)); })},
+    /* "Tonight, in four dimensions" — the four energy scores — is gone by
+       request. Scores already given on earlier nights are kept; nothing new
+       is asked for here. */
     {title:'And the set-point — where did it land?', hint:`This morning you were ${c.setpoint ? hicksName(c.setpoint).split(' / ')[0] : 'not on the scale yet'}.`,
      body: () => `<div class="energy-faces">${[1,2,3,4,5].map(n=>`<button class="ef ${r.energy===n?'on':''}" data-fwef="${n}" title="${['drained','low','level','good','full'][n-1]}">${n}</button>`).join('')}</div>`,
      bind: b => b.querySelectorAll('[data-fwef]').forEach(btn => btn.onclick = () => { r.energy = +btn.dataset.fwef; saveNow(); b.querySelectorAll('[data-fwef]').forEach(x => x.classList.toggle('on', x === btn)); })},
@@ -96,12 +95,10 @@ function flowEvening(opts = {}){
      body: () => tasksReviewHTML(T, T)},
     {title:'Anything else from today?', hint:'Before the day closes — anything that happened and has not been written down anywhere.',
      body: () => captureStepHTML(T, T), bind: b => bindCaptureStep(b, T, T)},
-    {title:'Plan tomorrow.', hint:'While today is still in the room, and you can still judge it honestly. Everything here saves as you type.',
-     body: () => planStepHTML(TOM), bind: b => bindPlanStep(b, TOM),
-     next: () => { const p = dayPlan(TOM); p.planned = true;
-       const first = (p.intentions || []).filter(Boolean)[0];
-       if(first && typeof checkin === 'function' && !checkin(TOM).intention) checkin(TOM).intention = first;
-       saveNow(); }},
+    /* "Plan tomorrow." is gone from the review by request: tomorrow is
+       planned with its own ◑ Plan tomorrow button on Today (planMyDay),
+       which marks the day planned and carries the first intention over
+       itself. The review ends on what happened today. */
   /* The "One line." step is gone by request. It wrote three things: the
      day's note, the day's one-sentence summary, and a reflection entry. A
      reflection can still be written at any hour from Journals or ⌘N, which

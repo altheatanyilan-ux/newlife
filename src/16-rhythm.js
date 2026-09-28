@@ -801,7 +801,7 @@ function habitRingsRow(days, size){
 }
 /* right-click or hold a ring: the minimum version, a note, or take it back —
    the all-or-nothing版 of a habit tracker is the one people quit */
-function habitPartialMenu(h, d){
+function habitPartialMenu(h, d, after){
   const cur = habitDone(h, d);
   const m = openModal(`<h2>${esc(h.icon||'')} ${esc(h.name)}</h2>
     <p class="muted" style="font-size:.86rem">${esc(fmtDate(d,'med'))}${h.min?` · the minimum is “${esc(h.min)}”`:''}${h.ideal?`, the ideal is “${esc(h.ideal)}”`:''}</p>
@@ -818,12 +818,42 @@ function habitPartialMenu(h, d){
     saveNow(); sound(lev ? 'success' : 'click'); m.remove();
     if(lev) { window._bloomHabit = `${h.id}:${d}`; checkAllHabitsDone(d); }
     rerender();
+    if(after) after();
   });
   m.querySelector('#hNote')?.addEventListener('click', () => { m.remove(); microJournalPrompt(h, d); });
 }
-function bindHabitRings(box){
+/* Rings that the page's redraw does not reach — the ones inside a review,
+   which is a window over the page, not part of it — are brought up to date
+   where they stand: the arc slides to its new length (the ring's own
+   transition), and the streak, the bloom and the all-done glow follow. */
+function habitRingsRefresh(box){
+  if(!box) return;
   $$('[data-hring]', box).forEach(b => {
-    const open = () => { const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id); if(h && d <= today()) habitPartialMenu(h, d); };
+    const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id); if(!h) return;
+    const done = habitDone(h, d); const pct = done ? (done.level === 'min' ? .5 : 1) : 0;
+    const arc = b.querySelectorAll('svg circle')[1];
+    if(arc){ const C = parseFloat(arc.getAttribute('stroke-dasharray')) || 0;
+      arc.setAttribute('stroke-dashoffset', (C * (1 - pct)).toFixed(1)); }
+    const st = habitStreak(h);
+    let tag = b.querySelector('.hring-streak');
+    if(st.cur && !tag){ tag = el('<span class="hring-streak mono"></span>'); b.querySelector('svg').after(tag); }
+    if(tag){ if(st.cur) tag.textContent = st.cur; else tag.remove(); }
+    const rest = b.title.slice(h.name.length).replace(/^ · \d+d streak/, '');
+    b.title = h.name + (st.cur ? ` · ${st.cur}d streak` : '') + rest;
+    b.classList.toggle('bloom', window._bloomHabit === `${h.id}:${d}`);
+    b.classList.toggle('pulse-once', window._pulseHabitId === h.id && d === today());
+  });
+  const row = box.querySelector('.habit-row');
+  if(row){ const d = (box.querySelector('[data-hring]')?.dataset.hring || '').split(':')[1];
+    const due = d ? S.habits.filter(h => !h.archived && !h.negative && habitDue(h, d)) : [];
+    row.classList.toggle('all-done', !!due.length && due.every(h => habitDone(h, d))); }
+}
+function bindHabitRings(box){
+  /* on the page, the redraw paints the rings again; anywhere else (a review
+     window), they are painted where they are */
+  const repaint = () => { if(!box.closest('#main')) habitRingsRefresh(box); };
+  $$('[data-hring]', box).forEach(b => {
+    const open = () => { const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id); if(h && d <= today()) habitPartialMenu(h, d, repaint); };
     b.onclick = () => {
       if(b._held){ b._held = false; return; }
       const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id);
@@ -831,6 +861,7 @@ function bindHabitRings(box){
       const res = habitDayToggle(h, d);
       if(res.justCompleted){ window._bloomHabit = `${id}:${d}`; if(stacked) window._pulseHabitId = stacked.id; checkAllHabitsDone(d); }
       rerender();
+      repaint();
       if(res.justCompleted && h.prompt) microJournalPrompt(h, d);
     };
     b.oncontextmenu = e => { e.preventDefault(); open(); };

@@ -258,7 +258,7 @@ Above both day views:
 - **How is today going?** — one honest sentence, or as many as it takes.
 - **Emotional set-point** — where you are on Abraham Hicks' 22-step emotional guidance scale (1 Fear/Despair … 11 Disappointment … 22 Joy/Freedom/Love).
 
-These feed the Review's set-point chart and the Days archive (energy in the four dimensions is taken in the evening review, §10). A reading is a reading: the words can be edited later, the numbers are kept as you gave them.
+These feed the Review's set-point chart and the Days archive. A reading is a reading: the words can be edited later, the numbers are kept as you gave them.
 
 **Morning Theatre.** A practice of rehearsing the future you are building — drawn from Maltz (*Psycho-Cybernetics*), Hill (*Think and Grow Rich*), Hicks and Fritz (structural tension). It opens with one question: **How are you feeling about your visions right now?** — 🔥 On fire, 🌫 Foggy, 😤 Resistant, 🙏 Grateful, ✨ Inspired — and how long you have: **5, 15 or 30 minutes**. From that it assembles a session of two to four practices, one to a screen, about one of your projects (a rotation makes sure every project gets its mornings, not just the favourite). The practices:
 
@@ -398,7 +398,7 @@ The Review brings together what used to be three rooms: the Compass charts, the 
 | Review | What it walks you through |
 |---|---|
 | **Morning** | Sit quietly; visualise for fifteen to twenty minutes; read your Definite Chief Aim aloud; place yourself on the scale; mark the practice. |
-| **Evening (daily)** | The rings before the day closes; tonight in four dimensions; where the set-point landed; what actually got done; anything else from today; plan tomorrow. |
+| **Evening (daily)** | The rings before the day closes (a ring fills the moment you press it); where the set-point landed; what actually got done; anything else from today. Tomorrow is planned separately, with **◑ Plan tomorrow** on Today. |
 | **Weekly** | What you kept and are keeping; the week in Japanese; the week at the score; where the hours went; **the week, in shape** (the Life Tape, below); the habits; a congruence snapshot; the week against the lists you made; anything else. |
 | **Monthly** | The month at once; the milestones you named; the habits across the month; what the month was made of; energy and mood over thirty days. |
 | **Quarterly** | Ninety days at once; re-rank what matters; re-read one past stage — does it still feel true?; revisit flagged synchronicities; what is going quiet; the five closest people; the money, honestly. |
