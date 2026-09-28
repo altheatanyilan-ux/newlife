@@ -42,6 +42,7 @@ function setPageFocus(on){
   if(typeof closeSpeedDial === 'function') closeSpeedDial();
   if(on){ pfWatch(true); pfFullscreen(true); }
   else { pfWatch(false); pfFullscreen(false); }
+  if(typeof parkOnFocusMode === 'function') parkOnFocusMode(on);
   rerender();
   paintPfExit();
   /* the clock goes onto the desk, or back into its corner */
@@ -94,6 +95,7 @@ function pfWatch(on){
 let _pfAway = null;
 function paintPfExit(){
   let bar = document.getElementById('pfExit');
+  if(typeof paintParkPocket === 'function') paintParkPocket();
   if(!pageFocusOn()){ if(bar) bar.remove(); clearTimeout(_pfAway); return; }
   if(!bar){
     bar = el('<div class="pf-exit" id="pfExit" role="toolbar" aria-label="focus mode"></div>');

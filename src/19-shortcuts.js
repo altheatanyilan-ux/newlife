@@ -29,6 +29,8 @@ const SHORTCUT_GROUPS = [
     ['/  ·  ⌘K', 'Search everything'],
     ['N',      'Make something new'],
     ['Z',      'Focus mode — this page, full screen'],
+    ['P',      'Park a thought, for after (in focus mode, and on Today)'],
+    ['D',      'Note a distraction on the cheat sheet'],
     ['Esc',    'Close what is open · leave focus mode'],
     ['← →',    'Step through the Timeline stages'],
   ]},

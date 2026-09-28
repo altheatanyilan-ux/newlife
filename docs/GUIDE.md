@@ -119,7 +119,7 @@ Some rooms you may remember as separate pages now live *inside* others: **Planni
 | Button | What it does |
 |---|---|
 | **search** (`/` or `⌘K`/`Ctrl+K`) | Searches everything: entries, values, skills, habits, people, pages. |
-| **⛶** (`Z`) | **Focus mode**: this page full screen, with nothing else on the glass. On Today's Execution view and in Tasks, focus mode becomes a *desk*: the stopwatch, today's tasks and the notes for each sitting. `Esc` brings everything back. |
+| **⛶** (`Z`) | **Focus mode**: this page full screen, with nothing else on the glass. On Today's Execution view and in Tasks, focus mode becomes a *desk*: the stopwatch, today's tasks and the notes for each sitting, with the **parked** box and the **distraction cheat sheet** beside them (on any other page they wait in a pocket in the corner; `P` and `D` open them). `Esc` brings everything back. |
 | **?** | The keyboard card for the room you are in. |
 | **🔕 / 🔔** | Interaction sounds on or off (a synthesised singing bowl — clicks, completions, deletions). |
 | **🌊** | Ambient sound: brown/pink/white noise, rain, ocean, fireplace, café, forest, library, a slow generative piano, a music box. |
@@ -220,7 +220,9 @@ Above both day views:
 - Choose **countdown** or **stopwatch** before you start; they answer different questions and the choice locks while the clock runs.
 - **Pausing is a break.** A break asks what it is for; while a sitting runs, a second field asks what you are actually doing. Both are written down *while it happens* — multi-line notes for each sitting and each break.
 - **Finishing the task** (ticking it here, in any list, or in the timer) ends the sitting, records the minutes against the task and sets off a small celebration. Minutes accumulate against the estimate ("13m of 15m").
-- The **ledger** under the clock lists today's sittings: when, how long, on what, what you did, and every break with its note.
+- The **ledger** under the clock lists today's sittings: when, how long, on what, what you did, and every break with its note. Each sitting in it also says how many thoughts were parked during it — not a score, a mirror of how often the mind went elsewhere.
+- **Parked, for after.** Beside the notes on the sitting — on Today, on the focus desk, and in a pocket in the corner when focus mode is showing some other page — one line takes whatever comes up mid-work: type it, press Enter, and the box is ready for the next (the caret never leaves). **P** comes to it from anywhere. A plain line is a **☐ to-do** with a box to tick; start it with **-** for a **✎ note**, **\*** for a **✦ idea**, **?** for something to **look up**, **~** for a **☁ worry** — or press the kind's mark first. The kind lights up as you type its mark. Nothing needs sorting mid-work; afterwards, on each one: tick it off (and back), **→ task** (the Inbox, or while sorting today or tomorrow — a look-up becomes "Look up: …"), **→ journal** (kept as an unfinished thought, so it waits at the foot of Today; ideas are tagged *idea*), **let it go** (for a worry: it is written down, it no longer needs holding), or throw it away. Every move says where it went and can be undone. **Sort them →** goes through everything waiting, where the words and kind can be corrected too. A break, and leaving focus mode, each mention once what is parked, with the way to sort it. And when the clock is idle, **◷ ten minutes to clear the to-dos** starts a ten-minute countdown for the small ones.
+- **Distraction cheat sheet.** Beside it: what pulled you away from the work — the phone, the tab, hunger at eleven — and what you will do about it next time, written as one line with an arrow (*phone buzzing → in the other room*). **D** comes to it. Noting the same thing again counts it up instead of adding it twice, so the ones that keep winning rise to the top; what to do about each can be written or changed in place. **At the start of every sitting the sheet flashes up** — *Clear the decks*, most frequent first, a box to tick for each as you clear it — and goes on its own after a few seconds (or when everything is ticked, or on *All clear — begin*); the clock is already running, so it is a reminder, not a gate. A paused sitting resumed does not bring it back. *Stop showing this* (or the checkbox under the sheet) turns the flash off and on. When something has stopped happening, **handled** takes it off the sheet — it is kept, with its count, and comes back if you note it again.
 
 **Today's tasks.** Everything due today, done-on today, or carried over.
 
@@ -1047,6 +1049,8 @@ Nothing fires while you are typing into a field.
 | `/` or `⌘K` / `Ctrl+K` | search everything |
 | `N` | make something new (the ＋ speed dial) |
 | `Z` | focus mode — this page full screen |
+| `P` | park a thought, for after (focus mode, and Today) |
+| `D` | note a distraction on the cheat sheet |
 | `Esc` | close what is open; leave focus mode |
 | `E` | on a skill or a Library work: switch Living / Workshop view |
 | `Alt+K` | quick capture to the Knowledge Tree |

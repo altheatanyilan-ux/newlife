@@ -336,7 +336,9 @@ function focusSectionHTML(){
         : `<b class="tf-clock">${fmtClock(face)}</b> ${s.onBreak ? 'on a break' : s.running ? 'running' : 'held'}${
             todayMins ? ` · ${fmtHM(todayMins)} today` : ''}`}</span>
     </div>
-    <div class="card tf-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
+    <!-- a card you work in — notes, parked thoughts, the cheat sheet — holds
+         still under the pointer (see the tilts in 05-micro.js) -->
+    <div class="card no-tilt tf-card${s.running ? ' running' : ''}${s.onBreak ? ' onbreak' : ''}">
 
       <!-- the subject: dragged in from any list, or cleared out again -->
       <div class="tf-drop" data-focusdrop>
@@ -391,15 +393,29 @@ function focusSectionHTML(){
         <div class="faint" style="font-size:.72rem">Since ${clockOf(s.breakSince)}. It is not counted as work.</div>
       </div>` : ''}
 
+      ${focusAsidesHTML()}
       ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
     </div>
   </section>`;
+}
+/* What comes up while you work has two places to go, both beside the notes
+   on the sitting: the thoughts, parked for after (09-parked.js), and what
+   pulled you away, on the cheat sheet for next time (09-distractions.js).
+   Unused and with nothing running, they wait as two small doors on one line. */
+function focusAsidesHTML(){
+  const pk = typeof parkedBlockHTML === 'function' ? parkedBlockHTML() : '';
+  const dx = typeof distractionBlockHTML === 'function' ? distractionBlockHTML() : '';
+  if(!pk && !dx) return '';
+  const shut = /pk-shut/.test(pk) && /dx-shut/.test(dx);
+  return `<div class="tf-asides${shut ? ' shut' : ''}">${pk}${dx}</div>`;
 }
 
 function bindFocusSection(root, redraw){
   const go = redraw || rerender;
   const box = (root || document).querySelector('#t-focus');
   if(!box) return;
+  if(typeof bindParked === 'function') bindParked(box);
+  if(typeof bindDistractions === 'function') bindDistractions(box);
 
   const clr = box.querySelector('#fpClear');
   if(clr) clr.onclick = () => { FocusTimer.setTask(null); go(); };
@@ -603,6 +619,7 @@ function focusSessionHTML(s, {withDate = false} = {}){
       ${s.mode === 'stopwatch' ? '<span class="mono faint">counted up</span>' : ''}
       ${s.completed === false ? '<span class="mono faint">ended early</span>' : ''}
       ${bm ? `<span class="mono fl-br">${brs.length} break${brs.length === 1 ? '' : 's'} · ${esc(fmtEst(bm))}</span>` : ''}
+      ${typeof parkedDuring === 'function' && parkedDuring(s) ? `<span class="mono faint fl-pk" title="thoughts parked during this sitting">✎ ${parkedDuring(s)} parked</span>` : ''}
     </div>
     ${name ? `<div class="fl-task">${esc(name)}${sub ? ' <span class="mono faint">a step of ' + esc(t.task.text || '') + '</span>' : ''}</div>` : ''}
     ${s.note ? `<div class="fl-did">${esc(s.note)}</div>`

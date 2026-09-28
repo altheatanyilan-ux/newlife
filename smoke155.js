@@ -69,7 +69,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       await p.evaluate(() => !!document.querySelector('.mfx-lit')));
   /* a card, aimed at rather than hoped for: the middle of the page is as
      likely to be the gap between two of them */
-  const card = await p.$('#main .card');
+  /* one that is meant to lean: a card you work in (.no-tilt) holds still */
+  const card = await p.$('#main .card:not(.no-tilt)');
   const cb = card && await into(card);
   if(cb){ await p.mouse.move(cb.x + cb.width / 2, cb.y + Math.min(40, cb.height / 2));
     await p.waitForTimeout(320); }

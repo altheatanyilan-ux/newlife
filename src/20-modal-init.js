@@ -264,6 +264,9 @@ document.addEventListener('keydown', e => {
   if(e.key==='n' || e.key==='N'){ e.preventDefault(); toggleSpeedDialWithFilter(); }
   else if(e.key==='/'){ e.preventDefault(); openSearch(); }
   else if((e.key==='z' || e.key==='Z') && typeof setPageFocus === 'function'){ e.preventDefault(); setPageFocus(!pageFocusOn()); }
+  /* P parks a thought, D notes a distraction — wherever their boxes are showing */
+  else if((e.key==='p' || e.key==='P') && typeof parkFocusInput === 'function' && parkFocusInput()) e.preventDefault();
+  else if((e.key==='d' || e.key==='D') && typeof dxFocusInput === 'function' && dxFocusInput()) e.preventDefault();
   else if(e.key==='ArrowLeft' || e.key==='ArrowRight'){ if(typeof stepTimeline === 'function' && stepTimeline(e.key==='ArrowRight' ? 1 : -1)) e.preventDefault(); }
 });
 /* ============================================================
