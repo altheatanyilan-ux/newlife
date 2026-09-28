@@ -57,8 +57,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   });
   await p.evaluate(l => { S._planSel = {kind:'list', id:l}; location.hash = '#/planning'; rerender(); }, lid);
   await p.waitForTimeout(1600);
-  const boxes = await p.$$eval('.pl-mspin', ns => ns.map(n => { const r = n.getBoundingClientRect();
-    return {name: n.querySelector('.pl-mslabel').textContent.trim(),
+  const boxes = await p.$$eval('#todayRoom .pl-mspin', ns => ns.map(n => { const r = n.getBoundingClientRect();
+    return {name: n.querySelector('#todayRoom .pl-mslabel').textContent.trim(),
       x: r.left, y: r.top, w: r.width, h: r.height}; }));
   is('all six are drawn', boxes.length, 6);
   let clash = [];
@@ -71,18 +71,18 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('and none of them sits on another', clash.length, 0);
   if(clash.length) console.log('      ' + clash.join(', '));
   yes('  the cluster fans both above and below the line', await p.evaluate(() =>
-    document.querySelectorAll('.pl-mspin.up').length > 0 &&
-    document.querySelectorAll('.pl-mspin:not(.up)').length > 0));
+    document.querySelectorAll('#todayRoom .pl-mspin.up').length > 0 &&
+    document.querySelectorAll('#todayRoom .pl-mspin:not(.up)').length > 0));
   yes('  every one still says how far away it is', await p.evaluate(() =>
-    document.querySelectorAll('.pl-msaway').length === 6));
+    document.querySelectorAll('#todayRoom .pl-msaway').length === 6));
   /* the strip is only as tall as it needs to be */
-  const tall = await p.evaluate(() => document.querySelector('.pl-msline').getBoundingClientRect().height);
+  const tall = await p.evaluate(() => document.querySelector('#todayRoom .pl-msline').getBoundingClientRect().height);
   yes('  and the strip is sized to what it holds', tall > 100 && tall < 340, `${Math.round(tall)}px`);
   const before = tall;
   await p.evaluate(l => { const x = planList(l); x.milestones = x.milestones.slice(0, 2);
     x.milestones[1].date = addDays(today(), 40); saveNow(); rerender(); }, lid);
   await p.waitForTimeout(1200);
-  const short = await p.evaluate(() => document.querySelector('.pl-msline').getBoundingClientRect().height);
+  const short = await p.evaluate(() => document.querySelector('#todayRoom .pl-msline').getBoundingClientRect().height);
   yes('  two well-spaced dates need less room than six crowded ones', short < before, `${Math.round(short)} vs ${Math.round(before)}`);
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));

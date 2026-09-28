@@ -101,9 +101,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.waitForTimeout(900);
   const top = await p.evaluate(() => { const pg = document.querySelector('.page.today-page');
     const first = pg && [...pg.children].find(n => !n.matches('.ctx-add'));
-    return {first: first && first.className, items: [...document.querySelectorAll('.today-ms-item')].map(n => n.textContent.replace(/\s+/g, ' ').trim())}; });
+    return {first: first && first.className, items: [...document.querySelectorAll('.today-ms .pl-mspin')].map(n => n.textContent.replace(/\s+/g, ' ').trim())}; });
   yes('the first thing on Today is the milestones strip', /today-ms/.test(top.first || ''), top.first);
-  yes('  with the one due in three days', top.items.some(t => /Proofs to the printer/.test(t) && /in 3d/.test(t)), top.items);
+  yes('  with the one due in three days', top.items.some(t => /Proofs to the printer/.test(t) && /in 3 days/.test(t)), top.items);
   yes('  and not the one a month away', !top.items.some(t => /launch party/.test(t)), top.items);
   for(const v2 of ['tasks', 'review']){
     await p.evaluate(v => { S.settings.todayView = v; location.hash = '#/today/' + v; }, v2); await p.waitForTimeout(900);
@@ -111,7 +111,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
       const first = pg && [...pg.children].find(n => !n.matches('.ctx-add')); return !!first && first.classList.contains('today-ms'); }));
   }
   await p.evaluate(() => { S.settings.todayView = 'do'; location.hash = '#/today'; }); await p.waitForTimeout(800);
-  await p.click(`[data-todayms="${ms.near}"]`); await p.waitForTimeout(900);
+  await p.click(`.today-ms [data-plmsfilter="${ms.near}"] .pl-mslabel`); await p.waitForTimeout(900);
   const went = await p.evaluate(() => ({hash: location.hash, filter: (S._planFilter || {}).milestone}));
   /* the planner lives in Today's Tasks view now; #/planning lands there */
   yes('pressing it opens the planner, narrowed to that milestone', /#\/(planning|today\/tasks)/.test(went.hash) && went.filter === ms.near, went);

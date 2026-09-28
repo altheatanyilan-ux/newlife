@@ -236,20 +236,7 @@ function planMilestoneStripHTML(sel){
   /* A dated selection draws the period it names, not just the spread of what
      happens to fall in it: seven days should look like seven days even when
      both dates in them are on the Thursday. */
-  const {from, to} = dated ? planDatedSpan(sel.id, items) : planMilestoneSpan(items);
-  const total = Math.max(1, daysBetween(from, to));
-  const at = d => clamp(daysBetween(from, d) / total * 100, 0, 100);
-  const T = today();
-  /* one tick a month if the run is long, one a week if it is short */
-  const weeks = total / 7;
-  const step = weeks <= 8 ? 7 : weeks <= 30 ? 14 : 30;
-  const ticks = [];
-  for(let d = from; d <= to; d = addDays(d, step)) ticks.push(d);
-  /* the strip is only as tall as the tiers it actually uses — a list with
-     three well-spaced dates should not reserve room for eighteen */
-  const laid = planMilestoneLanes(items, at);
-  const upT = Math.max(0, ...laid.filter(x => x.lane % 2 === 1).map(x => Math.floor(x.lane / 2)));
-  const downT = Math.max(0, ...laid.filter(x => x.lane % 2 === 0).map(x => Math.floor(x.lane / 2)));
+  const span = dated ? planDatedSpan(sel.id, items) : planMilestoneSpan(items);
   return `<div class="pl-ms">
     <div class="row between" style="align-items:baseline">
       <span class="k mono">Milestones</span>
@@ -258,18 +245,48 @@ function planMilestoneStripHTML(sel){
         : `${items.filter(x => !x.m.done).length} ahead · ${items.length} in all`}</span>
       <span class="row" style="gap:6px">${manage}${add}</span>
     </div>
-    <div class="pl-msline" role="list" style="--up:${upT};--down:${downT}">
+    ${planMilestoneLineHTML(items, span)}
+  </div>`;
+}
+/* The line itself — the scale, today on it, and a pin for each date — drawn
+   the same wherever it is drawn: above the planner, and at the top of Today.
+   Each pin filters to its work (data-plmsfilter) and carries the pencil into
+   the milestone (data-plms); the page it sits on binds the two. An item with
+   a go address instead (a skill's level, which is not a planner date) is a
+   plain link to where it lives. */
+function planMilestoneLineHTML(items, {from, to}, opts = {}){
+  const total = Math.max(1, daysBetween(from, to));
+  const at = d => clamp(daysBetween(from, d) / total * 100, 0, 100);
+  const T = today();
+  /* one tick a month if the run is long, one a week if it is short (or what
+     the caller asks for: Today's week is ticked every other day) */
+  const weeks = total / 7;
+  const step = opts.step || (weeks <= 8 ? 7 : weeks <= 30 ? 14 : 30);
+  const ticks = [];
+  for(let d = from; d <= to; d = addDays(d, step)) ticks.push(d);
+  /* the strip is only as tall as the tiers it actually uses — a list with
+     three well-spaced dates should not reserve room for eighteen */
+  const laid = planMilestoneLanes(items, at);
+  const upT = Math.max(0, ...laid.filter(x => x.lane % 2 === 1).map(x => Math.floor(x.lane / 2)));
+  const downT = Math.max(0, ...laid.filter(x => x.lane % 2 === 0).map(x => Math.floor(x.lane / 2)));
+  return `<div class="pl-msline" role="list" style="--up:${upT};--down:${downT}">
       <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
       <div class="pl-msrail"></div>
       <div class="pl-msnow" style="left:${at(T)}%"><span class="mono">today</span></div>
-      ${laid.map(({m, list, left, lane}) => { const late = !m.done && m.date && m.date < T;
+      ${laid.map(({m, list, left, lane, go}) => { const late = !m.done && m.date && m.date < T;
         /* even lanes hang below the rail, odd ones stand above it */
         const up = lane % 2 === 1, tier = Math.floor(lane / 2);
+        if(go) return `<button class="pl-mspin pl-msgo${late ? ' late' : ''}${up ? ' up' : ''}" data-msgo="${esc(go)}"
+          style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
+          title="${esc(m.name)} · ${esc(fmtDate(m.date, 'med'))} · ${esc(planWhenAway(m.date))}">
+          <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
+          ${m.tag ? `<span class="pl-mscount mono">${esc(m.tag)}</span>` : ''}
+          <span class="pl-msaway mono">${esc(planWhenAway(m.date))}</span></button>`;
         /* Pressing a date narrows the list to the work that is for it — the
            question a milestone asks is "what is left before this", and the
            answer is a filter, not a dialog. Pressing it again lets go. The
            pencil is the way into the milestone itself. */
-        const on = S._planFilter?.milestone === m.id;
+        const on = opts.lit !== false && S._planFilter?.milestone === m.id;
         const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
         return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}${on ? ' on' : ''}"
           data-plmsfilter="${m.id}" aria-pressed="${on}"
@@ -287,8 +304,7 @@ function planMilestoneStripHTML(sel){
             : `<span class="pl-mscount mono clear">✓ all ${prog.total} done</span>`) : ''}
           ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}
           <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`; }).join('')}
-    </div>
-  </div>`;
+    </div>`;
 }
 function bindPlanMilestones(root, sel){
   const mgb = root.querySelector('#plMsManage');

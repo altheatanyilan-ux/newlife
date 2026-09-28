@@ -2596,20 +2596,13 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .mc-themes{text-align:center;font-size:.68rem}
 .mc-more{margin-top:10px}
 .mc-more summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
+/* Today's milestones are the Tasks view's line of time (.pl-ms), at the top of
+   the page; only the spacing and the count of late dates are its own */
 .today-ms{margin:0 0 14px}
-.today-ms .sc{margin:0 0 6px;display:block}
-.today-ms-row{display:flex;flex-wrap:wrap;gap:6px}
-.today-ms-item{display:inline-flex;align-items:baseline;gap:6px;max-width:100%;padding:6px 11px;cursor:pointer;
-  border:1px solid var(--line);border-left:3px solid var(--c,var(--page-accent));border-radius:9px;
-  background:var(--surface);color:var(--text);font-size:.84rem;text-align:left;
-  transition:border-color .15s var(--ease),background .15s var(--ease)}
-.today-ms-item:hover{background:color-mix(in srgb,var(--c,var(--page-accent)) 8%,var(--surface))}
-.today-ms-dot{color:var(--c,var(--page-accent));font-size:.72rem}
-.today-ms-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:26ch}
-.today-ms-when{font-size:.68rem;color:var(--muted)}
-.today-ms-item.near .today-ms-when{color:var(--text)}
-.today-ms-item.late .today-ms-when{color:#b0544a}
-.today-ms-where{font-size:.72rem}
+.today-ms .pl-msline{margin-left:28px;margin-right:28px}
+.today-ms-late{color:var(--terra)}
+/* on a phone the page's own controls float over its top edge; the line starts below them */
+@media (max-width:560px){ .today-ms{margin-top:40px} .today-ms .pl-msline{margin-left:18px;margin-right:18px} }
 .wk-periods{margin:7px 0 2px}
 .wk-period{display:flex;flex-direction:column;gap:2px;padding:6px 9px;border-left:3px solid var(--page-accent);
   border-radius:4px;background:color-mix(in srgb,var(--page-accent) 7%,transparent);font-size:.86rem}

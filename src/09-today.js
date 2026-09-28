@@ -119,35 +119,64 @@ function bindTodaySwitch(root){
    coming week (and any already missed) — the planner's milestones with how
    much of their own work is left, and a skill's level due by then. Pressing
    one goes to it. Nothing is shown when nothing is due. */
-function todayMilestonesHTML(){
-  const plan = typeof planMilestonesAhead === 'function' ? planMilestonesAhead({within: 7, limit: 12}) : [];
+/* The week's dates, drawn as the same line of time the Tasks view draws above
+   a list: the scale, today on it, a pin for each date with what is still left
+   under it. A date already gone by with work still under it sits at the left,
+   marked late. Pressing a pin does what pressing it in Tasks does — the list
+   it belongs to opens, narrowed to its work — and the pencil opens the
+   milestone itself. A skill's level due this week is on the line too, and
+   goes to the skill. */
+function todayMilestonesItems(){
+  const T = today();
+  const plan = typeof planMilestonesAhead === 'function' ? planMilestonesAhead({within: 7, limit: 30}) : [];
   const skill = typeof milestonesDueSoon === 'function' ? milestonesDueSoon(7) : [];
-  if(!plan.length && !skill.length) return '';
-  const when = d => d < 0 ? `${-d}d overdue` : d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d}d`;
-  const rows = [
-    ...plan.map(({m, list}) => { const d = daysBetween(today(), m.date);
-      const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total: 0, done: 0};
-      return {d, html: `<button class="today-ms-item${d < 0 ? ' late' : d <= 1 ? ' near' : ''}" data-todayms="${esc(m.id)}" style="--c:${esc(list.color || 'var(--page-accent)')}">
-        <span class="today-ms-dot" aria-hidden="true">\u25c6</span><span class="today-ms-name">${esc(m.name)}</span>
-        <span class="mono today-ms-when">${when(d)}${prog.total ? ` \u00b7 ${prog.total - prog.done} left` : ''}</span>
-        <span class="faint today-ms-where">${esc(list.name)}</span></button>`}; }),
-    ...skill.map(({skill: sk, m, days}) => ({d: days, html: `<button class="today-ms-item${days < 0 ? ' late' : days <= 1 ? ' near' : ''}" data-todaymsgo="#/skills/${esc(sk.id)}">
-        <span class="today-ms-dot" aria-hidden="true">\u25b2</span><span class="today-ms-name">${esc(sk.name)} \u2192 ${esc(typeof skillLevelLabel === 'function' ? skillLevelLabel(sk, m.levelTarget) : 'L' + m.levelTarget)}</span>
-        <span class="mono today-ms-when">${when(days)}</span><span class="faint today-ms-where">skill</span></button>`})),
-  ].sort((a, b) => a.d - b.d);
-  return `<section class="today-ms rv" aria-label="milestones in the next seven days">
-    <span class="sc">Milestones \u00b7 the next seven days</span>
-    <div class="today-ms-row">${rows.map(r => r.html).join('')}</div></section>`;
+  return [...plan,
+    ...skill.map(({skill: sk, m}) => ({
+      m: {id: 'sk-' + sk.id + '-' + m.levelTarget, date: (m.by || T).slice(0, 10), tag: 'skill',
+        name: `${sk.name} → ${typeof skillLevelLabel === 'function' ? skillLevelLabel(sk, m.levelTarget) : 'L' + m.levelTarget}`},
+      list: {color: 'var(--ment)'}, go: '#/skills/' + sk.id}))]
+    .sort((x, y) => (x.m.date || '').localeCompare(y.m.date || ''));
+}
+function todayMilestonesHTML(){
+  if(typeof planMilestoneLineHTML !== 'function') return '';
+  const items = todayMilestonesItems();
+  if(!items.length) return '';
+  const T = today();
+  /* the week, with a day of air either side; reaching back for a late date,
+     though never more than a fortnight (anything older waits at the edge) */
+  const first = items[0].m.date || T;
+  const lo = first < T ? (daysBetween(first, T) > 14 ? addDays(T, -14) : first) : T;
+  const late = items.filter(x => x.m.date && x.m.date < T).length;
+  return `<section class="today-ms pl-ms rv" aria-label="milestones in the next seven days">
+    <div class="row between" style="align-items:baseline;gap:8px;flex-wrap:wrap">
+      <span class="k mono">Milestones · the next seven days</span>
+      <span class="mono faint">${items.length - late} ahead${late ? ` · <span class="today-ms-late">${late} gone by</span>` : ''}</span>
+    </div>
+    ${planMilestoneLineHTML(items, {from: addDays(lo, -1), to: addDays(T, 8)}, {step: 2, lit: false})}</section>`;
+}
+/* the same two acts as the pin in Tasks: choosing the list it belongs to (which
+   is what clears any other filter there) and then pressing the date */
+function openMilestoneInTasks(id){
+  const hit = typeof planFindMilestone === 'function' ? planFindMilestone(id) : null;
+  if(hit){
+    if(typeof planSetSel === 'function') planSetSel('list', hit.list.id);
+    else S._planSel = {kind: 'list', id: hit.list.id};
+  }
+  S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
+  if(typeof sound === 'function') sound('click');
+  if(location.hash === '#/today/tasks') rerender(); else navigate('#/today/tasks');
 }
 function bindTodayMilestones(root){
-  root.querySelectorAll('[data-todayms]').forEach(b => b.onclick = () => {
-    const id = b.dataset.todayms;
-    const hit = typeof planFindMilestone === 'function' ? planFindMilestone(id) : null;
-    /* land on the list the date belongs to, already narrowed to its work */
-    if(hit) S._planSel = {kind: 'list', id: hit.list.id};
-    S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
-    navigate('#/planning'); });
-  root.querySelectorAll('[data-todaymsgo]').forEach(b => b.onclick = () => navigate(b.dataset.todaymsgo));
+  const box = root.querySelector('.today-ms'); if(!box) return;
+  box.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
+    if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
+    openMilestoneInTasks(b.dataset.plmsfilter); });
+  box.querySelectorAll('[data-plms]').forEach(b => {
+    const go = ev => { ev.stopPropagation(); if(typeof openPlanMilestone === 'function') openPlanMilestone(b.dataset.plms); };
+    b.onclick = go;
+    b.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') go(ev); };
+  });
+  box.querySelectorAll('[data-msgo]').forEach(b => b.onclick = () => navigate(b.dataset.msgo));
 }
 /* Tasks, Habits, Review and Time tracking: the room itself, under a short head
    — the date, anything to be reminded of, and the switch back to the day. */

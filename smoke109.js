@@ -30,8 +30,8 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   await draw();
 
   console.log('\n1. an empty list says what a milestone is for');
-  yes('the strip is there even with nothing on it', !!(await p.$('.pl-ms')));
-  yes('  and explains itself', /shipping date|deposit|hearing/.test(await p.textContent('.pl-ms')));
+  yes('the strip is there even with nothing on it', !!(await p.$('#todayRoom .pl-ms')));
+  yes('  and explains itself', /shipping date|deposit|hearing/.test(await p.textContent('#todayRoom .pl-ms')));
   yes('  with a way to add one', !!(await p.$('#plMsAdd')));
 
   console.log('\n2. adding one');
@@ -71,9 +71,9 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
     await p.evaluate(x => { S._planView = x; rerender(); }, v);
     await p.waitForTimeout(1000);
     const seen = await p.evaluate(() => {
-      const strip = document.querySelector('.pl-ms');
+      const strip = document.querySelector('#todayRoom .pl-ms');
       const body = document.querySelector('#plBody');
-      return {strip: !!strip, pins: document.querySelectorAll('.pl-ms [data-plms]').length,
+      return {strip: !!strip, pins: document.querySelectorAll('#todayRoom .pl-ms [data-plms]').length,
         aboveBody: !!(strip && body && (strip.compareDocumentPosition(body) & Node.DOCUMENT_POSITION_FOLLOWING))};
     });
     yes(`${v}: the strip is there`, seen.strip);
@@ -85,11 +85,11 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   await p.evaluate(() => { S._planView = 'eisenhower'; rerender(); });
   await p.waitForTimeout(1100);
   const geom = await p.evaluate(() => {
-    const line = document.querySelector('.pl-msline').getBoundingClientRect();
+    const line = document.querySelector('#todayRoom .pl-msline').getBoundingClientRect();
     const at = el => { const r = el.getBoundingClientRect();
       return (r.x + r.width / 2 - line.x) / line.width * 100; };
-    const pins = [...document.querySelectorAll('.pl-mspin')].map(el => ({name: el.querySelector('.pl-mslabel').textContent, at: at(el)}));
-    return {pins, now: at(document.querySelector('.pl-msnow')), width: line.width};
+    const pins = [...document.querySelectorAll('#todayRoom .pl-mspin')].map(el => ({name: el.querySelector('#todayRoom .pl-mslabel').textContent, at: at(el)}));
+    return {pins, now: at(document.querySelector('#todayRoom .pl-msnow')), width: line.width};
   });
   is('the pins read in date order', geom.pins.map(x => x.name).join(','),
      'First draft,Deposit due,Hearing,Filing deadline');
@@ -103,13 +103,13 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   yes('the whole thing is wide enough to read', geom.width > 500, String(geom.width));
 
   console.log('\n5. met, and overdue, look different');
-  const state = await p.evaluate(() => [...document.querySelectorAll('.pl-mspin')].map(el =>
-    ({name: el.querySelector('.pl-mslabel').textContent, cls: el.className})));
+  const state = await p.evaluate(() => [...document.querySelectorAll('#todayRoom .pl-mspin')].map(el =>
+    ({name: el.querySelector('#todayRoom .pl-mslabel').textContent, cls: el.className})));
   yes('the one that was met is marked done', /done/.test(state.find(s => s.name === 'First draft').cls));
   yes('the one past its date is marked late', /late/.test(state.find(s => s.name === 'Deposit due').cls));
   yes('  and one still ahead is neither',
       !/done|late/.test(state.find(s => s.name === 'Hearing').cls), state.find(s => s.name === 'Hearing').cls);
-  yes('the count says how many are still ahead', /3 ahead/.test(await p.textContent('.pl-ms')));
+  yes('the count says how many are still ahead', /3 ahead/.test(await p.textContent('#todayRoom .pl-ms')));
 
   /* Section 6 was here: the Timeline view drew the same milestones on its own
      scale, in a lane above the Gantt bars. The Timeline has since been retired
@@ -121,7 +121,7 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   await p.waitForTimeout(1100);
   /* pressing the pin itself filters the list to that milestone; the pencil on
      it is the door into the form, and it is its own door on purpose */
-  await p.evaluate(() => document.querySelector('.pl-mspin [data-plms]')?.click());
+  await p.evaluate(() => document.querySelector('#todayRoom .pl-mspin [data-plms]')?.click());
   await p.waitForTimeout(800);
   yes('the pencil on the pin opens the form', !!(await p.$('#msName')));
   /* the first pin is "First draft", which was already met, so the toggle
@@ -139,10 +139,10 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   console.log('\n8. a dated view is a window, and the view that is not stays bare');
   await p.evaluate(() => { planSetSel('smart', 'today'); });
   await p.waitForTimeout(1300);
-  yes('Today has a strip, of whatever falls in it', !!(await p.$('.pl-ms')));
+  yes('Today has a strip, of whatever falls in it', !!(await p.$('#todayRoom .pl-ms')));
   await p.evaluate(() => { planSetSel('smart', 'done'); });
   await p.waitForTimeout(1300);
-  yes('  nothing above Done', !(await p.$('.pl-ms')));
+  yes('  nothing above Done', !(await p.$('#todayRoom .pl-ms')));
 
   console.log('\n9. a folder shows the dates of every list inside it');
   const folder = await p.evaluate(() => {
@@ -157,9 +157,9 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   if(!folder) no('a folder with two lists exists', 'no folder to test with');
   else {
     is('both lists’ dates are on the one strip',
-       await p.evaluate(() => document.querySelectorAll('.pl-ms [data-plms]').length), 2);
+       await p.evaluate(() => document.querySelectorAll('#todayRoom .pl-ms [data-plms]').length), 2);
     yes('  in date order', await p.evaluate(() =>
-      [...document.querySelectorAll('.pl-mslabel')].map(n => n.textContent).join(',') === 'A,B'));
+      [...document.querySelectorAll('#todayRoom .pl-mslabel')].map(n => n.textContent).join(',') === 'A,B'));
   }
 
   console.log('\n' + (errs.length ? 'console:\n  ' + errs.join('\n  ') : 'console: clean'));

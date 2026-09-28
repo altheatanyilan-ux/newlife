@@ -89,9 +89,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await p.evaluate(i => { planSetSel('smart', i); rerender(); }, id);
     await p.waitForTimeout(900);
     const seen = await p.evaluate(() => {
-      const line = document.querySelector('.pl-msline');
-      return {strip: !!document.querySelector('.pl-ms'), pins: line ? line.querySelectorAll('.pl-mspin').length : -1,
-        empty: !!document.querySelector('.pl-ms.empty-strip')};
+      const line = document.querySelector('#todayRoom .pl-msline');
+      return {strip: !!document.querySelector('#todayRoom .pl-ms'), pins: line ? line.querySelectorAll('#todayRoom .pl-mspin').length : -1,
+        empty: !!document.querySelector('#todayRoom .pl-ms.empty-strip')};
     });
     yes(`${id}: the strip is there`, seen.strip && !seen.empty, JSON.stringify(seen));
     is(`  with ${want} milestone${want===1?'':'s'} on it`, seen.pins, want);
@@ -101,7 +101,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.evaluate(() => { const l = planLists()[0]; planSetSel('list', l.id); rerender(); });
   await p.waitForTimeout(900);
   is('all five of the list\'s dates are on its strip',
-    await p.evaluate(() => document.querySelectorAll('.pl-msline .pl-mspin').length), 5);
+    await p.evaluate(() => document.querySelectorAll('#todayRoom .pl-msline .pl-mspin').length), 5);
 
   console.log('\n5. a task with no estimate dropped on the clock counts up');
   const noEst = await p.evaluate(() => {
