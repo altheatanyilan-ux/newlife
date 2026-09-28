@@ -203,7 +203,8 @@ function entryExtraHTML(e){
         <summary class="mono">what the ${d.system === 'iching' ? 'hexagram says' : 'cards mean'}</summary>
         ${read}</details>`);
     }
-    if(d.revisit) rows.push('<span class="status-pill">come back to this</span>'); }
+    if(d.revisit) rows.push('<span class="status-pill">come back to this</span>');
+    rows.push(`<button type="button" class="btn sm ghost rb-take" data-rbexport="${esc(e.id)}" title="write this reading, and what surrounds it, into a file to take to another reader">⤓ take this reading elsewhere</button>`); }
   if(e.type==='intuition' && x.intuition){ const t = x.intuition;
     const kindName = (typeof INTUIT_KINDS !== 'undefined' ? (INTUIT_KINDS.find(k => k[0] === t.kind) || [,t.kind])[1] : t.kind);
     rows.push(`<span class="status-pill">${esc(kindName)}</span> <span class="mono">strength ${'●'.repeat(t.strength||0)}${'○'.repeat(5-(t.strength||0))}</span>`);

@@ -103,11 +103,18 @@ function openMorningCard(then){
       <label class="row" style="gap:6px;font-size:.8rem;align-items:center"><input type="checkbox" id="mcPin"> <span>📌 keep it on Today</span></label>
       <div class="row between" style="margin-top:12px;gap:8px;flex-wrap:wrap">
         <button class="btn sm ghost" id="mcLeave">begin the day without keeping it</button>
-        <button class="btn primary" id="mcKeep">Keep it, and begin the day</button></div>`;
+        <button class="btn primary" id="mcKeep">Keep it, and begin the day</button></div>
+      <div class="mc-take">${typeof divTakeHTML === 'function' ? divTakeHTML() : ''}
+        <span class="faint">the card, what it means, and your plans around it — as a file for another reader</span></div>`;
     const tc = out.querySelector('.tc');
     const soft = typeof reduced === 'function' && reduced();
     setTimeout(() => { if(tc) tc.classList.add('up'); if(typeof sound === 'function') sound('click'); }, soft ? 0 : 420);
     out.querySelector('#mcLeave').onclick = close;
+    /* written out as it stands, whether or not it is kept */
+    if(typeof bindDivTake === 'function') bindDivTake(out, () => ({system: 'tarot', question, spread: 'morning',
+      title: `The morning card — ${TAROT[pick.card].n}${pick.rev ? ' (reversed)' : ''}`,
+      cards: [{card: pick.card, rev: pick.rev, pos: 'for today'}],
+      reading: out.querySelector('#mcText').value.trim(), source: 'digital'}));
     out.querySelector('#mcKeep').onclick = () => {
       divinationSave({system: 'tarot', question, spread: 'morning',
         title: `The morning card — ${TAROT[pick.card].n}${pick.rev ? ' (reversed)' : ''}`,

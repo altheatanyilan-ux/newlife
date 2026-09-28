@@ -207,12 +207,14 @@ function openPhysicalReading(pre = {}){
     });
     tarotBoardFit(out);
     out.scrollIntoView({behavior: (typeof reduced === 'function' && reduced()) ? 'auto' : 'smooth', block: 'start'});
-    m.querySelector('#dvSave').onclick = () => {
-      divinationSave({system:'tarot', question:m.querySelector('#phQ').value.trim(), spread:s.id,
+    const recNow = () => ({system:'tarot', question:m.querySelector('#phQ').value.trim(), spread:s.id,
         title:`${s.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
         cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:s.pos[i]})),
         reading:m.querySelector('#dvText').value.trim(), source:'physical',
         revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked, projectId:m.querySelector('#dvProj')?.value || null});
+    if(typeof bindDivTake === 'function') bindDivTake(m, recNow);
+    m.querySelector('#dvSave').onclick = () => {
+      divinationSave(recNow());
       sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
     };
   };

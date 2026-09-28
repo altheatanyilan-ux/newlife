@@ -2596,6 +2596,33 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .mc-themes{text-align:center;font-size:.68rem}
 .mc-more{margin-top:10px}
 .mc-more summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
+.mc-take{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);font-size:.76rem}
+/* --- take a reading elsewhere: the composer --- */
+.rb-lede{font-size:.86rem;margin:4px 0 14px}
+.rb-what{display:flex;flex-direction:column;gap:2px;padding:9px 12px;margin-bottom:14px;border-left:3px solid var(--page-accent);
+  border-radius:4px;background:color-mix(in srgb,var(--page-accent) 6%,transparent)}
+.rb-what .mono{font-size:.66rem}
+.rb .seg{margin-bottom:0}
+.rb-parts{display:flex;flex-direction:column;gap:4px}
+.rb-part{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;padding:7px 10px;border:1px solid var(--line);
+  border-radius:9px;cursor:pointer;font-size:.86rem;transition:border-color .15s var(--ease),background .15s var(--ease)}
+.rb-part.on{border-color:color-mix(in srgb,var(--page-accent) 45%,var(--line));background:color-mix(in srgb,var(--page-accent) 5%,transparent)}
+.rb-part.empty .rb-part-t{color:var(--muted)}
+.rb .field{margin-bottom:14px}
+/* a part is a row to tick, not a field's heading: plain case, body size */
+.rb .rb-part,.rb .rb-part *{text-transform:none;letter-spacing:0}
+.rb .rb-part-t{font-family:var(--sans);font-size:.88rem;color:var(--text);font-weight:500}
+.rb-part-n{font-size:.68rem;text-align:right;color:var(--muted)}
+.rb-jtypes{display:flex;flex-wrap:wrap;gap:5px;padding:2px 0 6px 30px}
+.rb-jtypes .chip{font-size:.72rem}
+.rb-reset{float:right;font-size:.64rem;text-transform:none;letter-spacing:0}
+.rb-prev{margin-top:12px;border:1px solid var(--line);border-radius:9px;padding:8px 11px}
+.rb-prev summary{cursor:pointer;font-size:.82rem;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.rb-pre{white-space:pre-wrap;word-break:break-word;max-height:320px;overflow:auto;margin:8px 0 0;font:.72rem/1.5 var(--mono);color:var(--text)}
+.rb-acts{margin-top:14px;gap:8px;flex-wrap:wrap}
+.rb-take{margin-top:8px}
+.dv-today-card .rb-take{display:inline-block;margin-top:6px;font-size:.68rem}
+@media (max-width:560px){ .rb-part{grid-template-columns:auto 1fr} .rb-part-n{grid-column:2;text-align:left} }
 /* Today's milestones are the Tasks view's line of time (.pl-ms), at the top of
    the page; only the spacing and the count of late dates are its own */
 .today-ms{margin:0 0 14px}

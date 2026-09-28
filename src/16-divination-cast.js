@@ -432,8 +432,7 @@ function castStageInto(host, thrown, opt){
     box.innerHTML = castReadingHTML(a) + divKeepHTML(opt.projects);
     box.hidden = false;
     bindReading();
-    host.querySelector('#dvSave').onclick = () => {
-      divinationSave({system:'charms', question: opt.question(), spread: opt.size,
+    const recNow = () => ({system:'charms', question: opt.question(), spread: opt.size,
         title: `A cast — ${a.sig ? a.sig.charm.name : 'all face down'}`,
         charms: thrown.map(t => ({id:t.id, x:+t.x.toFixed(4), y:+t.y.toFixed(4), rot:t.rot,
           up:t.up, flipped:t.flipped})),
@@ -441,6 +440,9 @@ function castStageInto(host, thrown, opt){
         reading: host.querySelector('#dvText').value.trim(),
         revisit: host.querySelector('#dvRevisit').checked, pin: host.querySelector('#dvPin')?.checked,
         projectId: host.querySelector('#dvProj')?.value || null});
+    if(typeof bindDivTake === 'function') bindDivTake(host, recNow);
+    host.querySelector('#dvSave').onclick = () => {
+      divinationSave(recNow());
       stopAll(); sound('success'); toast('Kept in the Lived Record.');
       if(opt.modal) opt.modal.remove();
       rerender();

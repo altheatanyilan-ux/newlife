@@ -329,6 +329,7 @@ function drawnTodayHTML(day){
             : d.system === 'charms' ? 'the charms' : 'tarot')}</span></div>
         ${d.question ? `<div class="mono faint">${esc(d.question)}</div>` : ''}
         ${divinationReadHTML(d)}
+        <button type="button" class="dp-lnk rb-take" data-rbexport="${esc(e.id)}" title="write this reading, and what surrounds it, into a file to take to another reader">⤓ take it elsewhere</button>
       </div>`; }).join('')}
   </div>`;
 }
@@ -713,12 +714,14 @@ function openTarot(pre = {}){
         box.innerHTML = tarotReadingHTML(picks, sp) + divKeepHTML(projects);
         box.hidden = false;
         box.scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
-        m.querySelector('#dvSave').onclick = () => {
-          divinationSave({system:'tarot', question:m.querySelector('#dvQ').value.trim(), spread:sp.id,
+        const recNow = () => ({system:'tarot', question:m.querySelector('#dvQ').value.trim(), spread:sp.id,
             title:`${sp.name} — ${picks.map(pk => TAROT[pk.card].n).join(', ')}`,
             cards:picks.map((pk, i) => ({card:pk.card, rev:pk.rev, pos:sp.pos[i]})),
             reading:m.querySelector('#dvText').value.trim(), source:'digital',
             revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked, projectId:m.querySelector('#dvProj')?.value || null});
+        if(typeof bindDivTake === 'function') bindDivTake(m, recNow);
+        m.querySelector('#dvSave').onclick = () => {
+          divinationSave(recNow());
           stopAll();
           sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
         };
@@ -742,7 +745,8 @@ function divKeepHTML(projects){
       <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="dvPin"> <span>📌 keep it on Today</span></label>
       ${(projects || []).length ? `<select class="inp sm" id="dvProj"><option value="">nothing in particular</option>
         ${projects.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>` : ''}
-      <button class="btn primary" id="dvSave">Keep the reading</button></div>
+      <span class="row" style="gap:6px;flex-wrap:wrap">${typeof divTakeHTML === 'function' ? divTakeHTML() : ''}
+        <button class="btn primary" id="dvSave">Keep the reading</button></span></div>
   </section>`;
 }
 /* ---------- casting the coins ----------
@@ -891,8 +895,7 @@ function openIChing(pre = {}){
       box.hidden = false;
       box.scrollIntoView({behavior: soft ? 'auto' : 'smooth', block: 'start'});
       setTimeout(() => field.stop(), soft ? 0 : 6000);
-      m.querySelector('#dvSave').onclick = () => {
-        divinationSave({system:'iching', question:m.querySelector('#icQ').value.trim(),
+      const recNow = () => ({system:'iching', question:m.querySelector('#icQ').value.trim(),
           title:`${h.i}. ${h.n}${rel ? ' → ' + rel.i + '. ' + rel.n : ''}`,
           lines:lines.map(l => ({v:l.v, moving:l.moving, total:l.total})),
           hexagram:{i:h.i, n:h.n, c:h.c}, relating:rel ? {i:rel.i, n:rel.n} : null,
@@ -900,6 +903,9 @@ function openIChing(pre = {}){
           reading:m.querySelector('#dvText').value.trim(),
           revisit:m.querySelector('#dvRevisit').checked, pin: m.querySelector('#dvPin')?.checked,
           projectId:m.querySelector('#dvProj')?.value || null});
+      if(typeof bindDivTake === 'function') bindDivTake(m, recNow);
+      m.querySelector('#dvSave').onclick = () => {
+        divinationSave(recNow());
         stopAll(); sound('success'); toast('Kept in the Lived Record.'); m.remove(); rerender();
       };
     }
@@ -955,18 +961,22 @@ function openOracle(deckId){
         <p>${esc(ORACLE_SIT[deck.id] || ORACLE_SIT.inner)}</p></section>
       <section class="or-yours"><h4 class="dv-sec-h">Your response</h4>
         <div class="field"><textarea class="inp" id="orText" rows="4" placeholder="Not what it means in general. What it means here."></textarea></div>
-        <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="orPin"> <span>📌 keep it on Today</span></label>
+        <div class="row between" style="gap:8px;flex-wrap:wrap;align-items:center">
+          <label class="row" style="gap:6px;font-size:.78rem;align-items:center"><input type="checkbox" id="orPin"> <span>📌 keep it on Today</span></label>
+          ${typeof divTakeHTML === 'function' ? divTakeHTML() : ''}</div>
       </section>`;
     const card = m.querySelector('#orCard');
     const turn = () => { card.classList.add('up'); sound('click');
       setTimeout(() => scrambleInto(card.querySelector('.or-name'), name, 800), soft ? 0 : 420); };
     if(soft) turn(); else setTimeout(turn, 380);
     m.querySelector('#orDraw').textContent = 'keep it';
-    m.querySelector('#orDraw').onclick = () => {
-      divinationSave({system:'oracle', deck:deck.id, question:m.querySelector('#orQ').value.trim(),
+    const recNow = () => ({system:'oracle', deck:deck.id, question:m.querySelector('#orQ').value.trim(),
         title:`${deck.name} — ${name}`, cards:[{name, text}],
         reading:m.querySelector('#orText').value.trim(),
         pin:m.querySelector('#orPin')?.checked});
+    if(typeof bindDivTake === 'function') bindDivTake(m, recNow);
+    m.querySelector('#orDraw').onclick = () => {
+      divinationSave(recNow());
       sound('success'); m.remove(); rerender();
     };
   };
