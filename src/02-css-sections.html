@@ -7548,6 +7548,21 @@ html[data-theme="dark"] .entry.sealed{background-image:url("data:image/svg+xml,%
 .tf-hint{font-size:.8rem;line-height:1.5}
 .tf-note{display:flex;flex-direction:column;gap:5px}
 /* --- parked, and the distraction cheat sheet: beside the notes on the sitting --- */
+/* the stretches of a sitting, logged with Return as it goes */
+.tf-stretches{list-style:none;margin:0 0 4px;padding:0;display:flex;flex-direction:column;gap:3px;
+  border-left:2px solid color-mix(in srgb,var(--terra) 35%,var(--line));padding-left:10px}
+.tf-stretches li{display:grid;grid-template-columns:auto auto 1fr;gap:4px 10px;align-items:baseline;font-size:.84rem}
+.tf-st-when{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.tf-st-len{font-size:.66rem;white-space:nowrap}
+.tf-st-t{border:none;background:none;padding:0;text-align:left;color:var(--text);cursor:text;font:inherit;overflow-wrap:anywhere}
+.tf-st-t:hover{color:var(--page-accent)}
+.tf-st-inp{font-size:.82rem;padding:3px 7px}
+.tf-since{text-transform:none;letter-spacing:0}
+.tf-howto{font-size:.7rem}
+.tf-area.tf-want{border-color:var(--terra);box-shadow:0 0 0 3px color-mix(in srgb,var(--terra) 18%,transparent)}
+.fl-stretches{list-style:none;margin:4px 0 2px;padding:0;display:flex;flex-direction:column;gap:2px}
+.fl-stretches li{display:flex;gap:10px;align-items:baseline;font-size:.8rem}
+.fl-stretches .mono{font-size:.66rem;color:var(--muted);white-space:nowrap}
 .tf-asides{display:flex;flex-direction:column;gap:14px}
 .tf-asides.shut{flex-direction:row;flex-wrap:wrap;gap:8px 14px}
 .pk-shut,.dx-shut{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:.76rem}

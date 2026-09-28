@@ -61,6 +61,9 @@ const FocusTimer = (() => {
          written down stay written down and go on the same row */
       sessionId: st && st.phase === p ? st.sessionId : null,
       logged: st && st.phase === p ? (st.logged || 0) : 0,
+      /* and its stretches, and where the current one began */
+      segments: st && st.phase === p ? (st.segments || []) : [],
+      segMark: st && st.phase === p ? (st.segMark || null) : null,
       breaks: carried || []};
     closeBreak();                       // resuming ends whatever break was open
     tick(); notify();
@@ -102,6 +105,7 @@ const FocusTimer = (() => {
        what it is for, and closing it there — which writing the session down
        used to do — meant that pausing after a minute of real work never asked
        the question at all. Only the two ends of a sitting close a break. */
+    if(st && logIt && st.phase === 'focus') closeStretches();
     closeBreak();
     if(st && logIt && st.phase === 'focus') logSession(false);
     if(st && logIt && st.phase !== 'focus') logRest();
@@ -132,19 +136,25 @@ const FocusTimer = (() => {
     const mins = Math.round(elapsedSecs() / 60);
     const already = st.logged || 0;
     const delta = mins - already;
-    if(mins < 1 || delta < 1) return;
-    const breaks = (st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}));
     const sessions = planState().focusSessions;
     let rec = st.sessionId ? sessions.find(s => s.id === st.sessionId) : null;
+    /* A record already written is brought up to date even when no new whole
+       minute has passed — how it ended, its notes, its stretches — or a
+       sitting paused or marked in its last minute would stay "ended early".
+       Only new minutes are credited to the task. */
+    if(mins < 1 || (delta < 1 && !rec)) return;
+    const breaks = (st.breaks || []).filter(b => b.to).map(b => ({from:b.from, to:b.to, note:b.note || ''}));
+    const segments = (st.segments || []).map(x => Object.assign({}, x));
     if(rec){
-      rec.duration = mins; rec.endedAt = new Date().toISOString();
-      rec.completed = !!completed; rec.note = st.notes || ''; rec.breaks = breaks;
+      rec.duration = Math.max(+rec.duration || 0, mins); rec.endedAt = new Date().toISOString();
+      rec.completed = !!completed; rec.note = st.notes || ''; rec.breaks = breaks; rec.segments = segments;
     } else {
       rec = {id:uid(), taskId:st.taskId || null, subId:st.subId || null, startedAt:st.startedAt,
         endedAt:new Date().toISOString(), duration:mins, type:'focus', completed:!!completed,
-        mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '', breaks};
+        mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '', breaks, segments};
       sessions.push(rec); st.sessionId = rec.id;
     }
+    if(delta < 1){ saveNow(); return; }
     st.logged = mins;
     if(st.taskId){ const t = planTaskById(st.taskId); if(t){ t.focusTime = (t.focusTime || 0) + delta; t.updatedAt = new Date().toISOString();
       /* a focus session on a task booked for a piece is writing time on
@@ -157,6 +167,7 @@ const FocusTimer = (() => {
   }
   function finish(skipped){
     const c = cfg(), was = st.phase, taskId = st.taskId, round = st.round;
+    if(was === 'focus') closeStretches();
     closeBreak();
     if(was === 'focus') logSession(!skipped); else logRest();
     const restOf = was === 'focus' ? (st.sessionId || null) : null;
@@ -184,6 +195,66 @@ const FocusTimer = (() => {
   /* what the sitting was actually spent on, written while it is happening —
      the same courtesy the breaks already had */
   function noteWork(text){ if(!st) return; st.notes = String(text || ''); notify(); }
+
+  /* ---------- stretches ----------
+     One sitting is often several things in a row: the email, then the
+     outline, then the first page. Each is marked as it ends — Return, in the
+     note on the sitting — without the clock stopping: the stretch runs from
+     the last mark (or the start) to now, less any break inside it, and the
+     note clears for the next. What is still written when the sitting ends is
+     its last stretch, so the whole sitting is accounted for, in order. A
+     sitting nobody marked keeps its one note, as before. */
+  function workMinutes(from, to){
+    const a = Date.parse(from), b = Date.parse(to);
+    if(!(b > a)) return 0;
+    let ms = b - a;
+    (st.breaks || []).forEach(br => {
+      const lo = Math.max(a, Date.parse(br.from)), hi = Math.min(b, br.to ? Date.parse(br.to) : Date.now());
+      if(hi > lo) ms -= hi - lo; });
+    return Math.max(0, Math.round(ms / 6000) / 10);
+  }
+  function markStretch(text, {final = false} = {}){
+    if(!st || st.phase !== 'focus') return null;
+    const to = new Date().toISOString(), from = st.segMark || st.startedAt;
+    const words = String(text || '').trim();
+    const minutes = workMinutes(from, to);
+    /* the tail of a marked sitting that nobody wrote anything about, and that
+       hardly happened, is not a stretch */
+    if(final && !words && minutes < 1) return null;
+    st.segments = st.segments || [];
+    const seg = {id: uid(), from, to, minutes, text: words};
+    st.segments.push(seg);
+    st.segMark = to;
+    st.notes = '';
+    /* the time tracker's own entry for the sitting is cut at the same place,
+       so each stretch is there too, with its own times and its own words */
+    if(typeof timeStretchAuto === 'function'){
+      const e = timeStretchAuto('focus', words, {split: !final});
+      if(e) seg.timeEntryId = e.id;
+    }
+    keepStretches();
+    notify();
+    return seg;
+  }
+  function closeStretches(){
+    if(st && st.phase === 'focus' && (st.segments || []).length) markStretch(st.notes, {final: true});
+  }
+  /* written onto the sitting's record at once, so a stretch survives the
+     page being closed; a record is made once there is a minute to put on it */
+  function keepStretches(){
+    const rec = st.sessionId ? (planState().focusSessions || []).find(s => s.id === st.sessionId) : null;
+    if(rec){ rec.segments = (st.segments || []).map(x => Object.assign({}, x)); rec.note = st.notes || ''; saveNow(); }
+    else logSession(false);
+  }
+  function editStretch(id, text){
+    const seg = st && (st.segments || []).find(x => x.id === id); if(!seg) return false;
+    seg.text = String(text || '').trim();
+    if(seg.timeEntryId && typeof timeStretchReword === 'function') timeStretchReword(seg.timeEntryId, seg.text);
+    keepStretches(); notify();
+    return true;
+  }
+  const stretches = () => st ? (st.segments || []).slice() : [];
+  const stretchSince = () => st ? (st.segMark || st.startedAt) : null;
   return {start, pause, stop, skip, state, reset: () => { st = null; notify(); },
     /* A step of a task is a thing you sit down with in its own right, so the
        timer carries which step as well as which task — otherwise a session on
@@ -194,7 +265,7 @@ const FocusTimer = (() => {
     setMode(m){ if(st) return false; cfg().mode = m === 'stopwatch' ? 'stopwatch' : 'countdown'; saveNow(); notify(); return true; },
     setLength(mins){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);
       cfg().focusDuration = n; saveNow(); notify(); return true; },
-    noteBreak, noteWork,
+    noteBreak, noteWork, markStretch, editStretch, stretches, stretchSince,
     subscribe(f){ listeners.add(f); return () => listeners.delete(f); }};
 })();
 

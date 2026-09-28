@@ -380,11 +380,13 @@ function focusSectionHTML(){
           placeholder="tea · a walk · lying on the floor">${esc(s.notes || '')}</textarea>
         <div class="faint" style="font-size:.72rem">A ${s.phase === 'long' ? 'long' : 'short'} break. Kept with the sitting before it.</div>
       </div>`
-       : `<div class="tf-note">
-        <label class="k mono" for="fpDid">what are you actually doing?</label>
+       : `<div class="tf-note" id="fpNote">
+        ${focusStretchesHTML()}
+        <label class="k mono" for="fpDid">what are you actually doing?<span class="tf-since faint" id="fpSince">${
+          FocusTimer.stretchSince && FocusTimer.stretchSince() ? ` · since ${clockOf(FocusTimer.stretchSince())}` : ''}</span></label>
         <textarea class="inp tf-area" id="fpDid" rows="3"
           placeholder="the second draft · the tricky bit of the proof">${esc(s.notes || '')}</textarea>
-        <div class="faint" style="font-size:.72rem">Kept with the sitting when it is finished.</div>
+        <div class="faint tf-howto">Return logs this stretch and starts the next — the clock keeps running. Shift+Return for a new line.</div>
       </div>`}
       ${s.onBreak ? `<div class="tf-note resting">
         <label class="k mono" for="fpBreakNote">what is this break for?</label>
@@ -397,6 +399,43 @@ function focusSectionHTML(){
       ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
     </div>
   </section>`;
+}
+/* The stretches of the sitting so far: each thing it went on, one after
+   another, with when and for how long (less any break inside it). The words
+   can be corrected with a press; the times are what the clock said. */
+const fmtStretch = m => m < 1 ? '<1m' : fmtEst(Math.round(m));
+function focusStretchesHTML(){
+  const xs = FocusTimer.stretches ? FocusTimer.stretches() : [];
+  if(!xs.length) return '';
+  return `<ol class="tf-stretches" aria-label="this sitting, so far">${xs.map(x => `<li data-fpstr="${esc(x.id)}">
+    <span class="mono tf-st-when">${esc(clockOf(x.from))}–${esc(clockOf(x.to))}</span>
+    <span class="mono faint tf-st-len">${esc(fmtStretch(x.minutes))}</span>
+    <button type="button" class="tf-st-t" data-fpstredit title="press to correct it">${x.text ? esc(x.text) : '<em class="faint">nothing written</em>'}</button>
+  </li>`).join('')}</ol>`;
+}
+/* after a mark: the list and the "since" redrawn in place, the caret kept */
+function focusStretchRepaint(box){
+  const note = box.querySelector('#fpNote'); if(!note) return;
+  const old = note.querySelector('.tf-stretches'), html = focusStretchesHTML();
+  if(old) old.outerHTML = html || '';
+  else if(html) note.insertAdjacentHTML('afterbegin', html);
+  const since = note.querySelector('#fpSince');
+  if(since) since.textContent = FocusTimer.stretchSince() ? ` · since ${clockOf(FocusTimer.stretchSince())}` : '';
+  bindFocusStretches(box);
+}
+function bindFocusStretches(box){
+  box.querySelectorAll('[data-fpstredit]').forEach(b => b.onclick = () => {
+    const id = b.closest('[data-fpstr]').dataset.fpstr;
+    const x = FocusTimer.stretches().find(v => v.id === id); if(!x) return;
+    const inp = el(`<input class="inp tf-st-inp" value="${esc(x.text)}" aria-label="what that stretch was">`);
+    b.replaceWith(inp); inp.focus(); inp.select();
+    let done = false;
+    const end = keep => { if(done) return; done = true; inp.onblur = null;
+      if(keep) FocusTimer.editStretch(id, inp.value); focusStretchRepaint(box); };
+    inp.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); end(true); }
+      else if(ev.key === 'Escape'){ ev.stopPropagation(); end(false); } };
+    inp.onblur = () => end(true);
+  });
 }
 /* What comes up while you work has two places to go, both beside the notes
    on the sitting: the thoughts, parked for after (09-parked.js), and what
@@ -445,12 +484,29 @@ function bindFocusSection(root, redraw){
      before the sitting or the break ends */
   const did = box.querySelector('#fpDid');
   if(did) did.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
+  /* Return closes the stretch: what was written, from the last mark to now,
+     logged without stopping anything; Shift+Return is still a new line */
+  if(did && FocusTimer.markStretch) did.addEventListener('keydown', ev => {
+    if(ev.key !== 'Enter' || ev.shiftKey || ev.isComposing) return;
+    ev.preventDefault();
+    const words = did.value.trim();
+    if(!words){ did.classList.add('tf-want'); setTimeout(() => did.classList.remove('tf-want'), 700); return; }
+    const seg = FocusTimer.markStretch(words);
+    if(!seg) return;
+    did.value = ''; did.style.height = 'auto'; did.style.height = '64px';
+    if(typeof sound === 'function') sound('click');
+    focusStretchRepaint(box);
+    did.focus();
+  });
+  bindFocusStretches(box);
   const rest = box.querySelector('#fpRest');
   if(rest) rest.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
   const note = box.querySelector('#fpBreakNote');
   if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
   /* each note grows with what is written in it rather than scrolling inside
-     three lines; Enter is a new line, as it is anywhere you write */
+     three lines; Enter is a new line, as it is anywhere you write — except in
+     the note on the sitting itself, where Return logs a stretch (above) and
+     Shift+Return is the new line */
   $$('.tf-area', box).forEach(ta => {
     const fit = () => { ta.style.height = 'auto'; ta.style.height = Math.max(ta.scrollHeight, 64) + 'px'; };
     ta.addEventListener('input', fit); requestAnimationFrame(fit);
@@ -622,7 +678,10 @@ function focusSessionHTML(s, {withDate = false} = {}){
       ${typeof parkedDuring === 'function' && parkedDuring(s) ? `<span class="mono faint fl-pk" title="thoughts parked during this sitting">✎ ${parkedDuring(s)} parked</span>` : ''}
     </div>
     ${name ? `<div class="fl-task">${esc(name)}${sub ? ' <span class="mono faint">a step of ' + esc(t.task.text || '') + '</span>' : ''}</div>` : ''}
-    ${s.note ? `<div class="fl-did">${esc(s.note)}</div>`
+    ${(s.segments || []).length ? `<ol class="fl-stretches">${s.segments.map(x =>
+        `<li><span class="mono">${esc(_lgClock(x.from))}–${esc(_lgClock(x.to))} · ${esc(fmtStretch(+x.minutes || 0))}</span>
+          <span class="fl-bnote">${x.text ? esc(x.text) : '<em class="faint">nothing written</em>'}</span></li>`).join('')}</ol>`
+      : s.note ? `<div class="fl-did">${esc(s.note)}</div>`
       : `<div class="fl-did none">nothing written down about this one</div>`}
     ${brs.length ? `<ul class="fl-breaks">${brs.map(br =>
       `<li><span class="mono">${esc(_lgClock(br.from))} · ${esc(fmtEst(breakMinutes(br)))}${br.rest ? ` · ${br.rest === 'long' ? 'long rest' : 'rest'}` : ''}</span>
