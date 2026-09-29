@@ -176,7 +176,10 @@ function openMilestoneInTasks(id){
 }
 function bindTodayMilestones(root){
   const box = root.querySelector('.today-ms'); if(!box) return;
-  box.addEventListener('toggle', () => { _todayMsOpen = box.open; });
+  box.addEventListener('toggle', () => { _todayMsOpen = box.open;
+    if(box.open && typeof planMilestoneFitAll === 'function') planMilestoneFitAll(box); });
+  /* whole names take the lines they need; the tiers are fitted once drawn */
+  if(box.open && typeof planMilestoneFitAll === 'function') requestAnimationFrame(() => planMilestoneFitAll(box));
   box.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
     if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
     openMilestoneInTasks(b.dataset.plmsfilter); });

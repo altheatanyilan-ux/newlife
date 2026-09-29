@@ -266,17 +266,19 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
   for(let d = from; d <= to; d = addDays(d, step)) ticks.push(d);
   /* the strip is only as tall as the tiers it actually uses — a list with
      three well-spaced dates should not reserve room for eighteen */
-  /* Compact (Today's strip): each pin is one line — the name and how far
-     away it is side by side, the count of work kept for the tooltip — so a
-     tier is half as tall and the whole strip about half the height. A one-line
-     name is wider, so neighbours need a little more room before sharing a tier. */
+  /* Compact (Today's strip): the whole name, wrapped to as many lines as it
+     needs, with how far away it is running on after it; the count of work is
+     kept for the tooltip. The tiers are then fitted to the pins actually drawn
+     (planMilestoneLineFit), so the strip is only as tall as its names make it.
+     A narrow screen gives a name less of the line, so neighbours need more of
+     it before sharing a tier. */
   const compact = !!opts.compact;
-  const laid = planMilestoneLanes(items, at, compact ? 17 : MS_LABEL_PCT);
+  const laid = planMilestoneLanes(items, at, compact ? (typeof innerWidth === 'number' && innerWidth < 560 ? 26 : 13) : MS_LABEL_PCT);
   const upT = Math.max(0, ...laid.filter(x => x.lane % 2 === 1).map(x => Math.floor(x.lane / 2)));
   const downT = Math.max(0, ...laid.filter(x => x.lane % 2 === 0).map(x => Math.floor(x.lane / 2)));
-  /* the name and its distance on one line, for the compact strip */
+  /* the name in full, and its distance after it, for the compact strip */
   const oneLine = (name, away) => `<span class="pl-msone"><span class="pl-mslabel">${esc(name)}</span>${
-    away ? `<span class="pl-msaway mono">${esc(away)}</span>` : ''}</span>`;
+    away ? ` <span class="pl-msaway mono">${esc(away)}</span>` : ''}</span>`;
   return `<div class="pl-msline${compact ? ' compact' : ''}" role="list" style="--up:${upT};--down:${downT}">
       <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
       <div class="pl-msrail"></div>
@@ -315,6 +317,41 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
           ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}
           <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`}`; }).join('')}
     </div>`;
+}
+/* The compact strip's tiers, fitted to its pins. Each tier is pushed out
+   past the tallest pin in the one before it, and the strip is made as tall as
+   its outermost pins on either side — so a name can take three lines without
+   running into the next, and a week of short names stays low. Only a strip
+   that is showing can be measured; a folded one is fitted when it opens. */
+function planMilestoneLineFit(line){
+  if(!line || !line.classList.contains('compact') || !line.offsetParent) return;
+  const pins = [...line.querySelectorAll('.pl-mspin')];
+  const GAP = 6;
+  const side = up => {
+    const tiers = {};
+    pins.filter(p => p.classList.contains('up') === up).forEach(p => {
+      const t = +(p.style.getPropertyValue('--tier') || 0); (tiers[t] = tiers[t] || []).push(p); });
+    const last = Math.max(-1, ...Object.keys(tiers).map(Number));
+    let off = 0;
+    for(let t = 0; t <= last; t++){
+      const ps = tiers[t] || [];
+      ps.forEach(p => p.style.setProperty('--off', off + 'px'));
+      if(ps.length) off += Math.max(...ps.map(p => p.offsetHeight)) + GAP;
+    }
+    return off;
+  };
+  const up = side(true), down = side(false);
+  line.style.setProperty('--above', (16 + Math.max(up, 18)) + 'px');
+  line.style.setProperty('--below', (2 + Math.max(down, 18)) + 'px');
+}
+/* a strip drawn at one width and then shown at another re-fits itself */
+let _msFitWired = false;
+function planMilestoneFitAll(root = document){
+  root.querySelectorAll('.pl-msline.compact').forEach(planMilestoneLineFit);
+  if(_msFitWired) return; _msFitWired = true;
+  let t = null;
+  addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => planMilestoneFitAll(), 150); });
+  try { document.fonts && document.fonts.ready.then(() => planMilestoneFitAll()); } catch(e){}
 }
 function bindPlanMilestones(root, sel){
   const mgb = root.querySelector('#plMsManage');

@@ -67,14 +67,21 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
       pins: [...box.querySelectorAll('.pl-mspin')].map(n => (n.textContent + ' | ' + n.title).replace(/\s+/g, ' ').trim()),
       go: [...box.querySelectorAll('.pl-mspin[data-msgo]')].map(n => n.textContent.replace(/\s+/g, ' ').trim()),
       h: Math.round(box.querySelector('.pl-msline').getBoundingClientRect().height),
-      oneLine: [...box.querySelectorAll('.pl-mspin .pl-mslabel')].every(l => l.getBoundingClientRect().height < 20),
+      /* every name whole: no ellipsis, nothing clipped, and no pin running into another */
+      whole: [...box.querySelectorAll('.pl-mspin')].every(p => { const one = p.querySelector('.pl-msone');
+        return one && one.scrollHeight <= one.clientHeight + 1 && one.scrollWidth <= one.clientWidth + 1
+          && getComputedStyle(p.querySelector('.pl-mslabel')).textOverflow !== 'ellipsis'; }),
+      names: [...box.querySelectorAll('.pl-mspin .pl-mslabel')].map(l => l.textContent),
+      apart: (() => { const r = [...box.querySelectorAll('.pl-mspin')].map(p => p.getBoundingClientRect());
+        return r.every((a, i) => r.every((b, j) => j <= i || a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top)); })(),
       oldRow: !!box.querySelector('.today-ms-item')}; });
   yes('Today has a milestones line with a rail and today marked on it', top && top.line && top.now, top);
   yes('  with dates along it', top && top.ticks >= 3, top);
   yes('  a pin for the date in three days, with what is left under it (in its tooltip)',
       top && top.pins.some(t => /Proofs to the printer/.test(t) && /2 of 2 still to do/.test(t) && /in 3 days/.test(t)), top && top.pins);
-  yes('  compact: each name on one line, beside how far away it is', top && top.oneLine, top);
-  yes('  so the whole line is short \u2014 well under the old 170px and more', top && top.h <= 130, top && top.h);
+  yes('  every name shown whole, wrapped to the lines it needs', top && top.whole && top.names.includes('Proofs to the printer'), top);
+  yes('  and no two pins run into each other', top && top.apart, top);
+  yes('  and the line is only as tall as its names make it', top && top.h <= 170, top && top.h);
   yes('  and the other date that week', top && top.pins.some(t => /Cover signed off/.test(t)), top && top.pins);
   if(ids.skill) yes('  and the skill level due this week', top && top.go.length === 1, top && top.go);
   yes('  and no longer the row of buttons', top && !top.oldRow);
