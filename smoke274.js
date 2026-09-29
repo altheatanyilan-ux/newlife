@@ -59,17 +59,24 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
 
   console.log('\n1. the same line of time the Tasks view draws');
   await p.evaluate(() => { S.settings.todayView = 'do'; location.hash = '#/today'; rerender(); }); await p.waitForTimeout(900);
+  /* it rests folded (section 6); opened here, it stays open while the page is used */
+  await p.evaluate(() => { document.querySelector('.today-ms').open = true; }); await p.waitForTimeout(300);
   const top = await p.evaluate(() => { const box = document.querySelector('.today-ms');
     return box && {line: !!box.querySelector('.pl-msline .pl-msrail'), now: !!box.querySelector('.pl-msnow'),
       ticks: box.querySelectorAll('.pl-mstick').length,
-      pins: [...box.querySelectorAll('.pl-mspin')].map(n => n.textContent.replace(/\s+/g, ' ').trim()),
+      pins: [...box.querySelectorAll('.pl-mspin')].map(n => (n.textContent + ' | ' + n.title).replace(/\s+/g, ' ').trim()),
+      go: [...box.querySelectorAll('.pl-mspin[data-msgo]')].map(n => n.textContent.replace(/\s+/g, ' ').trim()),
+      h: Math.round(box.querySelector('.pl-msline').getBoundingClientRect().height),
+      oneLine: [...box.querySelectorAll('.pl-mspin .pl-mslabel')].every(l => l.getBoundingClientRect().height < 20),
       oldRow: !!box.querySelector('.today-ms-item')}; });
   yes('Today has a milestones line with a rail and today marked on it', top && top.line && top.now, top);
   yes('  with dates along it', top && top.ticks >= 3, top);
-  yes('  a pin for the date in three days, with what is left under it',
-      top && top.pins.some(t => /Proofs to the printer/.test(t) && /2\/2 left/.test(t) && /in 3 days/.test(t)), top && top.pins);
+  yes('  a pin for the date in three days, with what is left under it (in its tooltip)',
+      top && top.pins.some(t => /Proofs to the printer/.test(t) && /2 of 2 still to do/.test(t) && /in 3 days/.test(t)), top && top.pins);
+  yes('  compact: each name on one line, beside how far away it is', top && top.oneLine, top);
+  yes('  so the whole line is short \u2014 well under the old 170px and more', top && top.h <= 130, top && top.h);
   yes('  and the other date that week', top && top.pins.some(t => /Cover signed off/.test(t)), top && top.pins);
-  if(ids.skill) yes('  and the skill level due this week', top && top.pins.some(t => /skill/.test(t)), top && top.pins);
+  if(ids.skill) yes('  and the skill level due this week', top && top.go.length === 1, top && top.go);
   yes('  and no longer the row of buttons', top && !top.oldRow);
 
   console.log('\n2. a press does what it does in Tasks');
@@ -129,31 +136,40 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     yes('a skill pin goes to the skill', await p.evaluate(() => /skills/.test(location.hash)), await p.evaluate(() => location.hash));
   }
 
-  console.log('\n6. it folds away, and stays as it was left');
+  console.log('\n6. it rests folded');
   /* the skill page left a panel open; start again from a fresh load, which
      also shows the fold is kept with everything else */
   await p.evaluate(() => { saveNow(); S.settings.todayView = 'do'; });
   await p.waitForTimeout(600);
-  await p.goto('file://' + path.join(__dirname, 'index.html') + '#/today'); await p.waitForTimeout(1600);
+  /* a real reload: going to the same page with only the #hash changed is not one */
+  await p.goto('file://' + path.join(__dirname, 'index.html') + '#/today'); await p.reload(); await p.waitForTimeout(1600);
   await p.evaluate(() => { closeModals(); document.querySelectorAll('.dv-veil').forEach(n => n.remove());
     S.settings.todayView = 'do'; if(location.hash !== '#/today') location.hash = '#/today'; rerender(); }); await p.waitForTimeout(900);
-  yes('it starts open', await p.evaluate(() => document.querySelector('.today-ms').open));
-  await p.click('.today-ms-sum'); await p.waitForTimeout(400);
   const folded = await p.evaluate(() => { const d = document.querySelector('.today-ms'); const r = d.getBoundingClientRect();
-    return {open: d.open, remembered: (S.settings.todayOpen || {})['t-ms'], h: r.height,
+    return {open: d.open, h: r.height,
       next: (d.querySelector('.today-ms-next')?.offsetParent ? d.querySelector('.today-ms-next').textContent : '').replace(/\s+/g, ' ').trim()}; });
-  yes('a press on its heading folds it to one line', folded.open === false && folded.h < 60, folded);
-  yes('  and that is remembered', folded.remembered === false, folded);
+  yes('it rests folded, to one line, when the house is opened', folded.open === false && folded.h < 60, folded);
   /* the skill level is due in two days, the proofs in three: the next date is the skill's */
   yes('  folded, it still says which date is next', ids.skill ? /next: .+, in 2 days/.test(folded.next) : /next: Proofs to the printer, in 3 days/.test(folded.next), folded.next);
   await p.evaluate(() => { S.settings.todayView = 'tasks'; location.hash = '#/today/tasks'; }); await p.waitForTimeout(1000);
-  yes('it stays folded in the other views', await p.evaluate(() => document.querySelector('.today-ms') && !document.querySelector('.today-ms').open));
+  yes('it is folded in the other views', await p.evaluate(() => document.querySelector('.today-ms') && !document.querySelector('.today-ms').open));
   await p.evaluate(() => { location.hash = '#/today'; S.settings.todayView = 'do'; }); await p.waitForTimeout(900);
-  yes('  and on coming back', await p.evaluate(() => !document.querySelector('.today-ms').open));
   await p.click('.today-ms-sum'); await p.waitForTimeout(400);
-  yes('another press opens it again, remembered too', await p.evaluate(() => document.querySelector('.today-ms').open && S.settings.todayOpen['t-ms'] === true));
+  yes('a press on its heading opens it', await p.evaluate(() => document.querySelector('.today-ms').open));
+  await p.evaluate(() => rerender()); await p.waitForTimeout(600);
+  yes('  and it stays open while the page is used (a redraw does not snap it shut)', await p.evaluate(() => document.querySelector('.today-ms').open));
+  await p.click('.today-ms-sum'); await p.waitForTimeout(400);
+  yes('another press folds it again', await p.evaluate(() => !document.querySelector('.today-ms').open));
+  await p.click('.today-ms-sum'); await p.waitForTimeout(400);
   await p.click(`.today-ms [data-plmsfilter="${ids.m}"] .pl-mslabel`); await p.waitForTimeout(1100);
   yes('  and its pins still open their work', await p.evaluate(m => location.hash === '#/today/tasks' && (S._planFilter || {}).milestone === m, ids.m));
+  /* left open, and the house opened again: folded */
+  await p.evaluate(() => { saveNow(); S.settings.todayView = 'do'; }); await p.waitForTimeout(500);
+  /* a real reload: going to the same page with only the #hash changed is not one */
+  await p.goto('file://' + path.join(__dirname, 'index.html') + '#/today'); await p.reload(); await p.waitForTimeout(1600);
+  await p.evaluate(() => { closeModals(); document.querySelectorAll('.dv-veil').forEach(n => n.remove());
+    S.settings.todayView = 'do'; if(location.hash !== '#/today') location.hash = '#/today'; rerender(); }); await p.waitForTimeout(900);
+  yes('left open, it is folded again the next time the house is opened', await p.evaluate(() => !document.querySelector('.today-ms').open));
 
   console.log('\n5. nothing broke on the way');
   yes('no page errors', !errs.length, errs.join(' | '));

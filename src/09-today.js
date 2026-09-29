@@ -137,6 +137,7 @@ function todayMilestonesItems(){
       list: {color: 'var(--ment)'}, go: '#/skills/' + sk.id}))]
     .sort((x, y) => (x.m.date || '').localeCompare(y.m.date || ''));
 }
+let _todayMsOpen = false;
 function todayMilestonesHTML(){
   if(typeof planMilestoneLineHTML !== 'function') return '';
   const items = todayMilestonesItems();
@@ -147,11 +148,11 @@ function todayMilestonesHTML(){
   const first = items[0].m.date || T;
   const lo = first < T ? (daysBetween(first, T) > 14 ? addDays(T, -14) : first) : T;
   const late = items.filter(x => x.m.date && x.m.date < T).length;
-  /* It folds, like every section on Today, and stays as it was left — in
-     every view, since it is the same line in all of them. Folded, the line it
-     keeps says which date is next, so closing it does not hide the one thing
-     it is there to say. */
-  const open = (S.settings.todayOpen || {})['t-ms'] !== false;
+  /* It rests folded: the line it keeps says which date is next and how many
+     are ahead, which is most of what it is for. Opened, it stays open while
+     you are using the page (a redraw does not snap it shut), and folds again
+     the next time the house is opened. */
+  const open = _todayMsOpen;
   const next = items.find(x => x.m.date && x.m.date >= T) || items[0];
   return `<details class="today-ms pl-ms rv" id="t-ms"${open ? ' open' : ''} aria-label="milestones in the next seven days">
     <summary class="today-ms-sum">
@@ -159,7 +160,7 @@ function todayMilestonesHTML(){
       <span class="today-ms-next faint">next: <b>${esc(next.m.name)}</b>, ${esc(planWhenAway(next.m.date))}</span>
       <span class="mono faint today-ms-count">${items.length - late} ahead${late ? ` · <span class="today-ms-late">${late} gone by</span>` : ''}</span>
     </summary>
-    ${planMilestoneLineHTML(items, {from: addDays(lo, -1), to: addDays(T, 8)}, {step: 2, lit: false})}</details>`;
+    ${planMilestoneLineHTML(items, {from: addDays(lo, -1), to: addDays(T, 8)}, {step: 2, lit: false, compact: true})}</details>`;
 }
 /* the same two acts as the pin in Tasks: choosing the list it belongs to (which
    is what clears any other filter there) and then pressing the date */
@@ -175,7 +176,7 @@ function openMilestoneInTasks(id){
 }
 function bindTodayMilestones(root){
   const box = root.querySelector('.today-ms'); if(!box) return;
-  box.addEventListener('toggle', () => rememberFold('t-ms', box.open));
+  box.addEventListener('toggle', () => { _todayMsOpen = box.open; });
   box.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
     if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
     openMilestoneInTasks(b.dataset.plmsfilter); });

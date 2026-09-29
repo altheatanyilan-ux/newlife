@@ -185,11 +185,11 @@ const MS_LANES = 6;
    vary with the name, but the strip's pixel width is not known at render and
    a fixed, slightly generous guess keeps names apart at every width. */
 const MS_LABEL_PCT = 13;
-function planMilestoneLanes(items, at){
+function planMilestoneLanes(items, at, pct = MS_LABEL_PCT){
   const ends = new Array(MS_LANES).fill(-Infinity);
   return items.map(x => {
     const left = at(x.m.date || today());
-    let lane = ends.findIndex(e => left - e >= MS_LABEL_PCT);
+    let lane = ends.findIndex(e => left - e >= pct);
     /* everything is crowded: put it in the lane with the most room and let
        the ellipsis handle what is left */
     if(lane < 0) lane = ends.indexOf(Math.min(...ends));
@@ -266,10 +266,18 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
   for(let d = from; d <= to; d = addDays(d, step)) ticks.push(d);
   /* the strip is only as tall as the tiers it actually uses — a list with
      three well-spaced dates should not reserve room for eighteen */
-  const laid = planMilestoneLanes(items, at);
+  /* Compact (Today's strip): each pin is one line — the name and how far
+     away it is side by side, the count of work kept for the tooltip — so a
+     tier is half as tall and the whole strip about half the height. A one-line
+     name is wider, so neighbours need a little more room before sharing a tier. */
+  const compact = !!opts.compact;
+  const laid = planMilestoneLanes(items, at, compact ? 17 : MS_LABEL_PCT);
   const upT = Math.max(0, ...laid.filter(x => x.lane % 2 === 1).map(x => Math.floor(x.lane / 2)));
   const downT = Math.max(0, ...laid.filter(x => x.lane % 2 === 0).map(x => Math.floor(x.lane / 2)));
-  return `<div class="pl-msline" role="list" style="--up:${upT};--down:${downT}">
+  /* the name and its distance on one line, for the compact strip */
+  const oneLine = (name, away) => `<span class="pl-msone"><span class="pl-mslabel">${esc(name)}</span>${
+    away ? `<span class="pl-msaway mono">${esc(away)}</span>` : ''}</span>`;
+  return `<div class="pl-msline${compact ? ' compact' : ''}" role="list" style="--up:${upT};--down:${downT}">
       <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
       <div class="pl-msrail"></div>
       <div class="pl-msnow" style="left:${at(T)}%"><span class="mono">today</span></div>
@@ -279,9 +287,9 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
         if(go) return `<button class="pl-mspin pl-msgo${late ? ' late' : ''}${up ? ' up' : ''}" data-msgo="${esc(go)}"
           style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
           title="${esc(m.name)} · ${esc(fmtDate(m.date, 'med'))} · ${esc(planWhenAway(m.date))}">
-          <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
+          <i class="pl-msdot"></i><i class="pl-msstem"></i>${compact ? oneLine(m.name, planWhenAway(m.date)) : `<span class="pl-mslabel">${esc(m.name)}</span>
           ${m.tag ? `<span class="pl-mscount mono">${esc(m.tag)}</span>` : ''}
-          <span class="pl-msaway mono">${esc(planWhenAway(m.date))}</span></button>`;
+          <span class="pl-msaway mono">${esc(planWhenAway(m.date))}</span>`}</button>`;
         /* Pressing a date narrows the list to the work that is for it — the
            question a milestone asks is "what is left before this", and the
            answer is a filter, not a dialog. Pressing it again lets go. The
@@ -294,7 +302,9 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
           title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${
             prog.total ? ` · ${prog.left} of ${prog.total} still to do` : ' · nothing under it yet'} — ${
             on ? 'press to show everything again' : 'press to see only its work'}${m.note ? ' · ' + esc(m.note) : ''}">
-          <i class="pl-msdot"></i><i class="pl-msstem"></i><span class="pl-mslabel">${esc(m.name)}</span>
+          <i class="pl-msdot"></i><i class="pl-msstem"></i>${compact
+            ? oneLine(m.name, m.date ? (m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date)) : '') + `<i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`
+            : `<span class="pl-mslabel">${esc(m.name)}</span>
           <!-- How much is still between you and the date, over how much there
                ever was. The first number is the question; the second is what
                makes it mean something, since two left out of three is nearly
@@ -303,7 +313,7 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
             ? `<span class="pl-mscount mono${late ? ' late' : ''}">${prog.left}/${prog.total} left</span>`
             : `<span class="pl-mscount mono clear">✓ all ${prog.total} done</span>`) : ''}
           ${m.date ? `<span class="pl-msaway mono">${esc(m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date))}</span>` : ''}
-          <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`; }).join('')}
+          <i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`}`; }).join('')}
     </div>`;
 }
 function bindPlanMilestones(root, sel){

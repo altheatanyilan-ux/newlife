@@ -99,6 +99,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     const far = planAddMilestone(l.id, {name: 'The launch party', date: addDays(today(), 30)});
     saveNow(); S.settings.todayView = 'do'; location.hash = '#/today'; rerender(); return {near: near.id, far: far.id, list: l.id}; });
   await p.waitForTimeout(900);
+  /* it rests folded; opened, it stays open while the page is used */
+  await p.evaluate(() => { document.querySelector('.today-ms').open = true; }); await p.waitForTimeout(300);
   const top = await p.evaluate(() => { const pg = document.querySelector('.page.today-page');
     const first = pg && [...pg.children].find(n => !n.matches('.ctx-add'));
     return {first: first && first.className, items: [...document.querySelectorAll('.today-ms .pl-mspin')].map(n => n.textContent.replace(/\s+/g, ' ').trim())}; });

@@ -5401,9 +5401,23 @@ select.sm-active{border-color:var(--page-accent);
 /* the tick step is chosen from the length of the run, which says nothing
    about how much room there is to print it in — so on a narrow screen the
    labels are thinned rather than the scale redrawn */
+/* Today's strip, compact: one line per pin (the name and how far away it
+   is), so a tier is half the height and the strip about half as tall */
+.pl-msline.compact{margin-top:8px;--step:28px;
+  --above:calc(14px + (var(--up,0) + 1) * var(--step));
+  --below:calc(4px + (var(--down,0) + 1) * var(--step))}
+.pl-msline.compact .pl-mspin{max-width:12em;gap:2px}
+.pl-msone{display:flex;align-items:baseline;gap:5px;min-width:0;max-width:12em;white-space:nowrap}
+.pl-msline.compact .pl-mslabel{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;-webkit-line-clamp:unset}
+.pl-msline.compact .pl-msaway{flex:0 0 auto}
+.pl-msline.compact .pl-msedit{position:absolute;right:-14px;bottom:0}
+.pl-msline.compact .pl-mspin.up .pl-msedit{bottom:auto;top:0}
+.pl-msline.compact .pl-msnow{top:12px;bottom:0}
+.pl-msline.compact .pl-msnow span{top:-12px}
 @media (max-width:760px){ .pl-msline{margin-left:26px;margin-right:26px}
   .pl-mspin{max-width:6em} .pl-mstick:nth-child(even){display:none} }
 @media (max-width:480px){ .pl-mspin{max-width:5em;font-size:.95em}
+  .pl-msline.compact .pl-mspin,.pl-msline.compact .pl-msone{max-width:7em}
   .pl-mstick:not(:nth-child(4n+1)){display:none} }
 
 /* --- a value's tagline: the one line under its name --- */
