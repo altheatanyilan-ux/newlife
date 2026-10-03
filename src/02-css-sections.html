@@ -2689,6 +2689,26 @@ details.today-ms > summary.today-ms-sum{padding:2px 0;align-items:baseline;gap:6
 .pick-row.sm{padding:4px 8px;font-size:.84rem;border-color:transparent}
 .pick-row.sm:hover{border-color:var(--line)}
 
+/* live capacity bar in plan-tomorrow step 3 */
+.plan-cap-live{display:flex;align-items:center;gap:8px;margin:0 0 10px;padding:7px 10px;
+  border-radius:8px;background:var(--surface-2);border:1px solid var(--line);font-size:.78rem;flex-wrap:wrap}
+.plan-cap-live .cap-bar{height:5px;border-radius:3px;background:var(--surface-3);overflow:hidden}
+/* quick time chips on each pick-row */
+.pick-time-chips{display:flex;gap:4px;padding:2px 10px 6px;flex-wrap:wrap}
+.pick-chip{font-size:.66rem;padding:2px 7px;border-radius:10px;background:var(--surface-2);
+  border:1px solid var(--line);cursor:pointer;transition:background .14s,border-color .14s;
+  font-family:var(--mono);color:var(--muted)}
+.pick-chip:hover{background:var(--surface-3);border-color:var(--page-accent);color:var(--text)}
+.pick-chip.on{background:color-mix(in srgb,var(--page-accent) 18%,transparent);
+  border-color:var(--page-accent);color:var(--text)}
+/* rough schedule preview shown at top of habits step */
+.plan-sched{border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin:0 0 12px;
+  background:color-mix(in srgb,var(--line) 9%,transparent)}
+.sched-row{display:flex;gap:8px;align-items:baseline;padding:3px 0;
+  border-top:1px dashed var(--line);font-size:.83rem}
+.sched-row:first-of-type{border-top:0}
+.sched-t{font-size:.7rem;color:var(--muted);min-width:38px;flex:none}
+
 /* what you said mattered, shown before tomorrow's work is chosen */
 .plan-focus{border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin:0 0 14px;
   background:color-mix(in srgb,var(--line) 16%,transparent)}

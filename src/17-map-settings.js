@@ -41,6 +41,10 @@ routes.settings = function(root){
           out any of the ${timeAllCategories().length}, and add your own.</div></div>
         <a class="btn sm" href="#/time/categories">Open them</a></div>
     </div>
+    <div class="card rv"><h3>Day planning</h3>
+      <div class="opt"><div><b>Available hours per day</b><div class="d">Total hours realistically available for planned work. Used as the target in the Plan Tomorrow capacity bar.</div></div><input class="inp" type="number" id="sAvailHrs" min="1" max="24" step="0.5" value="${+(S.settings.availableHoursPerDay||8)}" style="width:80px"></div>
+      <div class="opt"><div><b>Day start time</b><div class="d">When the rough schedule in Plan Tomorrow begins. Used to project task times in order.</div></div><input class="inp" type="time" id="sDayStart" value="${esc(S.settings.dayStartTime||'09:00')}" style="width:110px"></div>
+    </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
         <div class="d">A day ends when you go to sleep, not at midnight. Before this hour the site is still on yesterday — so a bedtime logged at half past one belongs to the day you have been living, and the sleep chart draws it at the end of that day rather than the start of the next.</div></div>
@@ -142,7 +146,9 @@ routes.settings = function(root){
     st.textContent = 'checking…';
     try { const r = await askClaude('Reply with exactly: ok', 'ping', {maxTokens:10}); st.textContent = r ? 'Connected. Claude answered.' : 'Connected, but the answer was empty.'; sound('success'); }
     catch(e){ st.textContent = e.message; sound('error'); }
-  };  $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
+  };  if($('#sAvailHrs')) $('#sAvailHrs').onchange = function(){ S.settings.availableHoursPerDay = +this.value||8; saveNow(); };
+  if($('#sDayStart')) $('#sDayStart').onchange = function(){ S.settings.dayStartTime = this.value||'09:00'; saveNow(); };
+  $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
   /* the clock */

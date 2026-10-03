@@ -623,6 +623,27 @@ function planMyDay(d = today()){
   const yTasks = typeof tasksInPeriod === 'function' ? tasksInPeriod(yest, yest) : {rows:[],done:[],open:[]};
   const m = openModal('', 'wide');
   const STEPS = 5;
+  const fmtHrs = h => h<=0?'0m':h<1?`${Math.round(h*60)}m`:h%1===0?`${h}h`:`${Math.floor(h)}h ${Math.round((h%1)*60)}m`;
+  const updateCapBar = () => {
+    const bar = m.querySelector('#pmCapBar'); if(!bar) return;
+    const avail = +(S.settings&&S.settings.availableHoursPerDay)||8;
+    let committed = 0;
+    chosen.forEach(id => { const r=findTaskRef(id); if(r) committed+=+(r.task.est||0); });
+    pool.filter(onDay).forEach(r => { if(!chosen.has(r.id)) committed+=+(r.task.est||0); });
+    const pct = clamp(committed/avail*100,0,100);
+    bar.innerHTML = `<span class="mono">Committed: ${fmtHrs(committed)}</span><span class="cap-bar" style="flex:1"><i style="width:${pct.toFixed(1)}%"></i></span><span class="mono faint">of ${avail}h</span>`;
+  };
+  const schedPreviewHTML = () => {
+    if(!chosen.size) return '';
+    const [sh,sm] = ((S.settings&&S.settings.dayStartTime)||'09:00').split(':').map(Number);
+    let cur = sh*60+(sm||0);
+    const rows = [...chosen].map(id => { const r=findTaskRef(id); if(!r) return null;
+      const h=+(r.task.est||0), ts=`${String(Math.floor(cur/60)).padStart(2,'0')}:${String(cur%60).padStart(2,'0')}`;
+      cur+=Math.round(h*60);
+      return `<div class="sched-row"><span class="mono sched-t">${ts}</span><span>${esc(r.text)}</span>${h?`<span class="mono faint"> · ${fmtHrs(h)}</span>`:''}</div>`;
+    }).filter(Boolean);
+    return rows.length?`<div class="plan-sched"><div class="sc" style="margin-bottom:8px">Rough schedule for ${esc(dayWord)}</div>${rows.join('')}</div>`:'';
+  };
   const draw = () => {
     const body = [
       `<h2>What is ${dayWord} for?</h2><p class="muted" style="font-size:.88rem">One sentence, before the list. A day with three tasks and no reason is still a day you will drift through.</p>
@@ -640,18 +661,14 @@ function planMyDay(d = today()){
           stage ? 'The stage this day is in, and the work you gave it when you planned the week' : 'The work you chose when you planned the week'}. Tick what belongs to ${dayWord}.</p>
         ${weekPickHTML()}` : '<h2>Anything waiting?</h2>'}${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">${
         fromWeek ? 'And anything else with no day on it' : 'Everything with no day on it'}, under the list it lives in. Tick what belongs to ${dayWord}; the rest keeps waiting without nagging.</p>
+       <div id="pmCapBar" class="plan-cap-live"></div>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
-         ${g.rows.map(r=>`<div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><!--
-           Half of what is in this pile on any given night is not a decision
-           waiting to be made \u2014 it is something already done, or something you
-           have quietly stopped intending to do, and both of them are asking
-           the same question every night forever. So it can be thrown away
-           from here, where you are actually looking at it.
-        --><button class="tbtn inline" data-pickdone="${esc(r.id)}" title="mark as done \u2014 it happened">\u2713</button><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div>`).join('')}
+         ${g.rows.map(r=>`<div class="pick-row-wrap"><div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><button class="tbtn inline" data-pickdone="${esc(r.id)}" title="mark as done \u2014 it happened">\u2713</button><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div><div class="pick-time-chips">${[0.25,0.5,1,2].map(v=>`<button class="chip sm pick-chip ${+(r.task.est||0)===v?'on':''}" data-estchip="${esc(r.id)}" data-estval="${v}">${v<1?v*60|0+'m':v+'h'}</button>`).join('')}</div></div>`).join('')}
          ${g.key.startsWith('list:') ? `<div class="wp-tadd" style="margin-top:6px"><input class="inp" data-pickadd="${esc(g.key.slice(5))}" placeholder="Write a new task for ${esc(g.label)} and press Enter \u2014 ~15m sets a duration"></div>` : ''}
        </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
+       ${schedPreviewHTML()}
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h => {
          const isProgress = !!h.progressHabit;
          const intent = p.habitIntentions?.[h.id] || '';
@@ -671,7 +688,12 @@ function planMyDay(d = today()){
       <span class="row">${step?'<button class="btn sm ghost" id="pmBack">back</button>':''}<button class="btn primary" id="pmNext">${step===STEPS-1?(ahead?'Ready for '+dayWord:'Start the day'):'Next'}</button></span></div>`;
     m.querySelector('.close').onclick = () => m.remove();
     m.querySelectorAll('[data-int]').forEach(i => i.onchange = () => p.intentions[+i.dataset.int] = i.value.trim());
-    m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); });
+    m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); updateCapBar(); });
+    m.querySelectorAll('[data-estchip]').forEach(b => b.onclick = () => {
+      const r = findTaskRef(b.dataset.estchip); if(r) r.task.est = +b.dataset.estval;
+      b.closest('.pick-time-chips').querySelectorAll('[data-estchip]').forEach(x => x.classList.toggle('on', +x.dataset.estval === +b.dataset.estval));
+      updateCapBar();
+    });
     /* thrown away from the pile, and from everywhere: the whole point is
        that it stops being a question. Undoable, like every other delete
        in the house, until the little bar goes away. */
@@ -682,7 +704,7 @@ function planMyDay(d = today()){
       /* the same delete the task rows use everywhere else, so a project step
          goes from its phase and a loose task from the list, and both come
          back if the little bar is pressed */
-      deleteTaskRef(id, b.closest('.pick-row'));
+      deleteTaskRef(id, b.closest('.pick-row-wrap') || b.closest('.pick-row'));
     });
     /* mark a waiting task as already done so it stops being offered */
     m.querySelectorAll('[data-pickdone]').forEach(b => b.onclick = ev => {
@@ -690,7 +712,8 @@ function planMyDay(d = today()){
       const id = b.dataset.pickdone;
       chosen.delete(id);
       setTaskDone(id, true);
-      b.closest('.pick-row').remove();
+      (b.closest('.pick-row-wrap') || b.closest('.pick-row')).remove();
+      updateCapBar();
     });
     /* add a new task to a list from inside the step and have it ready to tick */
     m.querySelectorAll('[data-pickadd]').forEach(inp => {
@@ -734,6 +757,7 @@ function planMyDay(d = today()){
       if(hit) S._planSel = {kind:'list', id: hit.list.id};
       S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
       m.remove(); navigate('#/planning'); });
+    if(step === 2) updateCapBar();
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {
       if(step === 0) m.querySelectorAll('[data-int]').forEach(i => p.intentions[+i.dataset.int] = i.value.trim());
