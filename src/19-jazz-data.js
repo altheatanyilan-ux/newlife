@@ -200,6 +200,7 @@ function jazzBook(){
         acc: JAZZ_ACCURACY[e.noteAccuracy] ? e.noteAccuracy : 'verified',
         multiExample: !!e.multiExample,
         generatorType: e.generatorType || '',
+        substage: e.substage || '',
         /* and where to go and look it up: the book, the unit, the pages the
            notation is actually on, and what to look for when you get there */
         ref: (typeof jazzReference === 'function' ? jazzReference(id) : null)
@@ -254,6 +255,8 @@ const jazzAccuracy = ex => JAZZ_ACCURACY[(ex && ex.acc) || 'verified'] || JAZZ_A
 const jazzTrusted = ex => !ex || jazzAccuracy(ex).tone === 'ok';
 
 const jazzExercise = id => jazzBook()[id] || null;
+/* substage grouping: exercises that share a substage belong together visually */
+const jazzSubGroup = id => { const ex = jazzExercise(id); return (ex && ex.substage) || ''; };
 /* what P0's own file says about the stage it is, which none of the others carry */
 const jazzP0Info = () => { try { return STAGE_P0_CATALOG._stageInfo || {}; } catch(e){ return {}; } };
 

@@ -1738,6 +1738,17 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-sbar > i{display:block;height:100%;background:var(--page-accent);
   transition:width .5s var(--ease)}
 .jz-subs{display:flex;flex-direction:column;gap:3px;margin-top:9px}
+.jz-subs-grouped{gap:0}
+.jz-group{border:none;margin:0}
+.jz-group+.jz-group{margin-top:6px}
+.jz-gsummary{display:flex;align-items:center;gap:8px;padding:5px 6px;cursor:pointer;
+  border-radius:7px;list-style:none;user-select:none}
+.jz-gsummary::-webkit-details-marker{display:none}
+.jz-gsummary::marker{display:none}
+.jz-gsummary:hover{background:color-mix(in srgb,var(--page-accent) 4%,transparent)}
+.jz-gname{font-size:.7rem;color:var(--faint);letter-spacing:.06em}
+.jz-gcnt{font-size:.65rem;color:var(--faint);margin-left:auto}
+.jz-glist{display:flex;flex-direction:column;gap:3px;padding-left:4px;padding-top:3px}
 .jz-sub{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
   width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:9px;
   padding:6px 9px;cursor:pointer;color:inherit;font:inherit;

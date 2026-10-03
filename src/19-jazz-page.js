@@ -307,23 +307,42 @@ function jazzStageHTML(s, here){
         <span class="grow"></span>
         <span class="jz-sortpick">${[['tier', 'by tier'], ['doc', 'curriculum order']].map(([k, l]) =>
           `<button class="tbtn${sortMode === k ? ' on' : ''}" data-jzsort="${esc(s.id)}" data-v="${k}">${l}</button>`).join('')}</span></div>
-      <div class="jz-subs">${rowIds.map(id => {
-      const ex = jazzExercise(id); if(!ex) return '';
-      const single = jazzIsSingle(id);
-      const r = jazzRecord(id);
-      return `<button class="jz-sub${ex.isV3 ? ' jz-subv3' : ''}" data-jzopen="${esc(id)}">
-        <span class="jz-subn mono">${esc(jazzV3Label(ex))}</span>
-        <span class="jz-subt">${jazzV3TypePill(ex, true)} ${jazzTierBadgeHTML(id, true)} ${esc(ex.name)}${
-          jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
-          jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
-            esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}${
-          jazzEdited(id) ? '<span class="jz-editpill mono" title="you have edited this score">✏️ edited</span>' : ''}${
-          jazzV3ConflictPillHTML(id)}</span>
-        ${single ? `<span class="jz-keys jz-one"><i class="${r.done ? 'on' : ''}" title="${r.done ? 'done' : 'not yet'}"></i></span>
-          <span class="mono jz-subc">${r.done ? 'done' : 'read'}</span>`
-        : `<span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
-          `<i class="${r.keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
-        <span class="mono jz-subc">${jazzKeysGot(id)}/12</span>`}</button>`; }).join('')}</div>
+      ${(() => {
+        const renderRow = id => {
+          const ex = jazzExercise(id); if(!ex) return '';
+          const single = jazzIsSingle(id); const r = jazzRecord(id);
+          return `<button class="jz-sub${ex.isV3 ? ' jz-subv3' : ''}" data-jzopen="${esc(id)}">
+            <span class="jz-subn mono">${esc(jazzV3Label(ex))}</span>
+            <span class="jz-subt">${jazzV3TypePill(ex, true)} ${jazzTierBadgeHTML(id, true)} ${esc(ex.name)}${
+              jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
+              jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
+                esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}${
+              jazzEdited(id) ? '<span class="jz-editpill mono" title="you have edited this score">✏️ edited</span>' : ''}${
+              jazzV3ConflictPillHTML(id)}</span>
+            ${single ? `<span class="jz-keys jz-one"><i class="${r.done ? 'on' : ''}" title="${r.done ? 'done' : 'not yet'}"></i></span>
+              <span class="mono jz-subc">${r.done ? 'done' : 'read'}</span>`
+            : `<span class="jz-keys">${JAZZ_KEY_NAMES.map(k =>
+              `<i class="${r.keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
+            <span class="mono jz-subc">${jazzKeysGot(id)}/12</span>`}</button>`;
+        };
+        /* group by substage when multiple distinct groups exist */
+        const groups = []; const seen = new Map();
+        rowIds.forEach(id => {
+          const g = jazzSubGroup(id);
+          if(!seen.has(g)){ seen.set(g, []); groups.push(g); }
+          seen.get(g).push(id);
+        });
+        if(groups.length <= 1)
+          return `<div class="jz-subs">${rowIds.map(renderRow).join('')}</div>`;
+        return `<div class="jz-subs jz-subs-grouped">${groups.map(g => {
+          const ids = seen.get(g); const n = ids.length;
+          const done = ids.filter(id => { const r = jazzRecord(id); return jazzIsSingle(id) ? r.done : jazzKeysGot(id) >= 12; }).length;
+          return `<details class="jz-group" open>
+            <summary class="jz-gsummary"><span class="jz-gname mono">${esc(g || 'Other')}</span><span class="jz-gcnt mono">${done}/${n}</span></summary>
+            <div class="jz-glist">${ids.map(renderRow).join('')}</div>
+          </details>`;
+        }).join('')}</div>`;
+      })()}
       <details class="jz-why"><summary><span class="mono">why this stage</span></summary>
         ${jazzV3OutcomeHTML(s)}
         ${jazzV3ParasHTML(s.theory, 'serif')}
