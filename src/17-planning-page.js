@@ -59,15 +59,29 @@ function planSetView(v){ S._planView = v; planState().prefs.view = v; saveNow();
 function planSidebarHTML(){
   const p = planState(), sel = planSel();
   const on = (k, i) => sel.kind === k && sel.id === i ? ' on' : '';
-  const listRow = l => `<button class="pl-item${on('list', l.id)}" data-plsel="list:${l.id}" draggable="true" data-pldrag="${l.id}"
-      title="${esc(l.name)}${planListCount(l.id) ? ` · ${planListCount(l.id)} open` : ''}">
-    <span class="pl-dot" style="background:${esc(l.color)}"></span><span class="pl-name">${esc(l.name)}</span>
+  const listTypeIcon = l => l.listType === 'project' ? '◆ ' : l.listType === 'skill' ? '❧ ' : '';
+  const listCommitTip = l => {
+    const parts = [l.name];
+    if(planListCount(l.id)) parts.push(`${planListCount(l.id)} open`);
+    if(l.targetHoursPerWeek) parts.push(`~${l.targetHoursPerWeek}h/wk${l.targetWeeks ? ` · ${l.targetWeeks} wk` : ''}`);
+    if(l.description) parts.push(l.description.slice(0, 80));
+    if(planListAllMilestonesPrepared(l)) parts.push('all milestones on track');
+    return parts.join(' · ');
+  };
+  const listRow = l => {
+    const allPrep = planListAllMilestonesPrepared(l);
+    return `<button class="pl-item${on('list', l.id)}${l.priority === 'high' ? ' pl-high' : ''}${allPrep ? ' pl-prepared' : ''}" data-plsel="list:${l.id}" draggable="true" data-pldrag="${l.id}"
+      title="${esc(listCommitTip(l))}">
+    <span class="pl-dot" style="background:${esc(l.color)}"></span><span class="pl-name">${esc(listTypeIcon(l))}${esc(l.name)}</span>
     <span class="pl-n mono">${planListCount(l.id) || ''}</span></button>`;
+  };
   /* The Inbox is not one list among the lists. It is the place a task goes
      when you have not said where it goes, so it belongs on the line that puts
      things there — up beside the box you type into — not filed in the middle
      of the column of the lists you made on purpose. */
-  const loose = planLists().filter(l => !l.folderId && l.id !== 'inbox');
+  const allLists = planLists().filter(l => !l.folderId && l.id !== 'inbox');
+  const loose = allLists.filter(l => planListActive(l));
+  const future = allLists.filter(l => !planListActive(l));
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
     <button class="pl-collapse" id="plCollapse" title="${p.prefs.sidebarCollapsed ? 'show the sidebar' : 'collapse the sidebar'}">${p.prefs.sidebarCollapsed ? '›' : '‹'}</button>
     <div class="pl-scroll">
@@ -98,7 +112,7 @@ function planSidebarHTML(){
       <div class="pl-head"><span>Lists</span><button class="pl-mini" id="plNewList" title="new list">＋</button></div>
       <div class="pl-group" id="plLists">
         ${p.folders.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map(f => {
-          const kids = planLists().filter(l => l.folderId === f.id);
+          const kids = planLists().filter(l => l.folderId === f.id && planListActive(l));
           return `<div class="pl-folder${f.isCollapsed ? ' shut' : ''}" data-plfolder="${f.id}">
             <div class="pl-frow" draggable="true" data-plfdrag="${f.id}">
               <!-- the arrow folds, the name selects: a folder is a place to
@@ -115,6 +129,9 @@ function planSidebarHTML(){
             <div class="pl-fkids">${kids.map(listRow).join('') || '<div class="pl-empty mono">drop a list here</div>'}</div></div>`;
         }).join('')}
         ${loose.map(listRow).join('')}
+        ${future.length ? `<div class="pl-future${future.some(l => l === planList(planSel().id)) ? ' has-sel' : ''}" id="plFuture">
+          <button class="pl-future-toggle" id="plFutureToggle" title="lists not yet active">${S._planFutureOpen ? '▾' : '▸'} Future <span class="mono faint">${future.length}</span></button>
+          ${S._planFutureOpen ? `<div class="pl-fkids">${future.map(l => `${listRow(l)}<span class="pl-future-date mono faint" style="font-size:.72rem;padding-left:24px">from ${esc(l.activeFrom)}</span>`).join('')}</div>` : ''}</div>` : ''}
       </div>
       <button class="pl-mini-row" id="plNewFolder">＋ folder</button>
 
