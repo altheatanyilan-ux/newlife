@@ -296,8 +296,12 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
   /* the name in full, and its distance after it, for the compact strip */
   const oneLine = (name, away) => `<span class="pl-msone"><span class="pl-mslabel">${esc(name)}</span>${
     away ? ` <span class="pl-msaway mono">${esc(away)}</span>` : ''}</span>`;
+  const prepBands = items.filter(({m}) => m.prepFrom && !m.done && m.date && m.prepFrom < m.date)
+    .map(({m, list}) => { const lo = clamp(at(m.prepFrom), 0, 100), hi = clamp(at(m.date), 0, 100);
+      return `<div class="pl-ms-prep" style="left:${lo}%;width:${hi - lo}%;--c:${esc(list.color)}" title="Prep window for ${esc(m.name)}"></div>`; }).join('');
   return `<div class="pl-msline${compact ? ' compact' : ''}" role="list" style="--up:${upT};--down:${downT}">
       <div class="pl-msaxis">${ticks.map(d => `<span class="pl-mstick" style="left:${at(d)}%">${esc(fmtDate(d, 'short'))}</span>`).join('')}</div>
+      ${prepBands}
       <div class="pl-msrail"></div>
       <div class="pl-msnow" style="left:${at(T)}%"><span class="mono">today</span></div>
       ${laid.map(({m, list, left, lane, go}) => { const late = !m.done && m.date && m.date < T;
@@ -390,9 +394,9 @@ function bindPlanMilestones(root, sel){
   });
 }
 /* Every date this list or folder is running towards, in one place, where each
-   one can be renamed, re-dated, marked met or taken away. Deliberately plain:
-   this is the room you come to when a milestone is wrong or over, and the
-   answer to both is usually one press. */
+   one can be renamed, re-dated, marked on track or taken away. Deliberately
+   plain: this is the room you come to when a milestone is wrong or over, and
+   the answer to both is usually one press. */
 function openPlanMilestoneManager(sel){
   const draw = () => {
     const items = planMilestonesFor(sel);
@@ -403,7 +407,7 @@ function openPlanMilestoneManager(sel){
       const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
       return `<div class="ms-mrow${m.done ? ' done' : ''}${late ? ' late' : ''}" data-msrow="${esc(m.id)}" style="--c:${esc(list.color)}">
         <button class="task-check sm${m.done ? ' on' : ''}" data-msmet="${esc(m.id)}" role="checkbox"
-          aria-checked="${!!m.done}" title="${m.done ? 'not met after all' : 'this one has been met'}">${m.done ? '✓' : ''}</button>
+          aria-checked="${!!m.done}" title="${m.done ? 'not on track after all' : 'mark as on track / prepared'}">${m.done ? '✓' : ''}</button>
         <input class="inp ms-mname" data-msname="${esc(m.id)}" value="${esc(m.name)}" placeholder="What it is">
         <div class="dp-field ms-mdate"><input class="inp mono" id="msmd-${esc(m.id)}" data-msdate="${esc(m.id)}" data-dp
           value="${esc(m.date || '')}" placeholder="no date">${dpButtonHTML('msmd-' + m.id)}</div>
@@ -418,7 +422,7 @@ function openPlanMilestoneManager(sel){
   };
   const host = planMilestoneList(sel);
   const mo = openModal(`<h2>The dates this is running towards</h2>
-    <p class="muted" style="font-size:.85rem">Rename one, move it, mark it met, or take it away. Nothing here touches the tasks under it — a date removed leaves its work exactly where it was.</p>
+    <p class="muted" style="font-size:.85rem">Rename one, move it, mark it on track, or take it away. Nothing here touches the tasks under it — a date removed leaves its work exactly where it was.</p>
     <div id="msMgBody">${draw()}</div>
     <div class="row between" style="margin-top:12px">
       ${host ? `<button class="btn sm ghost" id="msMgAdd">＋ another date</button>` : '<span></span>'}
@@ -436,7 +440,9 @@ function openPlanMilestoneManager(sel){
       hit.m.date = i.value.trim(); saveNow(); refresh(); });
     mo.querySelectorAll('[data-msmet]').forEach(b => b.onclick = () => {
       const hit = planFindMilestone(b.dataset.msmet); if(!hit) return;
-      hit.m.done = !hit.m.done; saveNow(); sound('click'); refresh(); });
+      const wasUndone = !hit.m.done;
+      hit.m.done = !hit.m.done; saveNow(); sound('click'); refresh();
+      if(wasUndone && hit.m.done) setTimeout(() => openMilestoneCelebration(hit.m, hit.list), 100); });
     mo.querySelectorAll('[data-msopen]').forEach(b => b.onclick = () => {
       const id = b.dataset.msopen; mo.remove(); openPlanMilestone(id); });
     /* removal goes through requestDelete like everything else, so it can be
@@ -461,6 +467,8 @@ function openPlanMilestone(id){
     <div class="stack">
       <div class="field"><label>What it is</label><input class="inp serif-lg" id="msName" value="${esc(m.name)}" placeholder="Ship it · the hearing · deposit due"></div>
       <div class="field"><label>When</label><div class="dp-field"><input class="inp mono" id="msDate" data-dp value="${esc(m.date || '')}" placeholder="${esc(today())}">${dpButtonHTML('msDate')}</div></div>
+      <div class="field"><label>Start preparing from</label><div class="dp-field"><input class="inp mono" id="msPrepFrom" data-dp value="${esc(m.prepFrom || '')}" placeholder="optional — when to begin">${dpButtonHTML('msPrepFrom')}</div>
+        <div class="faint" style="font-size:.74rem;margin-top:2px">Shows a prep window on the timeline. Leave blank if you start right away.</div></div>
       <div class="field"><label>Anything to remember about it</label><textarea class="ta" id="msNote" style="min-height:60px" placeholder="optional">${esc(m.note || '')}</textarea></div>
       <!-- A date is only as real as the work under it, so opening one shows
            that work rather than asking you to go and look for it. -->
@@ -479,11 +487,12 @@ function openPlanMilestone(id){
           : `<div class="empty" style="margin:0">Nothing points at this date yet. Open a task and name this milestone on it, or press the date on the strip to work with only its tasks.</div>`}
           ${ts.length ? `<button class="btn sm ghost" id="msOnly" style="margin-top:8px">show only its work →</button>` : ''}
         </div>`; })()}
-      <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>this one has been met</span></label>
+      <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>on track / prepared</span></label>
       <div class="row between"><button class="btn sm ghost danger" id="msDel">remove</button>
         <button class="btn primary" id="msSave">Save</button></div>
     </div>`, 'narrow');
   let done = !!m.done;
+  const wasDoneOnOpen = done;
   mo.querySelector('#msDone').onclick = function(){ done = !done; this.classList.toggle('on', done); };
   /* ticking a task off from here is the same act as ticking it in the list */
   mo.querySelectorAll('[data-mstick]').forEach(b => b.onclick = () => {
@@ -494,14 +503,37 @@ function openPlanMilestone(id){
     S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: m.id});
     mo.remove(); sound('click'); rerender(); };
   mo.querySelector('#msSave').onclick = () => {
+    const nowDone = done;
     m.name = mo.querySelector('#msName').value.trim() || 'A date that matters';
     m.date = mo.querySelector('#msDate').value.trim();
+    m.prepFrom = mo.querySelector('#msPrepFrom').value.trim() || null;
     m.note = mo.querySelector('#msNote').value.trim();
-    m.done = done;
+    m.done = nowDone;
     saveNow(); mo.remove(); sound('success'); rerender();
+    if(!wasDoneOnOpen && nowDone) setTimeout(() => openMilestoneCelebration(m, list), 100);
   };
   mo.querySelector('#msDel').onclick = () => { mo.remove();
     requestDelete({label: m.name || 'Milestone', after: rerender, remove: () => planDeleteMilestone(m.id)}); };
+}
+function openMilestoneCelebration(m, list){
+  const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+  const win = m.winNote || '';
+  const mo = openModal(`<div class="ms-celeb">
+    <div class="ms-celeb-star">✦</div>
+    <h2>On track</h2>
+    <p class="muted" style="font-size:.9rem">In <strong>${esc(list.name)}</strong></p>
+    <p class="serif-lg" style="margin:12px 0 4px">${esc(m.name)}</p>
+    ${prog.total ? `<p class="mono faint" style="font-size:.8rem">${prog.done} of ${prog.total} tasks done</p>` : ''}
+    <div class="field" style="margin-top:16px"><label>Record a win note</label>
+      <textarea class="ta" id="msCelebNote" rows="3" placeholder="What made it possible, what you learned…">${esc(win)}</textarea></div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="btn primary" id="msCelebSave">Save note &amp; close</button></div>
+  </div>`, 'narrow');
+  if(typeof sound === 'function') sound('success');
+  mo.querySelector('#msCelebSave').onclick = () => {
+    m.winNote = mo.querySelector('#msCelebNote').value.trim();
+    saveNow(); mo.remove();
+  };
 }
 
 /* ---------- the header over the workspace ---------- */

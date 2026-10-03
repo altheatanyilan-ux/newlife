@@ -188,6 +188,10 @@ function planState(){
     if(l.description === undefined) l.description = '';
     if(l.targetHoursPerWeek === undefined) l.targetHoursPerWeek = null;
     if(l.targetWeeks === undefined) l.targetWeeks = null;
+    l.milestones.forEach(m => {
+      if(m.prepFrom === undefined) m.prepFrom = null;
+      if(m.winNote === undefined) m.winNote = '';
+    });
   });
   return p;
 }
@@ -526,7 +530,7 @@ function planAddMilestone(listId, {name = '', date = ''} = {}){
   const l = planList(listId); if(!l) return null;
   if(!Array.isArray(l.milestones)) l.milestones = [];
   const m = {id: uid(), name: name || 'A date that matters', date: date || addDays(today(), 14),
-    done: false, note: '', createdAt: new Date().toISOString()};
+    done: false, note: '', prepFrom: null, winNote: '', createdAt: new Date().toISOString()};
   l.milestones.push(m); saveNow(); return m;
 }
 /* every task pointing at one milestone, in the order the list shows them */

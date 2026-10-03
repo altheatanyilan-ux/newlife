@@ -588,6 +588,43 @@ function planStatsHTML(){
       ${heatGrid(lastDays(91), 13, d => { const m = fOn(d); return m >= 120 ? 'l3' : m >= 50 ? 'l2' : m > 0 ? 'l1' : ''; }, 'heat ph-heatgrid')}
     </div>
 
+    ${(() => {
+      const allMs = planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
+      if(!allMs.length) return '';
+      const T = today();
+      const thisMonth = T.slice(0, 7);
+      const lastMonthStart = addDays(T, -30).slice(0, 7);
+      const prepThisMonth = allMs.filter(({m}) => m.done && m.doneAt && m.doneAt.slice(0, 7) === thisMonth).length ||
+        allMs.filter(({m}) => m.done && m.date && m.date.slice(0, 7) === thisMonth).length;
+      const prepLastMonth = allMs.filter(({m}) => m.done && m.date && m.date.slice(0, 7) === lastMonthStart).length;
+      const listMs = planLists().map(l => {
+        const ms = planListMilestones(l);
+        if(!ms.length) return null;
+        const prepared = ms.filter(m => m.done).length;
+        const late = ms.filter(m => !m.done && m.date && m.date < T).length;
+        return {l, ms, prepared, late};
+      }).filter(Boolean);
+      return `<div class="ps-sec"><span class="sc">Milestones</span>
+        <div class="ps-row" style="margin-bottom:10px">
+          <div class="ps-tile"><div class="k mono">on track this month</div><div class="ps-n serif">${prepThisMonth}</div>
+            <div class="sub">vs ${prepLastMonth} last month</div></div>
+          <div class="ps-tile"><div class="k mono">open ahead</div><div class="ps-n serif">${allMs.filter(({m}) => !m.done).length}</div>
+            <div class="sub">${allMs.filter(({m}) => !m.done && m.date && m.date < T).length} overdue · ${allMs.filter(({m}) => m.done).length} prepared</div></div>
+        </div>
+        ${listMs.map(({l, ms, prepared, late}) => {
+          const dots = ms.map(m => {
+            const cls = m.done ? 'done' : (m.date && m.date < T ? 'late' : (m.date && m.date <= addDays(T, 14) ? 'near' : ''));
+            return `<span class="ps-msdot ${cls}" title="${esc(m.name)}${m.date ? ' · ' + esc(planWhenAway ? planWhenAway(m.date) : m.date) : ''}" style="--c:${esc(l.color)}"></span>`;
+          }).join('');
+          const tasksPerMs = ms.map(m => { const p = planMilestoneProgress(m.id); return p.total; });
+          const avgTasks = tasksPerMs.length ? (tasksPerMs.reduce((a, b) => a + b, 0) / tasksPerMs.length).toFixed(1) : '0';
+          return `<div class="ps-ms-row"><span class="ps-ms-name" style="--c:${esc(l.color)}">${esc(l.name)}</span>
+            <span class="ps-ms-dots">${dots}</span>
+            <span class="mono faint" style="font-size:.72rem">${prepared}/${ms.length} on track${late ? ` · ${late} overdue` : ''} · avg ${avgTasks} tasks</span></div>`;
+        }).join('')}
+      </div>`;
+    })()}
+
     <div class="ps-three">
       <div><span class="sc">By priority</span>${bars(byPrio)}</div>
       <div><span class="sc">By list</span>${bars(byList)}</div>
