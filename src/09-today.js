@@ -241,6 +241,57 @@ function askClock(title, value, onSet){
   m.querySelector('#clkNow').onclick = () => { m.querySelector('#clkV').value = nowHM(); go(); };
   m.querySelector('#clkV').onkeydown = e => { if(e.key === 'Enter') go(); };
 }
+/* ---------- sleep + tracking auto-prompts ---------- */
+function todayAutoPromptsHTML(box, T, c){
+  const view = todayView();
+  if(view !== 'do'){ box.innerHTML = ''; return; }
+  const banners = [];
+
+  /* sleep wind-down banner */
+  const sleepAt = (S.settings && S.settings.sleepPromptAt) || '22:00';
+  const nowStr = nowHM();
+  const eveningDone = !!(c && c.eveningFlowAt);
+  if(!eveningDone && sleepAt && nowStr >= sleepAt && !box.dataset.sleepDismissed){
+    banners.push(`<div class="tap-banner sleep-banner" id="tapSleepBanner">
+      <span>Time to wind down. Evening flow →</span>
+      <div class="tap-actions">
+        <button class="btn sm ghost" id="tapSleepDo">Start evening flow</button>
+        <button class="tbtn tap-x" id="tapSleepX">×</button></div></div>`);
+  }
+
+  /* tracking idle nudge */
+  const nudgeMins = S.settings && S.settings.trackingNudgeMinutes != null
+    ? +S.settings.trackingNudgeMinutes : 45;
+  if(nudgeMins > 0 && !document.hidden && !box.dataset.trackDismissed){
+    const timerRunning = typeof FocusTimer !== 'undefined' && FocusTimer.state().running;
+    if(!timerRunning){
+      const sessions = typeof focusSessions === 'function' ? focusSessions() : [];
+      const lastEnd = sessions.filter(s => s.endedAt).map(s => s.endedAt).sort().pop();
+      const minsAgo = lastEnd ? Math.round((Date.now() - new Date(lastEnd).getTime()) / 60000) : Infinity;
+      if(minsAgo >= nudgeMins){
+        banners.push(`<div class="tap-banner track-banner" id="tapTrackBanner">
+          <span>Nothing being tracked. Start a sitting? →</span>
+          <div class="tap-actions">
+            <button class="btn sm ghost" id="tapTrackDo">Start sitting</button>
+            <button class="tbtn tap-x" id="tapTrackX">×</button></div></div>`);
+      }
+    }
+  }
+
+  box.innerHTML = banners.join('');
+
+  /* bind */
+  const sleepBtn = box.querySelector('#tapSleepDo');
+  if(sleepBtn) sleepBtn.onclick = () => { if(typeof flowEvening === 'function') flowEvening(); };
+  const sleepX = box.querySelector('#tapSleepX');
+  if(sleepX) sleepX.onclick = () => { box.dataset.sleepDismissed = '1'; box.querySelector('#tapSleepBanner')?.remove(); };
+
+  const trackBtn = box.querySelector('#tapTrackDo');
+  if(trackBtn) trackBtn.onclick = () => { navigate('#/today/time'); };
+  const trackX = box.querySelector('#tapTrackX');
+  if(trackX) trackX.onclick = () => { box.dataset.trackDismissed = '1'; box.querySelector('#tapTrackBanner')?.remove(); };
+}
+
 routes.today = function(root, params = []){
   /* an address naming a view (#/today/tasks) opens it, and it is remembered */
   if(params[0] && TODAY_VIEWS.includes(params[0]) && S.settings.todayView !== params[0]){
@@ -826,6 +877,15 @@ routes.today = function(root, params = []){
     if(sp) lines.push(String(sp).toLowerCase());
     if(typeof Kinetic !== 'undefined') Kinetic.cycle('#todayCycle', lines, 6000);
   }
+
+  /* sleep + tracking auto-prompts */
+  const _apBox = document.createElement('div');
+  _apBox.id = 'todayAutoPrompts'; _apBox.className = 'today-ap';
+  const _apAnchor = root.querySelector('.today-bar');
+  if(_apAnchor) _apAnchor.insertAdjacentElement('afterend', _apBox);
+  const _refreshAP = () => { if(!document.contains(_apBox)) return; todayAutoPromptsHTML(_apBox, T, c); };
+  _refreshAP();
+  const _apIv = setInterval(() => { if(!document.contains(_apBox)) { clearInterval(_apIv); return; } _refreshAP(); }, 60000);
 
   reveal(root);
 };

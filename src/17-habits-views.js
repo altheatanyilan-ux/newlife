@@ -72,6 +72,7 @@ function habDashboardHTML(){
       ${cats.map(c => `<button class="chip click${f.cat === c ? ' on' : ''}" data-hbf="cat:${c}">${esc(c)}</button>`).join('')}
       ${(f.type !== 'all' || f.cat || f.value) ? '<button class="tbtn" data-hbf="clear:">clear</button>' : ''}
     </div>
+    ${cats.length ? `<div class="hb-area-links">${cats.map(c => `<a class="hb-area-link mono" href="#/habit-area/${esc(c)}">Open ${esc(c)} area →</a>`).join('')}</div>` : ''}
     ${hs.length ? `<div class="hb-grid">${hs.map(habCardHTML).join('')}</div>`
       : `<div class="empty">Nothing here yet. ${habList().length ? 'Nothing matches those filters.' : 'A habit is a ritual, not a rule — start with one you could keep on your worst day.'}</div>`}
     ${habRetiredHTML()}
