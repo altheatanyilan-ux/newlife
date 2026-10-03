@@ -104,6 +104,7 @@ function pieceContent(e){
   c.order     = c.order == null ? Date.now() : c.order;
   c.raw       = c.raw || '';                       // a seed's raw thought
   c.focusMinutes = +c.focusMinutes || 0;           // time the Planning timer logged against it
+  c.accountId = c.accountId || '';
   return c;
 }
 function contentPieces(){ return (S.entries || []).filter(e => e.type === 'writing').map(e => { pieceContent(e); return e; }); }

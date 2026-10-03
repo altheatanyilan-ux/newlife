@@ -50,6 +50,11 @@ function pieceDetailHTML(e){
         ${CONTENT_TYPES.map(([k, n]) => `<option value="${k}" ${c.type === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <label class="pd-q"><span class="k">where it goes</span><select class="sel" id="pcDest">
         ${CONTENT_DESTS.map(([k, n]) => `<option value="${k}" ${c.dest === k ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+      ${(() => { const accs = typeof brandState === 'function' ? (brandState().accounts || []) : [];
+        return accs.length ? `<label class="pd-q"><span class="k">brand account</span><select class="sel" id="pcAccount">
+          <option value="">no account</option>${accs.map(a =>
+            `<option value="${esc(a.id)}" ${c.accountId === a.id ? 'selected' : ''}>${esc(a.name)}${a.handle ? ' · ' + esc(a.handle) : ''}</option>`).join('')}
+        </select></label>` : ''; })()}
       <label class="pd-q"><span class="k">planned for</span><input type="date" class="inp" id="pcSched" value="${esc(c.scheduled)}"></label>
       <label class="pd-q"><span class="k">words wanted</span><input class="inp mono" id="pcTarget" value="${t || ''}" placeholder="—"></label>
     </div>
@@ -168,6 +173,7 @@ function bindPieceDetail(p, e){
   p.querySelector('#pcPin').onclick = () => { c.pinned = !c.pinned; touch(); pieceRedraw(e); };
   p.querySelector('#pcType').onchange = function(){ c.type = this.value; touch(); };
   p.querySelector('#pcDest').onchange = function(){ c.dest = this.value; touch(); };
+  const acSel = p.querySelector('#pcAccount'); if(acSel) acSel.onchange = function(){ c.accountId = this.value; touch(); };
   p.querySelector('#pcSched').onchange = function(){ c.scheduled = this.value; touch(); };
   p.querySelector('#pcProject').onchange = function(){
     pieceSetProject(e, this.value); touch();

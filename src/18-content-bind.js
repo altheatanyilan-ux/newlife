@@ -88,6 +88,10 @@ function bindContent(root){
     });
   });
 
+  $$('[data-ctaccfil]', root).forEach(b => b.onclick = () => {
+    S._ctCalAccount = b.dataset.ctaccfil || ''; rerenderContentBody();
+  });
+
   if(typeof bindContentCalendar === 'function') bindContentCalendar(root);
   if(typeof bindContentLibrary === 'function') bindContentLibrary(root);
 }

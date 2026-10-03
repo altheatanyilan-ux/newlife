@@ -16,8 +16,15 @@ function pieceDay(e){ const c = e.extra.content; return c.stage === 'published' 
 function contentCalendarHTML(){
   const mode = S._ctCalMode || 'month';
   const cur = ctCalCursor();
-  const dated = contentPieces().filter(e => pieceDay(e));
-  return `<div class="ct-cal-wrap">
+  const allAccounts = typeof brandState === 'function' ? (brandState().accounts || []) : [];
+  const accFilter = S._ctCalAccount || '';
+  const allDated = contentPieces().filter(e => pieceDay(e));
+  const dated = accFilter ? allDated.filter(e => e.extra.content.accountId === accFilter) : allDated;
+  const accBar = allAccounts.length ? `<div class="ct-acc-bar">
+    <button class="pf-chip${!accFilter ? ' on' : ''}" data-ctaccfil="">All accounts</button>
+    ${allAccounts.map(a => `<button class="pf-chip${accFilter === a.id ? ' on' : ''}" data-ctaccfil="${esc(a.id)}">${esc(a.name)}${a.handle ? ' <span class="faint">'+esc(a.handle)+'</span>' : ''}</button>`).join('')}
+  </div>` : '';
+  return `<div class="ct-cal-wrap">${accBar}
     <div class="pc-wrap">
       <div class="pc-head">
         <button class="pl-mini" data-ctcnav="-1">‹</button>
