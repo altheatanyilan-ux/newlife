@@ -198,9 +198,18 @@ function renderNav(){
   let mb = $('#mobileNav'); if(!mb){ mb = el('<nav class="mobile-nav" id="mobileNav"></nav>'); document.body.appendChild(mb); }
   mb.innerHTML = MOBILE_PRIMARY.map(k => { const p = NAV_PAGES[k]; return `<a href="${p.route}" data-page="${k}"><span class="ico">${p.ico}</span><span class="lbl">${esc(p.short||p.label)}</span></a>`; }).join('') + `<button id="mobileMore" data-page="more"><span class="ico">${NAV_ICONS.more}</span><span class="lbl">More</span></button>`;
   mb.querySelector('#mobileMore').onclick = openNavOverlay;
+  /* focus-mode icon rail — slim fixed strip on the left, icon-only */
+  let rail = $('#pfRail');
+  if(!rail){ rail = el('<div class="pf-rail" id="pfRail"></div>'); document.body.appendChild(rail); }
+  const railPages = [...NAV_TOP, ...NAV_ZONES.flatMap(z => n[z.id])].filter(k => NAV_PAGES[k]);
+  rail.innerHTML = railPages.map(k => {
+    const p = NAV_PAGES[k];
+    return `<a href="${p.route}" data-page="${k}" title="${esc(p.label)}" class="pf-rail-link"><span class="ico">${p.ico}</span></a>`;
+  }).join('');
+  rail.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { if(typeof pageFocusOn === 'function' && pageFocusOn()) setPageFocus(false); }));
   markActiveNav();
 }
-function markActiveNav(){ const key = activePageKey(); $$('#sidebar a[data-page], #mobileNav a[data-page]').forEach(a => a.classList.toggle('active', a.dataset.page === key)); }
+function markActiveNav(){ const key = activePageKey(); $$('#sidebar a[data-page], #mobileNav a[data-page], #pfRail a[data-page]').forEach(a => a.classList.toggle('active', a.dataset.page === key)); }
 function openNavOverlay(){
   const n = navConfig(); const key = activePageKey();
   const ov = el(`<div class="nav-overlay" id="navOverlay"><button class="close" aria-label="close">×</button><div class="nav-overlay-inner">

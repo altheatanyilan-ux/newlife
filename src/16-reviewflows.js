@@ -76,6 +76,22 @@ function flowMorning(){
      body: () => { const done = (S.rehearsal.days || []).includes(T);
        return `<div class="rev-summary">${done ? 'Marked for today already.' : 'This marks today on the twenty-one-day tracker.'}${(S.rehearsal.days||[]).length?` <span class="mono">${S.rehearsal.days.length} days logged</span>`:''}</div>`; },
      next: () => { S.rehearsal.days = S.rehearsal.days || []; if(!S.rehearsal.days.includes(T)){ S.rehearsal.days.push(T); S.rehearsal.cycleStart = S.rehearsal.cycleStart || T; } }},
+    ...(() => {
+      const qs = S.entries.filter(e => e.type === 'question' && (e.extra?.status || 'open') === 'open');
+      return qs.length ? [{title: 'Open questions.',
+        hint: 'Any new light on these overnight? A quick thought is enough.',
+        body: () => `<div class="stack" style="gap:10px">${qs.map(e =>
+          `<div class="card" style="padding:10px 12px"><div style="font-size:.86rem;margin-bottom:6px">${esc(e.title || (e.body||'').slice(0,80) || 'Question')}</div><input class="inp" data-qanswer="${esc(e.id)}" placeholder="Any new light?" style="font-size:.8rem"></div>`).join('')}</div>`,
+        next: b => {
+          b.querySelectorAll('[data-qanswer]').forEach(inp => {
+            const t = inp.value.trim(); if(!t) return;
+            const ent = byId(S.entries, inp.dataset.qanswer); if(!ent) return;
+            ent.extra = ent.extra || {}; ent.extra.answers = ent.extra.answers || [];
+            ent.extra.answers.push({date:today(), text:t, conf:'tentative'});
+          });
+          saveNow();
+        }}] : [];
+    })(),
   ], () => { reviewDone('lastMorning'); toast('The practice is marked.'); });
 }
 
@@ -95,6 +111,22 @@ function flowEvening(opts = {}){
      body: () => tasksReviewHTML(T, T)},
     {title:'Anything else from today?', hint:'Before the day closes — anything that happened and has not been written down anywhere.',
      body: () => captureStepHTML(T, T), bind: b => bindCaptureStep(b, T, T)},
+    ...(() => {
+      const qs = S.entries.filter(e => e.type === 'question' && (e.extra?.status || 'open') === 'open');
+      return qs.length ? [{title: 'Open questions.',
+        hint: 'Any new light on these today? A quick thought is enough.',
+        body: () => `<div class="stack" style="gap:10px">${qs.map(e =>
+          `<div class="card" style="padding:10px 12px"><div style="font-size:.86rem;margin-bottom:6px">${esc(e.title || (e.body||'').slice(0,80) || 'Question')}</div><input class="inp" data-qanswer="${esc(e.id)}" placeholder="Any new light?" style="font-size:.8rem"></div>`).join('')}</div>`,
+        next: b => {
+          b.querySelectorAll('[data-qanswer]').forEach(inp => {
+            const t = inp.value.trim(); if(!t) return;
+            const ent = byId(S.entries, inp.dataset.qanswer); if(!ent) return;
+            ent.extra = ent.extra || {}; ent.extra.answers = ent.extra.answers || [];
+            ent.extra.answers.push({date:today(), text:t, conf:'tentative'});
+          });
+          saveNow();
+        }}] : [];
+    })(),
     /* "Plan tomorrow." is gone from the review by request: tomorrow is
        planned with its own ◑ Plan tomorrow button on Today (planMyDay),
        which marks the day planned and carries the first intention over

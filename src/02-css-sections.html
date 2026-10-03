@@ -10561,9 +10561,22 @@ html.page-focus .mobile-nav,
 html.page-focus .fab-wrap,
 html.page-focus #focusDock,
 html.page-focus #timeDock{display:none !important}
-html.page-focus main{margin-left:0;padding-top:40px;padding-bottom:56px}
-@media (max-width:900px){ html.page-focus main{padding-top:52px;padding-bottom:40px}
-  html.page-focus .toast-wrap{bottom:16px} }
+html.page-focus main{margin-left:36px;padding-top:40px;padding-bottom:56px}
+@media (max-width:900px){ html.page-focus main{margin-left:0;padding-top:52px;padding-bottom:40px}
+  html.page-focus .toast-wrap{bottom:16px}
+  html.page-focus #pfRail{display:none} }
+#pfRail{display:none;position:fixed;top:0;left:0;bottom:0;width:36px;
+  background:var(--surface-2);border-right:1px solid var(--line);
+  z-index:200;flex-direction:column;align-items:center;gap:2px;
+  padding:8px 0;overflow-y:auto;overflow-x:hidden}
+html.page-focus #pfRail{display:flex}
+.pf-rail-link{display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:5px;color:var(--faint);
+  text-decoration:none;transition:color .15s,background .15s;flex-shrink:0}
+.pf-rail-link:hover{color:var(--text);background:var(--surface-3)}
+.pf-rail-link.active{color:var(--terra)}
+.pf-rail-link .ico{display:flex;align-items:center;justify-content:center;width:18px;height:18px}
+.pf-rail-link .ico svg{width:18px;height:18px}
 /* the way out, top right; it says how and then gets out of the way */
 .pf-exit{position:fixed;top:10px;right:12px;z-index:95;display:flex;gap:6px;align-items:center;
   transition:opacity .35s var(--ease),transform .35s var(--ease)}
