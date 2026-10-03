@@ -69,6 +69,7 @@ function sdDecksRoute(root){
   const all = sdCounts(null);
   root.innerHTML = `<div class="page sx-page">
     ${sdNav('')}
+    ${typeof habFixturesForRoom === 'function' ? habFixturesForRoom('studydeck', today()) : ''}
     <header class="sx-head"><h1 class="serif">Study Deck</h1>
       <span class="sx-sub">${SD.cards.size.toLocaleString()} cards in ${decks.filter(d => !d.isFiltered).length} decks · ${all.rev + all.learn} due today</span></header>
     <section class="sx-decks" id="sxDecks">
@@ -79,6 +80,7 @@ function sdDecksRoute(root){
       <a class="btn ghost" href="#/study/import">Import a deck</a></div>
     <section class="sx-heat">${sdHeatmapHTML(null, 26)}</section>
   </div>`;
+  if(typeof bindHabFixtures === 'function') bindHabFixtures(root, () => { saveNow(); rerender(); });
   root.querySelectorAll('[data-sxtw]').forEach(b => b.onclick = () => { s.collapsed[b.dataset.sxtw] = !s.collapsed[b.dataset.sxtw]; sdTouch('misc', s); rerender(); });
   root.querySelectorAll('[data-sxgear]').forEach(b => b.onclick = e => { e.stopPropagation(); sdDeckMenu(+b.dataset.sxgear, b); });
   root.querySelector('#sxNewDeck').onclick = async () => { const n = await sdAsk('A name for the deck', '', 'Use :: to put it inside another, e.g. Japanese::Kanji'); if(n){ sdEnsureDeck(n); rerender(); } };

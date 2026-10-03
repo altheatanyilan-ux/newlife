@@ -517,6 +517,17 @@ button.tm-cell:hover{border-color:var(--page-accent)}
 .osc-bar i{background:var(--terra)}
 .hab-stats{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 .hs-n{min-width:6em;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* hab-fixtures — compact habit cards that appear at the top of practice rooms */
+.hab-fixtures{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.hab-fixture{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);min-width:180px;max-width:320px;flex:1}
+.hab-fixture.kept{opacity:.6}
+.hab-fix-ring{flex:none}
+.hab-fix-body{flex:1;min-width:0}
+.hab-fix-name{font-size:.88rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hab-fix-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.hab-fix-stat{font-size:.75rem;color:var(--muted)}
+.hab-fix-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.hab-fix-miss{padding:2px 6px;font-size:.8rem}
 /* review */
 .rev-summary{margin:12px 0;padding:12px 14px;border-radius:10px;background:var(--surface-2);font-size:.92rem;line-height:1.6}
 .rev-intentions{display:flex;flex-direction:column;gap:5px}

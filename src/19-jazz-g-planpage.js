@@ -51,7 +51,7 @@ function jazzStageHeadHTML(stage){
     </div>
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
       ${done ? `<button class="btn sm ghost" data-jzreopen="${esc(stage.id)}">Open it again</button>`
-        : `<button class="btn sm primary" id="jzPlanGo">\u{1f4cb} Today’s plan</button>
+        : `<button class="btn sm primary" id="jzPlanGo">\u{1f4cb} Today's plan</button>
            <button class="btn sm ghost" id="jzProgGo">\u{1f4ca} Where I am</button>`}
     </div>
   </div>`;
@@ -65,8 +65,9 @@ function jazzPlanHTML(){
   const plan = jazzTodaysPlan(stage.id);
   const started = jazzStageStatus(stage.id) === 'active';
   return `<div class="row between" style="align-items:baseline">
-      <h1 class="serif" style="margin:0">Today’s practice</h1>
+      <h1 class="serif" style="margin:0">Today's practice</h1>
       <button class="btn sm ghost" id="jzPback">← the roadmap</button></div>
+    ${typeof habFixturesForRoom === 'function' ? habFixturesForRoom('jazz', today()) : ''}
     ${jazzTipOfDayHTML()}
     ${jazzStageHeadHTML(stage)}
     ${typeof jazzCurrentUnitSummaryHTML === 'function' ? jazzCurrentUnitSummaryHTML() : ''}
@@ -75,7 +76,7 @@ function jazzPlanHTML(){
       ${plan.focus ? `<div class="jz-focus"><span class="sc">Focus, from your last self-analysis</span>
         <p class="serif">${esc(plan.focus)}</p></div>` : ''}
       ${plan.track && !plan.dayPlan.exercises.some(r => r.listening) ? jazzListenBlockHTML(plan) : ''}
-      ${(plan.material || []).length ? `<div class="jz-matdue"><span class="sc">From this stage’s unit assignments</span>
+      ${(plan.material || []).length ? `<div class="jz-matdue"><span class="sc">From this stage's unit assignments</span>
         ${plan.material.map(m => `<a class="jz-matdue-row" href="#/jazz/${esc(m.id)}"><span class="jz-matdue-name">${esc(m.name)}</span>
           <span class="mono jz-matdue-meta">${m.keys ? `${m.keys}/12 keys` : 'not started'}</span></a>`).join('')}</div>` : ''}
       ${plan.bonus.map(b => `<div class="jz-block bonus"><div class="jz-bhead"><span class="jz-bi">⭐</span>
@@ -105,7 +106,7 @@ function jazzPlanHTML(){
       </div>` : ''}
       ${plan.required.map((b, i) => jazzPlanBlockHTML(b, i)).join('')}
       ${(plan.material || []).length ? `<div class="jz-matdue">
-        <span class="sc">From this stage’s unit assignments</span>
+        <span class="sc">From this stage's unit assignments</span>
         <p class="mono faint">least practised first — the rest of the stage is on the roadmap</p>
         ${plan.material.map(m => `<a class="jz-matdue-row" href="#/jazz/${esc(m.id)}">
           <span class="jz-matdue-name">${esc(m.name)}</span>
@@ -264,6 +265,7 @@ function jazzProgressHTML(){
 let _jzSessTick = null;
 function bindJazzPlan(root){
   const ui = jazzUi();
+  if(typeof bindHabFixtures === 'function') bindHabFixtures(root, () => { saveNow(); rerender(); });
   bindJazzTips(root);
   $$('[data-jzbudget]', root).forEach(b => b.onclick = () => {
     jazzSetSessionBudget(b.dataset.jzbudget); sound('click'); rerender(); });

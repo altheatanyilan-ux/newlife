@@ -67,13 +67,14 @@ function jaTabHTML(tab){
   if(tab === 'errors') return jaErrorsHTML();
   /* the drill, and the two other kinds of recorded practice that belong with
      it: a scenario and a shadowing take are both "open your mouth" work */
-  return ja432HTML() + jaScenariosHTML() + jaShadowingHTML();
+  return (typeof habFixturesForRoom === 'function' ? habFixturesForRoom('japanese', today()) : '') + ja432HTML() + jaScenariosHTML() + jaShadowingHTML();
 }
 
 function bindJapanese(root){
   const j = jaState2();
   const u = jaUi();
   const redraw = () => { saveNow(); rerender(); };
+  if(typeof bindHabFixtures === 'function') bindHabFixtures(root, redraw);
   const on = (sel, fn) => { const n = root.querySelector(sel); if(n) n.onclick = fn; };
   const each = (attr, fn) => $$(`[data-${attr}]`, root).forEach(b => b.onclick = () => fn(b.dataset[attr], b));
 
@@ -200,9 +201,14 @@ function jaCredit(mins){
   const m = +mins || 0; if(m < 1) return;
   const sk = jaSkill();
   if(sk){ sk.hours = +(((+sk.hours || 0) + m / 60).toFixed(2)); sk.lastPracticed = today(); }
-  const h = (S.habits || []).find(x => !x.archived && /japanese|日本語|language/i.test(x.name || ''));
-  if(h){ const d = today(); S.habitLog = S.habitLog || {}; S.habitLog[d] = S.habitLog[d] || {};
-    if(!S.habitLog[d][h.id]) S.habitLog[d][h.id] = {level:'full', note:'practised'}; }
+  const d = today();
+  (S.habits || []).forEach(h => {
+    if(h.archived) return;
+    const linked = Array.isArray(h.linkedRooms) && h.linkedRooms.includes('japanese');
+    const nameMatch = /japanese|日本語|language/i.test(h.name || '');
+    if((linked || (!h.linkedRooms?.length && nameMatch)) && typeof habKept === 'function' && !habKept(h, d))
+      typeof habSetEntry === 'function' && habSetEntry(h, d, {status:'completed', note:'practised'});
+  });
 }
 function jaReviewLines(from, to){
   if(!S.japanese) return [];

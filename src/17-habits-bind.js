@@ -286,6 +286,8 @@ function habPanelHTML(h){
         `<span class="chip click${(h.links.values || []).includes(v.id) ? ' on' : ''}" style="--c:${v.color}" data-hplk="values:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>
       ${!br ? `<div class="field"><label>Skills</label><div class="deps">${S.skills.map(v =>
         `<span class="chip click${(h.links.skills || []).includes(v.id) ? ' on' : ''}" style="--c:var(--ment)" data-hplk="skills:${v.id}">${esc(v.name)}</span>`).join('')}</div></div>` : ''}
+      <div class="field"><label>Show in room</label><div class="deps">${[['jazz','Jazz'],['songwriting','Songwriting'],['japanese','Japanese'],['repertoire','Repertoire'],['studydeck','Study Deck'],['stillness','Stillness'],['journals','Journals']].map(([id, n]) =>
+        `<span class="chip click${(h.linkedRooms || []).includes(id) ? ' on' : ''}" data-hproom="${id}">${esc(n)}</span>`).join('')}</div><div class="mono faint" style="font-size:.78rem;margin-top:4px">A linked-room habit appears as a fixture on that room's landing page.</div></div>
       <!-- Projects went with the Projects page; a habit's link to one is kept -->`)}
 
     ${sec('every check-in', log.length ? `<div class="hb-log">${log.map(({d, e}) => {
@@ -325,6 +327,11 @@ function bindHabitPanel(p, h){
     const [k, id] = c.dataset.hplk.split(':');
     const arr = h.links[k] = h.links[k] || [];
     const i = arr.indexOf(id); if(i < 0) arr.push(id); else arr.splice(i, 1);
+    c.classList.toggle('on', i < 0); saveNow(); });
+  p.querySelectorAll('[data-hproom]').forEach(c => c.onclick = () => {
+    const room = c.dataset.hproom;
+    h.linkedRooms = h.linkedRooms || [];
+    const i = h.linkedRooms.indexOf(room); if(i < 0) h.linkedRooms.push(room); else h.linkedRooms.splice(i, 1);
     c.classList.toggle('on', i < 0); saveNow(); });
   const pa = p.querySelector('#hpProgAdd'); if(pa) pa.onclick = () => {
     h.progression.push({week: (h.progression[h.progression.length - 1]?.week || 0) + 1, target:''}); saveNow(); habRedraw(h); };
@@ -393,4 +400,21 @@ function bindHabRoom(root){
   $$('[data-hbrestore]', root).forEach(b => b.onclick = () => {
     const h = byId(S.habits, b.dataset.hbrestore); if(!h) return;
     h.archived = false; saveNow(); sound('click'); rerenderPlanBody(); });
+}
+
+/* Wire fixture buttons — call this from any room that hosts hab-fixtures. */
+function bindHabFixtures(root, rerender){
+  const re = rerender || (() => { saveNow(); });
+  $$('[data-habfix-check]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    openHabitCheckIn(b.dataset.habfixCheck);
+  });
+  $$('[data-habfix-miss]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const [id, reason] = b.dataset.habfixMiss.split(':');
+    const h = habDefaults(byId(S.habits, id)); if(!h) return;
+    habSetEntry(h, today(), {status:'skipped', missReason: reason});
+    sound('click');
+    re();
+  });
 }

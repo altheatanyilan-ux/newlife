@@ -117,6 +117,7 @@ function sngTodayHTML(){
   const warm = SNG_WARMUPS.warmups[(new Date().getDate()) % SNG_WARMUPS.warmups.length];
   const seedsToday = st.seeds.filter(s => (s.createdAt || '').slice(0, 10) === d).length;
   return `<div class="sng-today">
+    ${typeof habFixturesForRoom === 'function' ? habFixturesForRoom('songwriting', d) : ''}
     <div class="card sng-morning${wroteToday ? ' done' : ''}">
       <div class="sng-card-h"><span class="serif sng-big">Morning page</span><span class="mono faint">${wroteToday ? 'written today ✓' : 'not yet today'}</span></div>
       <p class="muted">Object writing, every day: ten minutes on one object, all seven senses, and stop when the timer stops (Pattison). It is the habit everything else grows from.</p>
@@ -274,6 +275,7 @@ async function sngMemoPlay(id){ const b = await sngAudioGet(id); if(!b){ toast('
 /* ---------- binding ---------- */
 function bindSongwriting(root){
   const st = sngState(), u = sngUi();
+  if(typeof bindHabFixtures === 'function') bindHabFixtures(root, () => { saveNow(); rerender(); });
   $$('[data-sngtab]', root).forEach(b => b.onclick = () => navigate('#/songwriting/' + (b.dataset.sngtab === 'today' ? '' : b.dataset.sngtab)));
   const on = (sel, fn) => { const n = root.querySelector(sel); if(n) n.onclick = fn; };
   /* Today */

@@ -139,6 +139,7 @@ function habDefaults(h){
   }
   h.links = h.links && typeof h.links === 'object' ? h.links : {};
   ['values','skills','projects'].forEach(k => { h.links[k] = Array.isArray(h.links[k]) ? h.links[k] : []; });
+  h.linkedRooms = Array.isArray(h.linkedRooms) ? h.linkedRooms : [];
   return h;
 }
 function migrateHabits(){

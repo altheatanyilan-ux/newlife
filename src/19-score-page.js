@@ -87,7 +87,7 @@ function scoreLibraryHTML(){
      it — small, because it only has to catch a file; its explanation is in
      its title. The whole page catches a dropped file as well, so the small
      target never has to be hit exactly. */
-  return `<div class="sc-addrow" data-ctx-slot>
+  return `${typeof habFixturesForRoom === 'function' ? habFixturesForRoom('repertoire', today()) : ''}<div class="sc-addrow" data-ctx-slot>
       <div class="sc-drop" id="scDrop" tabindex="0" role="button" aria-label="Add a score — drop a MusicXML file here, or press to choose one"
         title="Drop a .musicxml or .mxl file here, or press to choose one. Export one from MuseScore, Flat.io or Dorico — a PDF or a photograph has no notation in it to mark up.">
         <span class="sc-drop-i" aria-hidden="true">📄</span><span class="sc-drop-t">drop .musicxml / .mxl</span>
@@ -1469,6 +1469,7 @@ const scoreNextPaint = () => new Promise(res => requestAnimationFrame(() => setT
 const scoreWhenIdle = (fn, timeout = 400) => typeof requestIdleCallback === 'function'
   ? requestIdleCallback(fn, {timeout}) : setTimeout(fn, 60);
 function bindScoreLibrary(root){
+  if(typeof bindHabFixtures === 'function') bindHabFixtures(root, () => { saveNow(); rerender(); });
   const file = root.querySelector('#scFile');
   $$('[data-scopen]', root).forEach(b => {
     const warm = () => scoreWarmEngraver(true);

@@ -269,3 +269,41 @@ function bindHabAccount(root, after){
     openHabitPeriodAccount(id, start, redraw);
   });
 }
+
+/* ---------- fixtures — a compact habit card for non-habit rooms ----------
+   Any room that hosts daily practice can show the habit(s) linked to it via
+   h.linkedRooms. The card is intentionally small: a ring, the streak, the
+   next milestone, and a one-tap check-in button. Nothing else. */
+function habitFixtureHTML(h, d){
+  habDefaults(h);
+  const br = habIsBreaking(h);
+  const kept = habKept(h, d);
+  const st = habStreak(h);
+  const due = habDue(h, d);
+  const c = h.color || (br ? 'var(--terra)' : 'var(--sage)');
+  const next = h.milestones.find(m => !m.reached);
+  const minsLogged = habEntry(h, d)?.minutes || 0;
+  return `<div class="hab-fixture${kept ? ' kept' : due ? ' due' : ''}" style="--hfc:${esc(c)}" data-habfix="${h.id}">
+    <div class="hab-fix-ring">${habitRingHTML(h, d, 40)}</div>
+    <div class="hab-fix-body">
+      <div class="hab-fix-name">${esc(h.name)}</div>
+      <div class="hab-fix-row">
+        ${st.cur ? `<span class="hab-fix-stat">${habRunMark(br)}${st.cur}d</span>` : ''}
+        ${next ? `<span class="hab-fix-stat mono faint">${next.days}d milestone</span>` : ''}
+        ${h.durationTarget > 0 ? `<span class="hab-fix-stat mono faint">${minsLogged}/${h.durationTarget}m</span>` : ''}
+      </div>
+      ${due && !kept ? `<div class="hab-fix-actions">
+        <button class="btn sm" data-habfix-check="${h.id}">Kept</button>
+        ${HAB_MISS_REASONS.map(([k, ic]) =>
+          `<button class="chip click hab-fix-miss" data-habfix-miss="${h.id}:${k}" title="${habMissReason(k)}">${ic}</button>`).join('')}
+      </div>` : kept ? `<div class="mono faint" style="font-size:.8rem">done today ✓</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function habFixturesForRoom(roomId, d){
+  if(!Array.isArray(S.habits)) return '';
+  const hs = S.habits.filter(h => !h.archived && habDefaults(h).linkedRooms.includes(roomId));
+  if(!hs.length) return '';
+  return `<div class="hab-fixtures">${hs.map(h => habitFixtureHTML(h, d || today())).join('')}</div>`;
+}

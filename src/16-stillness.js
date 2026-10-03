@@ -80,10 +80,14 @@ function saveStillSession(rec){
   const s = stillness();
   try { if(typeof timeAutoStop === 'function') timeAutoStop('stillness'); } catch(e){}
   s.sessions.unshift(Object.assign({id:uid(), date:today(), createdAt:new Date().toISOString()}, rec));
-  /* a session counts towards any habit that is about sitting still */
+  /* a session counts towards any habit linked to the stillness room, or
+     matching the name heuristic for habits that predate linkedRooms */
   if(typeof S.habits !== 'undefined') S.habits.forEach(h => {
     if(h.archived || h.negative) return;
-    if(/medit|still|breath|sit\b/i.test(h.name || '') && typeof habitToggle === 'function' && !habitDone(h, today())) habitToggle(h, today());
+    const linked = Array.isArray(h.linkedRooms) && h.linkedRooms.includes('stillness');
+    const nameMatch = /medit|still|breath|sit\b/i.test(h.name || '');
+    if((linked || (!h.linkedRooms?.length && nameMatch)) && typeof habKept === 'function' && !habKept(h, today()))
+      typeof habSetEntry === 'function' && habSetEntry(h, today(), {status:'completed', note:'stillness session'});
   });
   saveNow();
   return s.sessions[0];
