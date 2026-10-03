@@ -46,7 +46,7 @@ function habitDefaults(){
        keeps the one it had, and nothing reads it) */
     dimension:null, links:{values:[],skills:[]},
     min:'', ideal:'', prompt:'', negative:false, archived:false, stackAfter:null,
-    relational:'', standard:'', trigger:'', instead:'', cost:'', order:S.habits.length};
+    relational:'', standard:'', trigger:'', instead:'', cost:'', order:S.habits.length, progressHabit:false};
 }
 function openHabitModal(id){
   const h = id ? byId(S.habits, id) : habitDefaults();
@@ -96,7 +96,9 @@ function openHabitModal(id){
     <div class="field"><label>Relational ritual (optional)</label><select class="sel" id="hRelational"><option value="">not relational</option>
       <option value="reachout" ${h.relational==='reachout'?'selected':''}>reach out to one person</option>
       <option value="gratitude" ${h.relational==='gratitude'?'selected':''}>gratitude for a person</option>
-      <option value="ringreview" ${h.relational==='ringreview'?'selected':''}>ring review — open the constellation</option></select></div>`;
+      <option value="ringreview" ${h.relational==='ringreview'?'selected':''}>ring review — open the constellation</option></select></div>
+    <div class="field"><label class="row" style="gap:8px;align-items:center"><input type="checkbox" id="hProgress" ${h.progressHabit?'checked':''}> Progress-based — each day set an intention for exactly what I'll do</label>
+      <div class="faint" style="font-size:.74rem;margin-top:2px">For habits like "make some progress in Japanese" where the action varies each day.</div></div>`;
 
   const breaking = () => `
     <div class="field"><label>The standard</label>
@@ -157,7 +159,8 @@ function openHabitModal(id){
         days: [...m.querySelectorAll('[data-day].primary')].map(b => +b.dataset.day),
         count: +g('#hCountN') || 1};
       h.timeCat = g('#hTimeCat') || null;
-      h.timeMins = Math.max(0, +g('#hTimeMins') || 0) || null; }
+      h.timeMins = Math.max(0, +g('#hTimeMins') || 0) || null;
+      h.progressHabit = !!m.querySelector('#hProgress')?.checked; }
     h.dimension = g('#hDim') ?? h.dimension;
     h.prompt = g('#hPrompt') ?? h.prompt;
     if(neg) h.protocol = g('#hProtocol') ?? h.protocol;

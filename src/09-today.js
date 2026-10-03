@@ -298,6 +298,7 @@ routes.today = function(root, params = []){
      the planning itself happens at the foot of the page, for tomorrow. */
   const tomorrow = addDays(T, 1);
   const planT = typeof dayPlan === 'function' ? dayPlan(T) : {intentions:[], planned:false};
+  const planSection = S.settings?.planSection || 'today';
   const planTom = typeof dayPlan === 'function' ? dayPlan(tomorrow) : {intentions:[], planned:false};
   const three = (planT.intentions || []).filter(Boolean);
   /* What the week said it was carrying, on every day of it. A goal written on
@@ -466,15 +467,24 @@ routes.today = function(root, params = []){
          Under 1000px the frames come off and it is the plain stacked page. -->
     <div class="daybox daybox-solo">
     <details class="section rv today-plan t-sec" id="t-plan"${fold('t-plan')}>
-      <summary><span class="sc" style="margin:0">Today's plan</span>
-        <span class="mono faint">${planT.planned ? 'set last night' : 'not planned in advance'}</span></summary>
+      <summary>
+        <span class="sc" style="margin:0">${planSection === 'week' ? `Week's plan` : `Today's plan`}</span>
+        <span class="mono faint">${planSection === 'week'
+          ? `${fmtDate(weekStart(T),'short')} – ${fmtDate(addDays(weekStart(T),6),'short')}`
+          : (planT.planned ? 'set last night' : 'not planned in advance')}</span>
+      </summary>
       <div class="body">
-      ${weekCarryHTML()}
-      ${planT.why ? `<p class="plan-why">${esc(planT.why)}</p>` : ''}
-      ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
-        : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
-      ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
-      ${planT.risk ? `<p class="plan-line risk"><span class="mono">in the way</span> ${esc(planT.risk)}</p>` : ''}
+      <div class="row" style="gap:4px;margin-bottom:10px">
+        <button class="chip click${planSection==='today'?' on':''}" data-plansec="today">${esc(fmtDate(T,'short'))}</button>
+        <button class="chip click${planSection==='week'?' on':''}" data-plansec="week">This week</button>
+      </div>
+      ${planSection === 'week'
+        ? weekCarryHTML() || `<div class="empty">No week plan yet. <button class="tbtn" id="planWeekHere2">Plan the week →</button></div>`
+        : `${planT.why ? `<p class="plan-why">${esc(planT.why)}</p>` : ''}
+           ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
+             : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
+           ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
+           ${planT.risk ? `<p class="plan-line risk"><span class="mono">in the way</span> ${esc(planT.risk)}</p>` : ''}`}
       </div></details>
     </div>
 
@@ -774,6 +784,8 @@ routes.today = function(root, params = []){
   $('#planNextWeek') && ($('#planNextWeek').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(addDays(T, 1)); });
   /* the one on the plan card opens THIS week, which is the one it is showing */
   $('#planWeekHere') && ($('#planWeekHere').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(T); });
+  $('#planWeekHere2') && ($('#planWeekHere2').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(T); });
+  root.querySelectorAll('[data-plansec]').forEach(b => b.onclick = () => { S.settings = S.settings || {}; S.settings.planSection = b.dataset.plansec; saveNow(); rerender(); });
   $('#eveningReview') && ($('#eveningReview').onclick = () => { if(typeof flowEvening === 'function') flowEvening(); });
 
   /* tasks */

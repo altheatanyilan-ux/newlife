@@ -144,6 +144,9 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   console.log('\n5. Today says which stage it is');
   await p.evaluate(async () => { S.settings.todayView = 'do'; location.hash = '#/today'; rerender(); await new Promise(r => setTimeout(r, 900));
     const s = document.querySelector('#t-plan'); if(s) s.open = true; });
+  /* switch to the "This week" tab which shows the week carry with stage info */
+  const weekTab = await p.$('[data-plansec="week"]');
+  if(weekTab){ await weekTab.click(); await p.waitForTimeout(300); }
   const now = await p.evaluate(() => document.querySelector('.wk-carry .wk-period.now')?.textContent.replace(/\s+/g, ' ').trim() || '');
   yes('"now · stage 1 of 3", its days and name, and how much of its work is done', /^now · stage 1 of 3 · Mon–Wed · the essay push · 0 of 2 done/.test(now), now);
   yes('  with what is still open', /Draft the essay · Edit the essay/.test(now), now);

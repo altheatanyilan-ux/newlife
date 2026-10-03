@@ -183,6 +183,14 @@ function flowWeekly(opts = {}){
      bind: b => b.querySelector('#fwSnap').onclick = () => openSnapshotModal(() => {})},
     {title:'The week against the lists you made.', hint:'Seven days of intentions, against seven days of evidence.',
      body: () => tasksReviewHTML(days[0], days[6])},
+    /* open questions: only shown when there are some — a step that always reads
+       "nothing open" trains people to press past it on the week it does have one */
+    ...(() => {
+      const qs = S.entries.filter(e => e.type === 'question' && (e.extra?.status || 'open') === 'open');
+      return qs.length ? [{title: 'Open questions.',
+        hint: 'Any of these closer to an answer after this week? Add one below it, or settle it if the answer has come.',
+        body: () => `<div class="stack" style="gap:12px">${qs.map(e => entryCard(e, {tools:false})).join('')}</div>`}] : [];
+    })(),
     ...jaWeekStep,
     ...scWeek,
     ...tmWeek,

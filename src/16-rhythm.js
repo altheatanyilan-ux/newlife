@@ -129,6 +129,7 @@ function dayPlan(d = today()){
   if(p.energyLow === undefined) p.energyLow = '';
   if(p.ifThen === undefined) p.ifThen = '';
   if(p.letGo === undefined) p.letGo = '';
+  if(p.habitIntentions === undefined) p.habitIntentions = {};
   return p;
 }
 function dayReview(d = today()){
@@ -647,10 +648,14 @@ function planMyDay(d = today()){
            have quietly stopped intending to do, and both of them are asking
            the same question every night forever. So it can be thrown away
            from here, where you are actually looking at it.
-        --><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div>`).join('')}
+        --><button class="tbtn inline" data-pickdone="${esc(r.id)}" title="mark as done \u2014 it happened">\u2713</button><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div>`).join('')}
+         ${g.key.startsWith('list:') ? `<div class="wp-tadd" style="margin-top:6px"><input class="inp" data-pickadd="${esc(g.key.slice(5))}" placeholder="Write a new task for ${esc(g.label)} and press Enter \u2014 ~15m sets a duration"></div>` : ''}
        </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
-       <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h=>`<label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>`).join('') : '<div class="empty">No habits due ${dayWord}.</div>'}</div>`,
+       <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h => {
+         const isProgress = !!h.progressHabit;
+         const intent = p.habitIntentions?.[h.id] || '';
+         return `<div class="pick-row-wrap"><label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>${isProgress ? `<textarea class="ta" data-habintent="${esc(h.id)}" placeholder="What specifically will I do for ${esc(h.name)} tomorrow?" style="font-size:.85rem;margin-top:4px;${chosenH.has(h.id)?'':'display:none'}">${esc(intent)}</textarea>` : ''}</div>`; }).join('') : `<div class="empty">No habits due ${dayWord}.</div>`}</div>`,
       `<h2>What does ${dayWord} start with?</h2><p class="muted" style="font-size:.88rem">The first move, decided now, so the morning is not a negotiation.</p>
        <input class="inp serif-lg" data-planfirst value="${esc(p.firstMove || '')}" placeholder="The first thing I do after I wake.">
        <div class="field" style="margin-top:16px"><label>What might get in the way?</label>
@@ -679,7 +684,44 @@ function planMyDay(d = today()){
          back if the little bar is pressed */
       deleteTaskRef(id, b.closest('.pick-row'));
     });
-    m.querySelectorAll('[data-pickh]').forEach(c => c.onchange = () => { c.checked ? chosenH.add(c.dataset.pickh) : chosenH.delete(c.dataset.pickh); c.closest('.pick-row').classList.toggle('on', c.checked); });
+    /* mark a waiting task as already done so it stops being offered */
+    m.querySelectorAll('[data-pickdone]').forEach(b => b.onclick = ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      const id = b.dataset.pickdone;
+      chosen.delete(id);
+      setTaskDone(id, true);
+      b.closest('.pick-row').remove();
+    });
+    /* add a new task to a list from inside the step and have it ready to tick */
+    m.querySelectorAll('[data-pickadd]').forEach(inp => {
+      inp.onkeydown = e => {
+        if(e.key !== 'Enter') return;
+        const text = inp.value.trim(); if(!text) return;
+        const listId = inp.dataset.pickadd || 'inbox';
+        const t = commitQuickTask(text, {listId}); if(!t) return;
+        const r = findTaskRef(t.id); if(!r) return;
+        chosen.add(t.id);
+        const row = document.createElement('div');
+        row.className = 'pick-row on'; row.dataset.pickrow = t.id;
+        row.innerHTML = `<label><input type="checkbox" data-pick2="${esc(t.id)}" checked><span><b>${esc(r.text)}</b></span></label><button class="tbtn inline" data-pickdone="${esc(t.id)}" title="mark as done">✓</button><button class="del-x inline" data-pickdel="${esc(t.id)}" title="throw away">×</button>`;
+        inp.parentNode.insertBefore(row, inp);
+        const cb = row.querySelector('[data-pick2]');
+        cb.onchange = () => { cb.checked ? chosen.add(t.id) : chosen.delete(t.id); row.classList.toggle('on', cb.checked); };
+        row.querySelector('[data-pickdone]').onclick = ev2 => { ev2.preventDefault(); ev2.stopPropagation(); chosen.delete(t.id); setTaskDone(t.id, true); row.remove(); };
+        row.querySelector('[data-pickdel]').onclick = ev2 => { ev2.preventDefault(); ev2.stopPropagation(); chosen.delete(t.id); deleteTaskRef(t.id, row); };
+        inp.value = ''; saveNow();
+      };
+    });
+    m.querySelectorAll('[data-pickh]').forEach(c => c.onchange = () => {
+      c.checked ? chosenH.add(c.dataset.pickh) : chosenH.delete(c.dataset.pickh);
+      c.closest('.pick-row').classList.toggle('on', c.checked);
+      const intent = c.closest('.pick-row-wrap')?.querySelector('[data-habintent]');
+      if(intent) intent.style.display = c.checked ? '' : 'none';
+    });
+    m.querySelectorAll('[data-habintent]').forEach(ta => ta.oninput = () => {
+      p.habitIntentions = p.habitIntentions || {};
+      p.habitIntentions[ta.dataset.habintent] = ta.value.trim();
+    });
     m.querySelectorAll('[data-hat]').forEach(s => s.onchange = () => { const h = byId(S.habits, s.dataset.hat); h.at = s.value === '' ? null : +s.value; });
     /* the things you said mattered, and the dates the work runs towards, are
        both doors: pressing one leaves the flow and opens what it points at */
