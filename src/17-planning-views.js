@@ -20,7 +20,7 @@ function planCardHTML(t, tail){
       <button class="pt-box sm" data-ptdone="${t.id}" role="checkbox" aria-checked="${t.done}"
         style="${pr.color ? `--pc:${pr.color}` : ''}"><svg viewBox="0 0 20 20" aria-hidden="true">
         <circle cx="10" cy="10" r="8.2" class="pt-ring"/><path d="M5.6 10.3 L8.7 13.3 L14.4 6.9" class="pt-tick"/></svg></button>
-      <span class="pk-text" title="open this task">${esc(t.text || 'Untitled task')}</span>
+      <span class="pk-text" title="open this task">${t.deepWork ? '<span class="pk-dw" title="Deep work">◎</span>' : ''}${esc(t.text || 'Untitled task')}</span>
       <button class="task-pen" data-tedit="${t.id}" title="rename it here" aria-label="rename">✎</button>
       ${taskEstHTML(t.id, t, {sm:true})}
       <!-- the same caret a list row has, so steps fold here too rather than
@@ -169,13 +169,41 @@ const peTrayGripHTML = () => `<div class="pe-grip" data-petraygrip title="drag t
    stragglers are the footnote. */
 function planMatrixIsInbox(sel){ return !!sel && sel.kind === 'list' && sel.id === 'inbox'; }
 function planMatrixHTML(tasks, sel){
-  const loose = tasks.filter(t => !t.quadrant);
-  const aside = planMatrixIsInbox(sel);
-  const grid = `<div class="pe-grid">${PLAN_QUADRANTS.map(q => {
-    const ts = tasks.filter(t => t.quadrant === q.n);
+  /* waiting tasks always render in Q4 (display-only override, no data mutation) */
+  const display = tasks.map(t => t.waiting && t.quadrant !== 4
+    ? Object.assign({}, t, {quadrant: 4}) : t);
+  const filterDW = !!S._planDeepWorkFilter;
+  const visible  = filterDW ? display.filter(t => t.deepWork) : display;
+  const loose    = visible.filter(t => !t.quadrant);
+  const aside    = planMatrixIsInbox(sel);
+
+  /* most imminent undone milestone across all lists */
+  const now = today();
+  const imminentMilestone = planLists()
+    .flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+    .filter(x => !x.m.done && x.m.date)
+    .sort((a, b) => a.m.date.localeCompare(b.m.date))[0] || null;
+  const milestonePinHTML = () => {
+    if(!imminentMilestone) return '';
+    const {m, list} = imminentMilestone;
+    const daysLeft = Math.round((parseDay(m.date).getTime() - parseDay(now).getTime()) / 86400000);
+    const label = daysLeft === 0 ? 'today' : daysLeft === 1 ? 'tomorrow' : daysLeft < 0 ? `${-daysLeft}d overdue` : `in ${daysLeft}d`;
+    return `<div class="pe-milestone-pin" data-pmilpin="${esc(list.id)}">
+      <span class="pe-mpin-flag">⚑</span>
+      <span class="pe-mpin-name">${esc(m.name)}</span>
+      <span class="pe-mpin-due">${esc(label)}</span>
+    </div>`;
+  };
+
+  const filterRow = `<div class="pe-filter-row">
+    <button class="pf-chip${filterDW ? ' on' : ''}" data-pmatfilter="deepwork">◎ Deep work</button>
+  </div>`;
+  const grid = `${filterRow}<div class="pe-grid">${PLAN_QUADRANTS.map(q => {
+    const ts = visible.filter(t => t.quadrant === q.n);
     return `<div class="pe-quad" data-pequad="${q.n}" style="--c:${q.color}">
       <div class="pe-head"><span class="pe-name">${esc(q.name)}</span><span class="pe-act">${esc(q.act)}</span>
         <span class="mono">${ts.length}</span></div>
+      ${q.n === 1 ? milestonePinHTML() : ''}
       <div class="pe-cards" data-ptgroup>${ts.map(t => planCardHTML(t)).join('') || '<div class="pk-empty">Empty. That is allowed.</div>'}</div>
       <input class="inp pk-add" data-pqadd='${esc(JSON.stringify({quadrant: q.n}))}' placeholder="＋ add here">
     </div>`; }).join('')}</div>`;
@@ -288,6 +316,15 @@ function bindPlanViews(root, sel, tasks){
       t.quadrant = +q.dataset.pequad || null; t.updatedAt = new Date().toISOString();
       saveNow(); sound('click'); rerender(); });
   });
+
+  /* deep-work filter toggle */
+  $$('[data-pmatfilter]', root).forEach(b => b.onclick = () => {
+    S._planDeepWorkFilter = !S._planDeepWorkFilter; rerender(); });
+
+  /* imminent milestone pin — click opens planning filtered to that list */
+  $$('[data-pmilpin]', root).forEach(b => b.onclick = () => {
+    const listId = b.dataset.pmilpin;
+    S._planSel = {kind:'list', id: listId}; saveNow(); rerender(); });
 
 }
 

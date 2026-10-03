@@ -4781,6 +4781,15 @@ select.sm-active{border-color:var(--page-accent);
 .pk-meta .mono{font-size:.62rem;color:var(--faint)}
 .pk-meta .mono.late{color:var(--gold)}
 
+.pe-filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.pe-milestone-pin{display:flex;align-items:baseline;gap:6px;padding:5px 8px;border-radius:7px;
+  background:color-mix(in srgb,var(--terra) 10%,transparent);border:1px solid color-mix(in srgb,var(--terra) 28%,transparent);
+  cursor:pointer;font-size:.76rem;transition:background .14s}
+.pe-milestone-pin:hover{background:color-mix(in srgb,var(--terra) 18%,transparent)}
+.pe-mpin-flag{font-size:.8rem;color:var(--terra);flex-shrink:0}
+.pe-mpin-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.pe-mpin-due{font-family:var(--mono);font-size:.66rem;color:var(--terra);flex-shrink:0}
+.pk-dw{font-size:.68rem;color:var(--gold);margin-right:3px;opacity:.9}
 .pe-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pe-quad{border:1px solid var(--line);border-radius:12px;padding:11px;min-height:190px;display:flex;flex-direction:column;gap:8px;
   background:color-mix(in srgb,var(--c) 4%,transparent);transition:background .18s var(--ease)}

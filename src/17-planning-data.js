@@ -75,7 +75,7 @@ const PLAN_QUADRANTS = [
   {n:1, name:'Urgent & important', act:'Do first',  color:'var(--terra)'},
   {n:2, name:'Important',          act:'Schedule',  color:'var(--sage)'},
   {n:3, name:'Urgent',             act:'Delegate',  color:'var(--gold)'},
-  {n:4, name:'Neither',            act:'Let go',    color:'var(--faint)'},
+  {n:4, name:'Delegated / Waiting', act:'Waiting on', color:'var(--faint)'},
 ];
 /* Which column a task is in. Every task is stamped 'todo' when it is first
    seen, so the stamp alone cannot say whether anyone ever decided anything —
@@ -142,6 +142,8 @@ function planTaskDefaults(t){
      which is not one of the lists: a pint of milk is not work to be sorted
      into a matrix, so it stays out of the Inbox and the dated views. A task
      in a real list can be flagged too — it stays in its list as well. */
+  t.waiting  = !!t.waiting;
+  t.deepWork = !!t.deepWork;
   t.shop = !!t.shop;
   /* something to be reminded of, at a time. It lives behind the 🔔 button
      (17-planning-reminders.js), and from so many days before its day it is on

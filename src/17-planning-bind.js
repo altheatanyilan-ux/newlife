@@ -345,6 +345,8 @@ function openPlanRowMenu(ev, id){
     <button class="choice" data-rm="nodate"><span class="ico">○</span><span><b>No date</b></span></button>
     <button class="choice" data-rm="prio"><span class="ico">◆</span><span><b>Priority…</b></span></button>
     <button class="choice" data-rm="move"><span class="ico">▸</span><span><b>Move to list…</b></span></button>
+    <button class="choice" data-rm="waiting"><span class="ico">${t.waiting ? '◉' : '○'}</span><span><b>${t.waiting ? 'Unmark waiting' : 'Waiting on…'}</b></span></button>
+    <button class="choice" data-rm="deepwork"><span class="ico">${t.deepWork ? '◎' : '◌'}</span><span><b>${t.deepWork ? 'Remove deep work' : 'Mark deep work'}</b></span></button>
     <button class="choice" data-rm="dup"><span class="ico">⧉</span><span><b>Duplicate</b></span></button>
     <button class="choice" data-rm="del"><span class="ico">×</span><span><b>Delete</b></span></button>
   </div>`, 'narrow');
@@ -357,6 +359,8 @@ function openPlanRowMenu(ev, id){
       v => { t.listId = v; t.sectionId = null; saveNow(); rerender(); });
     if(k === 'del') return requestDelete({label:t.text || 'Task', after:planRedraw,
       remove: () => spliceOut(S.tasks, x => x.id === t.id)});
+    if(k === 'waiting'){ t.waiting = !t.waiting; if(t.waiting && t.quadrant !== 4) t.quadrant = 4; saveNow(); sound('click'); rerender(); return; }
+    if(k === 'deepwork'){ t.deepWork = !t.deepWork; saveNow(); sound('click'); rerender(); return; }
     if(k === 'dup'){ const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify(
       {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, duration:t.duration,
        desc:t.desc, tags:t.tags, subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn})));
