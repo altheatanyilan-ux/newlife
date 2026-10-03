@@ -44,12 +44,14 @@ routes.settings = function(root){
     <div class="card rv"><h3>Day planning</h3>
       <div class="opt"><div><b>Available hours per day</b><div class="d">Total hours realistically available for planned work. Used as the target in the Plan Tomorrow capacity bar.</div></div><input class="inp" type="number" id="sAvailHrs" min="1" max="24" step="0.5" value="${+(S.settings.availableHoursPerDay||8)}" style="width:80px"></div>
       <div class="opt"><div><b>Day start time</b><div class="d">When the rough schedule in Plan Tomorrow begins. Used to project task times in order.</div></div><input class="inp" type="time" id="sDayStart" value="${esc(S.settings.dayStartTime||'09:00')}" style="width:110px"></div>
+      <div class="opt"><div><b>Tracking idle nudge</b><div class="d">If nothing is being tracked for this many minutes while Today is open, a gentle prompt appears. Set to 0 to turn it off.</div></div><input class="inp" type="number" id="sTrackNudge" min="0" max="120" step="5" value="${+(S.settings.trackingNudgeMinutes??45)}" style="width:80px"></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
         <div class="d">A day ends when you go to sleep, not at midnight. Before this hour the site is still on yesterday — so a bedtime logged at half past one belongs to the day you have been living, and the sleep chart draws it at the end of that day rather than the start of the next.</div></div>
         <select class="sel" style="width:auto" id="sBoundary">${[0,1,2,3,4,5,6].map(h =>
           `<option value="${h}" ${dayBoundaryHour() === h ? 'selected' : ''}>${h === 0 ? 'midnight — no delay' : `${h} AM`}${h === 4 ? ' (recommended)' : ''}</option>`).join('')}</select></div>
+      <div class="opt"><div><b>Wind-down time</b><div class="d">After this time, Today shows a gentle reminder to begin the evening routine. Leave blank to disable.</div></div><input class="inp" type="time" id="sSleepAt" value="${esc(S.settings.sleepPromptAt||'22:00')}" style="width:110px"></div>
       <div class="opt"><div><b>Right now</b><div class="d">${
         isLateNight() ? `It is ${esc(clockDay())} by the clock, and the site is treating it as ${esc(today())} — you are up late.`
                       : `The clock and the day agree: ${esc(today())}.`}</div></div></div>
@@ -148,6 +150,8 @@ routes.settings = function(root){
     catch(e){ st.textContent = e.message; sound('error'); }
   };  if($('#sAvailHrs')) $('#sAvailHrs').onchange = function(){ S.settings.availableHoursPerDay = +this.value||8; saveNow(); };
   if($('#sDayStart')) $('#sDayStart').onchange = function(){ S.settings.dayStartTime = this.value||'09:00'; saveNow(); };
+  if($('#sTrackNudge')) $('#sTrackNudge').onchange = function(){ S.settings.trackingNudgeMinutes = +this.value; saveNow(); };
+  if($('#sSleepAt')) $('#sSleepAt').onchange = function(){ S.settings.sleepPromptAt = this.value||'22:00'; saveNow(); };
   $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
       : `The day turns over at ${this.value} AM. Anything before that is still the day before.`); };
