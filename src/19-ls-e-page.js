@@ -98,36 +98,60 @@ routes.studio = function(root, params){
     <div class="ls-page" data-ls-page>
       ${lsHeaderHTML(board)}
       ${lsModeBarHTML(board.id, board.mode)}
-      ${lsCanvasHTML(board.id)}
+      <div class="ls-content-area">
+        ${lsCanvasHTML(board.id)}
+        <div class="ls-side-panel" data-mode-panel></div>
+      </div>
     </div>`;
 
-  /* mode bar */
-  root.querySelector('[data-modebar]').addEventListener('click', e => {
-    const btn = e.target.closest('[data-mode]'); if(!btn) return;
-    const mode = btn.dataset.mode;
-    lsBoardSetMode(board.id, mode);
-    board = lsBoardById(board.id);
-    root.querySelector('[data-modebar]').outerHTML = lsModeBarHTML(board.id, mode);
-    rebindModebar();
+  const canvasRoot = root.querySelector('.ls-canvas-root');
+
+  let panelApi = null;
+  let relateBinding = null;
+
+  const canvasApi = bindCanvas(canvasRoot, board.id, {
+    onSelectionChange(ids){
+      const panelEl = root.querySelector('[data-mode-panel]');
+      if(panelEl) lsOnSelectionChange(panelEl, board.id, board.mode, ids, canvasApi, panelApi);
+    }
   });
+
+  function destroyRelate(){
+    if(relateBinding){ relateBinding.destroy(); relateBinding = null; }
+    canvasRoot.classList.remove('ls-relate-active');
+  }
+
+  function mountPanel(mode){
+    destroyRelate();
+    const panelEl = root.querySelector('[data-mode-panel]');
+    if(!panelEl) return;
+    panelApi = lsMountModePanel(panelEl, board.id, mode, canvasApi);
+    if(mode === 'relate'){
+      canvasRoot.classList.add('ls-relate-active');
+      relateBinding = bindRelateMode(canvasRoot, board.id, panelEl, canvasApi, () => {
+        canvasApi.repaint();
+      });
+    }
+  }
+
+  function switchMode(modeId){
+    lsBoardSetMode(board.id, modeId);
+    board = lsBoardById(board.id);
+    const bar = root.querySelector('[data-modebar]');
+    if(bar){ bar.outerHTML = lsModeBarHTML(board.id, modeId); rebindModebar(); }
+    mountPanel(modeId);
+  }
 
   function rebindModebar(){
     root.querySelector('[data-modebar]')?.addEventListener('click', e => {
       const btn = e.target.closest('[data-mode]'); if(!btn) return;
-      const mode = btn.dataset.mode;
-      lsBoardSetMode(board.id, mode);
-      board = lsBoardById(board.id);
-      const bar = root.querySelector('[data-modebar]');
-      if(bar) bar.outerHTML = lsModeBarHTML(board.id, mode);
-      rebindModebar();
+      switchMode(btn.dataset.mode);
     });
   }
+  rebindModebar();
 
-  /* canvas */
-  const canvasRoot = root.querySelector('.ls-canvas-root');
-  const canvasApi = bindCanvas(canvasRoot, board.id, {
-    onSelectionChange(ids){ /* future: update selection toolbar */ }
-  });
+  /* mount initial mode panel */
+  mountPanel(board.mode);
 
   /* header actions */
   root.querySelector('[data-ls-action="snapshot"]').onclick = () => {
@@ -150,10 +174,7 @@ routes.studio = function(root, params){
   function onPageKey(e){
     if(isTyping()) return;
     const modeId = modeKeys[e.key];
-    if(modeId){ lsBoardSetMode(board.id, modeId); board = lsBoardById(board.id);
-      const bar = root.querySelector('[data-modebar]');
-      if(bar){ bar.outerHTML = lsModeBarHTML(board.id, modeId); rebindModebar(); }
-    }
+    if(modeId) switchMode(modeId);
   }
   document.addEventListener('keydown', onPageKey);
 
@@ -168,6 +189,7 @@ routes.studio = function(root, params){
   /* cleanup on navigate away */
   root._lsCleanup = () => {
     document.removeEventListener('keydown', onPageKey);
+    destroyRelate();
     canvasApi.destroy();
   };
 };

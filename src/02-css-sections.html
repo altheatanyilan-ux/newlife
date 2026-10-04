@@ -11652,6 +11652,59 @@ html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
 
 /* mobile */
 @media (max-width:900px){.ls-tray-dock{display:none}.ls-modebar{padding:4px 8px}}
+
+/* --- Learning Studio: content area + side panel --- */
+.ls-content-area{display:flex;flex:1;min-height:0;position:relative}
+.ls-page{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.ls-side-panel{width:260px;flex:none;background:var(--surface);border-left:1px solid var(--line);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ls-side-panel:empty{display:none}
+.ls-panel-empty{font-size:.82rem;color:var(--muted);padding:8px 0;line-height:1.5}
+.ls-panel-card-label{font-size:.82rem;font-weight:600;margin-bottom:8px;line-height:1.4;word-break:break-word}
+
+/* Ask panel */
+.ls-ask-panel{display:flex;flex-direction:column;gap:8px}
+.ls-ask-tls-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ls-tls-btn{background:none;border:1px solid var(--line);border-radius:20px;padding:2px 8px;cursor:pointer;font-size:1rem;line-height:1;transition:background .15s}
+.ls-tls-btn:hover,.ls-tls-btn.active{background:var(--surface-2)}
+.ls-tls-dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex:none}
+.ls-ask-kind{display:flex;flex-direction:column;gap:4px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.ls-ask-kind-head{margin-bottom:2px}
+.ls-ask-add{padding:0 6px;font-size:1rem;line-height:1.4}
+.ls-ask-questions{display:flex;flex-direction:column;gap:6px}
+.ls-ask-reach{padding-top:4px;border-top:1px solid var(--line)}
+.ls-q-row{padding:6px 8px;border-radius:6px;background:var(--surface-3,var(--surface-2));border:1px solid transparent;display:flex;flex-direction:column;gap:4px}
+.ls-q-row.ls-tls--red{border-color:var(--rose,#c87070)}
+.ls-q-row.ls-tls--amber{border-color:var(--gold,#c8a050)}
+.ls-q-row.ls-tls--green{border-color:var(--sage)}
+.ls-q-text{font-size:.82rem;line-height:1.4}
+.ls-q-answer{font-size:.78rem;opacity:.7;font-style:italic}
+
+/* Shoot panel */
+.ls-shoot-panel{display:flex;flex-direction:column;gap:8px}
+.ls-shoot-progress{padding-bottom:4px;border-bottom:1px solid var(--line)}
+.ls-shoot-q{font-size:.9rem;font-weight:500;line-height:1.5;padding:8px 0}
+.ls-shoot-answer{min-height:80px;resize:vertical}
+.ls-shoot-actions{display:flex;gap:8px}
+.ls-shoot-source{margin-top:4px}
+.ls-shoot-source summary{font-size:.78rem;cursor:pointer;user-select:none}
+.ls-shoot-passage{font-size:.8rem;line-height:1.6;padding:8px;background:var(--surface-2);border-radius:6px;margin-top:6px;white-space:pre-wrap}
+
+/* Relate panel */
+.ls-relate-hint{display:flex;flex-direction:column;gap:6px}
+.ls-canvas-root.ls-relate-active{cursor:crosshair}
+.ls-card--relate-from{outline:2px solid var(--page-accent)!important;outline-offset:2px}
+
+/* Check panel */
+.ls-check-panel{display:flex;flex-direction:column;gap:10px}
+.ls-check-summary{display:flex;flex-wrap:wrap;gap:8px}
+.ls-check-stat{display:flex;align-items:center;gap:5px;font-size:.82rem}
+.ls-check-chips{display:flex;flex-direction:column;gap:4px}
+.ls-check-chip-row{display:flex;align-items:center;gap:8px}
+
+@media (max-width:900px){
+  .ls-side-panel{width:100%;max-height:220px;border-left:none;border-top:1px solid var(--line)}
+  .ls-content-area{flex-direction:column}
+}
 </style>
 
 </head>
