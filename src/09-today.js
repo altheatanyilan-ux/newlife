@@ -498,6 +498,7 @@ routes.today = function(root, params = []){
       title="where today went">\u23f1 ${esc(timeTodaySay())}</button>` : ''}
 
     <section class="today-view" data-view="do"${view === 'do' ? '' : ' hidden'}>
+    ${typeof dutyQueueHTML === 'function' ? dutyQueueHTML(T) : ''}
 
     <!-- THE DAY, ONE ROOM AT A TIME
          Every section has a line to itself and stands about a screenful
@@ -864,6 +865,28 @@ routes.today = function(root, params = []){
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);
   if(typeof bindRemindToday === 'function') bindRemindToday(root);
+
+  /* duty queue panel: snooze / skip-today / navigate */
+  root.querySelectorAll('[data-duty-snooze]').forEach(btn => btn.onclick = () => {
+    if(typeof dutySnooze === 'function') dutySnooze(btn.dataset.dutySnooze, T);
+    rerender();
+  });
+  root.querySelectorAll('[data-duty-skip]').forEach(btn => btn.onclick = () => {
+    if(typeof dutyDismissToday === 'function') dutyDismissToday(btn.dataset.dutySkip, T);
+    rerender();
+  });
+  root.querySelectorAll('[data-duty-go]').forEach(btn => btn.onclick = () => {
+    const route  = btn.dataset.dutyRoute;
+    const anchor = btn.dataset.dutyAnchor;
+    if(route && route !== '#/today'){ navigate(route); return; }
+    if(anchor){
+      const el = root.querySelector(anchor) || document.querySelector(anchor);
+      if(el){
+        if(el.tagName === 'DETAILS' && !el.open){ el.open = true; }
+        el.scrollIntoView({block:'center', behavior: typeof reduced==='function'&&reduced()?'auto':'smooth'});
+      }
+    }
+  });
 
   /* letters & decisions */
   bindSealedLetters(root);

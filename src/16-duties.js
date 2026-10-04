@@ -651,6 +651,54 @@ function dutyUpdateUI(T){
   if(primaryEl) primaryEl.classList.add('duty-primary');
 }
 
+/* ---------- Today queue panel ---------- */
+function dutyQueueHTML(T){
+  if(typeof dutiesForDate !== 'function') return '';
+  T = T || today();
+  const active = dutiesForDate(T);
+  const pending = active.filter(d => {
+    const st = typeof dutyState === 'function' ? dutyState(d.id, T) : 'upcoming';
+    return st === 'due' || st === 'overdue';
+  });
+  if(!pending.length) return '';
+
+  const rows = pending.map(d => {
+    const st = dutyState(d.id, T);
+    const win = typeof dutyWindowFor === 'function' ? dutyWindowFor(d.id, T) : null;
+    let timeHint = '';
+    if(st === 'overdue' && win){
+      const overdueMin = Math.max(0, _hmToMins(_nowHM()) - _hmToMins(win.end));
+      timeHint = overdueMin >= 60
+        ? `${Math.floor(overdueMin/60)}h${overdueMin%60?' '+overdueMin%60+'m':''} over`
+        : `${overdueMin||'<1'}m over`;
+    } else if(win){
+      timeHint = `until ${win.end}`;
+    }
+    const goParts = [
+      `data-duty-go="${esc(d.id)}"`,
+      d.anchor ? `data-duty-anchor="${esc(d.anchor)}"` : '',
+      (d.route && d.route !== '#/today') ? `data-duty-route="${esc(d.route)}"` : ''
+    ].filter(Boolean).join(' ');
+    return `<div class="dd-item dd-${st}">` +
+      `<span class="dd-state">${st}</span>` +
+      `<span class="dd-lbl">${esc(d.label)}</span>` +
+      (timeHint ? `<span class="dd-time">${esc(timeHint)}</span>` : '') +
+      `<span class="dd-actions">` +
+        `<button class="btn sm ghost dd-btn" ${goParts}>→</button>` +
+        `<button class="btn sm ghost dd-btn" data-duty-snooze="${esc(d.id)}" title="snooze 30 min">+30m</button>` +
+        `<button class="btn sm ghost dd-btn" data-duty-skip="${esc(d.id)}" title="skip today">×</button>` +
+      `</span>` +
+      `</div>`;
+  }).join('');
+
+  return `<div class="dd-panel" id="ddPanel">` +
+    `<details open>` +
+      `<summary class="dd-summary"><span class="sc">Pending</span><span class="mono dd-count">${pending.length}</span></summary>` +
+      `<div class="dd-body">${rows}</div>` +
+    `</details>` +
+    `</div>`;
+}
+
 /* ---------- boot: wrap rerender + minute tick ---------- */
 (function _dutyUIBoot(){
   /* wrap global rerender so duty state refreshes after every route paint */

@@ -11971,6 +11971,37 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
     outline-offset:1px;
   }
 }
+
+/* ---- Duties: Today queue panel (Phase 3) ---- */
+.dd-panel{ margin:8px 0 4px; }
+.dd-panel > details { border-radius:var(--radius); overflow:hidden; }
+.dd-summary{
+  display:flex; align-items:center; gap:8px; padding:6px 10px;
+  background:var(--surface-2); cursor:pointer; list-style:none; user-select:none;
+  border-radius:var(--radius);
+}
+.dd-panel > details[open] > .dd-summary { border-radius:var(--radius) var(--radius) 0 0; }
+.dd-summary .sc{ flex:1; font-size:.72rem; }
+.dd-count{ font-size:.78rem; color:var(--gold,#c8a050); }
+.dd-body{
+  background:var(--surface); border:1px solid var(--line); border-top:none;
+  border-radius:0 0 var(--radius) var(--radius); padding:4px 0;
+}
+.dd-item{
+  display:flex; align-items:center; gap:8px; padding:5px 10px;
+  border-top:1px solid var(--line-2);
+}
+.dd-item:first-child{ border-top:none; }
+.dd-state{
+  font-family:var(--mono); font-size:.62rem; padding:2px 5px;
+  border-radius:4px; flex:none; text-transform:uppercase; letter-spacing:.05em;
+}
+.dd-due    .dd-state{ background:color-mix(in srgb,var(--gold,#c8a050) 18%,transparent); color:var(--gold,#c8a050); }
+.dd-overdue .dd-state{ background:color-mix(in srgb,var(--rose,#c87070) 18%,transparent); color:var(--rose,#c87070); }
+.dd-lbl{ flex:1; font-size:.84rem; }
+.dd-time{ font-family:var(--mono); font-size:.65rem; color:var(--muted); flex:none; }
+.dd-actions{ display:flex; gap:4px; flex:none; }
+.dd-btn{ padding:2px 7px !important; font-size:.7rem !important; }
 </style>
 
 </head>
