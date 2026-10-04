@@ -155,7 +155,12 @@ function planTaskDefaults(t){
   return t;
 }
 function newPlanTask(text = '', day = '', extra = {}){
-  return planTaskDefaults(Object.assign(newTask(text, day), extra));
+  const t = planTaskDefaults(Object.assign(newTask(text, day), extra));
+  if(!t.doDay && t.listId && t.listId !== 'inbox'){
+    const l = planList(t.listId);
+    if(l && l.activeFrom && l.activeFrom > today()) t.doDay = l.activeFrom;
+  }
+  return t;
 }
 
 function planState(){
@@ -313,14 +318,15 @@ const planHasDate = t => !!(t.day || t.doDay);
    still a task. */
 function planSmartFilter(id){
   const T = today(), all = planOwnTasks().filter(t => !taskIsAside(t));
+  const activeOrInbox = t => t.listId === 'inbox' || planListActive(planList(t.listId));
   if(id === 'inbox')    return all.filter(t => !t.done && t.listId === 'inbox');
-  if(id === 'today')    return all.filter(t => !t.done && planHasDate(t)
+  if(id === 'today')    return all.filter(t => !t.done && activeOrInbox(t) && planHasDate(t)
     && ((t.day && t.day <= T) || (t.doDay && t.doDay <= T)));
-  if(id === 'tomorrow') return all.filter(t => !t.done && planOnDay(t, addDays(T, 1)));
-  if(id === 'next7')    return all.filter(t => !t.done && planOnWithin(t, T, addDays(T, 7)));
+  if(id === 'tomorrow') return all.filter(t => !t.done && activeOrInbox(t) && planOnDay(t, addDays(T, 1)));
+  if(id === 'next7')    return all.filter(t => !t.done && activeOrInbox(t) && planOnWithin(t, T, addDays(T, 7)));
   /* every open task, whatever list it is in; the finished ones have their
      own place at the foot of the sidebar */
-  if(id === 'all')      return all.filter(t => !t.done);
+  if(id === 'all')      return all.filter(t => !t.done && activeOrInbox(t));
   if(id === 'done')     return all.filter(t => t.done && (t.doneAt || '') >= addDays(T, -30));
   return all;
 }

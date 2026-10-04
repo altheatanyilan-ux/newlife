@@ -430,7 +430,8 @@ function renderPlanPanel(box, d){
   /* left behind on either count: owed before this day, or set aside for a day
      that has gone. Bringing it forward moves the plan and leaves the deadline
      alone, so a thing that was late stays late. */
-  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, d)
+  const _pmActiveOrInbox = r => r.task && (r.task.listId === 'inbox' || !r.task.listId || (typeof planListActive === 'function' && planListActive(typeof planList === 'function' ? planList(r.task.listId) : null)));
+  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, d) && _pmActiveOrInbox(r)
     && ((r.day && r.day < d) || (r.doDay && r.doDay < d)));
   const planned = sum(p.items.map(i => +i.est || 0)) + sum(rows.filter(r => !p.items.some(i => i.ref === r.id)).map(r => +r.task.est || 0));
   const doneN = p.items.filter(i => i.done).length + rows.filter(r => r.done).length;

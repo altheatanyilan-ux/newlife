@@ -602,7 +602,8 @@ function openTaskPicker(day, after){
   const redraw = after || rerender;
   const draw = (q='') => {
     const needle = q.toLowerCase();
-    const pool = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, day) && (!needle || (r.text+' '+r.where).toLowerCase().includes(needle)));
+    const _tpActiveOrInbox = r => r.task && (r.task.listId === 'inbox' || !r.task.listId || (typeof planListActive === 'function' && planListActive(typeof planList === 'function' ? planList(r.task.listId) : null)));
+    const pool = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, day) && _tpActiveOrInbox(r) && (!needle || (r.text+' '+r.where).toLowerCase().includes(needle)));
     return pool.length ? pool.slice(0,60).map(r => `<button class="choice" data-pick="${r.id}"><span class="ico">${r.kind==='project'?'🎨':'▫'}</span><span><b>${esc(r.text||'Untitled task')}</b>${r.where?`<div class="d">${esc(r.where)}</div>`:''}${r.day?`<div class="d mono">currently ${fmtDate(r.day,'med')}</div>`:'<div class="d mono">unscheduled</div>'}</span></button>`).join('')
       : `<div class="empty">Nothing to pull in. Tasks made inside a project appear here, and so does anything you add below.</div>`;
   };

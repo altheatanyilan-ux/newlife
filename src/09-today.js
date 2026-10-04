@@ -292,7 +292,8 @@ routes.today = function(root, params = []){
      moves the day you mean to do it and leaves the deadline where it is — a
      thing that was owed on Monday is still late, and saying otherwise would
      quietly lose the fact you most need. */
-  const carried = allTaskRefs().filter(r => !r.done && !taskIsAside(r.task) && !taskOnDay(r.task, T)
+  const _activeOrInbox = r => r.task && (r.task.listId === 'inbox' || !r.task.listId || (typeof planListActive === 'function' && planListActive(typeof planList === 'function' ? planList(r.task.listId) : null)));
+  const carried = allTaskRefs().filter(r => !r.done && !taskIsAside(r.task) && _activeOrInbox(r) && !taskOnDay(r.task, T)
     && ((r.day && r.day < T) || (r.doDay && r.doDay < T)));
   const doneN = rows.filter(r=>r.done).length;
   const ready = lettersOpeningNow();
@@ -897,6 +898,36 @@ routes.today = function(root, params = []){
   const _refreshAP = () => { if(!document.contains(_apBox)) return; todayAutoPromptsHTML(_apBox, T, c); };
   _refreshAP();
   const _apIv = setInterval(() => { if(!document.contains(_apBox)) { clearInterval(_apIv); return; } _refreshAP(); }, 60000);
+
+  /* activation notifications: lists whose activeFrom === today */
+  (function(){
+    if(typeof planState !== 'function') return;
+    planState();
+    const active = (S.plans && S.planLists ? S.planLists : []).filter(l =>
+      l.activeFrom === T && !l.archivedAt && !(S.settings.activationSeen || {})[l.id]);
+    if(!active.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'today-activation-wrap';
+    active.forEach(l => {
+      const div = document.createElement('div');
+      div.className = 'today-activation-banner';
+      div.innerHTML = `<span><strong>${esc(l.name)}</strong> is now active</span>
+        <a class="btn sm ghost" href="#/plan/list/${esc(l.id)}">Set do-dates →</a>
+        <button class="btn sm ghost" data-dismiss="${esc(l.id)}">×</button>`;
+      div.querySelector('[data-dismiss]').onclick = () => {
+        S.settings.activationSeen = S.settings.activationSeen || {};
+        S.settings.activationSeen[l.id] = true;
+        saveNow(); div.remove();
+        if(!wrap.children.length) wrap.remove();
+      };
+      wrap.appendChild(div);
+    });
+    if(wrap.children.length) {
+      const anchor = root.querySelector('.today-ap') || root.querySelector('.today-bar');
+      if(anchor) anchor.insertAdjacentElement('afterend', wrap);
+      else root.prepend(wrap);
+    }
+  })();
 
   reveal(root);
 };
