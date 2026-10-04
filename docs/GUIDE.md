@@ -37,17 +37,18 @@ It is long because the house is large. You do not need to read it in order. Star
 20. [The Lived Record: Journals, Timeline, Library](#20-the-lived-record-journals-timeline-library)
 21. [Knowledge Tree](#21-knowledge-tree)
 22. [Study Deck](#22-study-deck)
+23. [Learning Studio](#23-learning-studio)
 
 **Part V — Settings and tools**
-23. [Settings](#23-settings)
-24. [The Import Station](#24-the-import-station)
+24. [Settings](#24-settings)
+25. [The Import Station](#25-the-import-station)
 
 **Part VI — Putting it together**
-25. [How the rooms feed each other](#25-how-the-rooms-feed-each-other)
-26. [Rhythms: a day, a week, a month, a year](#26-rhythms-a-day-a-week-a-month-a-year)
-27. [Keyboard reference](#27-keyboard-reference)
-28. [Glossary](#28-glossary)
-29. [Questions and troubleshooting](#29-questions-and-troubleshooting)
+26. [How the rooms feed each other](#26-how-the-rooms-feed-each-other)
+27. [Rhythms: a day, a week, a month, a year](#27-rhythms-a-day-a-week-a-month-a-year)
+28. [Keyboard reference](#28-keyboard-reference)
+29. [Glossary](#29-glossary)
+30. [Questions and troubleshooting](#30-questions-and-troubleshooting)
 
 ---
 
@@ -914,6 +915,48 @@ Spaced repetition, built to Anki's own model so a deck made in Anki arrives and 
 - **Browse** with Anki's search syntax, bulk edits and find-and-replace; **Stats** with every graph and its numbers (true retention included); **Import** `.apkg` and `.colpkg` from any Anki version, CSV or JSON; **Tools** to postpone, advance, load-balance, take a break, reschedule and fit FSRS to your own reviews — each previews its effect and can be undone. The review log is add-only.
 
 **How it connects:** **Remember this** (`Ctrl/⌘+Shift+R`) anywhere in the house makes a card from the text you have selected, filed in a deck named for the room it came from. Japanese notebook errors go **to the deck** as production cards. Today shows how many cards are due and offers five minutes of them; the weekly review reports the week's reviews; the card box in the house opens here.
+
+---
+
+## 23. Learning Studio
+
+A spatial canvas for turning a Knowledge Tree branch into long-term memory through the iCanStudy pipeline: **Harvest → Sort → Ask → Shoot → Chunk → Relate → Recall → Check.** The governing rule throughout is *remove mechanical friction; preserve cognitive effort* — the canvas does the clerical work, you do the thinking.
+
+**Opening the Studio.** Go to `#/studio` in the sidebar (◈ icon). If you have branches in your Knowledge Tree, pick one; the Studio creates a *home board* for that branch and opens it. You can also start without a branch for free-form exploration.
+
+**The board.** Every board is an infinite canvas. Cards (chips) float freely — **pan** by dragging empty space; **zoom** with `Ctrl`+scroll or pinch. **Double-click** empty space to create a chip and start typing; `Enter` commits it and opens another; `Escape` cancels.
+
+**The mode bar** (buttons `1`–`8` across the top, also keyboard shortcuts) steps through the pipeline:
+
+1. **Harvest (`1`)** — Add keyword and phrase chips from your source. Dblclick a word to capture it. Aim for the exact language the author used, not your paraphrase.
+2. **Sort (`2`)** — Drag chips into spatial clusters. When a cluster has a clear theme, drop a chip onto another chip to form a group, then name the group. This is purely spatial: nothing is locked.
+3. **Ask (`3`)** — For each chip (or group), write questions: *What* does it mean, *Why* does it matter, *How* does it connect, what is *personal* about it. Traffic-light colours (green/amber/red) mark how well you can already answer each question.
+4. **Shoot (`4`)** — Answer the Ask questions from memory or from the source, without looking at the other cards. The source passage is collapsed until you choose to open it.
+5. **Chunk (`5`)** — Tag every chip as **Core** (green), **Supporting** (amber) or **Peripheral** (red). Add a brief reason. Cards with the same reason glow together when the highlight toggle is on — shared reasons reveal hidden connections.
+6. **Relate (`6`)** — Draw arrows between connected ideas. Click a chip to start the arrow, then click a destination. Assign a graft type (*supports*, *contradicts*, *extends*, *echoes*, *raises*) and a required reason. When both chips have been promoted to Knowledge Tree pages, the graft also appears there as a Tree graft.
+7. **Recall (`7`)** — Hide the board and rebuild it from memory. Four modes:
+   - **Fog**: blur everything; type the chip texts you remember into the text box; fuzzy-match reveals which you hit, missed, or added.
+   - **Ghost**: see the cards' positions as empty boxes (positional scaffold), optionally revealing group frames or first letters.
+   - **Shuffle**: all chips are scattered randomly; regroup them from memory and compare to the snapshot.
+   - **Teach**: step through every chip one by one in full screen and narrate it aloud; arrow keys advance.
+8. **Check (`8`)** — After recall, send missed chips to the Study Deck, create a review task in Today, and write a **Kolb reflection** (what did you learn? how will you use it?) — saved as a journal entry and linked to the board.
+
+**Snapshots.** The *Snapshot* button (header) freezes the current layout so Recall can compare against it. Take a snapshot after Sort or whenever the arrangement is stable and meaningful.
+
+**Scaffold level.** The ◈ button in the header cycles through three levels:
+- **Assist**: shows quality signals (chip text > 12 words, orphan cards, groups without a reason) and overload warnings (group > 4 members, > 25 unsorted chips).
+- **Lean**: shows the signal prompts without highlights.
+- **Bare**: no automatic signals at all.
+
+Signals are dismissable for the day; "why" buttons explain the rule behind each one.
+
+**Tray.** The side tray (slide-out from the left of the canvas) holds chips you are not sure where to place. `Alt+K` on a Studio board sends a capture directly to the tray instead of the Tree's inbox.
+
+**Promoting chips.** A chip on the canvas can be promoted to a full Knowledge Tree page. Once promoted, relating it to another promoted chip creates an actual Tree graft, not just a canvas arrow.
+
+**Today integration.** If a board has a snapshot but no recall attempt in the last three days, Today shows a *Recall due* link. Chips sitting in the tray show a count.
+
+**How it connects.** Chips promoted to Tree pages appear in the Tree. Study Deck cards created from the Check mode carry a *Studio* link so clicking them opens the original board. The clock is started automatically when you open a board (if auto-start is on in Studio preferences).
 
 ---
 

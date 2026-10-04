@@ -336,6 +336,59 @@ async function applyTutorial(){
     }
   } catch(e){ console.warn('tutorial: Study Deck', e); }
 
+  /* the Learning Studio: a worked example board seeded with the Harvest→Sort steps done */
+  try {
+    if(typeof lsEnsure === 'function' && !(S.lsBoards||[]).some(b => b.seeded === TUTORIAL_TAG)){
+      lsEnsure();
+      const boardId = uid();
+      const board = { id: boardId, branchId: null, name: 'Example · How memory works', isHome: false,
+        mode: 'sort', viewport:{x:0,y:0,zoom:1}, scaffoldLevel:'assist',
+        layoutSnapshotId: null, archivedAt: null,
+        seeded: TUTORIAL_TAG, createdAt: new Date().toISOString() };
+      S.lsBoards.push(board);
+
+      /* Harvest: eight keyword chips */
+      const chips = [
+        'Spaced repetition', 'Desirable difficulty', 'Retrieval practice', 'Interleaving',
+        'Encoding specificity', 'The testing effect', 'Elaborative interrogation', 'Forgetting curve'
+      ].map((text, i) => {
+        const chip = { id: uid(), boardId, text, branchId: null, sourceRef: null,
+          tls: null, reasons: [], inTray: false, promotedToNodeId: null,
+          seeded: TUTORIAL_TAG, createdAt: new Date().toISOString() };
+        S.lsChips.push(chip);
+        return chip;
+      });
+
+      /* Sort: place chips in two spatial clusters (retrieve, encode) */
+      const retGroup = { id: uid(), boardId, label: 'Retrieval', memberIds: [], reason: '', color: null, parentGroupId: null, seeded: TUTORIAL_TAG, createdAt: new Date().toISOString() };
+      const encGroup = { id: uid(), boardId, label: 'Encoding', memberIds: [], reason: '', color: null, parentGroupId: null, seeded: TUTORIAL_TAG, createdAt: new Date().toISOString() };
+      S.lsGroups.push(retGroup, encGroup);
+
+      const retChips = [chips[0], chips[2], chips[5]]; /* spaced rep, retrieval practice, testing effect */
+      const encChips = [chips[1], chips[3], chips[4], chips[6]]; /* desirable diff, interleaving, encoding specificity, elaborative interrog */
+      retGroup.memberIds = retChips.map(c => c.id);
+      encGroup.memberIds = encChips.map(c => c.id);
+
+      /* place cards */
+      const place = (chip, x, y, gid) => {
+        S.lsPlacements.push({ id: uid(), boardId, cardId: chip.id, cardType: 'chip',
+          x, y, w: null, h: null, stackId: null, groupId: gid,
+          seeded: TUTORIAL_TAG, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      };
+      place(chips[0], -340, -100, retGroup.id);
+      place(chips[2], -220, 40,  retGroup.id);
+      place(chips[5], -340,  80, retGroup.id);
+      place(chips[1],  200, -100, encGroup.id);
+      place(chips[3],  320, 40,  encGroup.id);
+      place(chips[4],  200,  80, encGroup.id);
+      place(chips[6],  320, -60, encGroup.id);
+      place(chips[7],    0,  200, null); /* forgetting curve — unplaced deliberately */
+
+      save();
+      out.rooms.push('Learning Studio');
+    }
+  } catch(e){ console.warn('tutorial: Learning Studio', e); }
+
   /* the starter set covers the Identity rooms (skills, values, finance), projects, habits and the vision; it comes in too if it is not already here */
   try { if(typeof applyStarter === 'function' && !starterCount()){ applyStarter(); out.starter = true; } } catch(e){ console.warn('tutorial: starter', e); }
 
@@ -354,6 +407,9 @@ async function removeTutorial(){
   if(S.japanese){ S.japanese.islands = strip(S.japanese.islands || []); S.japanese.errors = strip(S.japanese.errors || []); }
   if(S.jazz && S.jazz.progress) Object.values(S.jazz.progress).forEach(r => { if(Array.isArray(r.logs)) r.logs = strip(r.logs); });
   /* the Tree: the example pages, and everything that hangs off them */
+  /* Learning Studio example board */
+  ['lsBoards', 'lsChips', 'lsPlacements', 'lsGroups', 'lsGrafts', 'lsQuestions', 'lsSessions'].forEach(k => { if(Array.isArray(S[k])) S[k] = strip(S[k]); });
+
   if(Array.isArray(S.treeNodes)){
     const ids = new Set(S.treeNodes.filter(n => n.seeded === TUTORIAL_TAG).map(n => n.id));
     ['treeNodes', 'treeInbox', 'treeGrafts', 'treeExperiments', 'treePositions', 'treePredictions'].forEach(k => { if(Array.isArray(S[k])) S[k] = strip(S[k]); });
