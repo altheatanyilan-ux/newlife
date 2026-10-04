@@ -119,6 +119,19 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   performanceNotes: 'id, scoreId, analysisId',
   ambiguities:      'id, scoreId, createdAt',
   omrReviews:       'id, scoreId',
+  /* Learning Studio — spatial canvas for iCanStudy-style learning (19-ls-*.js).
+     Placements are mutable (dragging moves cards). Snapshots and recalls are
+     add-only (lsSnapshotGuard / lsRecallGuard, 19-ls-a-model.js). Chip-to-chip
+     arrows live in lsGrafts until both chips are promoted to Tree nodes. */
+  lsBoards:         'id, branchId',
+  lsChips:          'id, boardId, branchId',
+  lsGrafts:         'id, fromId, toId',
+  lsPlacements:     'id, boardId, cardId',
+  lsGroups:         'id, boardId',
+  lsSnapshots:      'id, boardId, createdAt',
+  lsQuestions:      'id, cardId',
+  lsRecalls:        'id, boardId, createdAt',
+  lsSessions:       'id, branchId, boardId',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -141,8 +154,8 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -230,7 +243,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(20).stores(DB_SCHEMA);   // v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(21).stores(DB_SCHEMA);   // v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -412,6 +425,8 @@ async function persist(){
   /* the Knowledge Tree's add-only records: what was written stays written */
   if(typeof treeGuard === 'function') treeGuard(rows, lastWritten);
   if(typeof anGuard === 'function') anGuard(rows, lastWritten);
+  if(typeof lsSnapshotGuard === 'function') lsSnapshotGuard(rows, lastWritten);
+  if(typeof lsRecallGuard === 'function') lsRecallGuard(rows, lastWritten);
   const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
   const dirty = Object.keys(rows).filter(k => shot[k] !== lastWritten[k]);
   if(!dirty.length) return;

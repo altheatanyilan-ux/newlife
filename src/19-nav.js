@@ -62,6 +62,8 @@ const NAV_ICONS = {
      what the room is for */
   songwriting: '<svg viewBox="0 0 24 24"><path d="M10 15.5V5.2l7-1.7v10"/><circle cx="8" cy="15.6" r="2"/><circle cx="15" cy="13.6" r="2"/><path d="M4 20.5h16"/></svg>',
   study:    '<svg viewBox="0 0 24 24"><rect x="6.5" y="4" width="13" height="16" rx="2" transform="rotate(6 13 12)"/><rect x="4.5" y="5" width="13" height="16" rx="2"/><path d="M7.8 9.5h6.4M7.8 13h4.2"/></svg>',
+  /* a scattered grid of small cards with one selected: the spatial canvas */
+  studio:   '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="7" height="5" rx="1.5"/><rect x="14" y="4" width="7" height="5" rx="1.5"/><rect x="7.5" y="12" width="9" height="5" rx="1.5"/><rect x="3" y="15" width="3.5" height="5" rx="1"/><rect x="17.5" y="15" width="3.5" height="5" rx="1"/><path d="M6.5 9l5 3M17.5 9l-5 3"/></svg>',
   /* a clock face with one hand, because the room is about where the hours
      went rather than about what time it is */
   time:     '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.8V12l3.6 2.2"/></svg>',
@@ -85,6 +87,7 @@ const NAV_PAGES = {
   study:    {label:'Study Deck',       short:'Study',    ico:NAV_ICONS.study,    route:'#/study'},
   identityRoom:{label:'Identity',       short:'Identity', ico:NAV_ICONS.identityRoom, route:'#/identity'},
   tree:     {label:'Knowledge Tree',   short:'Tree',     ico:NAV_ICONS.tree,     route:'#/tree'},
+  studio:   {label:'Learning Studio',  short:'Studio',   ico:NAV_ICONS.studio,   route:'#/studio'},
   /* the room is called Repertoire; its address stays #/score so no link to
      it, and nothing kept in it, has to change */
   score:    {label:'Repertoire',        short:'Repertoire', ico:NAV_ICONS.score,  route:'#/score'},
@@ -112,7 +115,7 @@ const NAV_DEFAULT = {
   /* Projects was here; the page was taken out by request (a project's work
      lives in its planner list, which is where its old address now goes) */
   create:   ['content','score','jazz','songwriting','japanese'],
-  identity: ['identityRoom','journals','tree','study'],
+  identity: ['identityRoom','journals','tree','studio','study'],
   standalone:[],
 };
 const NAV_ZONES = [

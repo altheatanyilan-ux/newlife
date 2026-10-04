@@ -562,6 +562,7 @@ routes.today = function(root, params = []){
          dies. -->
     ${studyTodayHTML(T)}
     ${typeof treeTodayHTML === 'function' ? treeTodayHTML() : ''}
+    ${typeof lsTodayHTML === 'function' ? lsTodayHTML() : ''}
 
     <details class="section rv t-sec" style="margin-top:8px" id="t-habits"${fold('t-habits')}>
       <summary><span class="sc" style="margin:0">Today's habits</span>

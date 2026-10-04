@@ -11586,6 +11586,72 @@ html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
 .tap-actions{display:flex;align-items:center;gap:8px}
 .tap-x{font-size:1.1rem;padding:0 4px;line-height:1.2;color:var(--muted)}
 @media (max-width:600px){.hba-summary{gap:10px;padding:10px 14px}.hbd-hero{padding:12px 14px}}
+
+/* ============================================================
+   Learning Studio — spatial canvas (19-ls-*.js)
+   ============================================================ */
+
+/* page shell */
+.ls-page{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.ls-header{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--line);flex-shrink:0}
+.ls-header-title{font-family:var(--serif);font-size:1rem;font-weight:600}
+.ls-header-actions{display:flex;gap:6px}
+
+/* mode bar */
+.ls-modebar{display:flex;gap:4px;padding:6px 12px;border-bottom:1px solid var(--line);flex-shrink:0;overflow-x:auto}
+.ls-mode-btn{padding:4px 10px;font-size:.78rem;border-radius:6px;background:transparent;color:var(--muted);border:1px solid var(--line);cursor:pointer;white-space:nowrap}
+.ls-mode-btn:hover{background:var(--surface-2);color:var(--text)}
+.ls-mode-btn.active{background:var(--page-accent);color:#fff;border-color:var(--page-accent)}
+
+/* canvas root */
+.ls-canvas-root{position:relative;flex:1;overflow:hidden;background:var(--bg);cursor:default;touch-action:none}
+.ls-canvas-inner{position:absolute;top:0;left:0;transform-origin:0 0}
+
+/* arrow SVG */
+.ls-arrows-svg{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
+
+/* cards */
+.ls-card{position:absolute;border-radius:8px;padding:8px 10px;background:var(--surface);border:1px solid var(--line);cursor:grab;user-select:none;min-height:48px;box-sizing:border-box;transition:box-shadow .1s}
+.ls-card:active{cursor:grabbing}
+.ls-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.ls-card--sel{outline:2px solid var(--page-accent);outline-offset:2px}
+.ls-card--ghost{opacity:.35}
+.ls-card-text{font-size:.82rem;line-height:1.4;color:var(--text);word-break:break-word}
+.ls-node{border-color:var(--sage);background:rgba(var(--sage-rgb,90,130,90),.07)}
+
+/* TLS traffic lights */
+.ls-tls--red{border-left:3px solid var(--rose,#c87070)}
+.ls-tls--amber{border-left:3px solid var(--gold,#c8a050)}
+.ls-tls--green{border-left:3px solid var(--sage)}
+
+/* group frames */
+.ls-group-frame{position:absolute;border:2px dashed var(--line);border-radius:12px;pointer-events:none;box-sizing:border-box}
+.ls-group-label{position:absolute;top:-11px;left:12px;font-size:.72rem;font-family:var(--sans);background:var(--bg);padding:0 4px;color:var(--muted);pointer-events:auto;cursor:text}
+
+/* lasso */
+.ls-lasso{position:absolute;border:1px dashed var(--page-accent);background:rgba(var(--terra-rgb,180,100,60),.07);pointer-events:none;box-sizing:border-box}
+
+/* inline chip editor */
+.ls-chip-editor{position:absolute;z-index:100;min-height:48px;border-radius:8px;padding:8px 10px;background:var(--surface-2);border:2px solid var(--page-accent);font-size:.82rem;line-height:1.4;outline:none;cursor:text;word-break:break-word}
+
+/* tray dock */
+.ls-tray-dock{position:absolute;right:0;top:0;bottom:0;width:180px;background:var(--surface);border-left:1px solid var(--line);overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+.ls-tray-item{padding:7px 10px;border-radius:6px;background:var(--surface-2);border:1px solid var(--line);font-size:.8rem;cursor:pointer;color:var(--text)}
+.ls-tray-item:hover{background:var(--surface-3,var(--surface-2))}
+.ls-tray-empty{font-size:.8rem;padding:8px;text-align:center}
+
+/* branch picker */
+.ls-branch-picker{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.ls-pick-branch{text-align:left}
+.ls-page-title{font-family:var(--serif);font-size:1.25rem;margin-bottom:16px}
+
+/* today strip */
+.ls-today-strip{display:flex;gap:10px;align-items:center;padding:6px 0;font-size:.82rem;flex-wrap:wrap}
+.ls-today-link{color:var(--page-accent)}
+.ls-today-chip{color:var(--muted)}
+
+/* mobile */
+@media (max-width:900px){.ls-tray-dock{display:none}.ls-modebar{padding:4px 8px}}
 </style>
 
 </head>
