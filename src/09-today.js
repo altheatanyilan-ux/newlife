@@ -241,55 +241,41 @@ function askClock(title, value, onSet){
   m.querySelector('#clkNow').onclick = () => { m.querySelector('#clkV').value = nowHM(); go(); };
   m.querySelector('#clkV').onkeydown = e => { if(e.key === 'Enter') go(); };
 }
-/* ---------- sleep + tracking auto-prompts ---------- */
+/* ---------- nudge slot ---------- */
 function todayAutoPromptsHTML(box, T, c){
   const view = todayView();
   if(view !== 'do'){ box.innerHTML = ''; return; }
-  const banners = [];
+  const q = typeof nudgeQueue === 'function' ? nudgeQueue(T) : [];
+  if(!q.length){ box.innerHTML = ''; return; }
+  const n = q[0];
+  const more = q.length - 1;
+  box.innerHTML = `<div class="nudge-slot">
+    <div class="nudge-body">
+      <span class="nudge-msg">${esc(n.msg)}</span>
+      ${n.why ? `<span class="nudge-why">${esc(n.why)}</span>` : ''}
+    </div>
+    <div class="nudge-btns">
+      ${n.action ? `<button class="btn sm ghost" data-nudgeact>${esc(n.actionLabel || 'Go')}</button>` : ''}
+      <button class="btn sm ghost" data-nudgesnooze title="Hide for 30 minutes">snooze</button>
+      <button class="btn sm ghost" data-nudgetoday title="Don’t show again today">not today</button>
+      <button class="tbtn" data-nudgedismiss title="Never show this again">×</button>
+    </div>
+    ${more > 0 ? `<span class="nudge-badge mono">${more} more</span>` : ''}
+  </div>`;
 
-  /* sleep wind-down banner */
-  const sleepAt = (S.settings && S.settings.sleepPromptAt) || '22:00';
-  const nowStr = nowHM();
-  const eveningDone = !!(c && c.eveningFlowAt);
-  if(!eveningDone && sleepAt && nowStr >= sleepAt && !box.dataset.sleepDismissed){
-    banners.push(`<div class="tap-banner sleep-banner" id="tapSleepBanner">
-      <span>Time to wind down. Evening flow →</span>
-      <div class="tap-actions">
-        <button class="btn sm ghost" id="tapSleepDo">Start evening flow</button>
-        <button class="tbtn tap-x" id="tapSleepX">×</button></div></div>`);
-  }
-
-  /* tracking idle nudge */
-  const nudgeMins = S.settings && S.settings.trackingNudgeMinutes != null
-    ? +S.settings.trackingNudgeMinutes : 45;
-  if(nudgeMins > 0 && !document.hidden && !box.dataset.trackDismissed){
-    const timerRunning = typeof FocusTimer !== 'undefined' && FocusTimer.state().running;
-    if(!timerRunning){
-      const sessions = typeof focusSessions === 'function' ? focusSessions() : [];
-      const lastEnd = sessions.filter(s => s.endedAt).map(s => s.endedAt).sort().pop();
-      const minsAgo = lastEnd ? Math.round((Date.now() - new Date(lastEnd).getTime()) / 60000) : Infinity;
-      if(minsAgo >= nudgeMins){
-        banners.push(`<div class="tap-banner track-banner" id="tapTrackBanner">
-          <span>Nothing being tracked. Start a sitting? →</span>
-          <div class="tap-actions">
-            <button class="btn sm ghost" id="tapTrackDo">Start sitting</button>
-            <button class="tbtn tap-x" id="tapTrackX">×</button></div></div>`);
-      }
-    }
-  }
-
-  box.innerHTML = banners.join('');
-
-  /* bind */
-  const sleepBtn = box.querySelector('#tapSleepDo');
-  if(sleepBtn) sleepBtn.onclick = () => { if(typeof flowEvening === 'function') flowEvening(); };
-  const sleepX = box.querySelector('#tapSleepX');
-  if(sleepX) sleepX.onclick = () => { box.dataset.sleepDismissed = '1'; box.querySelector('#tapSleepBanner')?.remove(); };
-
-  const trackBtn = box.querySelector('#tapTrackDo');
-  if(trackBtn) trackBtn.onclick = () => { navigate('#/today/time'); };
-  const trackX = box.querySelector('#tapTrackX');
-  if(trackX) trackX.onclick = () => { box.dataset.trackDismissed = '1'; box.querySelector('#tapTrackBanner')?.remove(); };
+  if(n.action) box.querySelector('[data-nudgeact]').onclick = () => n.action();
+  box.querySelector('[data-nudgesnooze]').onclick = () => {
+    if(typeof nudgeSnooze === 'function') nudgeSnooze(n.id);
+    box.innerHTML = '';
+  };
+  box.querySelector('[data-nudgetoday]').onclick = () => {
+    if(typeof nudgeNotToday === 'function') nudgeNotToday(n.id);
+    box.innerHTML = '';
+  };
+  box.querySelector('[data-nudgedismiss]').onclick = () => {
+    if(typeof nudgePermDismiss === 'function') nudgePermDismiss(n.id);
+    box.innerHTML = '';
+  };
 }
 
 routes.today = function(root, params = []){

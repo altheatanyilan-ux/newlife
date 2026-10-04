@@ -48,6 +48,16 @@ routes.settings = function(root){
       <div class="opt"><div><b>Sleep time</b><div class="d">When your day typically ends. Used as the end of the time-blocking timeline in Plan Tomorrow.</div></div><input class="inp" type="time" id="sSleepTime" value="${esc(S.settings.sleepTime||'23:00')}" style="width:110px"></div>
       <div class="opt"><div><b>Tracking idle nudge</b><div class="d">If nothing is being tracked for this many minutes while Today is open, a gentle prompt appears. Set to 0 to turn it off.</div></div><input class="inp" type="number" id="sTrackNudge" min="0" max="120" step="5" value="${+(S.settings.trackingNudgeMinutes??45)}" style="width:80px"></div>
     </div>
+    <div class="card rv"><h3>Today nudges</h3>
+      <p class="muted" style="font-size:.85rem">Gentle prompts that appear at the top of Today's execution view. Each can be snoozed, hidden for the day, or turned off here.</p>
+      ${[['close-day','Wind-down reminder','After the wind-down time, a nudge to do the evening flow if it is not done yet.'],
+         ['clock-idle','Tracking idle','When nothing has been tracked for the configured number of minutes.'],
+         ['wake-unlogged','Wake time unrecorded','An hour after your wake time, if no wake entry has been logged.']]
+        .map(([id, label, desc]) => {
+          const off = !!((S.settings.nudgeDisabled||{})[id]);
+          return `<div class="opt"><div><b>${label}</b><div class="d">${desc}</div></div><label class="toggle ${off?'':'on'}" data-nudgetog="${id}"><span class="sw"></span></label></div>`;
+        }).join('')}
+    </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
       <div class="opt"><div><b>The day turns over at</b>
         <div class="d">A day ends when you go to sleep, not at midnight. Before this hour the site is still on yesterday — so a bedtime logged at half past one belongs to the day you have been living, and the sleep chart draws it at the end of that day rather than the start of the next.</div></div>
@@ -155,6 +165,13 @@ routes.settings = function(root){
   if($('#sWakeTime')) $('#sWakeTime').onchange = function(){ S.settings.wakeTime = this.value||'07:00'; saveNow(); };
   if($('#sSleepTime')) $('#sSleepTime').onchange = function(){ S.settings.sleepTime = this.value||'23:00'; saveNow(); };
   if($('#sTrackNudge')) $('#sTrackNudge').onchange = function(){ S.settings.trackingNudgeMinutes = +this.value; saveNow(); };
+  root.querySelectorAll('[data-nudgetog]').forEach(tog => { tog.onclick = function(){
+    const id = this.dataset.nudgetog; S.settings.nudgeDisabled = S.settings.nudgeDisabled || {};
+    const was = !!S.settings.nudgeDisabled[id];
+    if(was){ delete S.settings.nudgeDisabled[id]; this.classList.add('on'); }
+    else { S.settings.nudgeDisabled[id] = true; this.classList.remove('on'); }
+    saveNow();
+  }; });
   if($('#sSleepAt')) $('#sSleepAt').onchange = function(){ S.settings.sleepPromptAt = this.value||'22:00'; saveNow(); };
   $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();
     toast(+this.value === 0 ? 'The day turns over at midnight again.'
