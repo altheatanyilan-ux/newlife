@@ -517,6 +517,20 @@ function bindPlanHabits(root){
   const nb = $('#phNew'); if(nb) nb.onclick = () => { if(typeof openHabitModal === 'function') openHabitModal(); };
 }
 
+/* ---------- win card ---------- */
+function winCardHTML(w){
+  const l = typeof planList === 'function' ? planList(w.listId) : null;
+  const el = w.earlyLate;
+  const sign = el > 0 ? `${el}d early` : el < 0 ? `${Math.abs(el)}d late` : 'on the day';
+  return `<div class="ps-win-card">
+    <div class="ps-win-date mono">${esc(w.date || '')}</div>
+    <div class="ps-win-name">${esc(w.milestoneLabel || '')}</div>
+    ${l ? `<div class="ps-win-list" style="color:${esc(l.color)}">${esc(l.name)}</div>` : ''}
+    <div class="ps-win-meta mono">${esc(sign)}${w.hoursInvested ? ` · ${w.hoursInvested}h` : ''}</div>
+    ${w.reflection ? `<div class="ps-win-ref faint">${esc(w.reflection)}</div>` : ''}
+  </div>`;
+}
+
 /* ---------- statistics ---------- */
 function planStatsHTML(){
   const T = today(), all = planOwnTasks(), p = planState();
@@ -553,7 +567,12 @@ function planStatsHTML(){
       <div class="bar" style="--c:${r.c}"><i style="width:${Math.round(r.v / max * 100)}%"></i></div>
       <span class="mono">${r.v}</span></div>`).join('') || '<div class="pk-empty">Nothing to count yet.</div>'}</div>`; };
 
+  const wins = (S.wins || []).slice().reverse();
+
   return `<div class="ps">
+    ${wins.length ? `<div class="ps-sec ps-wins-sec"><span class="sc">Wins</span>
+      <div class="ps-wins-grid">${wins.slice(0, 6).map(winCardHTML).join('')}</div></div>` : ''}
+
     <div class="ps-row">
       <div class="ps-tile"><div class="k mono">finished today</div><div class="ps-n serif">${dToday}</div>
         ${sparkline(week.map(doneOn), {h:34, min:0, color:'var(--terra)'})}<div class="sub">${dWeek} this week · ${dMonth} this month</div></div>
@@ -561,9 +580,6 @@ function planStatsHTML(){
         <div class="sub">${dueLast30.length} tasks fell due in the last month${rate == null ? '' : `, ${dueLast30.filter(t => t.done).length} of them done`}</div></div>
       <div class="ps-tile"><div class="k mono">overdue now</div><div class="ps-n serif" style="${overdue.length ? 'color:var(--gold)' : ''}">${overdue.length}</div>
         <div class="sub">${overdue.length ? `oldest is ${daysSince(overdue.map(t => t.day).sort()[0])} days past` : 'nothing is late'}</div></div>
-      <div class="ps-tile"><div class="k mono">from writing it to doing it</div>
-        <div class="ps-n serif">${avgAge == null ? '—' : avgAge.toFixed(1)}<small>days</small></div>
-        <div class="sub">across ${ages.length} finished task${ages.length === 1 ? '' : 's'}</div></div>
     </div>
 
     <div class="ps-row">
@@ -572,10 +588,6 @@ function planStatsHTML(){
         <div class="sub">${hrs(fWeek)} this week · ${hrs(fMonth)} this month · avg ${hrs(Math.round(fMonth / 30))} a day</div></div>
       <div class="ps-tile"><div class="k mono">intervals</div><div class="ps-n serif">${sess.filter(s => s.completed).length}</div>
         <div class="sub">${sess.length} started · ${best && best.m ? `best day ${fmtDate(best.d, 'med')}, ${hrs(best.m)}` : 'no best day yet'}</div></div>
-      <div class="ps-tile ps-score"><div class="k mono">the day, scored</div>
-        ${ringSVG(score / 100, {size:74, stroke:7, color:score >= 66 ? 'var(--sage)' : score >= 33 ? 'var(--gold)' : 'var(--terra)', label:String(score)})}
-        ${sparkline(trend, {h:30, min:0, max:100, color:'var(--page-accent)'})}
-        <div class="sub">what was finished, what was focused on, and what is late</div></div>
     </div>
 
     <div class="ps-sec"><span class="sc">Where the focus went</span>
@@ -625,11 +637,23 @@ function planStatsHTML(){
       </div>`;
     })()}
 
-    <div class="ps-three">
-      <div><span class="sc">By priority</span>${bars(byPrio)}</div>
-      <div><span class="sc">By list</span>${bars(byList)}</div>
-      <div><span class="sc">By tag</span>${bars(byTag)}</div>
-    </div>
+    <details class="ps-more">
+      <summary class="sc ps-more-sum">More readings</summary>
+      <div class="ps-row" style="margin-top:10px">
+        <div class="ps-tile"><div class="k mono">from writing it to doing it</div>
+          <div class="ps-n serif">${avgAge == null ? '—' : avgAge.toFixed(1)}<small>days</small></div>
+          <div class="sub">across ${ages.length} finished task${ages.length === 1 ? '' : 's'}</div></div>
+        <div class="ps-tile ps-score"><div class="k mono">the day, scored</div>
+          ${ringSVG(score / 100, {size:74, stroke:7, color:score >= 66 ? 'var(--sage)' : score >= 33 ? 'var(--gold)' : 'var(--terra)', label:String(score)})}
+          ${sparkline(trend, {h:30, min:0, max:100, color:'var(--page-accent)'})}
+          <div class="sub">what was finished, what was focused on, and what is late</div></div>
+      </div>
+      <div class="ps-three">
+        <div><span class="sc">By priority</span>${bars(byPrio)}</div>
+        <div><span class="sc">By list</span>${bars(byList)}</div>
+        <div><span class="sc">By tag</span>${bars(byTag)}</div>
+      </div>
+    </details>
   </div>`;
 }
 /* One number for a day: what was finished against what was due, the focus

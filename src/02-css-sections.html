@@ -5527,6 +5527,19 @@ select.sm-active{border-color:var(--page-accent);
 .pt-ghead--core{font-weight:600;border-left:3px solid var(--terra);padding-left:6px}
 .pt-ghead--core .pt-gname{color:var(--text)}
 .pt-ghead--bg .pt-gname{opacity:.55}
+.ps-wins-sec{margin-bottom:0}
+.ps-wins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:10px}
+.ps-win-card{background:var(--surface-2);border-radius:var(--radius);padding:12px 14px;border:1px solid var(--line)}
+.ps-win-date{font-size:.7rem;color:var(--muted);margin-bottom:3px}
+.ps-win-name{font-family:var(--serif);font-size:.95rem;font-weight:600;margin-bottom:2px}
+.ps-win-list{font-size:.75rem;margin-bottom:4px}
+.ps-win-meta{font-size:.72rem;color:var(--muted)}
+.ps-win-ref{font-size:.78rem;margin-top:6px;line-height:1.45;font-style:italic}
+.ps-more{margin-top:18px;border-top:1px solid var(--line);padding-top:4px}
+.ps-more-sum{display:block;cursor:pointer;padding:8px 0;list-style:none;user-select:none}
+.ps-more-sum::-webkit-details-marker{display:none}
+.ps-more-sum::before{content:'+ '}
+details[open].ps-more .ps-more-sum::before{content:'− '}
 .pl-future-toggle{background:none;border:0;cursor:pointer;font-size:.78rem;color:var(--muted);
   padding:4px 8px;border-radius:6px;display:flex;align-items:center;gap:4px;width:100%;text-align:left}
 .pl-future-toggle:hover{background:var(--hover)}
