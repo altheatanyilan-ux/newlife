@@ -16,6 +16,22 @@
    already put on the skill and what it is worth now, so correcting an entry
    from two hours to one takes an hour back off rather than adding one more.
    ============================================================ */
+/* Sum hours tracked against tasks in a given list, over the last N days.
+   Matches entries where the linked task belongs to the list, or (when tasks
+   have a catId) where the entry's categoryId matches the list's category. */
+function timeOnList(listId, days){
+  if(!listId) return 0;
+  const cutoff = addDays(today(), -days);
+  const rows = timeBetween(cutoff, today());
+  let mins = 0;
+  const taskIds = new Set((planSelectionTasks ? planSelectionTasks({kind:'list',id:listId}) : []).map(t => t.id));
+  rows.forEach(e => {
+    if(!e.endTime) return;
+    if(e.linkedType === 'task' && e.linkedId && taskIds.has(e.linkedId)) mins += timeMinutes(e);
+  });
+  return +(mins / 60).toFixed(1);
+}
+
 function timeAfterSave(e){
   if(!e || !e.endTime) return e;      /* nothing is derived from a clock still running */
   try { timeCreditSkill(e); } catch(err){ console.warn('skill credit skipped', err); }

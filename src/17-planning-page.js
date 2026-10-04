@@ -61,11 +61,15 @@ function planSidebarHTML(){
   const on = (k, i) => sel.kind === k && sel.id === i ? ' on' : '';
   const listTypeIcon = l => l.listType === 'project' ? '◆ ' : l.listType === 'skill' ? '❧ ' : '';
   const listCommitTip = l => {
-    const parts = [l.name];
+    const parts = [];
     if(planListCount(l.id)) parts.push(`${planListCount(l.id)} open`);
-    if(l.targetHoursPerWeek) parts.push(`~${l.targetHoursPerWeek}h/wk${l.targetWeeks ? ` · ${l.targetWeeks} wk` : ''}`);
     if(l.description) parts.push(l.description.slice(0, 80));
     if(planListAllMilestonesPrepared(l)) parts.push('all milestones on track');
+    if(typeof planListCommitmentData === 'function') {
+      const d = planListCommitmentData(l);
+      if(d && d.requiredHrsPerWk) parts.push(`~${d.requiredHrsPerWk} h/wk needed`);
+      if(d && d.actualHrsPerWk != null) parts.push(`${d.actualHrsPerWk} h/wk running`);
+    }
     return parts.join(' · ');
   };
   const listRow = l => {
@@ -618,7 +622,10 @@ function planHeaderHTML(sel){
         value="${esc(S._planQ || '')}">
     </div>
     <div class="row between" style="align-items:baseline;gap:12px">
-      <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
+      <div class="row" style="align-items:baseline;gap:8px;flex:1">
+        <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
+        ${sel.kind === 'list' && sel.id !== 'inbox' ? `<button class="pl-mini pl-commit-btn" data-plcommit="${esc(sel.id)}" title="commitment overview">ⓘ</button>` : ''}
+      </div>
       ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map((x, i) => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view (${i + 1})">${x.icon}</button>`).join('')}</div>`}
     </div>
     ${typeof shortcutHintHTML === 'function' ? shortcutHintHTML('planning') : ''}

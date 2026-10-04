@@ -635,6 +635,78 @@ function planStatsHTML(){
 /* One number for a day: what was finished against what was due, the focus
    time against an hour's target, a penalty for what is late, and the steps
    ticked off inside tasks. It is a rough instrument and says so. */
+/* ---- Commitment data for a list ---- */
+function planListCommitmentData(l){
+  if(!l) return null;
+  const open = planSelectionTasks({kind:'list', id:l.id}).filter(t => !t.done);
+  const estimatedTotal = open.reduce((s, t) => s + (+(+t.est || +t.duration || 0)), 0);
+  const unestimatedCount = open.filter(t => !+t.est && !+t.duration).length;
+
+  const upcomingMs = (l.milestones || []).filter(m => !['on-track','prepared'].includes(m.status) && !m.done && m.date).sort((a,b) => a.date.localeCompare(b.date));
+  const nextMilestone = upcomingMs[0] || null;
+  const finalMilestone = upcomingMs[upcomingMs.length - 1] || null;
+  const daysToNext  = nextMilestone ? Math.max(0, daysBetween(today(), nextMilestone.date)) : null;
+  const daysToFinal = finalMilestone && finalMilestone !== nextMilestone ? Math.max(0, daysBetween(today(), finalMilestone.date)) : null;
+
+  const weeksAvailable  = daysToNext  != null ? +(daysToNext  / 7).toFixed(1) : null;
+  const requiredHrsPerWk = (weeksAvailable && weeksAvailable > 0 && estimatedTotal)
+    ? +(estimatedTotal / 60 / weeksAvailable).toFixed(1) : null;
+
+  const actualHrsPerWk = typeof timeOnList === 'function'
+    ? +(timeOnList(l.id, 28) / 4).toFixed(1) : null;
+
+  const totalWeeklyCommitment = typeof planLists === 'function'
+    ? planLists().filter(x => planListActive(x) && x.targetHoursPerWeek).reduce((s, x) => s + (+x.targetHoursPerWeek || 0), 0)
+    : null;
+
+  let verdict = 'unknown';
+  if(requiredHrsPerWk != null && actualHrsPerWk != null) {
+    if(actualHrsPerWk >= requiredHrsPerWk * 0.9) verdict = 'on-track';
+    else if(actualHrsPerWk >= requiredHrsPerWk * 0.6) verdict = 'behind';
+    else verdict = 'behind';
+    if(actualHrsPerWk > requiredHrsPerWk) verdict = 'ahead';
+  }
+
+  return {openTasks: open.length, estimatedTotal, unestimatedCount,
+    nextMilestone, daysToNext, finalMilestone, daysToFinal,
+    requiredHrsPerWk, actualHrsPerWk, weeksAvailable, totalWeeklyCommitment, verdict};
+}
+
+function planListCommitmentHTML(l){
+  const d = planListCommitmentData(l);
+  if(!d) return '';
+  const fmtH = h => h === 1 ? '1 hour' : `${h} hours`;
+  const parts = [];
+  if(d.openTasks) {
+    let s = `${d.openTasks} task${d.openTasks !== 1 ? 's' : ''} open`;
+    if(d.estimatedTotal) s += ` (~${fmtH(+(d.estimatedTotal/60).toFixed(1))} estimated`;
+    if(d.unestimatedCount) s += `, ${d.unestimatedCount} unestimated`;
+    if(d.estimatedTotal) s += ')';
+    parts.push(s);
+  } else {
+    parts.push('nothing open');
+  }
+  if(d.nextMilestone) {
+    const n = d.daysToNext === 0 ? 'today' : `in ${d.daysToNext} day${d.daysToNext !== 1 ? 's' : ''}`;
+    parts.push(`next milestone ${n}`);
+  }
+  if(d.requiredHrsPerWk) {
+    let s = `~${d.requiredHrsPerWk} h/week`;
+    if(d.weeksAvailable) s += ` × ${d.weeksAvailable} weeks`;
+    parts.push(s);
+  }
+  if(d.actualHrsPerWk != null) {
+    const vword = {ahead:'ahead','on-track':'on track',behind:'behind',unknown:''}[d.verdict] || '';
+    parts.push(`running at ${d.actualHrsPerWk} h/week${vword ? ` (${vword})` : ''}`);
+  }
+  const body = parts.join(' · ');
+  return `<div class="pl-commit-pop">
+    <div class="pl-commit-head">${esc(l.name)}</div>
+    <div class="pl-commit-body">${esc(body)}</div>
+    ${d.totalWeeklyCommitment ? `<div class="pl-commit-total muted">Total weekly commitment across all active lists: ${d.totalWeeklyCommitment} h/week</div>` : ''}
+  </div>`;
+}
+
 function planProductivityScore(day){
   const all = planOwnTasks();
   const due = all.filter(t => planOnDay(t, day));

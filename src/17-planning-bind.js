@@ -269,6 +269,16 @@ function bindPlanning(root, sel, tasks){
     });
   });
 
+  /* ---- commitment popover ---- */
+  $$('[data-plcommit]', root).forEach(b => b.onclick = ev => {
+    ev.stopPropagation();
+    const l = planList(b.dataset.plcommit);
+    if(!l || typeof planListCommitmentHTML !== 'function') return;
+    const html = planListCommitmentHTML(l);
+    if(!html) return;
+    openModal(html, 'narrow');
+  });
+
   if(typeof bindPlanViews === 'function') bindPlanViews(root, sel, tasks);
   if(typeof bindHabRoom === 'function') bindHabRoom(root);
   if(typeof bindPlanBatch === 'function') bindPlanBatch(root);
