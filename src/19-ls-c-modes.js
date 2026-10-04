@@ -375,8 +375,10 @@ function lsMountModePanel(panelEl, boardId, mode, canvasApi){
   } else if(mode === 'relate'){
     panelEl.innerHTML = lsRelatePanelHTML(null);
   } else if(mode === 'recall'){
-    if(typeof bindRecallPanel === 'function'){
-      api = bindRecallPanel(panelEl, boardId, canvasApi);
+    const recallFn = typeof bindRecallPanelFull === 'function' ? bindRecallPanelFull
+                   : typeof bindRecallPanel === 'function' ? bindRecallPanel : null;
+    if(recallFn){
+      api = recallFn(panelEl, boardId, canvasApi);
     } else {
       panelEl.innerHTML = `<div class="ls-panel-empty muted">Recall panel not loaded.</div>`;
     }

@@ -11780,6 +11780,34 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
 
 /* ---- Phase 4: Scaffold level chip in header ---- */
 [data-ls-action="scaffold-level"]{font-size:.75rem;opacity:.8}
+
+/* ---- Phase 5: Teach overlay ---- */
+.ls-teach-overlay{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.82);
+  display:flex;align-items:center;justify-content:center}
+.ls-teach-card{background:var(--surface);border-radius:var(--radius);padding:28px 24px;
+  max-width:480px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.ls-teach-counter{font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.ls-teach-text{font-size:1.25rem;font-family:var(--serif);color:var(--text);
+  margin-bottom:16px;line-height:1.45}
+.ls-teach-tls{font-size:.78rem;padding:3px 10px;border-radius:4px;display:inline-block;
+  margin-bottom:12px;color:#fff}
+.ls-teach-tls--green{background:var(--sage)}
+.ls-teach-tls--amber{background:var(--gold,#c8a050)}
+.ls-teach-tls--red{background:var(--rose,#c87070)}
+.ls-teach-nav{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+
+/* ---- Phase 5: Session summary modal ---- */
+.ls-summary-stats{display:flex;gap:12px;justify-content:center;padding:8px 0}
+.ls-summary-stat{text-align:center;padding:8px 12px;background:var(--surface-2);border-radius:8px}
+.ls-summary-n{display:block;font-size:1.5rem;font-family:var(--serif);color:var(--text)}
+.ls-summary-label{font-size:.72rem;color:var(--muted)}
+
+/* ---- Phase 5: Week review strip ---- */
+.ls-wkrev-strip{margin:10px 0;padding:8px 10px;background:var(--surface-2);border-radius:8px}
+.ls-wkrev-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--muted);margin-bottom:6px}
+.ls-wkrev-row{display:flex;justify-content:space-between;align-items:center;
+  padding:3px 0;font-size:.82rem}
 </style>
 
 </head>
