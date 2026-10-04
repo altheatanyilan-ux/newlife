@@ -44,6 +44,8 @@ routes.settings = function(root){
     <div class="card rv"><h3>Day planning</h3>
       <div class="opt"><div><b>Available hours per day</b><div class="d">Total hours realistically available for planned work. Used as the target in the Plan Tomorrow capacity bar.</div></div><input class="inp" type="number" id="sAvailHrs" min="1" max="24" step="0.5" value="${+(S.settings.availableHoursPerDay||8)}" style="width:80px"></div>
       <div class="opt"><div><b>Day start time</b><div class="d">When the rough schedule in Plan Tomorrow begins. Used to project task times in order.</div></div><input class="inp" type="time" id="sDayStart" value="${esc(S.settings.dayStartTime||'09:00')}" style="width:110px"></div>
+      <div class="opt"><div><b>Wake time</b><div class="d">When your day typically begins. Used as the start of the time-blocking timeline in Plan Tomorrow.</div></div><input class="inp" type="time" id="sWakeTime" value="${esc(S.settings.wakeTime||'07:00')}" style="width:110px"></div>
+      <div class="opt"><div><b>Sleep time</b><div class="d">When your day typically ends. Used as the end of the time-blocking timeline in Plan Tomorrow.</div></div><input class="inp" type="time" id="sSleepTime" value="${esc(S.settings.sleepTime||'23:00')}" style="width:110px"></div>
       <div class="opt"><div><b>Tracking idle nudge</b><div class="d">If nothing is being tracked for this many minutes while Today is open, a gentle prompt appears. Set to 0 to turn it off.</div></div><input class="inp" type="number" id="sTrackNudge" min="0" max="120" step="5" value="${+(S.settings.trackingNudgeMinutes??45)}" style="width:80px"></div>
     </div>
     <div class="card rv"><h3>Day &amp; sleep</h3>
@@ -150,6 +152,8 @@ routes.settings = function(root){
     catch(e){ st.textContent = e.message; sound('error'); }
   };  if($('#sAvailHrs')) $('#sAvailHrs').onchange = function(){ S.settings.availableHoursPerDay = +this.value||8; saveNow(); };
   if($('#sDayStart')) $('#sDayStart').onchange = function(){ S.settings.dayStartTime = this.value||'09:00'; saveNow(); };
+  if($('#sWakeTime')) $('#sWakeTime').onchange = function(){ S.settings.wakeTime = this.value||'07:00'; saveNow(); };
+  if($('#sSleepTime')) $('#sSleepTime').onchange = function(){ S.settings.sleepTime = this.value||'23:00'; saveNow(); };
   if($('#sTrackNudge')) $('#sTrackNudge').onchange = function(){ S.settings.trackingNudgeMinutes = +this.value; saveNow(); };
   if($('#sSleepAt')) $('#sSleepAt').onchange = function(){ S.settings.sleepPromptAt = this.value||'22:00'; saveNow(); };
   $('#sBoundary').onchange = function(){ S.settings.dayBoundaryHour = +this.value; saveNow(); rerender();

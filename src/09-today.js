@@ -541,6 +541,30 @@ routes.today = function(root, params = []){
 
     <div class="daybox daybox-solo daybox-work">
     ${focusSectionHTML()}
+    ${(()=>{
+      const bs=(S.timeBlocks||[]).filter(b=>b.date===T);
+      if(!bs.length) return '';
+      const timeToMin=s=>{if(!s)return 0;const[h,m]=(s||'').split(':').map(Number);return(h||0)*60+(m||0);};
+      const wake=timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
+      const slp=timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+      const totalMin=slp-wake;
+      const nowMin=(()=>{const n=new Date();return n.getHours()*60+n.getMinutes();})();
+      const nowPct=Math.min(100,Math.max(0,(nowMin-wake)/totalMin*100));
+      const blockBars=bs.map(b=>{
+        const s=timeToMin(b.start),e=timeToMin(b.end);
+        const left=Math.max(0,(s-wake)/totalMin*100);
+        const width=Math.max(0.5,(e-s)/totalMin*100);
+        const isCurrent=s<=nowMin&&e>nowMin;
+        const cls={task:'tb-bar-task',break:'tb-bar-break',meal:'tb-bar-meal',commute:'tb-bar-commute',habit:'tb-bar-habit',label:'tb-bar-lbl'}[b.kind]||'tb-bar-lbl';
+        return `<div class="tb-bar ${cls}${isCurrent?' tb-bar-now':''}" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%" title="${esc(b.label||b.kind)} ${esc(b.start)}–${esc(b.end)}"><span class="tb-bar-label">${esc(b.label||b.kind)}</span></div>`;
+      }).join('');
+      return `<div class="today-blocks-strip">
+        <div class="tb-strip-bar" style="position:relative">
+          ${blockBars}
+          <div class="tb-now-line" style="left:${nowPct.toFixed(1)}%"></div>
+        </div>
+      </div>`;
+    })()}
 
     <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>

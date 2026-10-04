@@ -622,8 +622,13 @@ function planMyDay(d = today()){
   const yPlan = dayPlan(yest), yThree = (yPlan.intentions || []).filter(Boolean);
   const yTasks = typeof tasksInPeriod === 'function' ? tasksInPeriod(yest, yest) : {rows:[],done:[],open:[]};
   const m = openModal('', 'wide');
-  const STEPS = 5;
+  const STEPS = 6;
   const fmtHrs = h => h<=0?'0m':h<1?`${Math.round(h*60)}m`:h%1===0?`${h}h`:`${Math.floor(h)}h ${Math.round((h%1)*60)}m`;
+  const timeToMin = s => { if(!s) return 0; const [hh,mm]=(s||'').split(':').map(Number); return (hh||0)*60+(mm||0); };
+  const minToTimeStr = mn => `${String(Math.floor(mn/60)).padStart(2,'0')}:${String(mn%60).padStart(2,'0')}`;
+  const TB_PX_MIN = 50/60; /* 50px per hour */
+  const TB_SNAP = 15;
+  const tbBlocks = []; /* {id, kind, taskId?, habitId?, label, start, end} in minutes since midnight */
   const updateCapBar = () => {
     const bar = m.querySelector('#pmCapBar'); if(!bar) return;
     const avail = +(S.settings&&S.settings.availableHoursPerDay)||8;
@@ -667,6 +672,58 @@ function planMyDay(d = today()){
          ${g.rows.map(r=>`<div class="pick-row-wrap"><div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><button class="tbtn inline" data-pickdone="${esc(r.id)}" title="mark as done \u2014 it happened">\u2713</button><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div><div class="pick-time-chips">${[0.25,0.5,1,2].map(v=>`<button class="chip sm pick-chip ${+(r.task.est||0)===v?'on':''}" data-estchip="${esc(r.id)}" data-estval="${v}">${v<1?v*60|0+'m':v+'h'}</button>`).join('')}</div></div>`).join('')}
          ${g.key.startsWith('list:') ? `<div class="wp-tadd" style="margin-top:6px"><input class="inp" data-pickadd="${esc(g.key.slice(5))}" placeholder="Write a new task for ${esc(g.label)} and press Enter \u2014 ~15m sets a duration"></div>` : ''}
        </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
+      (() => {
+        /* sync tbBlocks with current chosen set */
+        for(let i=tbBlocks.length-1;i>=0;i--){
+          if(tbBlocks[i].kind==='task' && !chosen.has(tbBlocks[i].taskId)) tbBlocks.splice(i,1);
+        }
+        const [sh,sm]=((S.settings&&S.settings.dayStartTime)||'09:00').split(':').map(Number);
+        const existingTaskIds=new Set(tbBlocks.filter(b=>b.kind==='task').map(b=>b.taskId));
+        let lastEnd=tbBlocks.length?Math.max(...tbBlocks.map(b=>b.end)):sh*60+(sm||0);
+        [...chosen].forEach(id=>{
+          if(existingTaskIds.has(id)) return;
+          const r=findTaskRef(id); if(!r) return;
+          const dur=Math.max(15,Math.round((+(r.task.est||0.5))*60));
+          tbBlocks.push({id:uid(),kind:'task',taskId:id,label:r.text,start:lastEnd,end:lastEnd+dur});
+          lastEnd+=dur;
+        });
+        const wake=timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
+        const slp=timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+        const totalMin=slp-wake;
+        const H=totalMin*TB_PX_MIN;
+        const ticks=[];
+        for(let hm=Math.ceil(wake/60)*60;hm<=slp;hm+=60)
+          ticks.push(`<div class="tb-tick" style="top:${((hm-wake)*TB_PX_MIN).toFixed(1)}px"><span class="mono">${fmtHour(hm/60)}</span></div>`);
+        const eH=timeToMin(p.energyHigh||''), eL=timeToMin(p.energyLow||'');
+        const energyBand=(eH>0&&eL>eH)?`<div class="tb-energy" style="top:${((eH-wake)*TB_PX_MIN).toFixed(1)}px;height:${((eL-eH)*TB_PX_MIN).toFixed(1)}px"></div>`:'';
+        const blkHTML=tbBlocks.map((b,i)=>{
+          const top=(b.start-wake)*TB_PX_MIN;
+          const ht=Math.max(24,(b.end-b.start)*TB_PX_MIN);
+          const cls={task:'tb-task',break:'tb-break',meal:'tb-meal',commute:'tb-commute',habit:'tb-habit',label:'tb-lbl'}[b.kind]||'tb-lbl';
+          return `<div class="tb-block ${cls}" data-tbi="${i}" style="top:${top.toFixed(1)}px;height:${ht.toFixed(1)}px">
+            <span class="tb-blabel">${esc(b.label)}</span>
+            <span class="tb-btime mono">${minToTimeStr(b.start)}</span>
+            <div class="tb-resize" data-tbresize="${i}" title="resize"></div>
+          </div>`;
+        }).join('');
+        const totalH=tbBlocks.reduce((s,b)=>s+(b.end-b.start),0)/60;
+        const avail=+(S.settings&&S.settings.availableHoursPerDay)||8;
+        const warn=totalH>avail?`<div class="tb-warn">Total ${fmtHrs(totalH)} — over your ${fmtHrs(avail)} available</div>`:'';
+        return `<h2>Shape ${dayWord}</h2>
+          <p class="muted" style="font-size:.88rem">Tasks are placed from ${esc((S.settings&&S.settings.dayStartTime)||'09:00')}. Drag a block to move; drag the bottom edge to resize. Add breaks or meals below.</p>
+          ${warn}
+          <div class="tb-outer">
+            <div class="tb-wrap">
+              <div class="tb-axis">${ticks.join('')}</div>
+              <div class="tb-track" id="tbTrack" style="height:${H.toFixed(1)}px">${energyBand}${blkHTML}</div>
+            </div>
+          </div>
+          <div class="tb-add-row">
+            <span class="mono faint" style="font-size:.78rem">Add:</span>
+            ${['break','meal','commute'].map(k=>`<button class="chip sm" data-tbadd="${k}">${k}</button>`).join('')}
+            <button class="chip sm" data-tbadd="label">label…</button>
+          </div>`;
+      })(),
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
        ${schedPreviewHTML()}
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h => {
@@ -758,6 +815,56 @@ function planMyDay(d = today()){
       S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: id});
       m.remove(); navigate('#/planning'); });
     if(step === 2) updateCapBar();
+    if(step === 3){
+      /* timeline drag and add */
+      const track = m.querySelector('#tbTrack');
+      if(track){
+        let drag = null;
+        const wake = timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
+        const slp  = timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+        const snapMin = mn => Math.round(mn/TB_SNAP)*TB_SNAP;
+        track.addEventListener('pointerdown', e => {
+          const blockEl = e.target.closest('[data-tbi]'); if(!blockEl) return;
+          const i = +blockEl.dataset.tbi;
+          const isResize = !!e.target.closest('[data-tbresize]');
+          e.preventDefault();
+          track.setPointerCapture(e.pointerId);
+          const rect = track.getBoundingClientRect();
+          drag = {i, isResize, startY: e.clientY, origStart: tbBlocks[i].start, origEnd: tbBlocks[i].end};
+        });
+        track.addEventListener('pointermove', e => {
+          if(!drag) return;
+          const dMin = snapMin((e.clientY - drag.startY) / TB_PX_MIN) - snapMin(0);
+          const b = tbBlocks[drag.i];
+          if(drag.isResize){
+            b.end = Math.max(b.start+TB_SNAP, Math.min(slp, snapMin(drag.origEnd+dMin)));
+          } else {
+            const dur = drag.origEnd - drag.origStart;
+            b.start = Math.max(wake, Math.min(slp-dur, snapMin(drag.origStart+dMin)));
+            b.end = b.start+dur;
+          }
+          const el = track.querySelector(`[data-tbi="${drag.i}"]`);
+          if(el){
+            el.style.top = ((b.start-wake)*TB_PX_MIN).toFixed(1)+'px';
+            el.style.height = Math.max(24,(b.end-b.start)*TB_PX_MIN).toFixed(1)+'px';
+            const te = el.querySelector('.tb-btime'); if(te) te.textContent = minToTimeStr(b.start);
+          }
+        });
+        track.addEventListener('pointerup', () => { drag = null; });
+        track.addEventListener('pointercancel', () => { drag = null; });
+      }
+      m.querySelectorAll('[data-tbadd]').forEach(btn => btn.onclick = () => {
+        const kind = btn.dataset.tbadd;
+        const label = kind === 'label' ? (prompt('Label:')||'').trim() : kind;
+        if(!label) return;
+        const wake = timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
+        const slp = timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+        const lastEnd = tbBlocks.length ? Math.max(...tbBlocks.map(b=>b.end)) : timeToMin((S.settings&&S.settings.dayStartTime)||'09:00');
+        const start = Math.min(lastEnd, slp-30);
+        tbBlocks.push({id:uid(),kind,label,start,end:start+30});
+        draw();
+      });
+    }
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {
       if(step === 0) m.querySelectorAll('[data-int]').forEach(i => p.intentions[+i.dataset.int] = i.value.trim());
@@ -770,6 +877,12 @@ function planMyDay(d = today()){
       p.planned = true;
       const first = p.intentions.filter(Boolean)[0];
       if(first && typeof checkin === 'function' && !checkin(d).intention) checkin(d).intention = first;
+      /* commit time blocks */
+      S.timeBlocks = (S.timeBlocks||[]).filter(b => b.date !== d);
+      tbBlocks.forEach(b => {
+        S.timeBlocks.push({id:b.id,date:d,start:minToTimeStr(b.start),end:minToTimeStr(b.end),
+          kind:b.kind,taskId:b.taskId||null,habitId:b.habitId||null,label:b.label||'',catId:null,notes:''});
+      });
       saveNow(); m.remove(); sound('success');
       toast(`${p.intentions.filter(Boolean).length ? 'Three named. ' : ''}${chosen.size} task${chosen.size===1?'':'s'} on ${ahead?dayWord:'the day'}.`);
       rerender();

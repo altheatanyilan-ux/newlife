@@ -133,7 +133,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('then the rest of the week’s work', [ids.c, ids.d, ids.e].every(id => s3.rest.includes(id)) && !s3.rest.includes(ids.a), s3.rest);
   yes('and only after them, what else has no day — without the week’s work in it twice', s3.pile.includes(ids.f) && !s3.pile.includes(ids.a) && !s3.pile.includes(ids.c), s3.pile);
   await p.click(`.plan-stage [data-pick2="${ids.a}"]`); await p.waitForTimeout(100);
-  for(let i = 0; i < 3; i++){ await p.click('#pmNext'); await p.waitForTimeout(200); }
+  for(let i = 0; i < 4; i++){ await p.click('#pmNext'); await p.waitForTimeout(200); }
   is('ticking one puts it on the day', await p.evaluate(id => findTaskRef(id).task.doDay, ids.a), tom);
   await p.evaluate(d => planMyDay(d), wk[3]); await p.waitForTimeout(400);
   for(let i = 0; i < 2; i++){ await p.click('#pmNext'); await p.waitForTimeout(200); }

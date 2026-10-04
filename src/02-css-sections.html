@@ -11808,6 +11808,55 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
   color:var(--muted);margin-bottom:6px}
 .ls-wkrev-row{display:flex;justify-content:space-between;align-items:center;
   padding:3px 0;font-size:.82rem}
+
+/* ---- Time-blocking timeline (planMyDay step 3) ---- */
+.tb-outer{max-height:360px;overflow-y:auto;overflow-x:hidden;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.tb-wrap{display:flex;gap:0;min-height:100px}
+.tb-axis{width:42px;flex:none;position:relative;user-select:none}
+.tb-tick{position:absolute;left:0;right:0;display:flex;align-items:center;font-size:.7rem;color:var(--muted);padding-left:4px;pointer-events:none}
+.tb-tick::after{content:'';position:absolute;right:0;top:50%;border-top:1px dashed var(--line)}
+.tb-track{flex:1;position:relative;background:var(--surface-2);min-width:0}
+.tb-energy{position:absolute;left:0;right:0;background:rgba(var(--terra-rgb,180,100,60),.08);pointer-events:none}
+.tb-block{position:absolute;left:4px;right:4px;border-radius:5px;overflow:hidden;cursor:grab;
+  display:flex;align-items:flex-start;gap:4px;padding:3px 6px;font-size:.75rem;min-height:24px;
+  box-shadow:0 1px 3px rgba(0,0,0,.15);user-select:none;touch-action:none}
+.tb-block:active{cursor:grabbing;opacity:.9}
+.tb-task{background:var(--terra,.9);color:#fff}
+.tb-break{background:var(--sage);color:#fff}
+.tb-meal{background:var(--gold,#c8a050);color:#fff}
+.tb-commute{background:var(--surface-3);color:var(--text);border:1px solid var(--line)}
+.tb-habit{background:var(--rose,#c87070);color:#fff}
+.tb-lbl{background:var(--surface-3);color:var(--muted);border:1px solid var(--line)}
+.tb-blabel{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-btime{font-size:.65rem;opacity:.75;flex:none}
+.tb-resize{position:absolute;bottom:0;left:0;right:0;height:6px;cursor:ns-resize;background:rgba(0,0,0,.12)}
+.tb-add-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 4px 4px}
+.tb-warn{background:rgba(200,160,80,.15);border-left:3px solid var(--gold,#c8a050);padding:6px 10px;
+  border-radius:4px;font-size:.82rem;margin-bottom:8px}
+
+/* ---- Today's blocks strip ---- */
+.today-blocks-strip{padding:6px 0 4px;margin-bottom:4px}
+.tb-strip-bar{height:28px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+.tb-bar{position:absolute;top:2px;bottom:2px;border-radius:4px;overflow:hidden;display:flex;align-items:center;padding:0 4px}
+.tb-bar-label{font-size:.62rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;opacity:.9}
+.tb-bar-task{background:var(--terra)}
+.tb-bar-break{background:var(--sage)}
+.tb-bar-meal{background:var(--gold,#c8a050)}
+.tb-bar-commute{background:var(--surface-3);color:var(--text)}
+.tb-bar-habit{background:var(--rose,#c87070)}
+.tb-bar-lbl{background:var(--muted)}
+.tb-bar-now{outline:2px solid var(--text);outline-offset:-1px}
+.tb-now-line{position:absolute;top:0;bottom:0;width:2px;background:var(--text);opacity:.5;pointer-events:none}
+
+/* ---- Plan vs actual (evening review) ---- */
+.pva-list{display:flex;flex-direction:column;gap:4px}
+.pva-row{display:grid;grid-template-columns:44px 1fr 36px 60px;align-items:center;gap:6px;
+  padding:5px 8px;background:var(--surface-2);border-radius:5px;font-size:.82rem}
+.pva-time{color:var(--muted)}
+.pva-ok{color:var(--sage)}
+.pva-off{color:var(--gold,#c8a050)}
+.pva-miss{color:var(--muted);opacity:.5}
+.pva-diff{font-size:.7rem;opacity:.7}
 </style>
 
 </head>

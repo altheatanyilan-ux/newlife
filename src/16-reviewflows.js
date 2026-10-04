@@ -109,6 +109,38 @@ function flowEvening(opts = {}){
      bind: b => b.querySelectorAll('[data-fwef]').forEach(btn => btn.onclick = () => { r.energy = +btn.dataset.fwef; saveNow(); b.querySelectorAll('[data-fwef]').forEach(x => x.classList.toggle('on', x === btn)); })},
     {title:'What actually got done.', hint:'The list you made this morning, against the day you had.',
      body: () => tasksReviewHTML(T, T)},
+    ...(() => {
+      const planned = (S.timeBlocks||[]).filter(b => b.date === T);
+      if(!planned.length) return [];
+      const timeToMin = s => { if(!s) return 0; const [h,m]=(s||'').split(':').map(Number); return (h||0)*60+(m||0); };
+      const fmtDur = m => m<60?`${m}m`:`${Math.floor(m/60)}h${m%60?` ${m%60}m`:''}`;
+      return [{title:'Planned vs actual.', hint:'What you blocked out, against what time tracking shows.',
+        body: () => {
+          const trackedToday = (S.timeEntries||[]).filter(e => e.day === T && e.dur > 0);
+          const rows = planned.map(b => {
+            const planned_dur = timeToMin(b.end) - timeToMin(b.start);
+            /* rough match: find time entries that started within this block's window */
+            const inBlock = trackedToday.filter(e => {
+              if(!e.startedAt) return false;
+              const em = new Date(e.startedAt); const eMin = em.getHours()*60+em.getMinutes();
+              return eMin >= timeToMin(b.start)-15 && eMin < timeToMin(b.end)+15;
+            });
+            const actual_dur = inBlock.reduce((s,e) => s + (e.dur||0), 0);
+            const diff = actual_dur - planned_dur;
+            const diffLabel = actual_dur===0 ? '' : diff>=0 ? `+${fmtDur(diff)}` : `−${fmtDur(-diff)}`;
+            const cls = actual_dur===0 ? 'pva-miss' : Math.abs(diff)<=15 ? 'pva-ok' : 'pva-off';
+            return `<div class="pva-row">
+              <span class="pva-time mono">${esc(b.start)}</span>
+              <span class="pva-label">${esc(b.label||b.kind)}</span>
+              <span class="pva-planned mono faint">${fmtDur(planned_dur)}</span>
+              <span class="pva-actual mono ${cls}">${actual_dur?fmtDur(actual_dur):'—'}${diffLabel?' <span class=\"pva-diff\">'+esc(diffLabel)+'</span>':''}</span>
+            </div>`;
+          }).join('');
+          return `<div class="pva-list">${rows}</div>
+            <p class="muted" style="font-size:.8rem;margin-top:8px">Planned time is from the blocks you set. Actual time is from time tracking entries that started within each block's window.</p>`;
+        }
+      }];
+    })(),
     {title:'Anything else from today?', hint:'Before the day closes — anything that happened and has not been written down anywhere.',
      body: () => captureStepHTML(T, T), bind: b => bindCaptureStep(b, T, T)},
     ...(() => {
