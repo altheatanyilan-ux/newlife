@@ -64,7 +64,7 @@ function treeTodayHTML(){
   if(!Array.isArray(S.treeNodes) || !S.treeNodes.length) return '';
   const t = treeTendItem(); if(!t) return '';
   const what = t.kind === 'review' ? `resurfacing: <b>${esc(t.node.title)}</b>` : t.kind === 'inbox' ? `from the inbox: ${esc(t.item.text.slice(0, 70))}${t.item.text.length > 70 ? '…' : ''}` : `left longest: <b>${esc(t.node.title)}</b>`;
-  return `<div class="tr-today"><span class="tr-lbl">Knowledge Tree</span><span class="tr-todayw">${what}</span><a class="btn sm ghost" href="#/tree">tend it</a></div>`;
+  return `<div class="tr-today" data-duty-id="knowledge_tree_tend"><span class="tr-lbl">Knowledge Tree</span><span class="tr-todayw">${what}</span><a class="btn sm ghost" href="#/tree">tend it</a></div>`;
 }
 
 /* ---------- resurfacing, asked for on a page ---------- */

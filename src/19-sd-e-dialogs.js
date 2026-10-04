@@ -370,8 +370,8 @@ function studyTodayHTML(){
   const due = SD.loaded ? sdDueCount() : (S.sdSummary ? S.sdSummary.due : 0);
   const box = SD.loaded ? studyInboxNotes().length : 0;
   if(!SD.loaded && !S.sdSummary) { sdLoad().then(() => { sdSummarise(); }); return ''; }
-  if(!due && !box) return `<div class="sd-today quiet"><span class="mono">Nothing to review today</span><a class="btn sm ghost" href="#/study">the decks</a></div>`;
-  return `<div class="sd-today"><span class="sd-today-n"><b>${due}</b> ${due === 1 ? 'card' : 'cards'} to review${box ? ` · ${box} suggested` : ''}</span>
+  if(!due && !box) return `<div class="sd-today quiet" data-duty-id="study_deck"><span class="mono">Nothing to review today</span><a class="btn sm ghost" href="#/study">the decks</a></div>`;
+  return `<div class="sd-today" data-duty-id="study_deck"><span class="sd-today-n"><b>${due}</b> ${due === 1 ? 'card' : 'cards'} to review${box ? ` · ${box} suggested` : ''}</span>
     <span class="grow"></span>${due ? `<button class="btn sm primary" id="sdFive" onclick="startShortStudy()">five minutes</button>` : ''}<a class="btn sm ghost" href="#/study">the decks</a></div>`;
 }
 /* five minutes: the deck with the most due, straight into review */

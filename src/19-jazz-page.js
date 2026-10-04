@@ -232,7 +232,7 @@ function jazzRoadHTML(){
       ${done} of ${of} are yours.</p>
     ${jazzStageHeadHTML(jazzActiveStage())}
     <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <button class="btn primary" id="jzPlanGo">\u{1f4cb} Today’s practice</button>
+      <button class="btn primary" id="jzPlanGo" data-duty-id="jazz_daily_plan">\u{1f4cb} Today’s practice</button>
       <button class="btn sm ghost" id="jzCards">\u{1f3af} Flashcards</button>
       <button class="btn sm ghost" id="jzHistory">\u{1f4ca} What you have practised</button>
       <span class="grow"></span>

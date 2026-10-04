@@ -316,5 +316,5 @@ function lsTodayHTML(){
     parts.push(`<span class="ls-today-chip">${trayCount} chip${trayCount > 1 ? 's' : ''} in tray</span>`);
   }
 
-  return `<div class="ls-today-strip">${parts.join(' · ')}</div>`;
+  return `<div class="ls-today-strip" data-duty-id="ls_recall">${parts.join(' · ')}</div>`;
 }

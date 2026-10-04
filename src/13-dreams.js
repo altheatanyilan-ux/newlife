@@ -27,7 +27,7 @@ function setNoDream(day, on){
 /* the button that sits beside "I woke up at" */
 function dreamEdgeHTML(day = today()){
   const st = dreamStateOn(day), n = dreamsOn(day).length;
-  return `<span class="dream-edge">${
+  return `<span class="dream-edge" data-duty-id="dream_log">${
     st === 'dreamt' ? `<button class="day-edge-t" id="dreamAdd" title="write another">☾ ${n} dream${n===1?'':'s'} written</button>`
     : st === 'blank' ? `<button class="day-edge-t muted-t" id="dreamNone" title="I did remember one after all">☾ no dream remembered</button>`
     : `<button class="day-edge-t" id="dreamAdd" title="write it before it goes">☾ record a dream</button>

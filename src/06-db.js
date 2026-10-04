@@ -133,6 +133,10 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   lsQuestions:      'id, cardId',
   lsRecalls:        'id, boardId, createdAt',
   lsSessions:       'id, branchId, boardId',
+  /* Daily Duties (16-duties.js) — one row per completion/dismissal event.
+     The duty states themselves are derived live from existing records; dutyLog
+     is the immutable audit trail that backs the Review page graphs. */
+  dutyLog:          'id, dutyId, date',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -155,8 +159,8 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {

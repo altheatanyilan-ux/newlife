@@ -494,7 +494,7 @@ routes.today = function(root, params = []){
     <!-- One line for where the day has gone so far. It only appears once
          something has been tracked: a strip that reads "0h 0m" every morning
          is a reproach, not information. -->
-    ${(typeof timeTodaySay === 'function' && timeTodaySay()) ? `<button class="t-timeline mono" id="tTime"
+    ${(typeof timeTodaySay === 'function' && timeTodaySay()) ? `<button class="t-timeline mono" id="tTime" data-duty-id="clock_sitting"
       title="where today went">\u23f1 ${esc(timeTodaySay())}</button>` : ''}
 
     <section class="today-view" data-view="do"${view === 'do' ? '' : ' hidden'}>
@@ -703,7 +703,7 @@ routes.today = function(root, params = []){
 
     <!-- The receptive half of the practice, and the two quick doors that
          belong beside it: a card to draw and an impression to catch. -->
-    <details class="section rv t-sec" id="t-sacred"${fold('t-sacred')} style="margin-top:8px">
+    <details class="section rv t-sec" id="t-sacred" data-duty-id="stillness_practice"${fold('t-sacred')} style="margin-top:8px">
       <summary><span class="sc">My sacred space</span><span class="mono">${(() => {
         const mins = stillMinutesOn(T); const st = stillStreak();
         return mins ? `${mins} min today${st > 1 ? ` · ${st} days running` : ''}` : 'nothing sat today'; })()}</span></summary>
