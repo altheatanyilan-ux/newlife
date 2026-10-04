@@ -395,6 +395,9 @@ function openPlanListModal(id, {folderId = null} = {}){
       ${[['task','Task'],['project','◆ Project'],['skill','❧ Skill']].map(([v,n]) => `<button type="button" class="chip click${(l?.listType || 'task') === v ? ' on' : ''}" data-pltype="${v}">${n}</button>`).join('')}</div></div>
     <div class="field"><label>Priority</label><div class="chip-row" id="plnPriRow">
       ${[['high','High'],['normal','Normal'],['low','Low']].map(([v,n]) => `<button type="button" class="chip click${(l?.priority || 'normal') === v ? ' on' : ''}" data-plpri="${v}">${n}</button>`).join('')}</div></div>
+    <div class="field"><label>Importance</label><div class="chip-row" id="plnImpRow">
+      ${[['core','Core'],['supporting','Supporting'],['background','Background']].map(([v,n]) => `<button type="button" class="chip click${(l?.importance || 'supporting') === v ? ' on' : ''}" data-plimp="${v}">${n}</button>`).join('')}</div>
+      <div class="faint" id="plnImpSuggest" style="font-size:.74rem;margin-top:2px"></div></div>
     <div class="field" id="plnActiveFld"><label>Active from</label>
       <input class="inp" id="plnActiveFrom" type="date" value="${esc(l?.activeFrom || '')}" style="max-width:180px">
       <div class="faint" style="font-size:.74rem;margin-top:2px">Hidden from the sidebar until this date. Leave blank to always show.</div></div>
@@ -417,12 +420,24 @@ function openPlanListModal(id, {folderId = null} = {}){
   let color = l?.color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length];
   let listType = l?.listType || 'task';
   let priority = l?.priority || 'normal';
+  let importance = l?.importance || 'supporting';
   m.querySelectorAll('[data-plc]').forEach(b => b.onclick = () => { color = b.dataset.plc;
     m.querySelectorAll('[data-plc]').forEach(x => x.classList.toggle('on', x === b)); });
   m.querySelectorAll('[data-pltype]').forEach(b => b.onclick = () => { listType = b.dataset.pltype;
     m.querySelectorAll('[data-pltype]').forEach(x => x.classList.toggle('on', x === b)); });
   m.querySelectorAll('[data-plpri]').forEach(b => b.onclick = () => { priority = b.dataset.plpri;
     m.querySelectorAll('[data-plpri]').forEach(x => x.classList.toggle('on', x === b)); });
+  const _impSuggest = m.querySelector('#plnImpSuggest');
+  const _showSuggest = () => {
+    if(!_impSuggest || typeof planSuggestImportance !== 'function') return;
+    const sl = l ? Object.assign({}, l, {importance}) : {importance};
+    const sug = planSuggestImportance(sl);
+    _impSuggest.textContent = sug !== importance ? `Suggested: ${sug[0].toUpperCase()+sug.slice(1)}` : '';
+  };
+  _showSuggest();
+  m.querySelectorAll('[data-plimp]').forEach(b => b.onclick = () => { importance = b.dataset.plimp;
+    m.querySelectorAll('[data-plimp]').forEach(x => x.classList.toggle('on', x === b));
+    _showSuggest(); });
   m.querySelector('#plnSave').onclick = () => {
     const name = m.querySelector('#plnName').value.trim() || 'New list';
     const folderId = m.querySelector('#plnFolder').value || null;
@@ -435,11 +450,13 @@ function openPlanListModal(id, {folderId = null} = {}){
       l.name = name; l.color = color; l.folderId = folderId; l.defaultView = view;
       l.listType = listType; l.priority = priority; l.activeFrom = activeFrom;
       l.description = description; l.targetHoursPerWeek = hpw; l.targetWeeks = wks;
+      l.importance = importance;
     } else {
       const nl = planNewList(name, {folderId, color});
       nl.defaultView = view; nl.listType = listType; nl.priority = priority;
       nl.activeFrom = activeFrom; nl.description = description;
       nl.targetHoursPerWeek = hpw; nl.targetWeeks = wks;
+      nl.importance = importance;
       S._planSel = {kind:'list', id:nl.id};
     }
     saveNow(); m.remove(); sound('success'); rerender();

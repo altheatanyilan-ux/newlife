@@ -287,6 +287,12 @@ routes.today = function(root, params = []){
   const yesterday = addDays(T, -1); const cyest = S.checkins?.[yesterday];
   const cycleDay = S.rehearsal.cycleStart ? daysBetween(S.rehearsal.cycleStart, T) : 0;
   const rows = tasksForDay(T);
+  if(typeof planList === 'function') rows.sort((a, b) => {
+    if(a.done || b.done) return 0;
+    const ia = planList(a.task?.listId)?.importance === 'core' ? 0 : 1;
+    const ib = planList(b.task?.listId)?.importance === 'core' ? 0 : 1;
+    return ia - ib;
+  });
   /* Work left behind: either it was owed before today, or you said you would
      sit down with it on a day that has been and gone. Bringing it forward
      moves the day you mean to do it and leaves the deadline where it is — a

@@ -635,6 +635,30 @@ function planStatsHTML(){
 /* One number for a day: what was finished against what was due, the focus
    time against an hour's target, a penalty for what is late, and the steps
    ticked off inside tasks. It is a rough instrument and says so. */
+/* ---- Importance suggestion for a list ---- */
+function planSuggestImportance(l){
+  if(!l) return 'supporting';
+  const p = planState();
+  const T = today();
+  const wkStart = typeof weekStart === 'function' ? weekStart(T) : null;
+  const wkPlan = wkStart && typeof weekPlanSeen === 'function' ? weekPlanSeen(wkStart) : null;
+  const wkGoals = wkPlan && typeof weekGoalsNamed === 'function' ? weekGoalsNamed(wkPlan) : [];
+  const linkedSkill = l.listType === 'skill';
+  const inWeekGoals = wkGoals.some(g => g.text && g.text.toLowerCase().includes((l.name||'').toLowerCase()));
+  const upcomingMs = (l.milestones || []).filter(m => !['on-track','prepared'].includes(m.status) && !m.done && m.date)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const nearestMs = upcomingMs[0];
+  const daysToNearest = nearestMs ? Math.max(0, daysBetween ? daysBetween(T, nearestMs.date) : 999) : null;
+  const slipping = (l.milestones || []).some(m => m.status === 'slipping');
+  if(linkedSkill || inWeekGoals || (daysToNearest != null && daysToNearest <= 30) || slipping) return 'core';
+  if(l.priority === 'low') return 'background';
+  const lastTask = typeof planSelectionTasks === 'function'
+    ? planSelectionTasks({kind:'list', id:l.id}).filter(t => t.doneAt).sort((a,b)=>(b.doneAt||'').localeCompare(a.doneAt||''))[0] : null;
+  const daysSinceDone = lastTask?.doneAt ? daysBetween ? daysBetween(lastTask.doneAt, T) : 0 : null;
+  if(!l.milestones?.length && (daysSinceDone == null || daysSinceDone > 90)) return 'background';
+  return 'supporting';
+}
+
 /* ---- Commitment data for a list ---- */
 function planListCommitmentData(l){
   if(!l) return null;

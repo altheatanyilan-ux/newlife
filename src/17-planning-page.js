@@ -56,10 +56,11 @@ function planView(){
 function planSetView(v){ S._planView = v; planState().prefs.view = v; saveNow(); rerender(); }
 
 /* ---------- sidebar ---------- */
+const listTypeIcon = l => !l ? '' : l.listType === 'project' ? '◆ ' : l.listType === 'skill' ? '❧ ' : '';
+
 function planSidebarHTML(){
   const p = planState(), sel = planSel();
   const on = (k, i) => sel.kind === k && sel.id === i ? ' on' : '';
-  const listTypeIcon = l => l.listType === 'project' ? '◆ ' : l.listType === 'skill' ? '❧ ' : '';
   const listCommitTip = l => {
     const parts = [];
     if(planListCount(l.id)) parts.push(`${planListCount(l.id)} open`);
@@ -74,7 +75,9 @@ function planSidebarHTML(){
   };
   const listRow = l => {
     const allPrep = planListAllMilestonesPrepared(l);
-    return `<button class="pl-item${on('list', l.id)}${l.priority === 'high' ? ' pl-high' : ''}${allPrep ? ' pl-prepared' : ''}" data-plsel="list:${l.id}" draggable="true" data-pldrag="${l.id}"
+    const imp = l.importance || 'supporting';
+    const impCls = imp === 'core' ? ' pl-core' : imp === 'background' ? ' pl-bg' : '';
+    return `<button class="pl-item${on('list', l.id)}${l.priority === 'high' ? ' pl-high' : ''}${allPrep ? ' pl-prepared' : ''}${impCls}" data-plsel="list:${l.id}" draggable="true" data-pldrag="${l.id}"
       title="${esc(listCommitTip(l))}">
     <span class="pl-dot" style="background:${esc(l.color)}"></span><span class="pl-name">${esc(listTypeIcon(l))}${esc(l.name)}</span>
     <span class="pl-n mono">${planListCount(l.id) || ''}</span></button>`;
@@ -706,8 +709,15 @@ function planGroupTasks(tasks, sel){
   }
   if(mode === 'list'){
     const g = new Map();
-    tasks.forEach(t => { const k = planListName(t.listId); if(!g.has(k)) g.set(k, []); g.get(k).push(t); });
-    return [...g.entries()];
+    tasks.forEach(t => { const k = t.listId || ''; if(!g.has(k)) g.set(k, []); g.get(k).push(t); });
+    const entries = [...g.entries()];
+    entries.sort((a, b) => {
+      const la = planList(a[0]), lb = planList(b[0]);
+      const ia = la?.importance === 'core' ? 0 : la?.importance === 'background' ? 2 : 1;
+      const ib = lb?.importance === 'core' ? 0 : lb?.importance === 'background' ? 2 : 1;
+      return ia - ib || (la?.sortOrder || 0) - (lb?.sortOrder || 0);
+    });
+    return entries;
   }
   if(mode === 'priority'){
     const g = new Map();
@@ -725,9 +735,19 @@ function planListViewHTML(sel, tasks){
 
   if(grouped){
     return `${quick({})}
-      ${grouped.map(([name, ts]) => `<div class="pt-group"><div class="pt-ghead">${esc(name)}<span class="mono">${ts.length}</span></div>
-        <div class="pt-gbody" data-ptgroup>${ts.map(t => planRowHTML(t, {showList: true})).join('')}</div></div>`).join('')
-      || `<div class="empty">${esc(planEmptyLine(sel))}</div>`}`;
+      ${grouped.map(([key, ts]) => {
+        const l = typeof planList === 'function' ? planList(key) : null;
+        const name = l ? l.name : (key || planListName(key));
+        const imp = l?.importance || 'supporting';
+        const impCls = imp === 'core' ? ' pt-ghead--core' : imp === 'background' ? ' pt-ghead--bg' : '';
+        const dotColor = l?.color || 'var(--faint)';
+        const icon = l ? listTypeIcon(l) : '';
+        return `<div class="pt-group"><div class="pt-ghead${impCls}">
+          <span class="pt-dot" style="background:${dotColor}"></span>
+          <span class="pt-gname">${esc(icon)}${esc(name)}</span>
+          <span class="mono">${ts.length}</span></div>
+          <div class="pt-gbody" data-ptgroup>${ts.map(t => planRowHTML(t, {showList: true})).join('')}</div></div>`;
+      }).join('') || `<div class="empty">${esc(planEmptyLine(sel))}</div>`}`;
   }
   /* a real list: its own sections, each of them a place to add to */
   const l = sel.kind === 'list' ? planList(sel.id) : null;

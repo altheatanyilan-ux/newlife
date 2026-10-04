@@ -195,6 +195,7 @@ function planState(){
     if(l.description === undefined) l.description = '';
     if(l.targetHoursPerWeek === undefined) l.targetHoursPerWeek = null;
     if(l.targetWeeks === undefined) l.targetWeeks = null;
+    if(!l.importance) l.importance = 'supporting';
     l.milestones.forEach(m => {
       if(m.prepFrom === undefined) m.prepFrom = null;
       if(m.winNote === undefined) m.winNote = '';
@@ -254,7 +255,8 @@ function planNewList(name, {folderId = null, color = null} = {}){
   const l = {id:uid(), name: name || 'New list', color: color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length],
     folderId, sortOrder: p.lists.length, defaultView:PLAN_VIEW_DEFAULT, kanbanColumns:DEFAULT_KANBAN(), sections:[],
     isDefault:false, createdAt:new Date().toISOString(),
-    listType:'task', priority:'normal', activeFrom:null, description:'', targetHoursPerWeek:null, targetWeeks:null};
+    listType:'task', priority:'normal', activeFrom:null, description:'', targetHoursPerWeek:null, targetWeeks:null,
+    importance:'supporting'};
   l.milestones = [];
   p.lists.push(l); return l;
 }
