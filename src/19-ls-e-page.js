@@ -43,9 +43,13 @@ function lsHeaderHTML(board){
   const branchTitle = board
     ? (S.treeNodes||[]).find(n => n.id === board.branchId)?.title || 'Studio'
     : 'Studio';
+  const scaffoldLabel = (typeof LS_SCAFFOLD_LABELS !== 'undefined')
+    ? LS_SCAFFOLD_LABELS[board?.scaffoldLevel || 'assist']
+    : (board?.scaffoldLevel || 'assist');
   return `<div class="ls-header">
     <span class="ls-header-title">${esc(branchTitle)}</span>
     <div class="ls-header-actions">
+      <button class="btn sm ghost" data-ls-action="scaffold-level" title="Scaffold level: ${esc(scaffoldLabel)} — click to cycle">◈ ${esc(scaffoldLabel)}</button>
       <button class="btn sm ghost" data-ls-action="snapshot" title="Save layout snapshot">Snapshot</button>
       <button class="btn sm ghost" data-ls-action="fit"      title="Fit all cards (0)">Fit</button>
       <button class="btn sm ghost" data-ls-action="spaceout" title="Auto-arrange">Arrange</button>
@@ -98,6 +102,7 @@ routes.studio = function(root, params){
     <div class="ls-page" data-ls-page>
       ${lsHeaderHTML(board)}
       ${lsModeBarHTML(board.id, board.mode)}
+      <div data-signal-bar></div>
       <div class="ls-content-area">
         ${lsCanvasHTML(board.id)}
         <div class="ls-side-panel" data-mode-panel></div>
@@ -141,6 +146,7 @@ routes.studio = function(root, params){
     const bar = root.querySelector('[data-modebar]');
     if(bar){ bar.outerHTML = lsModeBarHTML(board.id, modeId); rebindModebar(); }
     mountPanel(modeId);
+    if(typeof lsRefreshSignalBar === 'function') lsRefreshSignalBar(root, board.id, canvasApi);
   }
 
   function rebindModebar(){
@@ -154,7 +160,42 @@ routes.studio = function(root, params){
   /* mount initial mode panel */
   mountPanel(board.mode);
 
+  /* initial signal bar */
+  if(typeof lsRefreshSignalBar === 'function') lsRefreshSignalBar(root, board.id, canvasApi);
+
   /* header actions */
+  root.querySelector('[data-ls-action="scaffold-level"]').onclick = () => {
+    const next = lsScaffoldLevelNext(board.scaffoldLevel || 'assist');
+    board.scaffoldLevel = next;
+    save();
+    const hdr = root.querySelector('.ls-header');
+    if(hdr){ hdr.outerHTML = lsHeaderHTML(board); rebindHeader(); }
+    if(typeof lsRefreshSignalBar === 'function') lsRefreshSignalBar(root, board.id, canvasApi);
+  };
+
+  function rebindHeader(){
+    root.querySelector('[data-ls-action="scaffold-level"]').onclick = () => {
+      const next = lsScaffoldLevelNext(board.scaffoldLevel || 'assist');
+      board.scaffoldLevel = next;
+      save();
+      const hdr = root.querySelector('.ls-header');
+      if(hdr){ hdr.outerHTML = lsHeaderHTML(board); rebindHeader(); }
+      if(typeof lsRefreshSignalBar === 'function') lsRefreshSignalBar(root, board.id, canvasApi);
+    };
+    root.querySelector('[data-ls-action="snapshot"]').onclick = () => {
+      lsSnapshotCommit(board.id);
+      toast('Layout snapshot saved.');
+    };
+    root.querySelector('[data-ls-action="fit"]').onclick = () => {
+      const vp = lsFitToContent(canvasRoot, board.id);
+      if(vp) canvasApi.repaint();
+    };
+    root.querySelector('[data-ls-action="spaceout"]').onclick = () => {
+      lsSpaceOut(board.id);
+      canvasApi.repaint();
+    };
+  }
+
   root.querySelector('[data-ls-action="snapshot"]').onclick = () => {
     lsSnapshotCommit(board.id);
     toast('Layout snapshot saved.');

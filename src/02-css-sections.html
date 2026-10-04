@@ -11744,6 +11744,42 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
   border-left:2px solid var(--rose,#c87070)}
 .ls-recall-extra-list{font-size:.76rem;margin-top:2px}
 .ls-recall-actions{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+
+/* ---- Phase 4: Chunk panel ---- */
+.ls-chunk-panel{display:flex;flex-direction:column;gap:8px;height:100%;overflow-y:auto}
+.ls-chunk-legend{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.ls-chunk-legend-item{display:flex;align-items:center;gap:4px;font-size:.75rem;color:var(--muted)}
+.ls-chunk-summary{font-size:.78rem;color:var(--muted);padding:4px 0}
+.ls-chunk-highlight-toggle{width:100%;text-align:left}
+.ls-chunk-chips{display:flex;flex-direction:column;gap:4px;flex:1;overflow-y:auto}
+.ls-chunk-row{display:flex;flex-direction:column;gap:3px;padding:6px 8px;
+  background:var(--surface-2);border-radius:6px;border:1px solid var(--line)}
+.ls-chunk-chip-text{font-size:.82rem;color:var(--text);line-height:1.3}
+.ls-chunk-tls-row{display:flex;gap:4px;align-items:center}
+.ls-chunk-tls-btn{padding:2px 8px;border-radius:4px;border:1px solid var(--line);
+  background:none;color:var(--muted);cursor:pointer;font-size:.72rem;transition:background .15s}
+.ls-chunk-tls-btn.active-green{background:var(--sage);color:#fff;border-color:var(--sage)}
+.ls-chunk-tls-btn.active-amber{background:var(--gold,#c8a050);color:#fff;border-color:var(--gold,#c8a050)}
+.ls-chunk-tls-btn.active-red{background:var(--rose,#c87070);color:#fff;border-color:var(--rose,#c87070)}
+.ls-chunk-reason{width:100%;padding:3px 6px;font-size:.76rem;background:var(--surface);
+  border:1px solid var(--line);border-radius:4px;color:var(--text)}
+.ls-card--shared-reason{/* set by JS */ }
+.ls-highlight-reasons .ls-card--shared-reason{box-shadow:0 0 0 2px var(--gold,#c8a050)!important}
+
+/* ---- Phase 4: Signal bar ---- */
+.ls-signal-bar{display:flex;flex-direction:column;gap:4px;padding:4px 12px;background:var(--surface-2)}
+.ls-signal{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;
+  border-left:3px solid transparent;font-size:.8rem}
+.ls-signal--overload{border-left-color:var(--gold,#c8a050);background:rgba(200,160,80,.08)}
+.ls-signal--quality{border-left-color:var(--rose,#c87070);background:rgba(200,112,112,.08)}
+.ls-signal-msg{flex:1;color:var(--text)}
+.ls-signal-why{color:var(--muted);font-size:.74rem;background:none;border:none;cursor:pointer;
+  padding:0 4px;text-decoration:underline dotted}
+.ls-signal-dismiss{color:var(--muted);background:none;border:none;cursor:pointer;
+  font-size:.82rem;padding:0 4px;line-height:1}
+
+/* ---- Phase 4: Scaffold level chip in header ---- */
+[data-ls-action="scaffold-level"]{font-size:.75rem;opacity:.8}
 </style>
 
 </head>

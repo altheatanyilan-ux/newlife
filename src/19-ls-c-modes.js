@@ -381,7 +381,7 @@ function lsMountModePanel(panelEl, boardId, mode, canvasApi){
       panelEl.innerHTML = `<div class="ls-panel-empty muted">Recall panel not loaded.</div>`;
     }
   } else if(mode === 'chunk'){
-    panelEl.innerHTML = `<div class="ls-panel-empty muted">Select chips and mark importance: <span style="color:var(--sage)">●</span> core, <span style="color:var(--gold,#c8a050)">●</span> supporting, <span style="color:var(--rose,#c87070)">●</span> peripheral. Use Ask panel (mode 3) to set TLS per chip.</div>`;
+    api = bindChunkPanel(panelEl, boardId, canvasApi);
   } else {
     panelEl.innerHTML = '';
   }
@@ -452,4 +452,265 @@ function bindRelateMode(canvasRoot, boardId, panelEl, canvasApi, onGraftCreated)
       document.removeEventListener('keydown', keyHandler);
     }
   };
+}
+
+/* ============================================================
+   Phase 4: Chunk mode, Scaffold signals, Scaffold level
+   ============================================================ */
+
+/* ---------- Chunk mode ---------- */
+
+const LS_TLS_CFG = [
+  {id:'green', label:'Core',        color:'var(--sage)'},
+  {id:'amber', label:'Supporting',  color:'var(--gold,#c8a050)'},
+  {id:'red',   label:'Peripheral',  color:'var(--rose,#c87070)'},
+];
+
+function _lsChipSortKey(c){
+  /* untagged first, then by TLS order */
+  if(!c.tls) return 0;
+  return c.tls === 'green' ? 1 : c.tls === 'amber' ? 2 : 3;
+}
+
+function lsChunkPanelHTML(boardId){
+  lsEnsure();
+  const chips = (S.lsChips||[])
+    .filter(c => c.boardId === boardId && !c.inTray)
+    .slice().sort((a,b) => _lsChipSortKey(a) - _lsChipSortKey(b));
+  const green  = chips.filter(c => c.tls === 'green').length;
+  const amber  = chips.filter(c => c.tls === 'amber').length;
+  const red    = chips.filter(c => c.tls === 'red').length;
+  const untagged = chips.filter(c => !c.tls).length;
+
+  return `<div class="ls-chunk-panel">
+    <div class="ls-panel-card-label">Tag by importance</div>
+    <div class="ls-chunk-legend">
+      ${LS_TLS_CFG.map(t =>
+        `<span style="color:${t.color}">● ${t.label}</span>`
+      ).join('')}
+    </div>
+    <div class="ls-chunk-summary muted">
+      ${green} core · ${amber} supporting · ${red} peripheral · ${untagged} untagged
+    </div>
+    <label class="ls-chunk-highlight-toggle row" style="gap:6px;align-items:center;font-size:.78rem;margin:6px 0">
+      <input type="checkbox" data-highlight-reasons>
+      Highlight shared reasons
+    </label>
+    <div class="ls-chunk-chips">
+      ${chips.map(chip => {
+        const tlsColor = LS_TLS_CFG.find(t => t.id === chip.tls)?.color || 'var(--faint)';
+        const reason = (chip.reasons||[])[0] || '';
+        return `<div class="ls-chunk-row" data-ccid="${esc(chip.id)}">
+          <div class="ls-chunk-chip-text">${esc(chip.text.slice(0,55))}</div>
+          <div class="ls-chunk-tls-row">
+            ${LS_TLS_CFG.map(t =>
+              `<button class="ls-tls-btn${chip.tls===t.id?' active':''}"
+                data-ctls="${esc(t.id)}" data-ctarget="${esc(chip.id)}"
+                style="color:${t.color}" title="${esc(t.label)}">●</button>`
+            ).join('')}
+            ${chip.tls ? `<button class="ls-tls-btn" data-ctls="" data-ctarget="${esc(chip.id)}" title="Clear">○</button>` : ''}
+          </div>
+          ${chip.tls ? `<input class="inp ls-chunk-reason" data-creason="${esc(chip.id)}"
+            value="${esc(reason)}" placeholder="reason for this tag…"
+            style="width:100%;margin-top:4px;font-size:.75rem;padding:4px 8px">` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function _lsUpdateChunkHighlights(canvasRoot, boardId, on){
+  if(!canvasRoot) return;
+  canvasRoot.classList.toggle('ls-highlight-reasons', !!on);
+  const chips = (S.lsChips||[]).filter(c => c.boardId === boardId && !c.inTray);
+  const reasonCount = {};
+  chips.forEach(c => {
+    const r = (c.reasons||[])[0]?.trim();
+    if(r) reasonCount[r] = (reasonCount[r]||0) + 1;
+  });
+  chips.forEach(c => {
+    const el = canvasRoot.querySelector(`.ls-card[data-cid="${c.id}"]`); if(!el) return;
+    const r = (c.reasons||[])[0]?.trim();
+    const shared = !!(r && reasonCount[r] > 1);
+    el.classList.toggle('ls-card--shared-reason', shared);
+    el.dataset.sharedReason = shared ? r : '';
+    if(shared) el.title = `Shares reason: "${r}"`;
+  });
+}
+
+function bindChunkPanel(panelEl, boardId, canvasApi){
+  if(!panelEl) return;
+  const canvasRoot = panelEl.closest('.ls-content-area')?.querySelector('.ls-canvas-root');
+  let highlightOn = false;
+
+  function refresh(){
+    panelEl.innerHTML = lsChunkPanelHTML(boardId);
+    rebind();
+    _lsUpdateChunkHighlights(canvasRoot, boardId, highlightOn);
+  }
+
+  function rebind(){
+    /* highlight toggle */
+    const cb = panelEl.querySelector('[data-highlight-reasons]');
+    if(cb){ cb.checked = highlightOn; cb.onchange = () => { highlightOn = cb.checked; _lsUpdateChunkHighlights(canvasRoot, boardId, highlightOn); }; }
+
+    /* TLS buttons */
+    panelEl.querySelectorAll('[data-ctls]').forEach(btn => {
+      btn.onclick = () => {
+        const chipId = btn.dataset.ctarget;
+        const tls = btn.dataset.ctls || null;
+        lsChipUpdate(chipId, {tls});
+        save();
+        canvasApi?.repaint?.();
+        refresh();
+      };
+    });
+
+    /* reason inputs */
+    panelEl.querySelectorAll('[data-creason]').forEach(inp => {
+      inp.onblur = () => {
+        const chipId = inp.dataset.creason;
+        const reason = inp.value.trim();
+        lsChipUpdate(chipId, {reasons: reason ? [reason] : []});
+        save();
+        _lsUpdateChunkHighlights(canvasRoot, boardId, highlightOn);
+      };
+      inp.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); inp.blur(); } };
+    });
+  }
+
+  refresh();
+  return {
+    refresh,
+    destroy(){ if(canvasRoot) canvasRoot.classList.remove('ls-highlight-reasons'); }
+  };
+}
+
+/* ---------- Scaffold signals ---------- */
+
+const LS_SIGNAL_OVERLOAD_GROUP = 4;   /* members above this triggers overload signal */
+const LS_SIGNAL_UNSORTED_THRESHOLD = 25;
+
+function lsScaffoldSignals(boardId){
+  lsEnsure();
+  const board = lsBoardById(boardId); if(!board) return [];
+  const level = board.scaffoldLevel || 'assist';
+  if(level === 'bare') return [];
+
+  const dismissed = (S.lsPrefs && S.lsPrefs.dismissedSignals) || {};
+  const chips     = (S.lsChips||[]).filter(c => c.boardId === boardId && !c.inTray);
+  const groups    = (S.lsGroups||[]).filter(g => g.boardId === boardId);
+  const signals   = [];
+
+  function push(id, kind, msg, why){
+    if(dismissed[id] === today()) return;
+    signals.push({id, kind, msg, why});
+  }
+
+  /* overload: group too large */
+  groups.forEach(g => {
+    const n = (g.memberIds||[]).length;
+    if(n > LS_SIGNAL_OVERLOAD_GROUP){
+      push(`overload-group-${g.id}`, 'overload',
+        `Group "${(g.label||'').slice(0,20)}" has ${n} members`,
+        'Working memory holds ~4 items well — try splitting this group into two smaller ones');
+    }
+  });
+
+  /* overload: too many unsorted chips */
+  const groupedIds = new Set(groups.flatMap(g => g.memberIds||[]));
+  const unsorted   = chips.filter(c => !groupedIds.has(c.id));
+  if(unsorted.length > LS_SIGNAL_UNSORTED_THRESHOLD){
+    push(`overload-unsorted-${boardId}`, 'overload',
+      `${unsorted.length} chips aren't in any group`,
+      'Switch to Sort mode to organise them — grouping makes recall much easier');
+  }
+
+  /* quality: chip text too long */
+  chips.forEach(c => {
+    const words = (c.text||'').trim().split(/\s+/).length;
+    if(words > 12){
+      push(`quality-longchip-${c.id}`, 'quality',
+        `"${(c.text||'').slice(0,30)}…" is ${words} words long`,
+        'Chips work best as keywords or short phrases — shorter is easier to recall');
+    }
+  });
+
+  /* quality: group without a reason */
+  groups.forEach(g => {
+    if(g.label && !g.reason && (g.memberIds||[]).length > 0){
+      push(`quality-group-noreason-${g.id}`, 'quality',
+        `Group "${(g.label||'').slice(0,20)}" has no reason`,
+        'A one-sentence reason for grouping helps you reconstruct the relationship later');
+    }
+  });
+
+  return signals;
+}
+
+function lsSignalBarHTML(boardId){
+  const board = lsBoardById(boardId);
+  if(!board) return '';
+  const level = board.scaffoldLevel || 'assist';
+  if(level === 'bare') return '';
+
+  const signals = lsScaffoldSignals(boardId);
+  if(!signals.length) return '';
+
+  return `<div class="ls-signal-bar" data-signal-bar>
+    ${signals.map(s => `
+      <div class="ls-signal ls-signal--${esc(s.kind)}" data-sid="${esc(s.id)}">
+        <span class="ls-signal-msg">${esc(s.msg)}</span>
+        <button class="ls-signal-why btn ghost sm" title="${esc(s.why)}" data-why="${esc(s.id)}">?</button>
+        <button class="ls-signal-dismiss btn ghost sm" data-dismiss="${esc(s.id)}" title="Dismiss for today">×</button>
+      </div>`
+    ).join('')}
+  </div>`;
+}
+
+function bindSignalBar(barEl, boardId, canvasApi){
+  if(!barEl) return;
+
+  barEl.addEventListener('click', e => {
+    /* dismiss */
+    const dismissBtn = e.target.closest('[data-dismiss]');
+    if(dismissBtn){
+      const id = dismissBtn.dataset.dismiss;
+      if(!S.lsPrefs) S.lsPrefs = {};
+      if(!S.lsPrefs.dismissedSignals) S.lsPrefs.dismissedSignals = {};
+      S.lsPrefs.dismissedSignals[id] = today();
+      save();
+      dismissBtn.closest('.ls-signal')?.remove();
+      if(!barEl.querySelector('.ls-signal')) barEl.style.display = 'none';
+      return;
+    }
+    /* why tooltip — toast the reason */
+    const whyBtn = e.target.closest('[data-why]');
+    if(whyBtn){
+      const id = whyBtn.dataset.why;
+      const bar = barEl.querySelector(`[data-sid="${id}"]`);
+      const signal = lsScaffoldSignals(boardId).find(s => s.id === id);
+      if(signal) toast(signal.why, 4000);
+    }
+  });
+}
+
+/* Refresh the signal bar element in the page */
+function lsRefreshSignalBar(pageRoot, boardId, canvasApi){
+  const bar = pageRoot.querySelector('[data-signal-bar]');
+  if(!bar) return;
+  const html = lsSignalBarHTML(boardId);
+  bar.outerHTML = html || '<div class="ls-signal-bar" data-signal-bar style="display:none"></div>';
+  const newBar = pageRoot.querySelector('[data-signal-bar]');
+  if(newBar) bindSignalBar(newBar, boardId, canvasApi);
+}
+
+/* ---------- Scaffold level ---------- */
+
+const LS_SCAFFOLD_LEVELS = ['assist','lean','bare'];
+const LS_SCAFFOLD_LABELS = {assist:'Assist', lean:'Lean', bare:'Bare'};
+
+function lsScaffoldLevelNext(current){
+  const idx = LS_SCAFFOLD_LEVELS.indexOf(current||'assist');
+  return LS_SCAFFOLD_LEVELS[(idx + 1) % LS_SCAFFOLD_LEVELS.length];
 }
