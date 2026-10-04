@@ -582,3 +582,85 @@ function migrateDD(){
   S.dutyDismiss  = S.dutyDismiss  || {};
   if(!Array.isArray(S.dutyLog)) S.dutyLog = [];
 }
+
+/* ============================================================
+   DUTIES UI — reads duty state and applies CSS classes to
+   every [data-duty-id] element currently in the DOM.
+   Called after every rerender and on a 60-second tick.
+   Writes no data.
+   ============================================================ */
+
+function dutyUpdateUI(T){
+  if(typeof dutyState !== 'function') return;
+  T = T || today();
+  const intensity = (S.settings && S.settings.dutyIntensity) || 'normal';
+
+  /* clear all previous state */
+  document.querySelectorAll('[data-duty-id]').forEach(el => {
+    el.classList.remove('duty-due','duty-overdue','duty-done','duty-skipped','duty-primary');
+    const lbl = el.querySelector('.duty-overdue-label');
+    if(lbl) lbl.remove();
+  });
+
+  /* intensity → CSS variable that scales animation spread */
+  const iVal = intensity === 'subtle' ? 0.45 : intensity === 'insistent' ? 1.8 : 1;
+  document.documentElement.style.setProperty('--duty-i', iVal);
+
+  if(intensity === 'off') return;
+
+  /* walk every duty element; track single most-urgent for the primary pulse */
+  let primaryEl = null, primaryScore = -1;
+
+  document.querySelectorAll('[data-duty-id]').forEach(el => {
+    const id = el.dataset.dutyId;
+    if(!id) return;
+    const state = dutyState(id, T);
+
+    if(state === 'done')   { el.classList.add('duty-done');    return; }
+    if(state === 'skipped'){ el.classList.add('duty-skipped'); return; }
+
+    if(state === 'due'){
+      el.classList.add('duty-due');
+      /* earlier window-end = more urgent among due duties */
+      const win = dutyWindowFor(id, T);
+      const score = win ? (1440 - _hmToMins(win.end)) : 0;
+      if(score > primaryScore){ primaryScore = score; primaryEl = el; }
+      return;
+    }
+
+    if(state === 'overdue'){
+      el.classList.add('duty-overdue');
+      const win = dutyWindowFor(id, T);
+      const overdueMin = win ? Math.max(0, _hmToMins(_nowHM()) - _hmToMins(win.end)) : 0;
+      /* overdue always outranks due; longer overdue = more urgent */
+      const score = 10000 + overdueMin;
+      if(score > primaryScore){ primaryScore = score; primaryEl = el; }
+      /* inject overdue label */
+      const lbl = document.createElement('span');
+      lbl.className = 'duty-overdue-label';
+      lbl.setAttribute('aria-hidden','true');
+      lbl.textContent = overdueMin >= 60
+        ? `${Math.floor(overdueMin/60)}h${overdueMin%60 ? ' '+overdueMin%60+'m' : ''} overdue`
+        : `${overdueMin || '<1'}m overdue`;
+      el.appendChild(lbl);
+      return;
+    }
+    /* 'upcoming': no class applied */
+  });
+
+  if(primaryEl) primaryEl.classList.add('duty-primary');
+}
+
+/* ---------- boot: wrap rerender + minute tick ---------- */
+(function _dutyUIBoot(){
+  /* wrap global rerender so duty state refreshes after every route paint */
+  if(typeof rerender === 'function'){
+    const _origRerender = rerender;
+    window.rerender = function(){
+      _origRerender.apply(this, arguments);
+      requestAnimationFrame(function(){ typeof dutyUpdateUI === 'function' && dutyUpdateUI(); });
+    };
+  }
+  /* 60-second tick for state changes that happen between rerenders */
+  setInterval(function(){ typeof dutyUpdateUI === 'function' && dutyUpdateUI(); }, 60000);
+})();

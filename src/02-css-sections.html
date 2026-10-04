@@ -11919,6 +11919,58 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
 .pva-off{color:var(--gold,#c8a050)}
 .pva-miss{color:var(--muted);opacity:.5}
 .pva-diff{font-size:.7rem;opacity:.7}
+
+/* ---- Duties: visual state signals (16-duties.js) ---- */
+:root { --duty-i: 1; } /* intensity scalar set by dutyUpdateUI() */
+
+@keyframes dutyPulseDue {
+  0%,100% { box-shadow: 0 0 0 0 transparent; }
+  50%      { box-shadow: 0 0 calc(var(--duty-i)*2px) calc(var(--duty-i)*5px)
+             color-mix(in srgb, var(--gold,#c8a050) 30%, transparent); }
+}
+@keyframes dutyPulseOverdue {
+  0%,100% { box-shadow: 0 0 0 0 transparent; }
+  50%      { box-shadow: 0 0 calc(var(--duty-i)*3px) calc(var(--duty-i)*6px)
+             color-mix(in srgb, var(--rose,#c87070) 35%, transparent); }
+}
+/* primary (most-urgent) duty: animated pulse */
+.duty-primary.duty-due      { animation: dutyPulseDue      2.4s ease-in-out infinite; }
+.duty-primary.duty-overdue  { animation: dutyPulseOverdue  1.4s ease-in-out infinite; }
+/* non-primary due: static amber outline */
+.duty-due:not(.duty-primary){
+  outline: 1.5px solid color-mix(in srgb, var(--gold,#c8a050) 45%, transparent);
+  outline-offset: 1px;
+  border-radius: inherit;
+}
+/* non-primary overdue: static rose outline */
+.duty-overdue:not(.duty-primary){
+  outline: 1.5px solid color-mix(in srgb, var(--rose,#c87070) 45%, transparent);
+  outline-offset: 1px;
+  border-radius: inherit;
+}
+/* skipped: reduced presence */
+.duty-skipped { opacity: .55; }
+/* overdue label injected by JS: "Xm overdue" */
+.duty-overdue-label{
+  display:inline-block; margin-left:8px; vertical-align:middle;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.04em;
+  color:var(--rose,#c87070);
+  opacity:calc(.75 * var(--duty-i));
+  pointer-events:none;
+}
+/* reduced-motion: keep static tint, drop animation */
+@media (prefers-reduced-motion:reduce){
+  .duty-primary.duty-due,
+  .duty-primary.duty-overdue { animation:none; }
+  .duty-primary.duty-due {
+    outline:2px solid color-mix(in srgb, var(--gold,#c8a050) 55%, transparent);
+    outline-offset:1px;
+  }
+  .duty-primary.duty-overdue {
+    outline:2px solid color-mix(in srgb, var(--rose,#c87070) 55%, transparent);
+    outline-offset:1px;
+  }
+}
 </style>
 
 </head>
