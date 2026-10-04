@@ -319,7 +319,8 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
            pencil is the way into the milestone itself. */
         const on = opts.lit !== false && S._planFilter?.milestone === m.id;
         const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
-        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}${on ? ' on' : ''}"
+        const statusCls = m.status && !['open','prepared'].includes(m.status) ? ' ms-' + m.status : '';
+        return `<button class="pl-mspin${m.done ? ' done' : ''}${late ? ' late' : ''}${up ? ' up' : ''}${on ? ' on' : ''}${statusCls}"
           data-plmsfilter="${m.id}" aria-pressed="${on}"
           style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
           title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${
@@ -405,7 +406,10 @@ function openPlanMilestoneManager(sel){
     return `<div class="ms-manage">${items.map(({m, list}) => {
       const late = !m.done && m.date && m.date < T;
       const prog = typeof planMilestoneProgress === 'function' ? planMilestoneProgress(m.id) : {total:0, done:0};
+      const statusLabels = {open:'',  'in-progress':'in progress', 'on-track':'on track', prepared:'prepared', slipping:'slipping'};
+      const statusDot = m.status && m.status !== 'open' ? `<span class="ms-stat-dot ms-dot-${m.status}" title="${statusLabels[m.status]||m.status}"></span>` : '';
       return `<div class="ms-mrow${m.done ? ' done' : ''}${late ? ' late' : ''}" data-msrow="${esc(m.id)}" style="--c:${esc(list.color)}">
+        ${statusDot}
         <button class="task-check sm${m.done ? ' on' : ''}" data-msmet="${esc(m.id)}" role="checkbox"
           aria-checked="${!!m.done}" title="${m.done ? 'not on track after all' : 'mark as on track / prepared'}">${m.done ? '✓' : ''}</button>
         <input class="inp ms-mname" data-msname="${esc(m.id)}" value="${esc(m.name)}" placeholder="What it is">
@@ -487,13 +491,22 @@ function openPlanMilestone(id){
           : `<div class="empty" style="margin:0">Nothing points at this date yet. Open a task and name this milestone on it, or press the date on the strip to work with only its tasks.</div>`}
           ${ts.length ? `<button class="btn sm ghost" id="msOnly" style="margin-top:8px">show only its work →</button>` : ''}
         </div>`; })()}
-      <label class="toggle ${m.done ? 'on' : ''}" id="msDone"><span class="sw"></span><span>on track / prepared</span></label>
+      <div class="field"><label>Status</label>
+        <div class="ms-status-row" id="msStatusRow">
+          ${['open','in-progress','on-track','prepared','slipping'].map(s => {
+            const labels = {open:'Open','in-progress':'In progress','on-track':'On track','prepared':'Prepared','slipping':'Slipping'};
+            const sel = (m.status || 'open') === s;
+            return `<label class="ms-stat-opt${sel ? ' sel' : ''}"><input type="radio" name="msStatus" value="${s}" ${sel ? 'checked' : ''}><span>${labels[s]}</span></label>`;
+          }).join('')}
+        </div>
+      </div>
       <div class="row between"><button class="btn sm ghost danger" id="msDel">remove</button>
         <button class="btn primary" id="msSave">Save</button></div>
     </div>`, 'narrow');
-  let done = !!m.done;
-  const wasDoneOnOpen = done;
-  mo.querySelector('#msDone').onclick = function(){ done = !done; this.classList.toggle('on', done); };
+  const wasDoneOnOpen = !!m.done;
+  mo.querySelector('#msStatusRow').addEventListener('change', e => {
+    mo.querySelectorAll('.ms-stat-opt').forEach(l => l.classList.toggle('sel', l.querySelector('input').checked));
+  });
   /* ticking a task off from here is the same act as ticking it in the list */
   mo.querySelectorAll('[data-mstick]').forEach(b => b.onclick = () => {
     const t = planTaskById(b.dataset.mstick); if(!t) return;
@@ -503,12 +516,17 @@ function openPlanMilestone(id){
     S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: m.id});
     mo.remove(); sound('click'); rerender(); };
   mo.querySelector('#msSave').onclick = () => {
-    const nowDone = done;
+    const chosen = (mo.querySelector('input[name="msStatus"]:checked') || {}).value || 'open';
+    const nowDone = ['on-track','prepared'].includes(chosen);
     m.name = mo.querySelector('#msName').value.trim() || 'A date that matters';
     m.date = mo.querySelector('#msDate').value.trim();
     m.prepFrom = mo.querySelector('#msPrepFrom').value.trim() || null;
     m.note = mo.querySelector('#msNote').value.trim();
+    m.status = chosen;
     m.done = nowDone;
+    if(!m.doneAt && nowDone) m.doneAt = today();
+    if(!nowDone) m.doneAt = null;
+    if(chosen !== 'slipping') m.statusOverride = true;
     saveNow(); mo.remove(); sound('success'); rerender();
     if(!wasDoneOnOpen && nowDone) setTimeout(() => openMilestoneCelebration(m, list), 100);
   };
@@ -530,8 +548,15 @@ function openMilestoneCelebration(m, list){
       <button class="btn primary" id="msCelebSave">Save note &amp; close</button></div>
   </div>`, 'narrow');
   if(typeof sound === 'function') sound('success');
+  if(typeof celebrate === 'function') try { celebrate(m.name); } catch(e){}
   mo.querySelector('#msCelebSave').onclick = () => {
     m.winNote = mo.querySelector('#msCelebNote').value.trim();
+    S.wins = S.wins || [];
+    const earlyLate = m.date ? daysBetween(today(), m.date) : 0;
+    S.wins.push({id: uid(), date: today(), milestoneId: m.id,
+      milestoneLabel: m.name, listId: list?.id,
+      earlyLate, hoursInvested: 0,
+      reflection: m.winNote, createdAt: new Date().toISOString()});
     saveNow(); mo.remove();
   };
 }

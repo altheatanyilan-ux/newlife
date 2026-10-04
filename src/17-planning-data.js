@@ -193,6 +193,9 @@ function planState(){
     l.milestones.forEach(m => {
       if(m.prepFrom === undefined) m.prepFrom = null;
       if(m.winNote === undefined) m.winNote = '';
+      if(!m.status) m.status = m.done ? 'prepared' : 'open';
+      if(m.doneAt === undefined) m.doneAt = null;
+      if(m.statusOverride === undefined) m.statusOverride = false;
     });
   });
   return p;
@@ -255,9 +258,21 @@ function planListActive(l){
   if(!l.activeFrom) return true;
   return l.activeFrom <= today();
 }
+function planMilestoneSlipCheck(l){
+  if(!l || !l.milestones || !l.targetHoursPerWeek) return;
+  l.milestones.forEach(m => {
+    if(['prepared','on-track'].includes(m.status) || m.statusOverride) return;
+    if(!m.date) return;
+    const daysLeft = Math.max(0, daysBetween(today(), m.date));
+    const hoursAvailable = daysLeft / 7 * l.targetHoursPerWeek;
+    const tasks = planMilestoneTasks(m.id, {includeDone: false});
+    const remainingEst = tasks.reduce((s, t) => s + (+t.duration || 0) / 60, 0);
+    if(remainingEst > hoursAvailable * 1.2) { m.status = 'slipping'; m.done = false; }
+  });
+}
 function planListAllMilestonesPrepared(l){
   if(!l || !l.milestones || !l.milestones.length) return false;
-  return l.milestones.every(m => m.done);
+  return l.milestones.every(m => ['on-track','prepared'].includes(m.status) || m.done);
 }
 function planNewFolder(name){
   const p = planState();
@@ -532,7 +547,9 @@ function planAddMilestone(listId, {name = '', date = ''} = {}){
   const l = planList(listId); if(!l) return null;
   if(!Array.isArray(l.milestones)) l.milestones = [];
   const m = {id: uid(), name: name || 'A date that matters', date: date || addDays(today(), 14),
-    done: false, note: '', prepFrom: null, winNote: '', createdAt: new Date().toISOString()};
+    done: false, note: '', prepFrom: null, winNote: '',
+    status: 'open', doneAt: null, statusOverride: false,
+    createdAt: new Date().toISOString()};
   l.milestones.push(m); saveNow(); return m;
 }
 /* every task pointing at one milestone, in the order the list shows them */
@@ -559,7 +576,7 @@ function planMilestoneProgress(id){
 function planMilestonesAhead({within = 60, limit = 6} = {}){
   const T = today(), to = addDays(T, within);
   return planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
-    .filter(({m}) => !m.done && m.date && m.date <= to)
+    .filter(({m}) => !['on-track','prepared'].includes(m.status) && !m.done && m.date && m.date <= to)
     .sort((a, b) => (a.m.date || '').localeCompare(b.m.date || ''))
     .slice(0, limit);
 }

@@ -5450,6 +5450,21 @@ select.sm-active{border-color:var(--page-accent);
 .pl-mspin.done .pl-msdot{background:var(--card);border:1.5px solid var(--c,var(--terra))}
 .pl-mspin.done .pl-mslabel{text-decoration:line-through;color:var(--faint)}
 .pl-mspin.late .pl-msdot{background:var(--terra);box-shadow:0 0 0 3px var(--bg),0 0 0 5px color-mix(in srgb,var(--terra) 30%,transparent)}
+/* milestone status colours on the timeline pin */
+.pl-mspin.ms-in-progress .pl-msdot{background:var(--gold)}
+.pl-mspin.ms-on-track .pl-msdot{background:var(--sage)}
+.pl-mspin.ms-slipping .pl-msdot{background:var(--rose,#c2452d);box-shadow:0 0 0 3px var(--bg),0 0 0 5px color-mix(in srgb,var(--rose,#c2452d) 30%,transparent)}
+/* milestone status selector in open-milestone modal */
+.ms-status-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.ms-stat-opt{display:flex;align-items:center;gap:5px;cursor:pointer;padding:4px 10px;border-radius:20px;border:1px solid var(--line);font-size:.82rem;user-select:none}
+.ms-stat-opt input[type=radio]{width:0;height:0;opacity:0;position:absolute;pointer-events:none}
+.ms-stat-opt.sel{background:var(--surface-2);border-color:var(--page-accent);color:var(--text)}
+/* status dot in milestone manager rows */
+.ms-stat-dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:4px}
+.ms-dot-in-progress{background:var(--gold)}
+.ms-dot-on-track{background:var(--sage)}
+.ms-dot-prepared{background:var(--terra)}
+.ms-dot-slipping{background:var(--rose,#c2452d)}
 /* the same dates, drawn on the Timeline's own scale */
 .pl-tlms{border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:4px;min-height:52px}
 .pl-tlms .pl-tltrack{min-height:48px}

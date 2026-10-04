@@ -92,6 +92,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   sdRevlog:       'id, cardId',
   sdMisc:         'id',
   sdMedia:        'id, filename',
+  wins:           'id, date, milestoneId',
   /* The Knowledge Tree (19-tree-*.js). Ordinary state stores, saved with
      the rest. Slugs and aliases are unique in code, not by index (the
      fallback database cannot open a '&' index). Positions and predictions
@@ -155,7 +156,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
   'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
