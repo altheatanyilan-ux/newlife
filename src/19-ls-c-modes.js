@@ -374,6 +374,12 @@ function lsMountModePanel(panelEl, boardId, mode, canvasApi){
     api = bindCheckPanel(panelEl, boardId);
   } else if(mode === 'relate'){
     panelEl.innerHTML = lsRelatePanelHTML(null);
+  } else if(mode === 'recall'){
+    if(typeof bindRecallPanel === 'function'){
+      api = bindRecallPanel(panelEl, boardId, canvasApi);
+    } else {
+      panelEl.innerHTML = `<div class="ls-panel-empty muted">Recall panel not loaded.</div>`;
+    }
   } else if(mode === 'chunk'){
     panelEl.innerHTML = `<div class="ls-panel-empty muted">Select chips and mark importance: <span style="color:var(--sage)">●</span> core, <span style="color:var(--gold,#c8a050)">●</span> supporting, <span style="color:var(--rose,#c87070)">●</span> peripheral. Use Ask panel (mode 3) to set TLS per chip.</div>`;
   } else {

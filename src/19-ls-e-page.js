@@ -122,6 +122,7 @@ routes.studio = function(root, params){
   }
 
   function mountPanel(mode){
+    panelApi?.destroy?.();
     destroyRelate();
     const panelEl = root.querySelector('[data-mode-panel]');
     if(!panelEl) return;

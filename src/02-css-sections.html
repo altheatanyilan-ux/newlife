@@ -11705,6 +11705,45 @@ html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
   .ls-side-panel{width:100%;max-height:220px;border-left:none;border-top:1px solid var(--line)}
   .ls-content-area{flex-direction:column}
 }
+
+/* --- Learning Studio: Recall modes --- */
+/* Fog overlay */
+.ls-fog-overlay{position:absolute;inset:0;z-index:50;background:rgba(0,0,0,.72);
+  backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;
+  border-radius:inherit}
+html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdrop-filter:blur(8px)}
+.ls-fog-message{text-align:center;pointer-events:none}
+.ls-fog-icon{font-size:2.5rem;line-height:1;margin-bottom:12px;opacity:.5}
+.ls-fog-text{font-family:var(--serif);font-size:1rem;color:var(--text);opacity:.8}
+
+/* Ghost mode — dim cards to show only their shape */
+.ls-card.ls-ghost-pos .ls-card-text,
+.ls-card.ls-ghost-grp .ls-card-text{visibility:hidden}
+.ls-card.ls-ghost-let .ls-card-text{visibility:hidden}
+.ls-card.ls-ghost-let::after{
+  content:attr(data-first-letter);
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:1.1rem;font-weight:600;color:var(--muted);pointer-events:none}
+.ls-card.ls-ghost-pos,.ls-card.ls-ghost-grp,.ls-card.ls-ghost-let{opacity:.45}
+.ls-group-frame.ls-ghost-group-hide .ls-group-label{visibility:hidden}
+
+/* Recall result card colours */
+.ls-card.ls-recall-matched{outline:2px solid var(--sage)!important;outline-offset:2px;opacity:1!important}
+.ls-card.ls-recall-missed{outline:2px solid var(--rose,#c87070)!important;outline-offset:2px;opacity:1!important}
+
+/* Recall panel */
+.ls-recall-panel{display:flex;flex-direction:column;gap:8px}
+.ls-recall-mode-card{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.ls-ghost-levels{display:flex;gap:5px;flex-wrap:wrap}
+.ls-recall-counts{display:flex;flex-wrap:wrap;gap:10px;font-size:.85rem;margin:4px 0}
+.ls-recall-matched-ct{color:var(--sage)}
+.ls-recall-missed-ct{color:var(--rose,#c87070)}
+.ls-recall-extra-ct{color:var(--gold,#c8a050)}
+.ls-recall-missed-list{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+.ls-recall-missed-item{font-size:.78rem;padding:4px 8px;background:var(--surface-2);border-radius:5px;
+  border-left:2px solid var(--rose,#c87070)}
+.ls-recall-extra-list{font-size:.76rem;margin-top:2px}
+.ls-recall-actions{display:flex;flex-direction:column;gap:6px;margin-top:10px}
 </style>
 
 </head>
