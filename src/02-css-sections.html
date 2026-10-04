@@ -1760,6 +1760,16 @@ html[data-theme="light"] .sk-organic .sk-sun{opacity:.5}
 .jz-gname{font-size:.7rem;color:var(--faint);letter-spacing:.06em}
 .jz-gcnt{font-size:.65rem;color:var(--faint);margin-left:auto}
 .jz-glist{display:flex;flex-direction:column;gap:3px;padding-left:4px;padding-top:3px}
+.jz-module{border:1px solid var(--line);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.jz-mod-summary{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;
+  user-select:none;background:var(--surface-2);list-style:none}
+.jz-mod-summary::-webkit-details-marker{display:none}
+.jz-mod-summary::before{content:'▶';font-size:.65rem;color:var(--muted);flex:none}
+details[open].jz-module > .jz-mod-summary::before{content:'▼'}
+.jz-mod-name{flex:1;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text)}
+.jz-mod-prog{font-size:.75rem;color:var(--muted)}
+.jz-module > .jz-glist{padding:4px 0}
+.jz-subs-modules{gap:0}
 .jz-sub{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
   width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:9px;
   padding:6px 9px;cursor:pointer;color:inherit;font:inherit;

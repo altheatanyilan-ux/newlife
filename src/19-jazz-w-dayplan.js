@@ -151,6 +151,18 @@ function generateDailyPlan(state, opts){
   const mastered = id => P(id).totalKeys && P(id).completedKeys >= P(id).totalKeys && (P(id).comfortLevel || 0) >= 4;
   const tierW = {'fast-track': 1.4, core: 1.2, enrichment: 0.8};
 
+  /* current module: first module in this stage with at least one non-mastered exercise */
+  const stageMods = typeof JAZZ_MODULES !== 'undefined' ? (JAZZ_MODULES[sid] || null) : null;
+  let currentModIds = null;
+  if(stageMods && stageMods.length){
+    const modDone = m => {
+      const valid = m.exerciseIds.filter(id => stage.subs.includes(id));
+      return !valid.length || valid.every(id => mastered(id));
+    };
+    const curMod = stageMods.find(m => !modDone(m));
+    if(curMod) currentModIds = new Set(curMod.exerciseIds);
+  }
+
   /* the pool: the stage, on the chosen track */
   const all = stage.subs.map(jazzExerciseRecord).filter(Boolean);
   const pool = all.filter(r => fast ? r.tier === 'fast-track' : true);
@@ -160,7 +172,8 @@ function generateDailyPlan(state, opts){
     const fresh = ds == null ? 3 : 0;
     const wait = ds == null ? 0 : Math.min(ds, 14);
     const rotation = ds != null && ds >= 2 ? 1.5 : 1;          /* a core exercise every two or three days */
-    return ((wait + fresh + 1) * (6 - c) * (tierW[r.tier] || 1) * rotation * (mastered(r.id) ? 0.3 : 1))
+    const modBonus = currentModIds && currentModIds.has(r.id) ? 1.3 : 1;
+    return ((wait + fresh + 1) * (6 - c) * (tierW[r.tier] || 1) * rotation * (mastered(r.id) ? 0.3 : 1) * modBonus)
       + jzpHash(r.id + date) * 0.5;
   };
   const ranked = pool.filter(r => !yIds.has(r.id)).sort((a, b) => due(b) - due(a));

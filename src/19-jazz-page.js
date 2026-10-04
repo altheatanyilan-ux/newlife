@@ -325,6 +325,43 @@ function jazzStageHTML(s, here){
               `<i class="${r.keys[k] ? 'on' : ''}" title="${esc(jazzPretty(k))}"></i>`).join('')}</span>
             <span class="mono jz-subc">${jazzKeysGot(id)}/12</span>`}</button>`;
         };
+        /* module grouping (Phase 9) — when JAZZ_MODULES defines modules for
+           this stage, group exercises into named folds; the first incomplete
+           module opens by default, the rest collapse */
+        const stageMods = typeof JAZZ_MODULES !== 'undefined'
+          ? (JAZZ_MODULES[String(s.id)] || null) : null;
+        if(stageMods && stageMods.length){
+          const idToMod = new Map();
+          stageMods.forEach(m => m.exerciseIds.forEach(id => idToMod.set(id, m)));
+          const modBuckets = new Map();
+          stageMods.forEach(m => modBuckets.set(m.id, []));
+          const ungrouped = [];
+          rowIds.forEach(id => {
+            const m = idToMod.get(id);
+            if(m && modBuckets.has(m.id)) modBuckets.get(m.id).push(id);
+            else ungrouped.push(id);
+          });
+          const modComplete = m => {
+            const valid = m.exerciseIds.filter(id => s.subs.includes(id));
+            return !valid.length || valid.every(id => jazzExGot(id) >= jazzExUnits(id));
+          };
+          const firstInc = stageMods.findIndex(m => !modComplete(m));
+          return `<div class="jz-subs jz-subs-modules">${stageMods.map((m, i) => {
+            const ids = modBuckets.get(m.id) || [];
+            if(!ids.length) return '';
+            const got = ids.reduce((a,id) => a + jazzExGot(id), 0);
+            const of = ids.reduce((a,id) => a + jazzExUnits(id), 0);
+            const isOpen = i === (firstInc >= 0 ? firstInc : 0);
+            return `<details class="jz-module"${isOpen ? ' open' : ''}>
+              <summary class="jz-mod-summary">
+                <span class="jz-mod-name">${esc(m.name)}</span>
+                <span class="jz-mod-prog mono">${got}/${of}</span>
+              </summary>
+              <div class="jz-glist">${ids.map(renderRow).join('')}</div>
+            </details>`;
+          }).join('')}${ungrouped.length
+            ? `<div class="jz-subs">${ungrouped.map(renderRow).join('')}</div>` : ''}</div>`;
+        }
         /* group by substage when multiple distinct groups exist */
         const groups = []; const seen = new Map();
         rowIds.forEach(id => {
