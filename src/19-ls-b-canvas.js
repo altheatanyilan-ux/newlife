@@ -291,9 +291,12 @@ function bindCanvas(root, boardId, opts){
 
   /* ---- inline chip editor ---- */
   function openChipEditor(wx, wy, existingChipId){
+    /* remove any existing editor first */
+    root.querySelectorAll('.ls-chip-editor').forEach(el => el.remove());
+
     const inp = document.createElement('div');
     inp.className = 'ls-chip-editor';
-    inp.contentEditable = true;
+    inp.contentEditable = 'true';
     inp.style.position = 'absolute';
     const cx = wx * viewport.zoom + viewport.x;
     const cy = wy * viewport.zoom + viewport.y;
@@ -301,14 +304,28 @@ function bindCanvas(root, boardId, opts){
     inp.style.top  = cy + 'px';
     inp.style.width = (LS_CARD_W * viewport.zoom) + 'px';
     root.appendChild(inp);
-    inp.focus();
 
     if(existingChipId){
       const c = lsChipById(existingChipId);
-      if(c){ inp.textContent = c.text; editingChipId = existingChipId; }
+      if(c){
+        inp.textContent = c.text;
+        editingChipId = existingChipId;
+        /* caret at end */
+        const range = document.createRange();
+        range.selectNodeContents(inp);
+        range.collapse(false);
+        const sel = window.getSelection();
+        if(sel){ sel.removeAllRanges(); sel.addRange(range); }
+      }
     }
+    inp.focus();
+
+    /* Bug 1 fix: guard against double-commit (blur fires when inp.remove() is called) */
+    let committed = false;
 
     function commit(){
+      if(committed) return;
+      committed = true;
       const text = inp.textContent.trim();
       if(text){
         if(editingChipId){
@@ -324,16 +341,35 @@ function bindCanvas(root, boardId, opts){
     }
 
     inp.addEventListener('keydown', e => {
-      if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); commit();
-        /* open next chip editor below */
-        if(!existingChipId) openChipEditor(wx, wy + LS_CARD_H + 16);
+      /* Bug 2 fix: skip during IME composition (CJK input) */
+      if(e.isComposing || e.keyCode === 229) return;
+      if(e.key === 'Enter' && !e.shiftKey){
+        e.preventDefault();
+        const wasNew = !existingChipId;
+        commit();
+        if(wasNew) openChipEditor(wx, wy + LS_CARD_H + 16);
       }
-      if(e.key === 'Tab'){  e.preventDefault(); commit();
+      if(e.key === 'Tab'){
+        e.preventDefault();
+        commit();
         openChipEditor(wx + LS_CARD_W + 16, wy);
       }
-      if(e.key === 'Escape'){ inp.remove(); editingChipId = null; repaint(); }
+      if(e.key === 'Escape'){
+        e.preventDefault();
+        commit();  /* Esc commits (brief D1: "commits and exits editing") */
+      }
     });
     inp.addEventListener('blur', () => { commit(); });
+
+    /* Bug 3 fix: plain-text paste only */
+    inp.addEventListener('paste', e => {
+      e.preventDefault();
+      const plain = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, plain);
+    });
+
+    /* stop canvas pointerdown from running while editor is active */
+    inp.addEventListener('pointerdown', e => { e.stopPropagation(); });
   }
 
   /* ---- selection ---- */
@@ -556,6 +592,44 @@ function bindCanvas(root, boardId, opts){
     openChipEditor(w.x, w.y);
   });
 
+  /* ---- nudge selected cards by dx,dy world-units ---- */
+  function nudgeSelected(dx, dy){
+    if(!selectedIds.size) return;
+    selectedIds.forEach(pid => {
+      const p = S.lsPlacements.find(x => x.id === pid); if(!p) return;
+      p.x += dx; p.y += dy; p.updatedAt = Date.now();
+    });
+    save(); repaint();
+  }
+
+  /* ---- quick-add bar (/) ---- */
+  function openQuickAdd(){
+    root.querySelectorAll('.ls-quick-add').forEach(el => el.remove());
+    const bar = document.createElement('div');
+    bar.className = 'ls-quick-add';
+    bar.innerHTML = '<input class="ls-qa-input" type="text" placeholder="Type a chip and press Enter…" autocomplete="off">';
+    root.appendChild(bar);
+    const inp = bar.querySelector('.ls-qa-input');
+    inp.focus();
+    function placeAndClose(){
+      const text = inp.value.trim();
+      if(text){
+        const rect = root.getBoundingClientRect();
+        const w = lsCanvasToWorld(viewport, rect.width / 2, rect.height / 2);
+        const chip = lsChipNew(boardId, text);
+        if(chip) lsPlaceCard(boardId, chip.id, 'chip', w.x - LS_CARD_W / 2, w.y - LS_CARD_H / 2);
+        repaint();
+      }
+      bar.remove();
+    }
+    inp.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){ e.preventDefault(); placeAndClose(); }
+      if(e.key === 'Escape'){ e.preventDefault(); bar.remove(); }
+      e.stopPropagation();
+    });
+    inp.addEventListener('blur', () => { bar.remove(); });
+  }
+
   /* ---- keyboard shortcuts ---- */
   function onKey(e){
     if(isTyping()) return;
@@ -563,13 +637,103 @@ function bindCanvas(root, boardId, opts){
     if((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey){ e.preventDefault(); lsUndoApply(boardId); repaint(); return; }
     if((e.ctrlKey || e.metaKey) && (e.key === 'Z' || (e.key === 'z' && e.shiftKey))){ e.preventDefault(); lsRedoApply(boardId); repaint(); return; }
     /* fit to content */
-    if(e.key === '0' && !e.ctrlKey && !e.metaKey){
+    if(e.key === '0' && !e.ctrlKey && !e.metaKey && !e.shiftKey){
       const vp = lsFitToContent(root, boardId);
       if(vp){ viewport = vp; repaint(); }
       return;
     }
+    /* 1:1 zoom reset */
+    if(e.code === 'Digit0' && e.shiftKey && !e.ctrlKey && !e.metaKey){
+      e.preventDefault();
+      const rect = root.getBoundingClientRect();
+      viewport.zoom = 1;
+      viewport.x = rect.width / 2 - 200;
+      viewport.y = rect.height / 2 - 100;
+      repaint(); return;
+    }
+    /* zoom in / out via keyboard */
+    if((e.key === '+' || e.key === '=') && !e.ctrlKey && !e.metaKey){
+      e.preventDefault();
+      const rect = root.getBoundingClientRect();
+      const cx = rect.width / 2, cy = rect.height / 2;
+      const newZoom = Math.min(3, viewport.zoom * 1.2);
+      viewport.x = cx - (cx - viewport.x) * (newZoom / viewport.zoom);
+      viewport.y = cy - (cy - viewport.y) * (newZoom / viewport.zoom);
+      viewport.zoom = newZoom;
+      repaint(); return;
+    }
+    if(e.key === '-' && !e.ctrlKey && !e.metaKey){
+      e.preventDefault();
+      const rect = root.getBoundingClientRect();
+      const cx = rect.width / 2, cy = rect.height / 2;
+      const newZoom = Math.max(0.15, viewport.zoom / 1.2);
+      viewport.x = cx - (cx - viewport.x) * (newZoom / viewport.zoom);
+      viewport.y = cy - (cy - viewport.y) * (newZoom / viewport.zoom);
+      viewport.zoom = newZoom;
+      repaint(); return;
+    }
+    /* new chip at viewport center */
+    if((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey){
+      e.preventDefault();
+      const rect = root.getBoundingClientRect();
+      const w = lsCanvasToWorld(viewport, rect.width / 2, rect.height / 2);
+      openChipEditor(w.x - LS_CARD_W / 2, w.y - LS_CARD_H / 2);
+      return;
+    }
+    /* quick-add bar */
+    if(e.key === '/'){
+      e.preventDefault();
+      openQuickAdd();
+      return;
+    }
+    /* edit selected chip in-place */
+    if((e.key === 'Enter' || e.key === 'F2') && selectedIds.size === 1){
+      e.preventDefault();
+      const pid = [...selectedIds][0];
+      const p = S.lsPlacements.find(x => x.id === pid);
+      if(p && p.cardType === 'chip') openChipEditor(p.x, p.y, p.cardId);
+      return;
+    }
+    /* select all */
+    if((e.ctrlKey || e.metaKey) && e.key === 'a'){
+      e.preventDefault();
+      lsBoardPlacements(boardId).forEach(p => selectedIds.add(p.id));
+      if(opts.onSelectionChange) opts.onSelectionChange([...selectedIds]);
+      repaint(); return;
+    }
+    /* duplicate selected */
+    if((e.ctrlKey || e.metaKey) && e.key === 'd'){
+      e.preventDefault();
+      if(!selectedIds.size) return;
+      const newIds = [];
+      selectedIds.forEach(pid => {
+        const p = S.lsPlacements.find(x => x.id === pid); if(!p) return;
+        if(p.cardType === 'chip'){
+          const orig = lsChipById(p.cardId); if(!orig) return;
+          const chip = lsChipNew(boardId, orig.text);
+          if(chip){
+            lsPlaceCard(boardId, chip.id, 'chip', p.x + 20, p.y + 20);
+            const np = lsPlacementFor(boardId, chip.id, 'chip');
+            if(np) newIds.push(np.id);
+          }
+        }
+      });
+      selectedIds.clear();
+      newIds.forEach(id => selectedIds.add(id));
+      if(opts.onSelectionChange) opts.onSelectionChange([...selectedIds]);
+      repaint(); return;
+    }
+    /* nudge selected */
+    if(selectedIds.size){
+      const step = e.shiftKey ? 10 : 1;
+      if(e.key === 'ArrowLeft') { e.preventDefault(); nudgeSelected(-step, 0); return; }
+      if(e.key === 'ArrowRight'){ e.preventDefault(); nudgeSelected( step, 0); return; }
+      if(e.key === 'ArrowUp')   { e.preventDefault(); nudgeSelected(0, -step); return; }
+      if(e.key === 'ArrowDown') { e.preventDefault(); nudgeSelected(0,  step); return; }
+    }
     /* delete selected */
     if((e.key === 'Delete' || e.key === 'Backspace') && selectedIds.size){
+      e.preventDefault();
       const ids = [...selectedIds];
       const chips = ids.map(pid => {
         const p = S.lsPlacements.find(x => x.id === pid); if(!p) return null;
@@ -585,6 +749,49 @@ function bindCanvas(root, boardId, opts){
     }
   }
   document.addEventListener('keydown', onKey);
+
+  /* ---- canvas-level paste: multiline text → offer to create N chips ---- */
+  root.addEventListener('paste', e => {
+    if(isTyping()) return;
+    e.preventDefault();
+    const plain = (e.clipboardData || window.clipboardData).getData('text/plain');
+    if(!plain) return;
+    const lines = plain.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if(!lines.length) return;
+    if(lines.length === 1){
+      /* single line: open chip editor at viewport center with pre-filled text */
+      const rect = root.getBoundingClientRect();
+      const w = lsCanvasToWorld(viewport, rect.width / 2, rect.height / 2);
+      openChipEditor(w.x - LS_CARD_W / 2, w.y - LS_CARD_H / 2);
+      /* wait for editor to mount then set text */
+      setTimeout(() => {
+        const ed = root.querySelector('.ls-chip-editor');
+        if(ed){ ed.textContent = lines[0]; ed.focus(); }
+      }, 0);
+    } else {
+      /* multiline: confirm and scatter */
+      const m = openModal(`<h3>Create ${lines.length} chips?</h3>
+        <p class="muted" style="font-size:.82rem;margin:.5rem 0 1rem">One chip per line from your clipboard.</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn ghost" data-cancel>Cancel</button>
+          <button class="btn primary" data-ok>Create ${lines.length} chips</button>
+        </div>`, 'narrow');
+      m.querySelector('[data-cancel]').onclick = () => m.remove();
+      m.querySelector('[data-ok]').onclick = () => {
+        m.remove();
+        const rect = root.getBoundingClientRect();
+        const startW = lsCanvasToWorld(viewport, 40, 40);
+        lines.forEach((text, i) => {
+          const col = i % 5, row = Math.floor(i / 5);
+          const chip = lsChipNew(boardId, text);
+          if(chip) lsPlaceCard(boardId, chip.id, 'chip',
+            startW.x + col * (LS_CARD_W + 16),
+            startW.y + row * (LS_CARD_H + 16));
+        });
+        repaint();
+      };
+    }
+  });
 
   /* ---- tray: move chip in/out ---- */
   const trayEl = root.querySelector('[data-tray]');
