@@ -191,7 +191,8 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
   const t = (typeof planTaskById === 'function' ? planTaskById(id) : null) ||
             (typeof findTaskRef === 'function' ? findTaskRef(id)?.task : null);
   const T = today();
-  if(t && t.doDay !== T && t.day !== T){ t.doDay = T; t.updatedAt = new Date().toISOString(); saveNow(); }
+  /* a stretch of days that already takes in today is left as it is */
+  if(t && !taskDoCovers(t, T) && t.day !== T){ taskSetDoRange(t, T, ''); t.updatedAt = new Date().toISOString(); saveNow(); }
   /* a length can only be set while nothing is running, so a sitting already
      under way is stopped first — pressing an estimate is an unambiguous
      request to sit down with that thing for that long */

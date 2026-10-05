@@ -68,7 +68,7 @@ function projectListsSync(){
           if(already) return;
           let id = t.id || uid(); if(taskIds.has(id)) id = uid();
           const task = Object.assign(newTask(t.text || '', (t.dueDate || t.day || '').slice(0, 10)), {id, done: !!t.done, doneAt: t.doneAt || (t.done ? (t.doneOn || null) : null),
-            doDay: t.doDay || '', notes: t.notes || '', listId: p.id, sectionId: ph.id, order: Date.now() + moved,
+            doDay: t.doDay || '', doEnd: t.doEnd || '', notes: t.notes || '', listId: p.id, sectionId: ph.id, order: Date.now() + moved,
             links: {projects: [p.id], skills: []}, fromProject: {projectId: p.id, phaseId: ph.id, taskId: t.id}});
           if(typeof planTaskDefaults === 'function') planTaskDefaults(task);
           S.tasks.push(task); taskIds.add(id); moved++;

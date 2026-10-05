@@ -9,6 +9,7 @@ function migrateTasks(){
   S.tasks = Array.isArray(S.tasks) ? S.tasks : [];
   S.tasks.forEach(t => { t.links = t.links || {projects:[],skills:[]};
     if(t.day === undefined) t.day = ''; if(t.doDay === undefined) t.doDay = '';
+    if(t.doEnd === undefined) t.doEnd = '';
     if(t.done === undefined) t.done = false; });
   // reminders were dated one-liners: the same thing, so fold them in once
   if(Array.isArray(S.reminders) && S.reminders.length){
@@ -17,11 +18,11 @@ function migrateTasks(){
   }
 }
 /* a uniform view over both kinds, so the planner does not care where a task lives */
-function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
+function taskRef(t){ return {kind:'own', id:t.id, text:t.text, day:t.day||'', doDay:t.doDay||'', doEnd:t.doEnd||'', done:!!t.done, task:t, where:'', color:'var(--page-accent)', go:''}; }
 function projectTaskRefs(){
   const out = [];
   (S.projects||[]).forEach(p => (p.phases||[]).filter(ph => !ph.movedAt).forEach(ph => (ph.tasks||[]).forEach(t => {
-    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', doDay:t.doDay||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:'#/today/tasks'});
+    out.push({kind:'project', id:`${p.id}:${ph.id}:${t.id}`, text:t.text, day:t.day||'', doDay:t.doDay||'', doEnd:t.doEnd||'', done:!!t.done, task:t, project:p, phase:ph, where:`${p.name} · ${ph.name}`, color:'var(--terra)', go:'#/today/tasks'});
   })));
   return out;
 }
@@ -49,8 +50,38 @@ const taskOrder = r => (r.task.order == null ? 0 : +r.task.order);
    are for work that is only ever a day's worth. */
 function taskDatesOn(t, day){
   if(!t || !day) return null;
-  const due = (t.day || '') === day, plan = (t.doDay || '') === day;
+  const due = (t.day || '') === day, plan = taskDoCovers(t, day);
   return due || plan ? {due, plan} : null;
+}
+/* A do date can be a stretch rather than a day: work you expect to spread over
+   Tuesday to Thursday, not to finish on one of them. `doDay` is the first day
+   and `doEnd` the last; an empty `doEnd` is the old single day, so nothing
+   already written needs to change. The task is on each day of the stretch, and
+   a stretch you finished early stops at the day it was finished — it does not
+   sit ticked on the days after. */
+function taskDoEnd(t){
+  if(!t || !t.doDay) return '';
+  return t.doEnd && t.doEnd > t.doDay ? t.doEnd : t.doDay;
+}
+const taskDoIsRange = t => !!t && !!t.doDay && taskDoEnd(t) > t.doDay;
+function taskDoLastDay(t){
+  const end = taskDoEnd(t); if(!end) return '';
+  return t.done && t.doneAt && t.doneAt < end ? (t.doneAt > t.doDay ? t.doneAt : t.doDay) : end;
+}
+const taskDoCovers = (t, day) => !!day && !!t && !!t.doDay && t.doDay <= day && day <= taskDoLastDay(t);
+/* "Oct 12" or "Oct 12 – Oct 15" */
+function taskDoSaid(t, style = 'short'){
+  if(!t || !t.doDay) return '';
+  return taskDoIsRange(t) ? `${fmtDate(t.doDay, style)} – ${fmtDate(taskDoEnd(t), style)}` : fmtDate(t.doDay, style);
+}
+/* an end on or before the start is no stretch at all, so it is let go */
+function taskDoFix(t){ if(!t.doDay || !t.doEnd || t.doEnd <= t.doDay) t.doEnd = ''; return t; }
+/* Every date field that sets the stretch goes through here. Naming only an
+   end means "from today until then" (or just that day, if it is past). */
+function taskSetDoRange(t, start, end){
+  t.doDay = start || ''; t.doEnd = end || '';
+  if(t.doEnd && !t.doDay) t.doDay = t.doEnd < today() ? t.doEnd : today();
+  return taskDoFix(t);
 }
 const taskOnDay = (t, day) => !!taskDatesOn(t, day);
 function tasksForDay(day){
@@ -79,7 +110,7 @@ function reorderTaskInDay(day, dragId, targetId, before){
 function tasksDueBy(day){ return allTaskRefs().filter(r => r.day && r.day <= day && !r.done && !taskIsAside(r.task)).sort((a,b)=> a.day.localeCompare(b.day)); }
 function unscheduledTasks(){ return allTaskRefs().filter(r => !r.day && !r.doDay && !r.done && !taskIsAside(r.task)); }
 function setTaskDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.day = day || ''; saveNow(); }
-function setTaskDoDay(id, day){ const r = findTaskRef(id); if(!r) return; r.task.doDay = day || ''; saveNow(); }
+function setTaskDoDay(id, day, end = ''){ const r = findTaskRef(id); if(!r) return; taskSetDoRange(r.task, day, day ? end : ''); saveNow(); }
 function setTaskDone(id, done){ const r = findTaskRef(id); if(!r) return;
   r.task.done = !!done; r.task.doneAt = done ? today() : null; saveNow();
   if(done) try { RewardFX.check(); } catch(e){}
@@ -180,10 +211,14 @@ function taskRowHTML(r, {showDay=false, hideDone=false, onDay=''}={}){
      already about that one — the pill is for the case that used to be
      impossible: a thing owed on Friday that you sat down with on Tuesday. */
   const on = onDay ? taskDatesOn(r.task, onDay) : null;
+  /* a stretch of days says so on every day it is on, so it is clear this is
+     one of several rather than the only day */
+  const span = on && on.plan && taskDoIsRange(r.task)
+    ? `<span class="mono task-day task-when" title="you set these days aside for it">to do ${esc(taskDoSaid(r.task, 'short'))}</span>` : '';
   const why = on && on.plan && !on.due && r.day
     ? `<span class="mono task-day task-when" title="you planned to do it today; it is owed ${esc(fmtDate(r.day, 'med'))}">due ${esc(fmtDate(r.day, 'short'))}</span>`
     : on && on.due && !on.plan && r.doDay
-    ? `<span class="mono task-day task-when" title="it is owed today; you planned to sit down with it ${esc(fmtDate(r.doDay, 'med'))}">to do ${esc(fmtDate(r.doDay, 'short'))}</span>`
+    ? `<span class="mono task-day task-when" title="it is owed today; you planned to sit down with it ${esc(taskDoSaid(r.task, 'med'))}">to do ${esc(taskDoSaid(r.task, 'short'))}</span>`
     : '';
   const prog = taskSubCount(r.task);
   const open = subsOpen(r.id, r.task);
@@ -212,7 +247,7 @@ function taskRowHTML(r, {showDay=false, hideDone=false, onDay=''}={}){
       title="${prog.done} of ${prog.total} steps done">${prog.done}/${prog.total}</button>`:''}
     ${r.where?`<a class="task-where" href="${r.go}" title="${esc(r.where)}">${esc(r.where)}</a>`:''}
     ${showDay && r.day?`<span class="mono task-day">${late?'⚠ ':''}${fmtDate(r.day,'short')}</span>`:''}
-    ${why}
+    ${span}${why}
     <!-- it was not on this day's list; it was finished on this day -->
     ${r.elsewhere?`<span class="mono task-day task-elsewhere" title="${r.day ? 'set for ' + esc(fmtDate(r.day,'med')) + ', finished today' : 'never given a day — finished today'}">${r.day ? esc(fmtDate(r.day,'short')) : 'unplanned'}</span>`:''}
     <!-- Taking something off a day is not the same as deciding never to do it.
@@ -340,12 +375,17 @@ function bindTaskRows(root, after){
     /* a task can be on this day for either of two reasons, so taking it off
        has to let go of both, and putting it back has to restore both */
     const day = b.dataset.tdeferday || today();
-    const was = {day: r.task.day, doDay: r.task.doDay};
+    const was = {day: r.task.day, doDay: r.task.doDay, doEnd: r.task.doEnd};
+    /* a stretch of days only gives up today: it carries on from tomorrow, if
+       there is a tomorrow left in it */
+    const end = taskDoCovers(r.task, day) ? taskDoEnd(r.task) : '';
+    const resumes = end > day;
     if(r.task.day === day)   setTaskDay(r.id, '');
-    if(r.task.doDay === day) setTaskDoDay(r.id, '');
+    if(end) setTaskDoDay(r.id, resumes ? addDays(day, 1) : '', resumes ? end : '');
     sound('click');
-    toast('Off today. It is waiting in the unscheduled list, and “pull in” will find it on any day.', 6000,
-      {label: 'put it back', fn: () => { setTaskDay(r.id, was.day); setTaskDoDay(r.id, was.doDay); redraw(); }});
+    toast(resumes ? 'Off today. It carries on from tomorrow.'
+      : 'Off today. It is waiting in the unscheduled list, and “pull in” will find it on any day.', 6000,
+      {label: 'put it back', fn: () => { setTaskDay(r.id, was.day); setTaskDoDay(r.id, was.doDay, was.doEnd); redraw(); }});
     redraw();
   });
   /* The pencil renames the name beside it, not itself. It used to look for the

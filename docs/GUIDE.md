@@ -231,7 +231,7 @@ Above both day views:
 
 - The count reads *"2 of 5 done"*, with **bonus** tasks (things you added beyond the plan) counted beside it, never in it.
 - Filter by list with the chips across the top.
-- Each task shows **›** (break it into steps), **✎** (rename), its estimate (press to start a sitting), **✦ / ✧** (compulsory or bonus — press to switch), **not today** (moves the do-date off today without touching the deadline), **×** (delete, with undo).
+- Each task shows **›** (break it into steps), **✎** (rename), its estimate (press to start a sitting), **✦ / ✧** (compulsory or bonus — press to switch), **not today** (moves the do-date off today without touching the deadline; a stretch of do-days carries on from tomorrow), **×** (delete, with undo).
 - The quick-add line accepts the planner's full grammar (§8). **pull in ↓** brings in work from your lists; **all of it →** opens the planner.
 - **Carried over** — work that was due, or planned for, an earlier day and is still open. **Bring to today** moves the day you mean to *do* it; the deadline stays where it was, because a thing owed on Monday is still late.
 - The tick in the section's header is the "tasks reviewed" step of your morning, with its time stamped.
@@ -347,7 +347,7 @@ Example: `Prepare contract review tomorrow at 2pm #work !high ^Work ~2h`.
 **A task, opened** (click it). Everything saves as you change it:
 
 - **Title** and a **done** tick; **priority** (four dots: none, low, medium, high).
-- **Due** (with an optional time) — the day it is *owed*. **Do on** — the day you mean to *sit down with it*, usually earlier; this is what puts it on Today. **Starts** — for things that cannot begin before a date. A task can have neither date, either, or both.
+- **Due** (with an optional time) — the day it is *owed*. **Do on** — the day you mean to *sit down with it*, usually earlier; this is what puts it on Today. Fill in **to (a stretch)** as well when the work will not fit one day: the task is then on every day from *do on* to *to* — on Today each day, in each day's square of the calendar, and in any week or period that takes in any one of them — and says its stretch on the row. Dragging it in the calendar moves the whole stretch; **not today** gives up only today and it carries on tomorrow; a stretch you tick off early stops at the day you finished. Leave *to* empty for one day, as before. **Starts** — for things that cannot begin before a date. A task can have neither date, either, or both.
 - **List** and **section**, **shopping** and **reminder** switches (with *show it from*), **time category** (which part of life the minutes belong to in Time tracking), **milestone**.
 - **Tags**, **how long** (the estimate, which the timer counts down), **notes** (markdown), **Additional**, **subtasks** (each can be timed and ticked on its own; finishing a step does not close the task), **repeat**, and the record of sittings on it.
 
@@ -1126,7 +1126,7 @@ Nothing fires while you are typing into a field.
 | **Bonus task** | a task added beyond the day's plan, counted beside the plan, never in it |
 | **Cadence** | how often you want to be in touch with someone; past it, they surface as overdue |
 | **Congruence** | how well you lived a value in a period, 0–100, from a snapshot |
-| **Do date / due date** | when you mean to sit down with a task / when it is owed |
+| **Do date / due date** | when you mean to sit down with a task (one day, or a stretch of days) / when it is owed |
 | **Drawer** | the Writing Studio's research drawer, which brings your entries, Library and fragments beside the page |
 | **Entry** | the shared record every journal type, quote, reading, memory, decision, work and piece is built on |
 | **Felt time** | the Timeline mode in which dense stages stretch and thin ones compress |

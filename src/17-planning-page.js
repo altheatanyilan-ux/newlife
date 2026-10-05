@@ -671,8 +671,8 @@ function planRowHTML(t, {showList = false, showDate = true} = {}){
       <!-- The day you meant to sit down with it, shown when it is not the day
            it is owed. A row whose only date is a do date used to show no date
            at all, which made the thing you had planned look unscheduled. -->
-      ${showDate && t.doDay && t.doDay !== t.day
-        ? `<span class="pt-day pt-do mono" title="the day you set aside for it">to do ${esc(fmtDate(t.doDay, 'short'))}</span>` : ''}
+      ${showDate && t.doDay && (t.doDay !== t.day || taskDoIsRange(t))
+        ? `<span class="pt-day pt-do mono" title="${taskDoIsRange(t) ? 'the days you set aside for it' : 'the day you set aside for it'}">to do ${esc(taskDoSaid(t, 'short'))}</span>` : ''}
     </span>
     <button class="del-x inline" data-ptdel="${t.id}" title="delete">×</button>
   </div>
@@ -694,7 +694,8 @@ function planGroupTasks(tasks, sel){
       /* grouped by the date that decides where it sits: the deadline when it
          has one, otherwise the day you set aside for it — a task with only a
          do date read as "No date", which is exactly the task you had planned */
-      const d = t.day || t.doDay;
+      /* a stretch that is under way today is today's, not overdue */
+      const d = t.day || (taskDoCovers(t, T) ? T : t.doDay);
       const k = !d ? 'No date' : d < T ? 'Overdue' : d === T ? 'Today'
         : d === addDays(T, 1) ? 'Tomorrow' : fmtDate(d, 'med');
       if(!g.has(k)) g.set(k, []); g.get(k).push(t);

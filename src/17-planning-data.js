@@ -120,6 +120,9 @@ function planTaskDefaults(t){
      due date sat in Friday until Friday, and a day's page was either empty
      or a wall. A task needs neither date, either, or both. */
   t.doDay     = t.doDay || '';
+  /* the last day of a do date that spans several (see taskDoEnd); empty is
+     the single day it always was */
+  t.doEnd     = t.doDay && t.doEnd && t.doEnd > t.doDay ? t.doEnd : '';
   t.startDate = t.startDate || '';
   t.duration  = t.duration == null ? null : +t.duration;
   t.desc      = t.desc || '';
@@ -309,9 +312,10 @@ function planDueWithin(t, from, to){ return t.day && t.day >= from && t.day <= t
    you set for yourself is not being late, it is just not having got to it —
    so planIsLate stays on the deadline alone. */
 function planOnWithin(t, from, to){
-  return (!!t.day && t.day >= from && t.day <= to) || (!!t.doDay && t.doDay >= from && t.doDay <= to);
+  /* a stretch of do days is within a period if any day of it is */
+  return (!!t.day && t.day >= from && t.day <= to) || (!!t.doDay && t.doDay <= to && taskDoLastDay(t) >= from);
 }
-const planOnDay = (t, day) => t.day === day || t.doDay === day;
+const planOnDay = (t, day) => t.day === day || taskDoCovers(t, day);
 const planHasDate = t => !!(t.day || t.doDay);
 
 /* A thing written straight onto the shopping list or the reminders is only
@@ -644,7 +648,7 @@ function planRollRecurrence(t){
   const r = t.recurrence;
   if(r.endAfter != null){ r.endAfter -= 1; if(r.endAfter <= 0) return null; }
   const copy = newPlanTask(t.text, next, {
-    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay,
+    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, doEnd:t.doEnd,
     duration:t.duration, desc:t.desc, tags:t.tags.slice(),
     subtasks:t.subtasks.map(s => ({...s, id:uid(), isCompleted:false, completedAt:null})),
     reminders:t.reminders.map(x => ({...x})), recurrence:JSON.parse(JSON.stringify(r)),

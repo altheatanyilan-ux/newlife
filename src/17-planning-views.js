@@ -63,17 +63,24 @@ function planCalendarHTML(tasks){
 /* A pill is "planned" on a day when that is the day you said you would do it
    and not the day it is owed — the case worth marking, because the other
    three (owed only, both, neither) are already what a calendar square means. */
-const planPillPlanned = (t, d) => t.doDay === d && t.day !== d;
+const planPillPlanned = (t, d) => taskDoCovers(t, d) && t.day !== d;
 function planPillWhy(t, d){
-  if(t.doDay === d && t.day && t.day !== d) return `${t.text} — to do today, owed ${fmtDate(t.day, 'med')}`;
-  if(t.day === d && t.doDay && t.doDay !== d) return `${t.text} — owed today, to do ${fmtDate(t.doDay, 'med')}`;
+  const doing = taskDoCovers(t, d) ? (taskDoIsRange(t) ? `to do ${taskDoSaid(t, 'med')}` : 'to do today') : '';
+  if(doing && t.day && t.day !== d) return `${t.text} — ${doing}, owed ${fmtDate(t.day, 'med')}`;
+  if(t.day === d && t.doDay && !doing) return `${t.text} — owed today, to do ${taskDoSaid(t, 'med')}`;
+  if(doing && taskDoIsRange(t)) return `${t.text} — ${doing}`;
   return t.text;
 }
 /* Moving a pill moves the date that put it where it was picked up from. A
    thing dragged out of Tuesday because you will not get to it until Thursday
-   is moving your plan, not the day your client expects it. */
+   is moving your plan, not the day your client expects it. A stretch of days
+   moves as a whole, by as many days as the pill was carried. */
 function planMoveCalDate(t, from, to){
-  if(from && t.doDay === from && t.day !== from) t.doDay = to;
+  if(from && taskDoCovers(t, from) && t.day !== from){
+    if(taskDoIsRange(t)){ const n = daysBetween(from, to);
+      t.doDay = addDays(t.doDay, n); t.doEnd = addDays(taskDoEnd(t), n); }
+    else t.doDay = to;
+  }
   else t.day = to;
 }
 function planMonthLabel(d){ const x = parseDay(d); return `${MONTHS[x.getMonth()]} ${x.getFullYear()}`; }
@@ -88,7 +95,13 @@ function planCalMonthHTML(cur, tasks){
      square with four things in it is only useful if you can see at a glance
      which of them somebody else is waiting for. */
   const put = (d, t) => { if(!d) return; if(!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(t); };
-  tasks.forEach(t => { put(t.day, t); if(t.doDay && t.doDay !== t.day) put(t.doDay, t); });
+  /* a stretch of do days is on every square of it, clipped to this month */
+  const mFirst = `${y}-${pad(m + 1)}-01`, mLast = `${y}-${pad(m + 1)}-${pad(days)}`;
+  tasks.forEach(t => { put(t.day, t);
+    if(!t.doDay) return;
+    const last = taskDoLastDay(t);
+    for(let x = t.doDay > mFirst ? t.doDay : mFirst, z = last < mLast ? last : mLast; x <= z; x = addDays(x, 1))
+      if(x !== t.day) put(x, t); });
   const cells = [];
   for(let i = 0; i < lead; i++) cells.push('<div class="pc-cell blank"></div>');
   for(let d = 1; d <= days; d++){

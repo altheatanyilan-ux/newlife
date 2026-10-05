@@ -156,7 +156,7 @@ function moveBlock(kind, id, day, start){
   if(kind === 'event'){ const e = byId(S.events, id); if(e){ e.day = day; e.start = start; } }
   /* the day timeline is the shape of a day you are living, so moving a block
      to another day says when you will do it — the deadline is elsewhere */
-  else if(kind === 'task'){ const r = findTaskRef(id); if(r){ r.task.doDay = day; r.task.at = start; } }
+  else if(kind === 'task'){ const r = findTaskRef(id); if(r){ if(!taskDoCovers(r.task, day)) taskSetDoRange(r.task, day, ''); r.task.at = start; } }
   else if(kind === 'habit'){ const h = byId(S.habits, id); if(h) h.at = start; }
   saveNow();
 }
@@ -347,6 +347,7 @@ function openTaskSidePanel(r){
     <div class="grid c2" style="gap:10px">
       <div class="field"><label>Due</label><input class="inp" type="date" id="tsDay" value="${r.day||''}"></div>
       <div class="field"><label>Do on</label><input class="inp" type="date" id="tsDoDay" value="${r.task.doDay||''}"></div>
+      <div class="field"><label>Do until (a stretch)</label><input class="inp" type="date" id="tsDoEnd" value="${r.task.doEnd||''}"></div>
       <div class="field"><label>Time on the calendar</label><select class="sel" id="tsAt"><option value="">unscheduled</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(h=>`<option value="${h}" ${+r.task.at===h?'selected':''}>${fmtHour(h)}</option>`).join('')}</select></div>
     </div>
     <div class="field" style="margin-top:10px"><label>Estimate</label><select class="sel" id="tsEst">${EST_OPTIONS.map(([v,l])=>`<option value="${v}" ${+(r.task.est||0)===v?'selected':''}>${l}</option>`).join('')}</select></div>
@@ -354,7 +355,8 @@ function openTaskSidePanel(r){
     <div class="row" style="margin-top:14px"><button class="btn sm ghost danger" id="tsDel">Delete this task</button></div>`, 'task-panel');
   p.querySelector('#tsDone').onclick = () => { setTaskDone(r.id, !r.done); sound(r.done?'click':'success'); closePanel(); rerender(); };
   p.querySelector('#tsDay').onchange = e => { r.task.day = e.target.value; saveNow(); rerender(); };
-  p.querySelector('#tsDoDay').onchange = e => { r.task.doDay = e.target.value; saveNow(); rerender(); };
+  p.querySelector('#tsDoDay').onchange = e => { taskSetDoRange(r.task, e.target.value, r.task.doEnd); saveNow(); rerender(); };
+  p.querySelector('#tsDoEnd').onchange = e => { taskSetDoRange(r.task, r.task.doDay, e.target.value); saveNow(); rerender(); };
   p.querySelector('#tsAt').onchange = e => { r.task.at = e.target.value === '' ? null : +e.target.value; saveNow(); rerender(); };
   p.querySelector('#tsEst').onchange = e => { r.task.est = +e.target.value; saveNow(); rerender(); };
   const tsN = p.querySelector('#tsNote'); tsN.addEventListener('input', debounce(() => { r.task.notes = tsN.value; saveNow(); }, 500));
@@ -489,7 +491,7 @@ function renderPlanPanel(box, d){
   $('#planPull').onclick = () => openTaskPicker(d, rerender);
   $('#planWeekly').onclick = () => openWeeklyPlan(d);
   $('#planMonthly').onclick = () => openMonthlyPlan(d);
-  $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => r.task.doDay = d); saveNow(); sound('success'); rerender(); });
+  $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => taskSetDoRange(r.task, d, '')); saveNow(); sound('success'); rerender(); });
   $('#planQuick').addEventListener('keydown', e => { if(e.key !== 'Enter') return; const v = e.target.value.trim(); if(!v) return;
     p.items.push({id:uid(), text:v, est:0, done:false, doneAt:''}); saveNow(); sound('click'); rerender(); });
   bindTaskRows(box);
@@ -521,7 +523,7 @@ function planMyDay(d = today()){
      this day is shown as placed; one on another day can be brought here. */
   const wkP = typeof weekPlanSeen === 'function' ? weekPlanSeen(weekStart(d)) : null;
   const stage = wkP && typeof weekPeriodOn === 'function' ? weekPeriodOn(wkP, d) : null;
-  const onDay = r => r.doDay === d || (!r.doDay && r.day === d);
+  const onDay = r => taskDoCovers(r.task, d) || (!r.doDay && r.day === d);
   const openRefs = ids => ids.map(id => findTaskRef(id)).filter(r => r && !r.done && !taskIsAside(r.task));
   const stageRefs = stage ? openRefs(stage.taskIds || []) : [];
   const weekRefs = wkP ? openRefs(weekWorkIds(wkP)).filter(r => !stageRefs.some(x => x.id === r.id)) : [];
@@ -600,7 +602,7 @@ function planMyDay(d = today()){
   const weekRowHTML = r => onDay(r)
     ? `<div class="pick-row on is-placed"><span class="pick-placed">✓</span><span><b>${esc(r.text)}</b><span class="d">already on ${dayWord}</span></span></div>`
     : `<div class="pick-row ${chosen.has(r.id) ? 'on' : ''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id) ? 'checked' : ''}><span><b>${esc(r.text)}</b>${
-        r.doDay ? `<span class="d">on ${esc(fmtDate(r.doDay, 'short'))} — ticking brings it to ${dayWord}</span>`
+        r.doDay ? `<span class="d">on ${esc(taskDoSaid(r.task, 'short'))} — ticking brings it to ${dayWord}</span>`
         : r.day ? `<span class="d">due ${esc(fmtDate(r.day, 'short'))}</span>` : ''}</span></label></div>`;
   const weekPickHTML = () => (!stage && !weekRefs.length) ? '' : `<div class="plan-week-pick">
     ${stage ? `<div class="pick-group plan-stage">
@@ -873,7 +875,7 @@ function planMyDay(d = today()){
       const fm = m.querySelector('[data-planfirst]'); if(fm) p.firstMove = fm.value.trim();
       const rk = m.querySelector('[data-planrisk]'); if(rk) p.risk = rk.value.trim();
       if(step < STEPS - 1){ step++; draw(); return; }
-      pool.forEach(r => { if(chosen.has(r.id)) r.task.doDay = d; });
+      pool.forEach(r => { if(chosen.has(r.id)) taskSetDoRange(r.task, d, ''); });
       habits.forEach(h => { if(!chosenH.has(h.id)) h.at = null; });
       p.planned = true;
       const first = p.intentions.filter(Boolean)[0];
@@ -1434,7 +1436,7 @@ function openWeeklyPlan(d = today()){
   const wpChipsHTML = r => { const t = r.task || {}, mins = taskEstOf(t);
     const pr = r.kind === 'own' ? planPriority(t.priority) : null;
     return [pr && pr.n ? `<span class="wp-tprio" style="--c:${pr.color}" title="${esc(pr.name)} priority"></span>` : '',
-      [t.doDay ? `do ${fmtDate(t.doDay, 'short')}` : '', t.day ? `due ${fmtDate(t.day, 'short')}${t.dueTime ? ' ' + t.dueTime : ''}` : '',
+      [t.doDay ? `do ${taskDoSaid(t, 'short')}` : '', t.day ? `due ${fmtDate(t.day, 'short')}${t.dueTime ? ' ' + t.dueTime : ''}` : '',
        mins ? fmtEst(mins) : '', r.where || ''].filter(Boolean).map(esc).join(' \u00b7 ')].join(''); };
   const wpTaskRowHTML = (i, r, on) => { const t = r.task || {}, ed = editing.has(r.id);
     const fromSteps = typeof taskHasSubEst === 'function' && taskHasSubEst(t);
@@ -1447,6 +1449,7 @@ function openWeeklyPlan(d = today()){
       </div>
       ${ed ? `<div class="wp-tedit">
         <label><span>do on</span><input type="date" class="inp mono" data-wptf="doDay" data-wpid="${esc(r.id)}" value="${esc(t.doDay || '')}"></label>
+        <label><span>until</span><input type="date" class="inp mono" data-wptf="doEnd" data-wpid="${esc(r.id)}" value="${esc(t.doEnd || '')}" title="the last day, if it is a stretch"></label>
         <label><span>due</span><input type="date" class="inp mono" data-wptf="day" data-wpid="${esc(r.id)}" value="${esc(t.day || '')}"></label>
         <label><span>at</span><input type="time" class="inp mono" data-wptf="dueTime" data-wpid="${esc(r.id)}" value="${esc(t.dueTime || '')}"></label>
         <label class="wp-test"><span>how long</span>${fromSteps
@@ -1808,6 +1811,12 @@ function openWeeklyPlan(d = today()){
       const t = taskOf(inp.dataset.wpid), k = inp.dataset.wptf; if(!t) return;
       if(k === 'duration') t.duration = +inp.value > 0 ? Math.round(+inp.value) : null;
       else if(k === 'priority') t.priority = +inp.value || 0;
+      else if(k === 'doDay' || k === 'doEnd'){
+        /* the two go together: a stretch is only a stretch if it ends after it starts */
+        if(k === 'doDay') taskSetDoRange(t, inp.value, t.doEnd); else taskSetDoRange(t, t.doDay, inp.value);
+        const row = inp.closest('.wp-tedit');
+        ['doDay', 'doEnd'].forEach(f => { const el = row && row.querySelector(`[data-wptf="${f}"]`); if(el) el.value = t[f] || ''; });
+      }
       else t[k] = inp.value || '';
       /* a reminder is stored as a moment worked out from the due date, so
          moving the date moves it */

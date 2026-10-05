@@ -861,7 +861,7 @@ routes.today = function(root, params = []){
   /* tasks */
   $('#pullTask').onclick = () => openTaskPicker(T, rerender);
   if($('#sdFive')) $('#sdFive').onclick = () => startShortStudy();
-  if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => r.task.doDay = T); saveNow(); sound('success'); rerender(); };
+  if($('#carryAll')) $('#carryAll').onclick = () => { carried.forEach(r => taskSetDoRange(r.task, T, '')); saveNow(); sound('success'); rerender(); };
   bindTaskRows(root); bindDayDrop(root); bindQuickTask(root); bindDayListFilter(root);
   bindFocusSection(root, redraw);
   if(typeof bindRemindToday === 'function') bindRemindToday(root);

@@ -328,7 +328,7 @@ function bindPlanBatch(root){
       [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { t.day = v; planSyncReminders(t); }); done(); }); return; }
     /* the other date: when you are sitting down with them, not when they are owed */
     if(k === 'doday'){ planChoose('Do on', [['', 'No day'], [today(), 'Today'], [addDays(today(),1), 'Tomorrow'],
-      [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { t.doDay = v; }); done(); }); return; }
+      [addDays(today(),7), 'In a week']], v => { ts.forEach(t => { taskSetDoRange(t, v, ''); }); done(); }); return; }
     function done(){ S._planPick = null; saveNow(); sound('click'); rerender(); }
   });
 }
@@ -372,7 +372,7 @@ function openPlanRowMenu(ev, id){
     if(k === 'waiting'){ t.waiting = !t.waiting; if(t.waiting && t.quadrant !== 4) t.quadrant = 4; saveNow(); sound('click'); rerender(); return; }
     if(k === 'deepwork'){ t.deepWork = !t.deepWork; saveNow(); sound('click'); rerender(); return; }
     if(k === 'dup'){ const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify(
-      {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, duration:t.duration,
+      {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, doEnd:t.doEnd, duration:t.duration,
        desc:t.desc, tags:t.tags, subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn})));
       c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; }); S.tasks.push(c); }
     else t.day = k === 'today' ? today() : k === 'tomorrow' ? addDays(today(), 1)
