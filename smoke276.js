@@ -102,6 +102,33 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('an existing sitting shows its own start, with no suggestion', f.from === '09:00' && !f.note, f);
   await p.evaluate(() => closeModals());
 
+  console.log('\n5b. the first sitting of a day starts at waking');
+  await p.evaluate(d => {
+    S.dailyRhythm = S.dailyRhythm || {};
+    S.dailyRhythm[d.E] = Object.assign(S.dailyRhythm[d.E] || {}, {wakeTime: '06:45'});
+    S.dailyRhythm[d.Y] = Object.assign(S.dailyRhythm[d.Y] || {}, {wakeTime: '07:30'});
+    saveNow();
+  }, days);
+  await p.evaluate(d => openTimeEntryModal(null, d.E), days); await p.waitForTimeout(300);
+  f = await form();
+  is('nothing tracked that day: "from" is the wake time', f.from, '06:45');
+  yes('  and it says it came from waking', /starts from when you woke up at 06:45/.test(f.note), f.note);
+  await p.evaluate(() => closeModals());
+  await p.evaluate(d => openTimeEntryModal(null, d.Y), days); await p.waitForTimeout(300);
+  is('a sitting after waking beats the wake time', (await form()).from, '22:00');
+  await p.evaluate(() => closeModals());
+  await p.evaluate(d => { logTime({what: 'Night work', startTime: timeAtOn(d.E, '00:10'), endTime: timeAtOn(d.E, '00:50')}); saveNow(); }, days);
+  await p.evaluate(d => openTimeEntryModal(null, d.E), days); await p.waitForTimeout(300);
+  is('a sitting that ended before waking does not count as the last one', (await form()).from, '06:45');
+  await p.fill('#teWhat', 'Stretch'); await p.fill('#teMins', '20');
+  await p.click('#teSave'); await p.waitForTimeout(500);
+  const woke = await p.evaluate(() => { const x = S.timeEntries.find(e => e.what === 'Stretch');
+    return x && {from: timeClockOf(x.startTime), to: timeClockOf(x.endTime)}; });
+  yes('saving just a length starts at waking: 06:45–07:05', woke && woke.from === '06:45' && woke.to === '07:05', woke);
+  await p.evaluate(d => openTimeEntryModal(null, d.E), days); await p.waitForTimeout(300);
+  is('then the next one picks up after it', (await form()).from, '07:05');
+  await p.evaluate(() => closeModals());
+
   console.log('\n6. nothing broke on the way');
   yes('no page errors', !errs.length, errs.join(' | '));
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

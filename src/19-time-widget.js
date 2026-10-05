@@ -191,6 +191,20 @@ function timeLastEndedOn(day){
   });
   return best;
 }
+/* Where a sitting written down afterwards most likely begins on a day: at the
+   end of the last finished sitting, or — when nothing has been tracked since
+   waking — at the wake time written down for that morning. A sitting that
+   ended before you woke (a night's work run past midnight) is not "the last
+   one", so the later of the two wins. Nothing known gives null. */
+function timeStartingPoint(day){
+  const last = timeLastEndedOn(day);
+  const lastClock = last ? timeClockOf(last.endTime) : '';
+  const r = timeRhythmOn(day);
+  const wm = r ? hm2min(r.wakeTime) : null;
+  if(last && (wm == null || hm2min(lastClock) >= wm)) return {clock: lastClock, entry: last};
+  if(wm != null) return {clock: `${String(Math.floor(wm / 60)).padStart(2, '0')}:${String(wm % 60).padStart(2, '0')}`, woke: true};
+  return null;
+}
 /* One form for correcting an entry and for writing one down afterwards, since
    they ask for exactly the same things. A running entry has no end yet, so
    the end field is left out rather than shown empty and ignored. */
@@ -200,11 +214,12 @@ function openTimeEntryModal(id, day){
   const running = e && !e.endTime;
   const on = e ? timeDayOf(e.startTime) : (day || today());
   /* A sitting written down afterwards usually starts where the last one
-     stopped, so that is where "from" starts: at the end of that day's last
-     finished sitting, said underneath so it is plain where the time came
-     from. Change the day and it follows, until "from" is set by hand. */
-  const after = e ? null : timeLastEndedOn(on);
-  const afterSaid = x => x ? `picks up where ${x.what ? `“${esc(x.what)}”` : 'the last sitting'} ended` : '';
+     stopped, or at waking if it is the first of the day, so that is where
+     "from" starts, said underneath so it is plain where the time came from.
+     Change the day and it follows, until "from" is set by hand. */
+  const after = e ? null : timeStartingPoint(on);
+  const afterSaid = x => !x ? '' : x.woke ? `starts from when you woke up at ${x.clock}`
+    : `picks up where ${x.entry.what ? `“${esc(x.entry.what)}”` : 'the last sitting'} ended`;
   const m = openModal(`<h2>${e ? (running ? 'What is running' : 'That sitting') : '+ A sitting'}</h2>
     <label class="pd-q"><span class="k">the thing</span>
       <input class="inp" id="teWhat" autofocus value="${esc(e ? e.what : '')}" placeholder="read the Jazz Piano Book"></label>
@@ -212,7 +227,7 @@ function openTimeEntryModal(id, day){
       <label class="pd-q" style="flex:1"><span class="k">day</span>
         <input class="inp mono" type="date" id="teDay" value="${esc(on)}"></label>
       <label class="pd-q" style="flex:1"><span class="k">from</span>
-        <input class="inp mono" type="time" id="teFrom" value="${esc(e ? timeClockOf(e.startTime) : after ? timeClockOf(after.endTime) : '')}"></label>
+        <input class="inp mono" type="time" id="teFrom" value="${esc(e ? timeClockOf(e.startTime) : after ? after.clock : '')}"></label>
       ${running ? '' : `<label class="pd-q" style="flex:1"><span class="k">to</span>
         <input class="inp mono" type="time" id="teTo" value="${esc(e && e.endTime ? timeClockOf(e.endTime) : '')}"></label>`}
     </div>
@@ -241,8 +256,8 @@ function openTimeEntryModal(id, day){
     fromEl.addEventListener('input', mine); fromEl.addEventListener('change', mine);
     dayEl.addEventListener('change', () => {
       if(byHand) return;
-      const x = timeLastEndedOn(dayEl.value || today());
-      fromEl.value = x ? timeClockOf(x.endTime) : '';
+      const x = timeStartingPoint(dayEl.value || today());
+      fromEl.value = x ? x.clock : '';
       if(note){ note.innerHTML = afterSaid(x); note.hidden = !x; }
     });
   }
@@ -269,7 +284,7 @@ function openTimeEntryModal(id, day){
       saveNow();
     } else {
       const made = logTime(Object.assign({}, common, {
-        startTime: from ? timeAtOn(dayV, from) : timeAtOn(dayV, '09:00'),
+        startTime: timeAtOn(dayV, from || (timeStartingPoint(dayV) || {}).clock || '09:00'),
         endTime: toEl && toEl.value ? timeAtOn(dayV, toEl.value) : null,
         minutes: minsEl ? +minsEl.value || 0 : 0}));
       /* written by hand or not, under a minute is not a sitting */
