@@ -751,8 +751,8 @@ function bindCanvas(root, boardId, opts){
   document.addEventListener('keydown', onKey);
 
   /* ---- canvas-level paste: multiline text → offer to create N chips ---- */
-  root.addEventListener('paste', e => {
-    if(isTyping()) return;
+  function onPaste(e){
+    if(!root.isConnected || isTyping()) return;
     e.preventDefault();
     const plain = (e.clipboardData || window.clipboardData).getData('text/plain');
     if(!plain) return;
@@ -779,7 +779,6 @@ function bindCanvas(root, boardId, opts){
       m.querySelector('[data-cancel]').onclick = () => m.remove();
       m.querySelector('[data-ok]').onclick = () => {
         m.remove();
-        const rect = root.getBoundingClientRect();
         const startW = lsCanvasToWorld(viewport, 40, 40);
         lines.forEach((text, i) => {
           const col = i % 5, row = Math.floor(i / 5);
@@ -791,7 +790,8 @@ function bindCanvas(root, boardId, opts){
         repaint();
       };
     }
-  });
+  }
+  document.addEventListener('paste', onPaste);
 
   /* ---- tray: move chip in/out ---- */
   const trayEl = root.querySelector('[data-tray]');
@@ -853,6 +853,6 @@ function bindCanvas(root, boardId, opts){
     getSelected: () => [...selectedIds],
     selectAll,
     clearSelection: () => { selectedIds.clear(); repaint(); },
-    destroy: () => { document.removeEventListener('keydown', onKey); lsUndoClear(boardId); }
+    destroy: () => { document.removeEventListener('keydown', onKey); document.removeEventListener('paste', onPaste); lsUndoClear(boardId); }
   };
 }
