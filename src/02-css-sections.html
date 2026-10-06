@@ -6876,6 +6876,10 @@ html.mfx-cursor .pl-gbaredge{cursor:ew-resize!important}
    without hovering exactly the right four pixels. */
 .pl-msedit{opacity:.35}
 .pl-mspin:hover .pl-msedit,.pl-mspin:focus-within .pl-msedit{opacity:1}
+/* the pin under the pointer comes to the front, so a neighbour never hides its name or its pencil;
+   and two presses on it open the milestone, so it should not select its own text */
+.pl-mspin:hover,.pl-mspin:focus-within{z-index:4}
+.pl-mspin{user-select:none;-webkit-user-select:none}
 .ms-manage{display:flex;flex-direction:column;gap:6px;max-height:56vh;overflow-y:auto;padding-right:4px}
 .ms-mrow{display:grid;grid-template-columns:auto minmax(120px,1fr) 150px 5.5em 3.5em auto auto auto;
   gap:9px;align-items:center;padding:7px 9px;border-radius:9px;

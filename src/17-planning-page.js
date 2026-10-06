@@ -332,7 +332,7 @@ function planMilestoneLineHTML(items, {from, to}, opts = {}){
           style="left:${left}%;--c:${esc(list.color)};--tier:${tier}" role="listitem"
           title="${esc(m.name)} · ${m.date ? esc(fmtDate(m.date, 'med')) + ' · ' + esc(planWhenAway(m.date)) : 'no date'}${
             prog.total ? ` · ${prog.left} of ${prog.total} still to do` : ' · nothing under it yet'} — ${
-            on ? 'press to show everything again' : 'press to see only its work'}${m.note ? ' · ' + esc(m.note) : ''}">
+            on ? 'press to show everything again' : 'press to see only its work'}, press twice to open it${m.note ? ' · ' + esc(m.note) : ''}">
           <i class="pl-msdot"></i><i class="pl-msstem"></i>${compact
             ? oneLine(m.name, m.date ? (m.done ? fmtDate(m.date, 'short') : planWhenAway(m.date)) : '') + `<i class="pl-msedit" data-plms="${m.id}" role="button" tabindex="0" title="open this milestone">✎</i></button>`
             : `<span class="pl-mslabel">${esc(m.name)}</span>
@@ -382,6 +382,32 @@ function planMilestoneFitAll(root = document){
   addEventListener('resize', () => { clearTimeout(t); t = setTimeout(() => planMilestoneFitAll(), 150); });
   try { document.fonts && document.fonts.ready.then(() => planMilestoneFitAll()); } catch(e){}
 }
+/* A press on a pin does its own thing (narrow the list to its work; on Today,
+   open that work), and two presses in a row open the milestone itself. The
+   pencil used to be the only way in, and when two dates fall close together
+   one pin sits over the other's pencil — so the pin can be opened wherever
+   any part of it can be pressed. A single press waits a moment to see whether
+   a second is coming; from the keyboard there is no second one to wait for. */
+let _msPressT = null, _msOpenedAt = 0;
+function planMilestoneOpen(id){
+  if(Date.now() - _msOpenedAt < 500) return;   /* the click and the dblclick of one double press */
+  _msOpenedAt = Date.now(); clearTimeout(_msPressT); _msPressT = null;
+  if(typeof openPlanMilestone === 'function') openPlanMilestone(id);
+}
+function planMilestonePress(ev, id, single){
+  if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
+  clearTimeout(_msPressT); _msPressT = null;
+  if(!ev.detail){ single(); return; }
+  if(ev.detail >= 2){ planMilestoneOpen(id); return; }
+  _msPressT = setTimeout(() => { _msPressT = null; single(); }, 260);
+}
+function planMilestoneBindPins(box, single){
+  box.querySelectorAll('[data-plmsfilter]').forEach(b => {
+    const id = b.dataset.plmsfilter;
+    b.onclick = ev => planMilestonePress(ev, id, () => single(id));
+    b.ondblclick = ev => { if(!ev.target.closest('[data-plms]')) planMilestoneOpen(id); };
+  });
+}
 function bindPlanMilestones(root, sel){
   const mgb = root.querySelector('#plMsManage');
   if(mgb) mgb.onclick = () => openPlanMilestoneManager(sel);
@@ -389,9 +415,7 @@ function bindPlanMilestones(root, sel){
   if(addb) addb.onclick = () => { const host = planMilestoneList(sel); if(!host) return;
     const m = planAddMilestone(host.id); sound('click'); rerender();
     setTimeout(() => openPlanMilestone(m.id), 60); };
-  root.querySelectorAll('[data-plmsfilter]').forEach(b => b.onclick = ev => {
-    if(ev.target.closest('[data-plms]')) return;   /* the pencil is its own door */
-    const id = b.dataset.plmsfilter;
+  planMilestoneBindPins(root, id => {
     const f = Object.assign({}, S._planFilter || {});
     if(f.milestone === id) delete f.milestone; else f.milestone = id;
     S._planFilter = f; sound('click'); rerender(); });
