@@ -572,7 +572,7 @@ The toolbar, left to right:
 - **one part** / the parts bar — show or hide staves and parts.
 - **bars/line − +** and **fit**, **size − +**, **bar #** (jump to a bar).
 - **▸ more** — the **metronome** (scheduled on the audio clock so it never drifts; its own volume and switch), **key ♭ / ♯ / as written** (transpose the whole score; chord symbols, note names and degrees move with it), **over the notes** overlays — *Note names*, *Scale degrees*, *Chords* (the harmony under each beat, worked out from the notes; faint where unsure), *Beat counts*, *Fingerings* (with it on, press a note to set one) — the **partner cue** and **engraving** options.
-- **⛶ read** — **read mode**: the score and nothing else, page by page, for a tablet on the music stand. Choose how many lines fit; the **partner cue** strip (show or hide) gives you a small view of the other part's current bars while you read your own.
+- **⛶ read** — **read mode**: the score and nothing else, page by page, for a tablet on the music stand. A press in the outer third of the page on either side (or a sideways swipe) turns it — except where the press is for something on the page: with *Fingerings* on, pressing a note gives it a finger wherever it sits, and a press on nothing still turns the page. Choose how many lines fit; the **partner cue** strip (show or hide) gives you a small view of the other part's current bars while you read your own.
 - **＋ a section**.
 
 **The player** (every score in the house can be played — the grand piano is a real sampled Yamaha C5, violin and cello are real solo instruments, and orchestral scores use real sections):

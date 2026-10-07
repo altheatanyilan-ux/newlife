@@ -696,6 +696,13 @@ async function scorePaint(x){
   const ui = scoreUi();
   const focus = ui.focus ? scoreSection(x, ui.focus) : null;
   try {
+    /* Engraving a piece holds the page for as long as it takes. The press that
+       brought us here was answered by building this page in the same breath, so
+       without a pause it would not be shown until the engraving was done — the
+       press would seem to have done nothing. Let the page and its "engraving…"
+       be seen first. (A piece still drawn in memory comes straight back.) */
+    const drawn = typeof scoreView === 'function' && scoreView() && scoreView().scoreId === x.id && scoreView().loaded;
+    if(!drawn){ await scoreNextPaint(); if(!stage.isConnected) return; }
     await openScoreIn(stage, x, Object.assign({page: scorePageShape()},
       focus ? {from:focus.startMeasure, to:focus.endMeasure} : {}));
     x.lastOpened = new Date().toISOString();
@@ -1244,6 +1251,8 @@ function scoreBeatsHTML(notes, u, size){
    everything they asked for in it, because it reads the piece's settings when
    it starts and not when it was asked. */
 let _redrawT = null, _redrawWaiters = [], _redrawRunning = false, _redrawFor = null;
+/* the size asked for by a press whose redraw has not happened yet, so the next press steps from it and not from what is still on the glass */
+let _zoomAsked = null;
 const SCORE_REDRAW_WAIT = 140, SCORE_REDRAW_WAIT_SLOW = 320;
 function scoreRedraw(x, wait = SCORE_REDRAW_WAIT){
   _redrawFor = x;
@@ -1264,7 +1273,7 @@ async function scoreRedrawRun(){
   finally {
     _redrawRunning = false;
     waiters.forEach(r => r());
-    if(!_redrawT && !_redrawWaiters.length) scoreBusy(false);
+    if(!_redrawT && !_redrawWaiters.length){ scoreBusy(false); _zoomAsked = null; }
   }
 }
 /* the stage greyed a little, with a word on it, while a drawing is pending or under way */
@@ -1664,8 +1673,10 @@ function bindScoreViewer(root, x){
        line holding it down, stepping from the asked-for size would land
        above what is drawn and change nothing */
     const step = +b.dataset.sczoom;
-    const z = scoreZoomNow(x) * (step > 0 ? 1.15 : 1 / 1.15);
+    const base = _zoomAsked && _zoomAsked.id === x.id ? _zoomAsked.z : scoreZoomNow(x);
+    const z = base * (step > 0 ? 1.15 : 1 / 1.15);
     x.zoom = Math.round(clamp(z, SCORE_ZOOM_MIN, 2.5) * 100) / 100;
+    _zoomAsked = {id: x.id, z: x.zoom};
     saveNow();
     await scoreRedraw(x, SCORE_REDRAW_WAIT_SLOW);
     scoreBplRepaint(x);

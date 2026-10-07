@@ -449,6 +449,34 @@ function lastRowsOf(k){
   }
   return lastRows[k] = m;
 }
+/* The text of one row, for comparing and for writing. Most rows are small and
+   are simply stringified. A row that carries a big string — a piece's whole
+   MusicXML — is not: turning a megabyte of it back into text on every save, to
+   find out it is the same megabyte, was most of what a save cost. Such a row's
+   text is kept, and reused for as long as the rest of the row reads the same
+   and the big string is the very same string; the moment either differs the
+   row is stringified afresh. */
+const ROW_BULK = 8192;
+const rowMemo = new WeakMap();
+function rowJSON(r){
+  if(r === null || typeof r !== 'object'){ const j = JSON.stringify(r); return j === undefined ? 'null' : j; }
+  let big = null;
+  for(const f in r){ const v = r[f]; if(typeof v === 'string' && v.length > ROW_BULK) (big = big || []).push(f); }
+  if(!big){ const j = JSON.stringify(r); return j === undefined ? 'null' : j; }
+  const rest = {}; for(const f in r) if(!big.includes(f)) rest[f] = r[f];
+  const sig = JSON.stringify(rest), vals = big.map(f => r[f]), m = rowMemo.get(r);
+  if(m && m.sig === sig && m.fields.length === big.length && m.fields.every((f, i) => f === big[i] && m.vals[i] === vals[i])) return m.json;
+  const json = JSON.stringify(r);
+  rowMemo.set(r, {sig, fields: big, vals, json});
+  return json;
+}
+const sameRows = (a, b) => { if(a.size !== b.size) return false; for(const [id, j] of b) if(a.get(id) !== j) return false; return true; };
+/* The whole-store text as last written — what the add-only guards compare
+   against. It is made from the rows when asked for, not kept for every store. */
+function lastTextOf(k){
+  const m = lastRows[k];
+  return m ? '[' + [...m.values()].join(',') + ']' : lastWritten[k];
+}
 /* A pass writes only the stores whose contents changed, which means it has to
    remember what it wrote. It used to work that out AFTER the write — and
    stateToStores hands back the live arrays, not copies, so a change made while
@@ -459,32 +487,43 @@ function lastRowsOf(k){
    goes to the disk and what we claim went to the disk are the same thing. */
 async function persist(){
   const rows = stateToStores(S);
-  /* the Knowledge Tree's add-only records: what was written stays written */
-  if(typeof treeGuard === 'function') treeGuard(rows, lastWritten);
-  if(typeof anGuard === 'function') anGuard(rows, lastWritten);
-  if(typeof lsSnapshotGuard === 'function') lsSnapshotGuard(rows, lastWritten);
-  if(typeof lsRecallGuard === 'function') lsRecallGuard(rows, lastWritten);
-  /* One snapshot, row by row: the text of the whole store (what the guards and
-     the dirty check compare) is the rows' text joined, which is byte for byte
-     what stringifying the whole array gives, and the rows' own text is kept to
-     see which of them changed. */
-  const shot = {}, keyed = {};
+  /* the add-only records (the Knowledge Tree, Score Study, the Studio): what
+     was written stays written. They read the last text of their own stores. */
+  const prevText = new Proxy({}, {get: (_, k) => typeof k === 'string' ? lastTextOf(k) : undefined});
+  if(typeof treeGuard === 'function') treeGuard(rows, prevText);
+  if(typeof anGuard === 'function') anGuard(rows, prevText);
+  if(typeof lsSnapshotGuard === 'function') lsSnapshotGuard(rows, prevText);
+  if(typeof lsRecallGuard === 'function') lsRecallGuard(rows, prevText);
+  /* One snapshot, row by row: each row's text, and by key where the rows can be
+     told apart. Whether a store changed is read off the rows; the text of the
+     whole store (byte for byte what stringifying the array would give) is only
+     joined where it is actually wanted. */
+  const keyed = {}, parts = {};
   for(const k of Object.keys(rows)){
-    const arr = rows[k], kp = PRIMKEY[k], parts = new Array(arr.length);
+    const arr = rows[k], kp = PRIMKEY[k], ps = new Array(arr.length);
     let map = kp ? new Map() : null;
     for(let i = 0; i < arr.length; i++){
-      const r = arr[i]; let j = JSON.stringify(r); if(j === undefined) j = 'null'; parts[i] = j;
+      const r = arr[i], j = rowJSON(r); ps[i] = j;
       if(map){ const id = r == null ? undefined : r[kp]; if(!rowKeyOk(id) || map.has(id)) map = null; else map.set(id, j); }
     }
-    shot[k] = '[' + parts.join(',') + ']'; keyed[k] = map;
+    parts[k] = ps; keyed[k] = map;
   }
+  const shot = {};
+  const textNow = k => shot[k] !== undefined ? shot[k] : (shot[k] = '[' + parts[k].join(',') + ']');
   /* A store with no table cannot be written, and asking for its table used to
      throw inside the transaction — which failed the whole pass, so one
      unwritable store stopped every OTHER change in the app from being saved
      too. It is left out and said once; everything else still goes to disk. */
-  const changed = Object.keys(rows).filter(k => shot[k] !== lastWritten[k]);
+  const changed = Object.keys(rows).filter(k => {
+    const before = lastRows[k], now = keyed[k];
+    return before && now ? !sameRows(before, now) : textNow(k) !== lastTextOf(k);
+  });
   changed.filter(k => !db[k] && !noTableSaid.has(k)).forEach(k => { noTableSaid.add(k); console.warn(`"${k}" has no table in the database, so it is not being saved`); });
   const dirty = changed.filter(k => db[k]);
+  /* what is on disk for a store that did not change is what was just read, so
+     it is remembered by its rows — which is what makes the next pass cheap */
+  const remember = k => { lastRows[k] = keyed[k]; if(keyed[k]) delete lastWritten[k]; else lastWritten[k] = textNow(k); };
+  Object.keys(rows).filter(k => !changed.includes(k)).forEach(remember);
   if(!dirty.length) return;
   /* what is to be written, taken now, from the snapshot: the rows that are new
      or changed, and the keys of those that are gone — or, where rows cannot be
@@ -497,7 +536,7 @@ async function persist(){
       now.forEach((j, id) => { if(before.get(id) !== j) puts.push(JSON.parse(j)); });
       before.forEach((_, id) => { if(!now.has(id)) dels.push(id); });
       plan[k] = {puts, dels};
-    } else plan[k] = {all: JSON.parse(shot[k])};
+    } else plan[k] = {all: JSON.parse(textNow(k))};
   });
   await db.transaction('rw', dirty.map(k => db[k]), async tx => {
     for(const k of dirty){
@@ -506,7 +545,7 @@ async function persist(){
       else { if(w.dels.length) await table.bulkDelete(w.dels); if(w.puts.length) await table.bulkPut(w.puts); }
     }
   });
-  dirty.forEach(k => { lastWritten[k] = shot[k]; lastRows[k] = keyed[k]; });
+  dirty.forEach(remember);
 }
 /* A save that arrives while one is already running has to wait for its turn,
    and the promise it is handed must be the one that settles when ITS OWN

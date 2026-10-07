@@ -78,7 +78,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
         else if(op === 1 && S.tasks.length > 3) S.tasks.splice(Math.floor(Math.random() * S.tasks.length), 1);
         else if(op === 2 && S.tasks.length) pick(S.tasks).text = 'edited ' + round + '.' + i;
         else if(op === 3 && scores().length) pick(scores()).zoom = 1 + Math.random();
-        else if(op === 4 && scores().length > 4) S.scores.splice(Math.floor(Math.random() * S.scores.length), 1);
+        else if(op === 4 && scores().length > 4) S.scores.splice(1 + Math.floor(Math.random() * (S.scores.length - 1)), 1);   /* never the first, which the test looks for later */
         else S.settings['__r' + (round % 3)] = round + '.' + i;
       }
       await saveNow(); if(round % 2) await flushSave(); }, round);
