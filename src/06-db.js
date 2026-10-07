@@ -416,13 +416,39 @@ async function writeAllStores(rows){
      as written is what was written and not whatever the state became meanwhile */
   const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
   await db.transaction('rw', textTables(), async tx => { for(const t of textTables()){ const table = tx[t.name] || tx.table(t.name); await table.clear(); if(rows[t.name]?.length) await table.bulkPut(rows[t.name]); } });
-  lastWritten = shot;
+  lastWritten = shot; lastRows = {};
 }
 
 /* ---------- save: only stores whose contents changed ---------- */
 let lastWritten = {}; let saving = null; let queued = null;
 const noTableSaid = new Set();
 let saveFailureShown = false;
+/* What each store's rows were, one by one, as last written: key -> that row's
+   JSON. It is what lets a pass write the ROWS that changed rather than the
+   whole store: one score's zoom used to rewrite every score in the library,
+   MusicXML and all, on every press. A store whose rows cannot be told apart by
+   a plain key (no key, a repeated one, a compound or generated one) has no
+   entry and is written whole, as it always was. */
+let lastRows = {};
+const PRIMKEY = {};
+Object.entries(DB_SCHEMA).forEach(([k, spec]) => { const pk = String(spec).split(',')[0].trim(); if(/^[A-Za-z_]\w*$/.test(pk)) PRIMKEY[k] = pk; });
+const rowKeyOk = id => id != null && typeof id !== 'object' && !(typeof id === 'number' && !isFinite(id));
+/* the rows of a store as last written, worked out from the whole-store text the first time a store needs it */
+function lastRowsOf(k){
+  if(lastRows[k] !== undefined) return lastRows[k];
+  const kp = PRIMKEY[k]; let m = null;
+  if(kp && lastWritten[k]){
+    try {
+      m = new Map();
+      for(const r of JSON.parse(lastWritten[k])){
+        const id = r == null ? undefined : r[kp];
+        if(!rowKeyOk(id) || m.has(id)){ m = null; break; }
+        m.set(id, JSON.stringify(r));
+      }
+    } catch(e){ m = null; }
+  }
+  return lastRows[k] = m;
+}
 /* A pass writes only the stores whose contents changed, which means it has to
    remember what it wrote. It used to work that out AFTER the write — and
    stateToStores hands back the live arrays, not copies, so a change made while
@@ -438,7 +464,20 @@ async function persist(){
   if(typeof anGuard === 'function') anGuard(rows, lastWritten);
   if(typeof lsSnapshotGuard === 'function') lsSnapshotGuard(rows, lastWritten);
   if(typeof lsRecallGuard === 'function') lsRecallGuard(rows, lastWritten);
-  const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
+  /* One snapshot, row by row: the text of the whole store (what the guards and
+     the dirty check compare) is the rows' text joined, which is byte for byte
+     what stringifying the whole array gives, and the rows' own text is kept to
+     see which of them changed. */
+  const shot = {}, keyed = {};
+  for(const k of Object.keys(rows)){
+    const arr = rows[k], kp = PRIMKEY[k], parts = new Array(arr.length);
+    let map = kp ? new Map() : null;
+    for(let i = 0; i < arr.length; i++){
+      const r = arr[i]; let j = JSON.stringify(r); if(j === undefined) j = 'null'; parts[i] = j;
+      if(map){ const id = r == null ? undefined : r[kp]; if(!rowKeyOk(id) || map.has(id)) map = null; else map.set(id, j); }
+    }
+    shot[k] = '[' + parts.join(',') + ']'; keyed[k] = map;
+  }
   /* A store with no table cannot be written, and asking for its table used to
      throw inside the transaction — which failed the whole pass, so one
      unwritable store stopped every OTHER change in the app from being saved
@@ -447,9 +486,27 @@ async function persist(){
   changed.filter(k => !db[k] && !noTableSaid.has(k)).forEach(k => { noTableSaid.add(k); console.warn(`"${k}" has no table in the database, so it is not being saved`); });
   const dirty = changed.filter(k => db[k]);
   if(!dirty.length) return;
-  const frozen = {}; dirty.forEach(k => frozen[k] = JSON.parse(shot[k]));
-  await db.transaction('rw', dirty.map(k => db[k]), async tx => { for(const k of dirty){ const table = tx[k] || tx.table(k); await table.clear(); if(frozen[k].length) await table.bulkPut(frozen[k]); } });
-  dirty.forEach(k => lastWritten[k] = shot[k]);
+  /* what is to be written, taken now, from the snapshot: the rows that are new
+     or changed, and the keys of those that are gone — or, where rows cannot be
+     told apart, the whole store */
+  const plan = {};
+  dirty.forEach(k => {
+    const before = lastRowsOf(k), now = keyed[k];
+    if(before && now){
+      const puts = [], dels = [];
+      now.forEach((j, id) => { if(before.get(id) !== j) puts.push(JSON.parse(j)); });
+      before.forEach((_, id) => { if(!now.has(id)) dels.push(id); });
+      plan[k] = {puts, dels};
+    } else plan[k] = {all: JSON.parse(shot[k])};
+  });
+  await db.transaction('rw', dirty.map(k => db[k]), async tx => {
+    for(const k of dirty){
+      const table = tx[k] || tx.table(k), w = plan[k];
+      if(w.all){ await table.clear(); if(w.all.length) await table.bulkPut(w.all); }
+      else { if(w.dels.length) await table.bulkDelete(w.dels); if(w.puts.length) await table.bulkPut(w.puts); }
+    }
+  });
+  dirty.forEach(k => { lastWritten[k] = shot[k]; lastRows[k] = keyed[k]; });
 }
 /* A save that arrives while one is already running has to wait for its turn,
    and the promise it is handed must be the one that settles when ITS OWN
@@ -490,7 +547,7 @@ async function readLegacyBlobDB(){
 async function load(){
   await db.open();
   const metaCount = await db.meta.count();
-  if(metaCount){ S = storesToState(await readAllStores()); lastWritten = {}; const before = stateToStores(S); for(const k of Object.keys(before)) lastWritten[k] = JSON.stringify(before[k]); migrate(); saveNow(); return; }   // anything migrate() added is dirty and gets written
+  if(metaCount){ S = storesToState(await readAllStores()); lastWritten = {}; lastRows = {}; const before = stateToStores(S); for(const k of Object.keys(before)) lastWritten[k] = JSON.stringify(before[k]); migrate(); saveNow(); return; }   // anything migrate() added is dirty and gets written
   // migration source 1: the interim single-blob IndexedDB database
   const blob = await readLegacyBlobDB();
   if(blob){ S = blob; migrate(); await writeAllStores(stateToStores(S)); try { indexedDB.deleteDatabase('lifeinstrument'); } catch(e){} setTimeout(() => toast('Your data was migrated into the new database.', 5000), 600); return; }

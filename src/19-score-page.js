@@ -1232,8 +1232,52 @@ function scoreBeatsHTML(notes, u, size){
   }).join('');
 }
 
-/* a re-engraving, for the three things that really change the picture */
-async function scoreRedraw(x){
+/* A re-engraving, for the things that really change the picture. Drawing a
+   piece again takes the whole page for as long as it takes — seconds, on a
+   long one — and nothing can be pressed meanwhile. So a redraw is asked for
+   rather than started: it begins a moment after the last ask, once, however
+   many came (pressing "bigger" three times used to queue three of them, one
+   behind the other, and the page sat dead for all three). The stage says it
+   is working before it goes quiet, so the press is seen to have landed.
+
+   Everyone who asked gets their answer when the one drawing is done, with
+   everything they asked for in it, because it reads the piece's settings when
+   it starts and not when it was asked. */
+let _redrawT = null, _redrawWaiters = [], _redrawRunning = false, _redrawFor = null;
+const SCORE_REDRAW_WAIT = 140, SCORE_REDRAW_WAIT_SLOW = 320;
+function scoreRedraw(x, wait = SCORE_REDRAW_WAIT){
+  _redrawFor = x;
+  return new Promise(res => {
+    _redrawWaiters.push(res);
+    clearTimeout(_redrawT);
+    _redrawT = setTimeout(scoreRedrawRun, wait);
+    scoreBusy(true);
+  });
+}
+async function scoreRedrawRun(){
+  _redrawT = null;
+  if(_redrawRunning){ _redrawT = setTimeout(scoreRedrawRun, 60); return; }
+  _redrawRunning = true;
+  const waiters = _redrawWaiters; _redrawWaiters = [];
+  try { await scoreNextPaint(); await scoreRedrawNow(_redrawFor); }
+  catch(e){ console.warn('score redraw failed', e); }
+  finally {
+    _redrawRunning = false;
+    waiters.forEach(r => r());
+    if(!_redrawT && !_redrawWaiters.length) scoreBusy(false);
+  }
+}
+/* the stage greyed a little, with a word on it, while a drawing is pending or under way */
+function scoreBusy(on){
+  const stage = document.getElementById('scStage');
+  if(!stage) return;
+  stage.classList.toggle('sc-engraving', !!on);
+  stage.setAttribute('aria-busy', on ? 'true' : 'false');
+  let pill = stage.querySelector(':scope > .sc-busy');
+  if(on && !pill){ pill = document.createElement('div'); pill.className = 'sc-busy'; pill.innerHTML = '<span>engraving…</span>'; stage.insertBefore(pill, stage.firstChild); }
+  else if(!on && pill) pill.remove();
+}
+async function scoreRedrawNow(x){
   const ui = scoreUi();
   const focus = ui.focus ? scoreSection(x, ui.focus) : null;
   /* paged, a re-layout moves every bar to another page; the one you were
@@ -1594,7 +1638,7 @@ function bindScoreViewer(root, x){
     const step = +b.dataset.scxp;
     x.transpose = step ? clamp((+x.transpose || 0) + step, -12, 12) : 0;
     saveNow();
-    await scoreRedraw(x);
+    await scoreRedraw(x, SCORE_REDRAW_WAIT_SLOW);
   });
   $$('[data-scbpl]', root).forEach(b => b.onclick = async () => {
     const step = +b.dataset.scbpl;
@@ -1602,7 +1646,7 @@ function bindScoreViewer(root, x){
     x.barsPerLine = clamp((+x.barsPerLine || 0) + (x.barsPerLine === 0 && step > 0 ? 4 : step), 0, 16);
     if(x.barsPerLine === 1) x.barsPerLine = step > 0 ? 2 : 0;
     saveNow();
-    await scoreRedraw(x);
+    await scoreRedraw(x, SCORE_REDRAW_WAIT_SLOW);
     scoreBplRepaint(x);
   });
   $$('[data-scrpart]', root).forEach(b => b.onclick = async () => {
@@ -1623,7 +1667,7 @@ function bindScoreViewer(root, x){
     const z = scoreZoomNow(x) * (step > 0 ? 1.15 : 1 / 1.15);
     x.zoom = Math.round(clamp(z, SCORE_ZOOM_MIN, 2.5) * 100) / 100;
     saveNow();
-    await scoreRedraw(x);
+    await scoreRedraw(x, SCORE_REDRAW_WAIT_SLOW);
     scoreBplRepaint(x);
   });
   const tight = root.querySelector('#scTight');
