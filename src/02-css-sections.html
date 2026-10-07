@@ -9090,11 +9090,19 @@ html[data-theme="light"] .wk-sleep.is-guess{background-image:repeating-linear-gr
    a page where every fingering is yours it is thirty rings of nothing. The
    number still needs a ground under it, or it disappears into a beam — but a
    patch of paper the size of the digit, not a ring around it. */
-.sc-fing{color:#a0727e;background:rgba(253,250,243,.92);border:0;
+.sc-fing{color:#1e3a8a;background:rgba(253,250,243,.92);border:0;
   min-width:.9em;height:1.1em;padding:0 .1em;display:flex;align-items:center;justify-content:center;
-  transform:translate(-50%,-50%);font-weight:600;pointer-events:auto;cursor:pointer;
+  transform:translate(-50%,-50%);font-weight:700;pointer-events:auto;cursor:pointer;
   border-radius:2px;line-height:1}
-.sc-fing:hover{background:rgba(160,114,126,.2)}
+.sc-fing:hover{background:rgba(30,58,138,.14)}
+/* the size of the numbers, beside the layers it belongs to; only there while
+   the fingering layer is on */
+.sc-fsize{display:flex;align-items:center;gap:4px}
+.sc-fsize[hidden]{display:none}
+.sc-fsize .mono{font-size:.72rem;min-width:3.2em;text-align:center}
+/* dark blue on the cream page, and the same blue made light enough to read on
+   the dark room around it */
+html:not([data-theme="light"]) .sc-layer[data-sclayer="fingerings"]{--c:#8fb0f5 !important}
 .sc-fingpick{position:absolute;z-index:6;transform:translate(-50%,0);display:flex;flex-direction:column;
   gap:3px;padding:6px;border-radius:8px;background:var(--surface,#fdfaf3);border:1px solid var(--line);
   box-shadow:0 6px 22px rgba(0,0,0,.18)}

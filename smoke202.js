@@ -194,25 +194,29 @@ const THIN = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1
     setScoreReading(true);
     await new Promise(r => setTimeout(r, 2200));
     const root = document.documentElement;
-    const before = root.classList.contains('sc-quiet');
+    const away = root.classList.contains('sc-quiet');
+    /* a mouse resting on a desk twitches; that must not bring it */
+    dispatchEvent(new PointerEvent('pointermove', {bubbles:true, clientX:400, clientY:400}));
+    /* a press on the page's middle is not the top edge */
+    dispatchEvent(new PointerEvent('pointerdown', {bubbles:true}));
+    await new Promise(r => setTimeout(r, 400));
+    const afterMoveAndPress = root.classList.contains('sc-quiet');
+    /* the top edge of the page sends for it */
+    const stage = document.getElementById('scStage'), r = stage.getBoundingClientRect();
+    stage.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, clientX: r.left + r.width / 2, clientY: r.top + 8}));
+    await new Promise(r => setTimeout(r, 200));
+    const up = !root.classList.contains('sc-quiet');
+    /* and the chevron puts it away at once */
     document.querySelector('#scHide').click();
     const hidden = root.classList.contains('sc-quiet');
-    /* a mouse resting on a desk twitches; that must not bring it back */
-    dispatchEvent(new PointerEvent('pointermove', {bubbles:true, clientX:400, clientY:400}));
-    await new Promise(r => setTimeout(r, 400));
-    const afterMove = root.classList.contains('sc-quiet');
-    /* a press is a thing you did on purpose */
-    dispatchEvent(new PointerEvent('pointerdown', {bubbles:true}));
-    await new Promise(r => setTimeout(r, 200));
-    const afterPress = root.classList.contains('sc-quiet');
     document.documentElement.requestFullscreen = real;
     setScoreReading(false);
-    return {before, hidden, afterMove, afterPress};
+    return {away, afterMoveAndPress, up, hidden};
   });
-  yes('it is there while you are using it', !quiet.before, JSON.stringify(quiet));
-  yes('  a press on the chevron sends it away at once', quiet.hidden, JSON.stringify(quiet));
-  yes('  a mouse drifting across does not bring it back', quiet.afterMove, JSON.stringify(quiet));
-  yes('  and a press does', !quiet.afterPress, JSON.stringify(quiet));
+  yes('it is away while you read', quiet.away, JSON.stringify(quiet));
+  yes('  a mouse drifting across, or a press that is not on the top edge, does not bring it', quiet.afterMoveAndPress, JSON.stringify(quiet));
+  yes('  a press on the very top edge does', quiet.up, JSON.stringify(quiet));
+  yes('  and a press on the chevron sends it away at once', quiet.hidden, JSON.stringify(quiet));
 
   console.log('\n6. the count and what it says it is');
   await p.evaluate(() => { const x = scores().find(y => y.title === 'A Thick One');

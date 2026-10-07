@@ -667,18 +667,11 @@ function plxKit(ctx, dest, midi, t, vel, dur){
     default: plxDrum(ctx, dest, midi, t, vel);
   }
 }
-/* The count and the click: the score room metronome's wooden click (a
-   struck block — noise through a tight band-pass), the downbeat a fifth
-   higher and louder unless the accent is off. */
+/* The count and the click: the score room metronome's wooden click, the very
+   same voice at the metronome's own default loudness. (It was a copy with its
+   own, quieter, numbers; see scoreClickVoice for why quiet was the problem.) */
 function plxClick(ctx, dest, t, accent){
-  const dur = 0.035;
-  const n = ctx.createBufferSource(); n.buffer = plxNoise(ctx);
-  const band = ctx.createBiquadFilter(); band.type = 'bandpass'; band.frequency.value = accent ? 2400 : 1600; band.Q.value = 6;
-  const g = ctx.createGain();
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(accent ? 0.55 : 0.34, t + 0.002);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  n.connect(band); band.connect(g); g.connect(dest); n.start(t); n.stop(t + dur + 0.01);
+  scoreClickVoice(ctx, dest, t, accent, 0.7);
 }
 
 /* ---------- the tempo map ----------

@@ -368,7 +368,8 @@ function scoreLayerPickHTML(x){
   return `<span class="k mono">over the notes</span>
     <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
       `<button class="tbtn sc-layer${ov[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
-        title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>`;
+        title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>
+    ${scoreFingSizeHTML(x)}`;
 }
 
 /* The metronome. It is the one thing in the room that turns reading into
@@ -448,7 +449,7 @@ function scoreReadStripHTML(x){
   const secs = (x.sections || []).slice().sort((a, b) => a.startMeasure - b.startMeasure);
   return `<div class="sc-strip" id="scStrip">
     <button class="tbtn" id="scUnread" title="back to the room">✕ done</button>
-    <button class="tbtn" id="scHide" title="send this away now — a press anywhere brings it back">⌄</button>
+    <button class="tbtn" id="scHide" title="put this away — tap the very top of the page to bring it back">⌄</button>
     <span class="sc-strip-t serif">${esc(x.title)}</span>
     ${scoreBplHTML(x)}
     ${scoreZoomHTML(x)}
@@ -460,6 +461,7 @@ function scoreReadStripHTML(x){
     <span class="sc-layers">${SCORE_OVERLAYS.map(([k, name, hint, col]) =>
       `<button class="tbtn sc-layer${(x.overlays || {})[k] ? ' on' : ''}" data-sclayer="${k}" style="--c:${col}"
         title="${esc(hint)}">${esc(name)}</button>`).join('')}</span>
+    ${scoreFingSizeHTML(x)}
     <span class="sc-pager"><button class="tbtn" data-scturn="-1" title="back a page">‹</button>
       <span class="mono" id="scPageSay"></span>
       <button class="tbtn" data-scturn="1" title="on a page">›</button></span>
@@ -505,7 +507,10 @@ function setScoreReading(on){
   ui.reading = !!on;
   document.documentElement.classList.toggle('sc-reading', ui.reading);
   scoreKeepAwake(ui.reading);
+  _scStrip = false;
   scoreQuietWatch(ui.reading);
+  if(ui.reading && !_scHinted){ _scHinted = true;
+    toast('Tap the very top of the page for the controls.', 3500); }
   scoreFullscreen(ui.reading);
   scoreFullscreenWatch(ui.reading);
   /* the width changed by a lot, so the lines have to be broken again */
@@ -565,38 +570,37 @@ function scoreFullscreenWatch(on){
   addEventListener('fullscreenchange', _scFs);
   addEventListener('webkitfullscreenchange', _scFs);
 }
-/* The strip takes itself away after a few seconds and comes back on any touch.
-   Which is also why a tap in reading mode wakes the strip and never pins a
-   note: your hands are on the keys, and an accidental pin at bar 43 every time
-   you brush the glass is worse than having no pins at all. */
-let _scQuiet = null;
-/* The strip takes itself away after a few seconds so that what is on the
-   glass is a page of music. It used to wake on any pointer movement, which on
-   a laptop meant it never stayed away for more than a moment: a mouse resting
-   on the desk twitches. Now it wakes on a press or a key — things you did on
-   purpose — and there is a button to send it away before the few seconds are
-   up, for when you already know you are done with it. */
-const SCORE_QUIET_AFTER = 3500;
+/* THE STRIP IS AWAY UNLESS YOU SENT FOR IT.
+   It used to come up on every press and put itself away after a few seconds,
+   and a page turn is a press — so every turn laid a bar of controls across
+   the top line of the page you had just turned to, and then took it away
+   again, for nothing. Now it is the other way about. A press on the very top
+   edge of the page brings it; it stays until a press anywhere else on the
+   page, and that press does nothing but put it away. A page turn, a key and a
+   pedal never touch it, so nothing is ever drawn over the music unless you
+   asked for it.
+
+   Whether it is up is remembered here rather than read off the page, so that
+   it survives the page being drawn again — a size change, a part switched off
+   — without flickering shut. */
+const SCORE_TOP_EDGE = 44;
+let _scStrip = false, _scHinted = false;
+function scoreStripShown(){ return _scStrip && !!scoreUi().reading; }
+function scoreStripSet(on){
+  _scStrip = !!on && !!scoreUi().reading;
+  document.documentElement.classList.toggle('sc-quiet', !_scStrip);
+  /* the picker is anchored to a note, and a strip over the top of the page is
+     about something else */
+  if(_scStrip) $$('.sc-fingpick').forEach(n => n.remove());
+}
+/* Called each time the page is drawn, and on the way in and out of reading. */
 function scoreQuietWatch(on){
   const root = document.documentElement;
-  if(_scQuiet){
-    clearTimeout(_scQuiet.timer);
-    ['pointerdown','keydown'].forEach(e => removeEventListener(e, _scQuiet.wake, true));
-    _scQuiet = null;
-  }
-  root.classList.remove('sc-quiet');
-  if(!on) return;
-  const hide = () => root.classList.add('sc-quiet');
-  const wake = () => { root.classList.remove('sc-quiet');
-    if(_scQuiet){ clearTimeout(_scQuiet.timer); _scQuiet.timer = setTimeout(hide, SCORE_QUIET_AFTER); } };
-  _scQuiet = {wake, timer: setTimeout(hide, SCORE_QUIET_AFTER)};
-  ['pointerdown','keydown'].forEach(e => addEventListener(e, wake, true));
+  if(!on){ _scStrip = false; root.classList.remove('sc-quiet'); return; }
+  root.classList.toggle('sc-quiet', !scoreStripShown());
 }
-/* away now, rather than in three seconds */
-function scoreStripHide(){
-  if(_scQuiet) clearTimeout(_scQuiet.timer);
-  document.documentElement.classList.add('sc-quiet');
-}
+/* away now, which is what the chevron on it does */
+function scoreStripHide(){ scoreStripSet(false); }
 
 /* The panel beside the score. Repainted on its own, because writing a note
    about bar 48 should not cost a re-engraving of the whole Ballade. */
@@ -839,7 +843,7 @@ function scoreLayersPaint(x){
   });
   if(ov.beats) out.push(scoreBeatsHTML(notes, u, size));
   if(ov.chords) out.push(scoreChordsHTML(x, notes, u, size));
-  if(ov.fingerings) out.push(scoreFingerHTML(x, notes, u, size));
+  if(ov.fingerings) out.push(scoreFingerHTML(x, notes, u));
   box.innerHTML = out.join('');
   if(ov.chords) scoreChordsSettle(box, u);
 }
@@ -1115,20 +1119,61 @@ function scoreFingerKeys(notes){
 /* Right hand above the note, left hand below — which is where a century of
    engraving puts them, and which is also the only arrangement that stays
    readable when both hands have something to say about the same beat. */
-function scoreFingerHTML(x, notes, u, size){
+function scoreFingerHTML(x, notes, u){
   const keys = scoreFingerKeys(notes);
   const have = x.fingerings || {};
   const out = [];
+  /* The digit is sized off the staff space, as an edition's is, and then by
+     the size you chose — so it grows with the piece and with you. It used to
+     be six pixels at the default zoom, which is a number you could read only
+     by leaning in. Further from the head as it grows, so a big digit does not
+     sit on the note it belongs to. */
+  const f = clamp(u * SCORE_FING_BASE * scoreFingScale(), 8, 48);
+  const off = u * 1.1 + f * 0.55;
   keys.forEach((k, n) => {
     const v = have[k];
     if(!v || !v.finger) return;
     const up = v.hand !== 'L';
     out.push(`<i class="sc-lab sc-fing ${up ? 'rh' : 'lh'}" data-scfing="${esc(k)}"
       title="${up ? 'right' : 'left'} hand, finger ${v.finger} \u2014 press to change it"
-      style="left:${n.x.toFixed(1)}px;top:${(n.y + (up ? -u * 1.7 : u * 1.7)).toFixed(1)}px;font-size:${
-      (size * 0.82).toFixed(1)}px">${v.finger}</i>`);
+      style="left:${n.x.toFixed(1)}px;top:${(n.y + (up ? -off : off)).toFixed(1)}px;font-size:${
+      f.toFixed(1)}px">${v.finger}</i>`);
   });
   return out.join('');
+}
+/* HOW BIG THE FINGERING NUMBERS ARE.
+   One setting for the whole room, not one per piece: it is a fact about your
+   eyes and the distance to the glass, not about the Ballade. A ladder rather
+   than a free slider, because "a bit bigger" is a press, and a slider on a
+   tablet is a thing you miss. */
+const SCORE_FING_BASE = 1.25;
+const SCORE_FING_STEPS = [0.6, 0.75, 0.9, 1, 1.2, 1.45, 1.75, 2.1, 2.5, 3];
+function scoreFingScale(){
+  const v = +((S.settings || {}).fingerScale);
+  return v >= 0.5 && v <= 3.5 ? v : 1;
+}
+function scoreFingSizeHTML(x){
+  const on = !!(x.overlays || {}).fingerings, at = scoreFingScale();
+  return `<span class="sc-fsize" data-scfsize${on ? '' : ' hidden'}>
+    <button class="tbtn" data-scfs="-1" title="smaller fingering numbers"${at <= SCORE_FING_STEPS[0] ? ' disabled' : ''}>\u2212</button>
+    <span class="mono" data-scfssay title="how big the fingering numbers are">${Math.round(at * 100)}%</span>
+    <button class="tbtn" data-scfs="1" title="bigger fingering numbers"${at >= SCORE_FING_STEPS[SCORE_FING_STEPS.length - 1] ? ' disabled' : ''}>+</button></span>`;
+}
+function scoreFingSizePaint(x){
+  const on = !!(x.overlays || {}).fingerings, at = scoreFingScale();
+  $$('[data-scfsize]').forEach(n => { n.hidden = !on; });
+  $$('[data-scfssay]').forEach(n => { n.textContent = Math.round(at * 100) + '%'; });
+  $$('[data-scfs="-1"]').forEach(b => { b.disabled = at <= SCORE_FING_STEPS[0]; });
+  $$('[data-scfs="1"]').forEach(b => { b.disabled = at >= SCORE_FING_STEPS[SCORE_FING_STEPS.length - 1]; });
+}
+function scoreFingStep(x, by){
+  const now = scoreFingScale();
+  let at = 0, gap = Infinity;
+  SCORE_FING_STEPS.forEach((v, i) => { const d = Math.abs(v - now); if(d < gap){ gap = d; at = i; } });
+  S.settings.fingerScale = SCORE_FING_STEPS[clamp(at + (by > 0 ? 1 : -1), 0, SCORE_FING_STEPS.length - 1)];
+  saveNow();
+  scoreFingSizePaint(x);
+  scoreLayersPaint(x);
 }
 /* The note a fingering belongs to, found again on whatever is drawn now. */
 function scoreNoteByKey(key){
@@ -1613,9 +1658,11 @@ function bindScoreViewer(root, x){
   $$('[data-sclayer]', root).forEach(b => b.onclick = () => {
     const k = b.dataset.sclayer;
     x.overlays[k] = !x.overlays[k];
-    b.classList.toggle('on', x.overlays[k]);
+    $$(`[data-sclayer="${k}"]`).forEach(n => n.classList.toggle('on', !!x.overlays[k]));
+    if(k === 'fingerings') scoreFingSizePaint(x);
     saveNow(); scoreLayersPaint(x);
   });
+  $$('[data-scfs]', root).forEach(b => b.onclick = () => scoreFingStep(x, +b.dataset.scfs));
   const marks = root.querySelector('#scMarks2');
   if(marks) marks.onclick = ev => {
     const chord = ev.target.closest('[data-scchord]');
@@ -1697,8 +1744,22 @@ function bindScoreViewer(root, x){
   $$('[data-scturn]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     scoreTurn(+b.dataset.scturn, x); });
   const stage = root.querySelector('#scStage');
-  /* reading: the outer thirds turn, the middle does nothing but wake the strip */
+  /* reading: the outer thirds turn, the middle does nothing */
   if(stage && ui.reading){
+    /* The strip, before anything else sees the press (hence the capture).
+       Up, it is put away by a press anywhere on the page, and that press is
+       spent on it: it does not also turn the page or open a note, because
+       the one that put it away is the one you least want to have done
+       something else. Away, a press on the very top edge brings it — unless
+       that press is on something drawn there, a fingering or a pin, which is
+       what it was for. */
+    stage.addEventListener('click', ev => {
+      if(ev.target.closest('.sc-fingpick')) return;
+      if(scoreStripShown()){ ev.stopPropagation(); ev.preventDefault(); scoreStripSet(false); return; }
+      if(ev.target.closest('.sc-fing, .sc-pin, .sc-band-n, [data-scchord]')) return;
+      if(ev.clientY - stage.getBoundingClientRect().top < SCORE_TOP_EDGE){
+        ev.stopPropagation(); ev.preventDefault(); scoreStripSet(true); }
+    }, true);
     stage.addEventListener('click', ev => {
       /* A press that is for something drawn on the page is not a page turn,
          wherever on the page it falls: the fingering picker and the marks on
@@ -1744,7 +1805,7 @@ function bindScoreViewer(root, x){
       const hit = scoreNoteAt(px, py);
       if(hit){ ev.stopPropagation(); openFingerPicker(x, hit); return; }
     }
-    if(ui.reading) return;           /* a tap is for waking the strip, not pinning */
+    if(ui.reading) return;           /* a tap while reading is never a pin: your hands are on the keys */
     const m = measureAt(px, py);
     if(m) openPinModal(x.id, null, m);
   });

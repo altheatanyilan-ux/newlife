@@ -22,7 +22,7 @@ const SCORE_OVERLAYS = [
   ['degrees',    'Scale degrees', 'where each note sits in the key',      '#5c7c8a'],
   ['chords',     'Chords',        'the harmony under each beat',          '#b0705e'],
   ['beats',      'Beat counts',   'what to count under the bar',          '#8a7f9e'],
-  ['fingerings', 'Fingerings',    'yours \u2014 with it on, a press on a note sets one', '#a0727e']];
+  ['fingerings', 'Fingerings',    'yours \u2014 with it on, a press on a note sets one', '#1e3a8a']];
 /* Degrees of the scale, and the spelling a musician would use for the notes
    between them. */
 const SCALE_DEGREES = ['1','♭2','2','♭3','3','4','♯4','5','♭6','6','♭7','7'];

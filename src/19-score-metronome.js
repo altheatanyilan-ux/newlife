@@ -24,10 +24,58 @@
    metronome. It keeps its own audio, its own volume and its own switch.
    ============================================================ */
 
+/* THE CLICK, AS A SOUND.
+   A wooden click rather than a beep: a short noise burst through a band-pass,
+   which is what a block of wood being struck actually is. The downbeat is the
+   same sound a fifth higher and a little louder, because a bar you can hear
+   the start of is a bar you can count.
+
+   It was far too quiet, and not because of the volume setting. A band-pass
+   that narrow throws away nearly all of a noise burst: measured, the filtered
+   click came out at a tenth of the gain it was given, so the loudest the old
+   metronome could be — the volume all the way up — peaked around 30 decibels
+   below full scale, and at its default around 35. Under a piano it was not a
+   quiet click, it was no click. So the make-up is put back where the filter
+   took it: a gain that brings the filtered burst to about 0.55 of full scale
+   for an ordinary beat and 0.9 for the downbeat when the volume is full, and
+   the volume then scales that, not the leftovers.
+
+   It is also the same burst every time, not a fresh handful of random numbers
+   on each beat. A metronome whose beats differ in loudness by chance is
+   telling you something about your playing that is not true. Shared by the
+   player's click and count-in, so that the two are one sound at one loudness. */
+const SCORE_CLICK_MAKEUP = 5.4;
+function scoreClickVoice(ctx, dest, when, strong, level){
+  const dur = 0.035;
+  let buf = ctx._scClick;
+  if(!buf){
+    buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let seed = 20240607;
+    for(let i = 0; i < d.length; i++){
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      d[i] = ((seed / 4294967296) * 2 - 1) * Math.pow(1 - i / d.length, 2.2);
+    }
+    ctx._scClick = buf;
+  }
+  const src = ctx.createBufferSource(); src.buffer = buf;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = strong ? 2400 : 1600;
+  band.Q.value = 4;
+  const g = ctx.createGain();
+  const peak = clamp(+level || 0, 0, 1) * (strong ? 1 : 0.72) * SCORE_CLICK_MAKEUP;
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), when + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+  src.connect(band); band.connect(g); g.connect(dest);
+  src.start(when); src.stop(when + dur + 0.01);
+}
+
 const ScoreMetronome = (() => {
   let ctx = null, out = null;
   let on = false, bpm = 90, perBar = 4, at = 0;
-  let timer = null, nextAt = 0, vol = 0.5, accent = true;
+  let timer = null, nextAt = 0, vol = 0.7, accent = true;
   const listeners = new Set();
   /* Look a fifth of a second ahead and wake five times as often as that. Both
      numbers are unremarkable on purpose: long enough that a busy frame cannot
@@ -44,30 +92,9 @@ const ScoreMetronome = (() => {
     out.connect(ctx.destination);
     return ctx;
   }
-  /* A wooden click rather than a beep: a short noise burst through a tight
-     band-pass, which is what a block of wood being struck actually is. The
-     downbeat is the same sound a fifth higher and a little louder, because a
-     bar you can hear the start of is a bar you can count — unless the accent
-     is switched off, when every beat is the same click (for hearing the
-     pulse without the bar, or for a piece whose accents are not on one). */
   function click(when, strong){
     if(!ctx) return;
-    const dur = 0.035;
-    const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
-    const d = buf.getChannelData(0);
-    for(let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.2);
-    const src = ctx.createBufferSource(); src.buffer = buf;
-    const band = ctx.createBiquadFilter();
-    band.type = 'bandpass';
-    band.frequency.value = strong ? 2400 : 1600;
-    band.Q.value = 6;
-    const g = ctx.createGain();
-    const peak = clamp(vol, 0, 1) * (strong ? 0.5 : 0.3);
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), when + 0.002);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    src.connect(band); band.connect(g); g.connect(out);
-    src.start(when); src.stop(when + dur + 0.01);
+    scoreClickVoice(ctx, out, when, strong, vol);
   }
   /* The whole of the timing. Everything already booked stays booked, so a
      frame that takes too long costs nothing — the clicks were scheduled

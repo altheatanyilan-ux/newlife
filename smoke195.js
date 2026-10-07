@@ -340,19 +340,23 @@ ${part('P1', 60)}
     measureBoxes().forEach(b => { const k = Math.round(b.y / 20); rows[k] = (rows[k] || 0) + 1; });
     return Math.max(...Object.values(rows)); });
   yes('  and the line gets longer for it', wide >= 6, `${wide} bars a line`);
-  /* the strip takes itself away, and a press brings it back. a press, not a
-     drift of the pointer: a hand resting on the desk moves the mouse a pixel
-     now and then, and a strip that came back for that would never stay gone */
-  await p.waitForTimeout(4200);
-  yes('the strip goes quiet on its own',
+  /* the strip is away unless sent for: nothing brings it but a press on the
+     very top edge of the page, and it stays until a press elsewhere. A hand
+     resting on the desk moves the mouse a pixel now and then, and a key or a
+     page turn is not a request for the controls. */
+  await p.waitForTimeout(1200);
+  yes('the strip is away as reading opens',
     await p.evaluate(() => document.documentElement.classList.contains('sc-quiet')));
-  await p.mouse.move(500, 400); await p.waitForTimeout(400);
-  yes('  and drifting the pointer over it does not',
+  await p.mouse.move(500, 400); await p.keyboard.press('Shift'); await p.waitForTimeout(400);
+  yes('  and neither drifting the pointer nor pressing a key brings it',
     await p.evaluate(() => document.documentElement.classList.contains('sc-quiet')));
-  await p.keyboard.press('Shift'); await p.waitForTimeout(400);
-  yes('  and a press brings it back',
+  await p.mouse.click(700, 10); await p.waitForTimeout(400);
+  yes('  a press on the very top edge does',
     await p.evaluate(() => !document.documentElement.classList.contains('sc-quiet')));
-  /* a tap on the page is for waking the strip, never for pinning: your hands
+  await p.waitForTimeout(4200);
+  yes('  and it stays',
+    await p.evaluate(() => !document.documentElement.classList.contains('sc-quiet')));
+  /* a tap on the page is for putting the strip away, never for pinning: your hands
      are on the keys and an accidental pin every time you brush the glass is
      worse than having no pins at all */
   const tapped = await p.evaluate(() => {
