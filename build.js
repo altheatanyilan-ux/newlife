@@ -117,6 +117,20 @@ function assertEverythingIsSaved(){
     return m ? [...m[1].matchAll(/'([^']+)'/g)].map(x => x[1]) : [];
   };
   const kept = new Set([...listed('META_KEYS'), ...listed('ARRAY_STORES'), 'habitLog', 'checkins']);
+  /* And the other half: a store the save pass writes has to have a table to
+     be written to. One that did not (the blocks of a planned day) made the
+     whole save fail for every change in the app, the first time it held
+     anything — and nothing at build time said so. */
+  const schema = (/const DB_SCHEMA = \{([\s\S]*?)\n\};/.exec(db) || [])[1] || '';
+  const tables = new Set([...schema.matchAll(/^\s*([A-Za-z_]\w*)\s*:\s*'/gm)].map(x => x[1]));
+  const tableless = listed('ARRAY_STORES').filter(k => !tables.has(k));
+  if(tableless.length){
+    console.error('BUILD FAILED — stores that cannot be saved.\n' +
+      'These are in ARRAY_STORES (src/06-db.js) but have no table in DB_SCHEMA, so the\n' +
+      'save pass throws the first time one holds anything. Add a table for each, and bump\n' +
+      'db.version(...) so existing databases gain it.\n  ' + tableless.join('\n  '));
+    process.exit(1);
+  }
   const lost = new Map();
   for(const f of parts){
     if(!f.endsWith('.js')) continue;

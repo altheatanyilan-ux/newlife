@@ -93,6 +93,10 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   sdMisc:         'id',
   sdMedia:        'id, filename',
   wins:           'id, date, milestoneId',
+  /* the blocks of a planned day (Plan tomorrow → shape the day). Listed in
+     ARRAY_STORES since they were added but never given a table, so the first
+     block ever written made every save in the app fail. */
+  timeBlocks:     'id, date',
   /* The Knowledge Tree (19-tree-*.js). Ordinary state stores, saved with
      the rest. Slugs and aliases are unique in code, not by index (the
      fallback database cannot open a '&' index). Positions and predictions
@@ -248,7 +252,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(21).stores(DB_SCHEMA);   // v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(22).stores(DB_SCHEMA);   // v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -417,6 +421,8 @@ async function writeAllStores(rows){
 
 /* ---------- save: only stores whose contents changed ---------- */
 let lastWritten = {}; let saving = null; let queued = null;
+const noTableSaid = new Set();
+let saveFailureShown = false;
 /* A pass writes only the stores whose contents changed, which means it has to
    remember what it wrote. It used to work that out AFTER the write — and
    stateToStores hands back the live arrays, not copies, so a change made while
@@ -433,7 +439,13 @@ async function persist(){
   if(typeof lsSnapshotGuard === 'function') lsSnapshotGuard(rows, lastWritten);
   if(typeof lsRecallGuard === 'function') lsRecallGuard(rows, lastWritten);
   const shot = {}; for(const k of Object.keys(rows)) shot[k] = JSON.stringify(rows[k]);
-  const dirty = Object.keys(rows).filter(k => shot[k] !== lastWritten[k]);
+  /* A store with no table cannot be written, and asking for its table used to
+     throw inside the transaction — which failed the whole pass, so one
+     unwritable store stopped every OTHER change in the app from being saved
+     too. It is left out and said once; everything else still goes to disk. */
+  const changed = Object.keys(rows).filter(k => shot[k] !== lastWritten[k]);
+  changed.filter(k => !db[k] && !noTableSaid.has(k)).forEach(k => { noTableSaid.add(k); console.warn(`"${k}" has no table in the database, so it is not being saved`); });
+  const dirty = changed.filter(k => db[k]);
   if(!dirty.length) return;
   const frozen = {}; dirty.forEach(k => frozen[k] = JSON.parse(shot[k]));
   await db.transaction('rw', dirty.map(k => db[k]), async tx => { for(const k of dirty){ const table = tx[k] || tx.table(k); await table.clear(); if(frozen[k].length) await table.bulkPut(frozen[k]); } });
@@ -452,7 +464,12 @@ function saveNow(){
     return queued.promise;
   }
   saving = persist()
-    .catch(err => { console.error('save failed', err); toast('Saving failed — export a backup from Settings to be safe.', 6000); })
+    .then(() => { saveFailureShown = false; })
+    /* said once per run of failures, with the reason, rather than on every
+       change while it lasts — the next pass that works clears it */
+    .catch(err => { console.error('save failed', err);
+      if(!saveFailureShown){ saveFailureShown = true;
+        toast(`Saving failed (${(err && (err.name || err.message)) || 'unknown'}) — export a backup from Settings to be safe.`, 6000); } })
     .finally(() => {
       saving = null;
       const q = queued; queued = null;

@@ -1645,6 +1645,16 @@ function bindScoreViewer(root, x){
   /* reading: the outer thirds turn, the middle does nothing but wake the strip */
   if(stage && ui.reading){
     stage.addEventListener('click', ev => {
+      /* A press that is for something drawn on the page is not a page turn,
+         wherever on the page it falls: the fingering picker and the marks on
+         the notation, and — with the fingering layer on — a press near a note
+         head, which is for that note. Only a press on nothing turns. */
+      if(ev.target.closest('.sc-fingpick, .sc-fing, .sc-pin, .sc-band-n, [data-scchord]')) return;
+      if(x.overlays && x.overlays.fingerings){
+        const cv = document.getElementById('scCanvas');
+        const bx = (cv || stage).getBoundingClientRect();
+        if(scoreNoteAt(ev.clientX - bx.left, ev.clientY - bx.top)) return;
+      }
       const r = stage.getBoundingClientRect();
       const at = (ev.clientX - r.left) / r.width;
       if(at > 0.72) scoreTurn(1, x);
