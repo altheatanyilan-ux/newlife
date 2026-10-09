@@ -865,3 +865,7 @@ Collected from the **Check** notes above, with a few more. None of these is a fa
 ---
 
 *Written from the source as of this commit. When something here and the program disagree, the program is right and this is out of date — the part to fix is the one with the **Check** beside it.*
+
+---
+
+*The purpose layer added after this account was written — the sheet, the workbench, convergence, the demons registers, retreats, the lenses — is described in [PURPOSE.md](PURPOSE.md). Where the two differ, PURPOSE.md is newer.*

@@ -141,9 +141,15 @@ function attachDictationIn(root){ $$('textarea.ta, textarea.write-area', root ||
 /* ---------- 5. the pattern report ---------- */
 /* Real numbers first. These are computed here and are true whether or not
    a key is present; Claude is only ever asked to interpret them. */
+/* What the optional model connection never sees: the belief register, fears,
+   mementos and the resistance log are the most private words in the house, and
+   a sealed letter is sealed. They are excluded by default, and it says so. */
+const AI_EXCLUDED_KINDS = ['belief', 'fear', 'memento', 'resistance'];
+const AI_EXCLUSION_NOTE = 'Belief, fear, memento and resistance entries, and sealed letters, are never sent.';
+const aiMayRead = e => !AI_EXCLUDED_KINDS.includes(e.type || e.kind) && !(e.extra && e.extra.sealedUntil && e.extra.sealedUntil > today());
 function gatherPatterns({days = 90} = {}){
   const T = today(); const from = addDays(T, -days);
-  const es = S.entries.filter(e => (e.createdAt||e.occurredAt||'').slice(0,10) >= from);
+  const es = S.entries.filter(e => (e.createdAt||e.occurredAt||'').slice(0,10) >= from && aiMayRead(e));
   const snaps = allSnapshotsWithRetro();
   const words = {}; const STOP = new Set('the a an and or but if then than that this these those i me my myself we our you your he she it they them is are was were be been being have has had do does did of in on at to for with about into over after under again more most other some such no nor not only own same so too very can will just should now it\'s i\'m don\'t there here what when where who how out up down as by from'.split(' '));
   es.forEach(e => `${e.title||''} ${e.body||''}`.toLowerCase().replace(/[^\p{L}\p{N}\s#]/gu,' ').split(/\s+/).forEach(w => { if(w.length > 3 && !STOP.has(w)) words[w] = (words[w]||0)+1; }));

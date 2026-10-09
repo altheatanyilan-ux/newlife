@@ -192,7 +192,7 @@ function retreatSteps(kind, rec, st){
       mk('authenticity', 'The authenticity question.', null, () => (typeof authenticityBodyHTML === 'function' ? authenticityBodyHTML(kind) : '<p class="faint">…</p>'),
         {next: b => { if(typeof authenticitySave === 'function' && authenticitySave(b)) A('authenticity'); }}),
       mk('solitude', 'The solitude plan.', 'The system cannot take the retreat for you. Where, and when.',
-        () => { const prev = retreatStepGet(kind, 'solitude') || {}; return `<div class="field"><label>The plan</label><textarea class="ta" id="rtSolP" rows="3" placeholder="where, how long, what for, what you are leaving behind">${esc(prev.plan || '')}</textarea></div>
+        () => { const prev = retreatStepGet(kind, 'solitude') || {}; return `<div class="field"><label>The plan</label><textarea class="ta" id="rtSolP" rows="3" placeholder="where, how long, what for, what you are setting down">${esc(prev.plan || '')}</textarea></div>
           <div class="field"><label>The date it begins</label><input type="date" class="inp" id="rtSolD" value="${esc(prev.date || '')}"></div>`; },
         {next: b => { const plan = b.querySelector('#rtSolP').value.trim(), date = b.querySelector('#rtSolD').value; if(plan || date){ retreatStepSet(kind, 'solitude', {answer: plan, plan, date}); A('solitude'); } }}),
       mk('converge', 'The convergence report.', 'Consulted, not acted on.', () => { const o = typeof convergeRetreatOffer === 'function' ? convergeRetreatOffer() : null; return o ? `<p>${esc(o.note)}</p><div class="row">${rtGoButton('open the report', o.go)}</div>` : '<p class="faint">There is not yet enough written for it to read.</p>'; }, {bind: goBind('converge')}),

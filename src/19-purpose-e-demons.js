@@ -220,7 +220,7 @@ function beliefPromote(id){
 /* ---------- fears ---------- */
 function demonsFears(host){
   const xs = beliefsAll('fear');
-  host.innerHTML = `<p class="faint dm-lede">Two kinds. A fear about safety. And a fear about the cost and limitation of something grand — the second is a compass bearing: your purpose is supposed to scare you, and a fear pointing that way is a clue to go there. Most modern fear is not physical but of failure, rejection and embarrassment. The technique: feel it and go into it; get excited about it; do not label it bad.</p>
+  host.innerHTML = `<p class="faint dm-lede">Two kinds. A fear about safety. And a fear about the cost and limitation of something grand — the second is a compass bearing: your purpose is supposed to scare you, and a fear pointing that way is a clue to go there. Most modern fear is not physical but of not making it, of being turned down, and of looking foolish. The technique: feel it and go into it; get excited about it; do not label it bad.</p>
     <div class="row"><button class="btn primary" id="dmFear">Add a fear</button></div>
     ${xs.length ? `<div class="dm-list">${xs.map(f => { const v = f.pointsTo && f.pointsTo.visionId ? byId(S.visions, f.pointsTo.visionId) : null;
       return `<article class="dm-row"><div class="dm-main"><p class="serif dm-text">${esc(f.text)}</p>
@@ -312,7 +312,7 @@ function resistanceLoad(from, to){
 }
 function resistanceWeekStep(from, to){
   const r = resistanceLoad(from, to); if(!r.count) return [];
-  return [{title: 'What you avoided this week.', hint: 'The count of what you noticed, and the form it most often took. A reading, not a grade — and not something to resist.',
+  return [{title: 'What you avoided this week.', hint: 'The count of what you noticed, and the form it most often took. A reading, and not something to resist.',
     body: () => `<p class="serif">${r.count} thing${r.count === 1 ? '' : 's'} noticed${r.form ? `; most often as <b>${esc(r.form)}</b>` : ''}.</p>
       ${r.entries.slice(0, 6).map(e => `<div class="rev-summary">${esc(e.extra.avoided || e.title)}${e.extra.smallestAction ? ` <span class="faint">— next: ${esc(e.extra.smallestAction)}</span>` : ''}</div>`).join('')}`}];
 }
@@ -343,7 +343,7 @@ function installedAll(){
 const installedClass = t => (INSTALLED_KINDS.find(k => k[2].test(t)) || ['other', 'not named as one of these'])[0];
 function demonsOrigins(host){
   const all = installedAll();
-  if(!all.length){ host.innerHTML = '<p class="faint dm-lede">Memories, life events, Library works and people each ask what they installed in you — the belief, fear, pattern or capability they left behind. Nothing has been written there yet. When it is, it gathers here.</p><div class="empty">Nothing yet.</div>'; return; }
+  if(!all.length){ host.innerHTML = '<p class="faint dm-lede">Memories, life events, Library works and people each ask what they installed in you — the belief, fear, pattern or capability they left in you. Nothing has been written there yet. When it is, it gathers here.</p><div class="empty">Nothing yet.</div>'; return; }
   const groups = {}; all.forEach(x => (groups[installedClass(x.text)] = groups[installedClass(x.text)] || []).push(x));
   const order = [...INSTALLED_KINDS.map(k => [k[0], k[1]]), ['other', 'not named as one of these']];
   host.innerHTML = `<p class="faint dm-lede">Every “what this installed in me” answer you have written, from memories, life events, Library works and people, grouped by whether it named a belief, a fear, a pattern or a capability (the grouping is read from your wording and is only a guess). Read-only — but any of them can go to the register.</p>

@@ -130,7 +130,7 @@ function alignmentHTML(){
         ${sparkline(alignmentHistory(k), {h: 18, min: 0, max: 100, color: 'currentColor'})}</button>`; }).join('')}
       ${r.obs ? `<div class="al-card obs"><div class="al-name">Obstruction</div>
         <div class="al-pair"><div><b class="mono">${r.obs.stickyBeliefs}</b><span class="faint"> sticky belief${r.obs.stickyBeliefs === 1 ? '' : 's'}</span></div><div><b class="mono">${r.obs.resistanceLoad}</b><span class="faint"> thing${r.obs.resistanceLoad === 1 ? '' : 's'} avoided, last four weeks</span></div></div>
-        <div class="faint al-q">What is in the way. Two counts, not a score — and not turned into a positive reading, because a reading that rises when you are honest would punish honesty. A sticky belief is one gripping at strength three or more with no challenge in ninety days.</div></div>`
+        <div class="faint al-q">What is in the way. Two counts, nothing added up — and not turned into a positive reading, because a reading that rises when you are honest would punish honesty. A sticky belief is one gripping at strength three or more with no challenge in ninety days.</div></div>`
         : `<div class="al-card dropped"><div class="al-name">Obstruction</div><div class="faint">nothing has been written in the inner-demons registers — left out rather than drawn as nothing.</div></div>`}</div>
     ${detail}
     ${alignmentIdleLine(r)}

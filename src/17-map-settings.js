@@ -45,6 +45,7 @@ routes.settings = function(root){
           <button class="pl-mini" data-bdel="${esc(c.id)}" title="take it out">\u00d7</button></div>`).join('')}
           <button class="btn sm ghost" id="sBreakAdd" style="margin-top:8px">+ a chip</button></div></div>
       ${typeof pqSettingsHTML === 'function' ? pqSettingsHTML() : ''}
+      ${typeof dutiesSettingsHTML === 'function' ? dutiesSettingsHTML() : ''}
       ${typeof fzSettingsHTML === 'function' ? fzSettingsHTML() : ''}
       ${typeof learnedSettingsHTML === 'function' ? learnedSettingsHTML() : ''}
       ${typeof pbdSettingsHTML === 'function' ? pbdSettingsHTML() : ''}
@@ -123,6 +124,7 @@ routes.settings = function(root){
       <div class="field" style="margin:18px 0"><label>Voice &amp; Claude</label>
         <p class="muted" style="font-size:.85rem;margin:2px 0 10px">Dictation uses your browser's own speech recogniser — ${dictationSupported() ? 'available here' : '<b>not available in this browser</b> (Chrome, Edge and Safari have one)'}. Nothing is recorded or uploaded; you speak, text appears.</p>
         <p class="muted" style="font-size:.85rem;margin:0 0 10px">Tidying dictation and the pattern report work without a key, using rules and statistics computed in this page. Paste an <b>Anthropic API key</b> and both get a real language model instead. A Claude Pro or Max subscription cannot be used here — consumer subscriptions do not issue API credentials, and API usage is billed separately.</p>
+        <p class="muted" style="font-size:.82rem;margin:0 0 10px">${typeof AI_EXCLUSION_NOTE === 'string' ? esc(AI_EXCLUSION_NOTE) : ''} The convergence report and every other reading of your words run in this page and never leave it.</p>
         <div class="row" style="gap:8px"><input class="inp mono" id="aiKey" type="password" placeholder="sk-ant-…" value="${esc(aiKey())}" autocomplete="off" style="flex:1"><button class="btn sm" id="aiSave">Save</button>${aiKey()?'<button class="btn sm ghost" id="aiClear">Remove</button>':''}</div>
         <div class="faint" style="font-size:.74rem;margin-top:6px">Stored only in this browser's localStorage. It is never written into a backup file. <span id="aiState">${aiReady()?'Connected.':'Not connected — local mode.'}</span></div>
         <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="aiTest">Test the connection</button><button class="btn sm ghost" id="openPatterns">Open the pattern report →</button></div>
@@ -215,6 +217,7 @@ routes.settings = function(root){
   $('#sTimeRound') && ($('#sTimeRound').onchange = function(){
     timeSettings().round = +this.value || 1; saveNow(); });
   if(typeof pqSettingsBind === 'function') pqSettingsBind(document);
+  if(typeof dutiesSettingsBind === 'function') dutiesSettingsBind(document);
   if(typeof fzSettingsBind === 'function') fzSettingsBind(document);
   if(typeof learnedSettingsBind === 'function') learnedSettingsBind(document);
   if(typeof exportSettingsBind === 'function') exportSettingsBind(document);

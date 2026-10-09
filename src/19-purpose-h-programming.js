@@ -27,7 +27,7 @@ function ppContemplate(){
     <div class="field"><label>How long</label><div class="row" style="gap:6px">${[5, 10].map(n => `<button class="chip ${n === mins ? 'on' : ''}" data-ctm="${n}">${n} min</button>`).join('')}</div></div>
     <div class="row" style="justify-content:flex-end"><button class="btn primary" id="ctGo">Begin</button></div>`);
   m.querySelectorAll('[data-cq]').forEach(b => b.onclick = () => { const q = qs[+b.dataset.cq]; chosen = {text: q.title || q.body, entryId: q.id}; m.querySelector('#ctQ').value = chosen.text; });
-  m.querySelectorAll('[data-cp]').forEach(b => b.onclick = () => { chosen = {text: 'what is behind “' + phrases[+b.dataset.cp] + '”?', entryId: null}; m.querySelector('#ctQ').value = chosen.text; });
+  m.querySelectorAll('[data-cp]').forEach(b => b.onclick = () => { chosen = {text: 'what is underneath “' + phrases[+b.dataset.cp] + '”?', entryId: null}; m.querySelector('#ctQ').value = chosen.text; });
   m.querySelectorAll('[data-ctm]').forEach(b => b.onclick = () => { mins = +b.dataset.ctm; m.querySelectorAll('[data-ctm]').forEach(x => x.classList.toggle('on', x === b)); });
   m.querySelector('#ctGo').onclick = () => {
     const t = m.querySelector('#ctQ').value.trim(); if(!t){ toast('Frame a question first.'); return; }

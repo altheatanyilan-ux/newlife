@@ -114,7 +114,7 @@ function realSkills(host){
   const draft = d.skillDraft = d.skillDraft || {items: []};
   const c = domainSkillCount();
   host.innerHTML = `<p class="faint dm-lede">Which skills must you master to ace this life purpose? Aim for ten. For each, three tangible ways to develop it — ideally things you can do daily. They are important and not urgent, which is precisely why they get dropped.</p>
-    <p class="mono faint">${c.n} of your ${c.of} skills in play serve the domain${domainSkillCats().length ? '' : ' (set the skill categories on the sheet’s domain to count them)'} — a count, not a score; four or five in focus is a working number.</p>
+    <p class="mono faint">${c.n} of your ${c.of} skills in play serve the domain${domainSkillCats().length ? '' : ' (set the skill categories on the sheet’s domain to count them)'} — a count, nothing more; four or five in focus is a working number.</p>
     ${draft.items.map((it, i) => `<article class="fn-goal"><div class="row between"><b class="serif">${esc(it.name)}</b><button class="del-x inline" data-sdel="${i}">×</button></div>
       ${[0, 1, 2].map(k => `<input class="inp" data-sway="${i}|${k}" placeholder="a tangible way to develop it ${k + 1}" value="${esc((it.ways || [])[k] || '')}" style="margin-top:4px">`).join('')}</article>`).join('')}
     <div class="row" style="gap:8px;margin:10px 0"><input class="inp" id="skAdd" placeholder="a skill I must master" style="flex:1"><button class="btn" id="skAddGo">add</button>

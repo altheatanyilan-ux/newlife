@@ -147,7 +147,7 @@ function museCardHTML(){
   const p = museFeedPanel();
   const hue = 'var(--sage)';
   return `<section class="section rv muse-card"><div class="row between" style="align-items:baseline;flex-wrap:wrap;gap:8px">
-      <span class="sc" style="margin:0">The muse <span class="mono faint" style="text-transform:none;letter-spacing:0">· a reading, not a score</span></span>
+      <span class="sc" style="margin:0">The muse <span class="mono faint" style="text-transform:none;letter-spacing:0">· a reading, not a mark</span></span>
       <span class="mono faint">${r.override != null ? `you say ${r.override}; the data says ${r.auto}` : `${r.keys.length} of 5 inputs have data`}</span></div>
     <div class="muse-bars">${MUSE_INPUTS.map(k => { const i = r.inputs[k];
       return `<button class="muse-row${S._museSel === k ? ' on' : ''}" data-musesel="${k}"${i ? '' : ' disabled'}><span class="n">${MUSE_NAMES[k]}</span>

@@ -62,6 +62,7 @@ function zogTodayHTML(){
   const pct = target ? Math.min(100, Math.round(mins / target * 100)) : 0;
   return `<div class="zog-line"><span class="mono">zone of genius today, ${mins} of ${target} minutes</span>
     <span class="zog-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
+    <button type="button" class="tbtn" data-zogfix="1" title="the streak is forgiving, and a day can be set by hand">correct a day</button>
     ${st.run >= 2 && !(typeof journeyState === 'function' && journeyState() === 'searching') ? `<span class="mono faint">${st.run} days running — forgiving: a day not yet worked is a day still going</span>` : ''}</div>`;
 }
 if(typeof registerDuty === 'function') registerDuty({
@@ -140,3 +141,16 @@ function happinessWeekStep(from, to){
   const h = happinessRead(from, to); if(h.sittings < 5) return [];
   return [{title: 'Happy minutes.', hint: 'The week’s minutes split by how the sittings felt.', body: () => happinessPanelHTML(from, to, 'this week') + challengeMonthLine()}];
 }
+
+/* the one counter in the house that can be corrected by hand: the streak is
+   a convenience, not a mechanism, so a day may be set either way, or back to
+   what the clock says */
+function zogHandSet(){
+  const days = Array.from({length: 14}, (_, i) => addDays(today(), -i));
+  const o = () => { S.zogStreak = S.zogStreak && typeof S.zogStreak === 'object' ? S.zogStreak : {}; S.zogStreak.set = S.zogStreak.set || {}; return S.zogStreak.set; };
+  const m = openModal(`<h2>Correct a day</h2><p class="faint">The clock decides unless you say otherwise. Setting a day by hand does not change the minutes recorded.</p>
+    <div id="zfBox">${days.map(d => { const v = o()[d]; return `<div class="row between" style="padding:4px 0"><span>${esc(fmtDate(d, 'med'))} <span class="mono faint">${Math.round(zogMinutesOn(d))} min</span></span>
+      <span class="row" style="gap:5px">${[[true, 'counts'], [false, 'does not'], [undefined, 'as the clock says']].map(([k, n]) => `<button class="chip${v === k ? ' on' : ''}" data-zfd="${d}|${k}">${n}</button>`).join('')}</span></div>`; }).join('')}</div>`, 'narrow');
+  m.querySelectorAll('[data-zfd]').forEach(b => b.onclick = () => { const [d, k] = b.dataset.zfd.split('|'); if(k === 'undefined') delete o()[d]; else o()[d] = k === 'true'; saveNow(); m.remove(); rerender(); });
+}
+document.addEventListener('click', ev => { if(ev.target.closest && ev.target.closest('[data-zogfix]')){ ev.preventDefault(); zogHandSet(); } }, true);

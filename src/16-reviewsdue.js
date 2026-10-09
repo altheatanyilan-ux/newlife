@@ -261,9 +261,9 @@ function periodDigest(from, to, st){
   lines.push(`Habits: ${st.habits.done} of ${st.habits.due} kept${st.habits.rate === null ? '' : ` (${st.habits.rate}%)`}. Tasks: ${st.tasks.done} of ${st.tasks.total} done.`);
   if(st.setpoint) lines.push(`Average emotional set-point: ${st.setpoint} — ${hicksName(st.setpoint)}.`);
   lines.push('');
-  lines.push('ENTRIES IN THIS PERIOD (nothing outside it is included):');
+  lines.push('ENTRIES IN THIS PERIOD (nothing outside it is included; ' + (typeof AI_EXCLUSION_NOTE === 'string' ? AI_EXCLUSION_NOTE : '') + '):');
   if(!st.entries.length) lines.push('(none — the period was not written in)');
-  st.entries.forEach(it => {
+  st.entries.filter(it => typeof aiMayRead !== 'function' || aiMayRead(it)).forEach(it => {
     const body = String(it.body || '').replace(/\s+/g, ' ').trim().slice(0, 700);
     lines.push(`- [${it.date}] (${it.kind}) ${String(it.title || '').trim()}${body ? ': ' + body : ''}`);
   });
