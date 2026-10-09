@@ -71,11 +71,13 @@ function todayReviewRender(box){
   if(typeof migratePlanning === 'function') migratePlanning();
   box.innerHTML = `<div class="today-review">
     <div class="rv-dash">${typeof compassBodyHTML === 'function' ? compassBodyHTML() : ''}</div>
+    ${typeof museCardHTML === 'function' ? museCardHTML() : ''}
     ${typeof planStatsHTML === 'function' ? `<section class="section rv rv-stats" id="rvStats">
       <span class="sc">Tasks and focus</span>${planStatsHTML()}</section>` : ''}
     ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
     ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
   if(typeof bindCompassBody === 'function') bindCompassBody(box, () => rerender());
+  if(typeof bindMuseCard === 'function') bindMuseCard(box);
   if(typeof bindReviewList === 'function') bindReviewList(box);
   if(typeof bindDayArchive === 'function') bindDayArchive(box);
 }

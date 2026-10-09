@@ -12484,6 +12484,17 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
 .hp-bar i.happy{background:var(--sage)}
 .hp-bar i.neutral{background:var(--faint)}
 .hp-bar i.frustrated{background:var(--rose)}
+.muse-card{margin-top:14px}
+.muse-bars{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+.muse-row{display:grid;grid-template-columns:11em 1fr 5em;gap:10px;align-items:center;background:none;border:0;padding:3px 0;text-align:left;color:var(--text);cursor:pointer;font:inherit}
+.muse-row[disabled]{opacity:.5;cursor:default}
+.muse-row.on .n{color:var(--sage)}
+.muse-row.total{cursor:default;border-top:1px solid var(--line);margin-top:4px;padding-top:8px}
+.muse-bar{height:8px;background:var(--line-2);border-radius:4px;overflow:hidden}
+.muse-bar i{display:block;height:100%;background:var(--c,var(--sage))}
+.muse-feed{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--sage);border-radius:var(--radius);background:var(--surface)}
+.nature-card{margin:12px 0;padding:12px 14px;border:1px dashed var(--line);border-radius:var(--radius)}
+@media(max-width:600px){.muse-row{grid-template-columns:8em 1fr 4em}}
 /* end purpose spine */
 </style>
 

@@ -245,7 +245,7 @@ function pqSystem(T){
 /* ---------- the queue ---------- */
 function promptQueue(T = today()){
   let all = [];
-  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews, pqSystem, typeof pqPurpose === 'function' ? pqPurpose : null, typeof pqBets === 'function' ? pqBets : null].filter(Boolean).forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
+  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews, pqSystem, typeof pqPurpose === 'function' ? pqPurpose : null, typeof pqBets === 'function' ? pqBets : null, typeof pqMuse === 'function' ? pqMuse : null].filter(Boolean).forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
   all = all.filter(it => !pqSuppressed(it));
   const seen = new Set(); all = all.filter(it => seen.has(it.id) ? false : (seen.add(it.id), true));
   return all.sort((a, b) => a.rank - b.rank || String(a.id).localeCompare(String(b.id)));
@@ -317,7 +317,7 @@ setInterval(pqHabitNotify, 60000);
 /* ---------- Settings: what can be turned off ---------- */
 const PQ_KINDS = [['unlabelled', 'Unlabelled time'], ['commit', 'A list behind its pace'], ['skill-idle', 'An in-focus skill with no time'], ['list-idle', 'A list with no time for a fortnight'],
   ['drift', 'Estimates running well over'], ['overruns', 'Break overruns rising'], ['top-two-missed', 'The top two missed three days'], ['protect-used', 'Protected time used for something else'],
-  ['ms', 'A milestone overdue or slipping'], ['hab-mile', 'A habit near a milestone'], ['tomorrow-unplanned', 'Tomorrow not planned'], ['person', 'A person named in a time label'], ['kolb', 'A reflection put off'], ['intent', 'A time intention slipping or over'], ['sysreview', 'The system review']];
+  ['ms', 'A milestone overdue or slipping'], ['hab-mile', 'A habit near a milestone'], ['tomorrow-unplanned', 'Tomorrow not planned'], ['person', 'A person named in a time label'], ['kolb', 'A reflection put off'], ['intent', 'A time intention slipping or over'], ['sysreview', 'The system review'], ['muse', 'The muse prescription'], ['belief', 'A belief check that has come due'], ['bet', 'A small bet with no verdict']];
 function pqSettingsHTML(){
   const st = pqState();
   return `<div class="card rv"><h3>Prompts</h3>

@@ -663,6 +663,7 @@ function openMediaPanel(id){
     <div class="vp-sec"><span class="sc">Resonance — not "was it good?", but "what did it do to me?"</span>
       <div class="resonance-scale" id="mpRes">${RESONANCE_LEVELS.map(([kk,label,color])=>`<button class="${x.resonanceLevel===kk?'on':''}" style="--c:${color}" data-res="${kk}">${label}</button>`).join('')}</div>
       ${typeof ctMediaBridge === 'function' ? ctMediaBridge(e) : ''}</div>
+    ${typeof mediaReinspiringHTML === 'function' ? mediaReinspiringHTML(e) : ''}
 
     <div class="vp-sec"><span class="sc">One-line capture</span><div class="faint" style="font-size:.78rem;margin-bottom:6px">In one sentence, what is this about at its deepest level?</div>${ed(`entries.#${e.id}.extra.oneLineCapture`,{cls:'quote',ph:'Force the distillation.'})}</div>
 
@@ -689,6 +690,7 @@ function openMediaPanel(id){
   p.querySelector('#mpStatus').onchange = ev => { const was = x.status; x.status = ev.target.value; if(x.status==='finished' && was!=='finished' && typeof treeLibraryPrompt === 'function') setTimeout(() => treeLibraryPrompt(e), 300); if(x.status==='finished' && !x.finishedAt) x.finishedAt = today(); if(x.status==='progress' && !x.startedAt) x.startedAt = today(); saveNow(); reopen(); };
   p.querySelector('#mpKind').onchange = ev => { x.kind = ev.target.value; saveNow(); reopen(); };
   p.querySelectorAll('[data-res]').forEach(b => b.onclick = () => { x.resonanceLevel = (x.resonanceLevel===b.dataset.res) ? null : b.dataset.res; saveNow(); sound('click'); reopen(); });
+  if(typeof bindMediaReinspiring === 'function') bindMediaReinspiring(p, e, reopen);
   p.querySelector('#mpAddQ').onclick = () => { x.quotes.push({id:uid(), text:'', where:'', why:''}); saveNow(); reopen(); setTimeout(()=>{ const n = document.querySelectorAll('#panel .passage-q .ed'); n.length && beginEdit(n[n.length-1]); },60); };
   /* The fields on a link row only exist under the cursor, and focus() on a
      display:none input does nothing at all — so the row being added is forced

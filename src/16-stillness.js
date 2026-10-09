@@ -175,6 +175,7 @@ function openStillLog(ctx){
         <div class="row" style="gap:6px;flex-wrap:wrap" id="stSens">${STILL_SENSATIONS.map(x =>
           `<button type="button" class="chip" data-sens="${x}">${x}</button>`).join('')}</div>
         <p class="th-quote" style="margin-top:8px">Hicks: you will very likely begin to feel soft, gentle sensations in your body. Smile, and acknowledge them.</p></div>
+      <label class="row" style="gap:6px;font-size:.82rem;align-items:center"><input type="checkbox" id="stOutdoors"> <span>I was outdoors for this one</span></label>
       <div class="field"><label>Anything arrive? An image, a sentence, a knowing</label>
         <textarea class="inp" id="stInsight" rows="3" placeholder="Leave it empty if nothing did. Most days nothing does."></textarea>
         <label class="row" style="gap:6px;margin-top:6px;font-size:.78rem;align-items:center">
@@ -192,7 +193,7 @@ function openStillLog(ctx){
     const insight = m.querySelector('#stInsight').value.trim();
     const rec = saveStillSession({kind:ctx.kind, planned:ctx.minutes, actual:mins, complete:!!ctx.complete,
       anchor:ctx.anchor || null, mantra:ctx.mantra || '', pattern:ctx.pattern || null, picture:ctx.picture || null,
-      cycles:ctx.cycles || 0, depth, clarity, sensations:sens, insight});
+      cycles:ctx.cycles || 0, depth, clarity, sensations:sens, insight, outdoors: !!m.querySelector('#stOutdoors').checked});
     if(insight && m.querySelector('#stToIntuition').checked && typeof logIntuition === 'function'){
       const imp = logIntuition({impression:insight, kind:'flash', strength:3, state:'relaxed',
         context:'during a ' + ctx.kind + ' sitting', source:'stillness', sessionId:rec.id});
@@ -351,6 +352,7 @@ function stillnessHTML(){
       `<button class="${kind === k ? 'on' : ''}" data-stkind="${k}">${ic} ${n}</button>`).join('')}</div>
     <div class="still-pane">${body}
       <div class="row" style="margin-top:12px"><button class="btn primary" id="stBegin">▶ begin</button></div></div>
+    ${typeof natureRetreatCardHTML === 'function' ? natureRetreatCardHTML() : ''}
     <div class="still-stats mono">
       <span>today ${mins ? mins + ' min' : '—'}</span><span>this week ${week ? week + ' min' : '—'}</span>
       <span>${streak ? streak + ' day streak' : 'no streak yet'}</span></div>
@@ -411,6 +413,7 @@ function bindStillness(root){
       else if(p.kind === 'finitude') ppFinitude(p.minutes, p.finForm || 'urgency');
       else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
     }, {label: 'a moment before the sitting'});
+  if(typeof bindNatureRetreat === 'function') bindNatureRetreat(root);
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();
   if(q('#stCast')) q('#stCast').onclick = () => openCharmCast();
   if(q('#stPaper')) q('#stPaper').onclick = () => openPhysicalReading();
