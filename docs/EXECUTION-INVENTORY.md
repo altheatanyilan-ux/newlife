@@ -163,7 +163,7 @@ Appears the next morning as **Today's plan**. Needs `wakeTime/sleepTime/dayStart
 - **Guided reviews** (`guidedFlow`): morning, evening (daily), weekly, monthly, quarterly, half-year, annual — each step pre-filled with what the house knows (`reviewGather`, `periodDigest`, `tasksReviewHTML`); ends "anything else worth capturing?"; filed as journal entries (`reviewMakeEntry`, `reviewSyncJournal`).
 - **The Life Tape** (`flowTapeStep`, `16-lifetape.js`): everything lived, merged by date, six zooms, ‹ › navigation.
 - **The Days**: every day you put something into, with a one-line summary ("1/1 done · 1h 15m focused · 0/2 kept · 2 written").
-- **Statistics** (`planStatsHTML`): finished today, kept to the date, overdue, writing-to-doing delay, focus today / this week / 30 days / 90 days, intervals, wins, milestone status counts, breakdown by priority / list / tag, `planProductivityScore` ("the day scored").
+- **Statistics** (`planStatsHTML`): finished today, kept to the date, overdue, writing-to-doing delay, focus today / this week / 30 days / 90 days, intervals, wins, milestone status counts, breakdown by priority / list / tag (the "day scored" tile, `planProductivityScore`, was taken out in the execution overhaul).
 - **Position** (`09-position.js`): Maslow-seven and Spiral scores computed from habits, sleep, time, skills, writing, people, runway — "where am I right now?".
 
 ### B9. Cross-room execution hooks
