@@ -248,9 +248,9 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   await page.waitForTimeout(900);
   const stats = await page.evaluate(() => ({tiles: document.querySelectorAll('.ps-tile').length,
     bars: document.querySelectorAll('.ps-bar').length, heat: document.querySelectorAll('.ph-heatgrid').length,
-    score: planProductivityScore(today())}));
-  ok('tiles, bars, a heatmap and a score', stats.tiles >= 6 && stats.bars > 0 && stats.heat > 0
-     && stats.score >= 0 && stats.score <= 100, JSON.stringify(stats));
+    noScore: typeof planProductivityScore === 'undefined' && !document.querySelector('.ps-score')}));
+  ok('tiles, bars and a heatmap, and no score for the day', stats.tiles >= 5 && stats.bars > 0 && stats.heat > 0
+     && stats.noScore, JSON.stringify(stats));
 
   console.log('\n11. the keyboard, and the keyboard staying out of the way');
   await page.evaluate(() => planSetSel('smart', 'today'));      // off Statistics, which has no add line

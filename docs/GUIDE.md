@@ -440,7 +440,7 @@ The Review brings together what used to be three rooms: the Compass charts, the 
 
 **The long view** — nine readings, over months rather than days: the ten values (radar), congruence over a lifetime, energy and set-point over 30 days, habits over 12 weeks (heat grid), skills (hours in 30 days), hours tracked (12 weeks, from the clock), the record (entries), people within their cadence, and money (current against target). Each links to its room.
 
-**Tasks and focus** — finished today, kept to the date, overdue now, from writing it to doing it (how long tasks wait), focus today, intervals, the day scored, where the focus went, ninety days of focus, and breakdowns by priority, list and tag.
+**Tasks and focus** — finished today, kept to the date, overdue now, from writing it to doing it (how long tasks wait), focus today, intervals, where the focus went, ninety days of focus, and breakdowns by priority, list and tag.
 
 **Reviews.** A review here is not a blank page headed "how was your week". Each is a guided sequence of steps, each step already filled with what the house knows about the period, so you read before you write. **＋ a review** starts one for *yesterday*, *this week* or *this month*; the rest arrive on their own as chips on Today when a cycle closes.
 

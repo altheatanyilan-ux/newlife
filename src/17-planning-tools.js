@@ -792,8 +792,6 @@ function planStatsHTML(){
     .filter(x => x.t).sort((a, b) => b.m - a.m).slice(0, 5);
 
   const hrs = m => m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
-  const score = planProductivityScore(T);
-  const trend = lastDays(30).map(d => planProductivityScore(d));
 
   const byPrio = PLAN_PRIORITY.slice().reverse().map(x => ({n:x.name, c:x.color || 'var(--faint)',
     v:all.filter(t => !t.done && t.priority === x.n).length}));
@@ -882,10 +880,6 @@ function planStatsHTML(){
         <div class="ps-tile"><div class="k mono">from writing it to doing it</div>
           <div class="ps-n serif">${avgAge == null ? '—' : avgAge.toFixed(1)}<small>days</small></div>
           <div class="sub">across ${ages.length} finished task${ages.length === 1 ? '' : 's'}</div></div>
-        <div class="ps-tile ps-score"><div class="k mono">the day, scored</div>
-          ${ringSVG(score / 100, {size:74, stroke:7, color:score >= 66 ? 'var(--sage)' : score >= 33 ? 'var(--gold)' : 'var(--terra)', label:String(score)})}
-          ${sparkline(trend, {h:30, min:0, max:100, color:'var(--page-accent)'})}
-          <div class="sub">what was finished, what was focused on, and what is late</div></div>
       </div>
       <div class="ps-three">
         <div><span class="sc">By priority</span>${bars(byPrio)}</div>
@@ -994,18 +988,3 @@ function planListCommitmentHTML(l){
   </div>`;
 }
 
-function planProductivityScore(day){
-  const all = planOwnTasks();
-  const due = all.filter(t => planOnDay(t, day));
-  const done = due.filter(t => t.done).length;
-  const doneShare = due.length ? done / due.length : (all.some(t => t.doneAt === day) ? 1 : 0);
-  const mins = sum(planState().focusSessions.filter(s => s.type === 'focus' && (s.startedAt || '').slice(0, 10) === day)
-    .map(s => s.duration));
-  const focusShare = clamp(mins / 120, 0, 1);
-  const late = all.filter(t => !t.done && t.day && t.day < day).length;
-  const penalty = Math.min(.2, late * .04);
-  const steps = all.filter(t => t.subtasks.length);
-  const stepShare = steps.length
-    ? sum(steps.map(t => t.subtasks.filter(s => s.isCompleted).length)) / sum(steps.map(t => t.subtasks.length)) : 0;
-  return Math.round(clamp(doneShare * .4 + focusShare * .3 + stepShare * .1 + .2 - penalty, 0, 1) * 100);
-}
