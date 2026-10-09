@@ -2,6 +2,8 @@
 
 This is the user's guide. The [README](../README.md) is for building and maintaining the site; this document is for *living in it*: what each area is for, how to use it day to day, and how the rooms feed one another.
 
+For the inward half in depth — journals, the Morning Theatre, stillness and divination, values, the Skill Tree, people, the Knowledge Tree, the reviews, and the quiet mechanisms behind them — see the companion [**INNER-LIFE.md**](INNER-LIFE.md), which is written from the code and says which parts of this guide are out of date.
+
 It is long because the house is large. You do not need to read it in order. Start with **Part I**, then read the chapter for whichever room you are about to use. **Part VI** has suggested daily, weekly and yearly rhythms, a map of how the rooms connect, a keyboard reference, a glossary and answers to common questions.
 
 ---
