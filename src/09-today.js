@@ -435,7 +435,7 @@ routes.today = function(root, params = []){
       /* The bottom of a long page cannot catch an eye on its own. The count
          rides up here so an unfinished thought is visible from the top, which
          is the whole reason the section exists. */
-      ['t-unfinished', `unfinished ${unfinishedEntries().length}`, unfinishedEntries().length > 0],
+      ['t-unfinished', `unfinished ${unfinishedEntries().length}${typeof zoneItems === 'function' && zoneItems().length ? ' · zone ' + zoneItems().length : ''}`, unfinishedEntries().length > 0],
     ],
   };
   const jumps = jumpsFor[view].filter(x => x[2]);

@@ -12495,6 +12495,42 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
 .muse-feed{margin-top:12px;padding:12px 14px;border:1px solid var(--line);border-left:3px solid var(--sage);border-radius:var(--radius);background:var(--surface)}
 .nature-card{margin:12px 0;padding:12px 14px;border:1px dashed var(--line);border-radius:var(--radius)}
 @media(max-width:600px){.muse-row{grid-template-columns:8em 1fr 4em}}
+.cv-wrap{display:flex;flex-direction:column;gap:12px}
+.cv-lede{max-width:62ch}
+.cv-sec{margin-top:6px}
+.cv-row{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.cv-phrase{background:none;border:0;color:var(--text);font-size:1.12rem;cursor:pointer;padding:0;text-align:left}
+.cv-phrase:hover{color:var(--terra)}
+.cv-act{display:flex;gap:6px;flex:none}
+.cv-obv{padding:8px 0;border-bottom:1px solid var(--line)}
+.cv-scope{margin:4px 0}
+.pp-cands{margin-top:14px}
+@media(max-width:600px){.cv-row{flex-direction:column}}
+.lens-tabs{display:flex;gap:6px;margin:14px 0 4px}
+.lens-tabs button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 14px;font:inherit;font-size:.82rem;cursor:pointer}
+.lens-tabs button.on{background:var(--surface-2);color:var(--text);border-color:var(--text)}
+.al-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:10px 0}
+.al-card{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;color:var(--text);font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:6px;color:var(--c,var(--text))}
+.al-card>*{color:var(--text)}
+.al-card.on{border-color:var(--c)}
+.al-card.dropped,.al-card.obs{cursor:default;border-style:dashed}
+.al-name{font-family:var(--serif);font-size:1.02rem}
+.al-num{font-size:1.5rem}.al-num small{font-size:.66rem;color:var(--faint)}
+.al-bar{height:6px;background:var(--line-2);border-radius:3px;overflow:hidden}
+.al-bar i{display:block;height:100%;background:var(--c,var(--sage))}
+.al-q{font-size:.76rem}
+.al-pair{display:flex;gap:18px;flex-wrap:wrap}
+.al-pair b{font-size:1.4rem}
+.al-idle{margin-top:10px;padding-left:12px;border-left:3px solid var(--gold)}
+.sp-list{display:flex;flex-direction:column;gap:3px;margin:8px 0}
+.sp-row{display:grid;grid-template-columns:13em 1fr 3em;gap:10px;align-items:center;background:none;border:0;color:var(--text);font:inherit;cursor:pointer;text-align:left;padding:3px 0}
+.sp-row.on .sp-n{font-weight:600}
+.sp-n i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.sp-bar{height:8px;background:var(--line-2);border-radius:4px;overflow:hidden}
+.sp-bar i{display:block;height:100%;background:var(--c)}
+.sp-in{margin:6px 0 0 18px;padding:0;font-size:.82rem}
+.sp-in li{margin:2px 0}
+@media(max-width:600px){.sp-row{grid-template-columns:9em 1fr 2.5em}}
 /* end purpose spine */
 </style>
 

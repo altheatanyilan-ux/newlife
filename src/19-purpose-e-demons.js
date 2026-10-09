@@ -85,6 +85,7 @@ function demonsBeliefs(host){
         <div class="dm-side">${dmDots(b.strength)}
           <button class="btn sm" data-dmchal="${b.id}">Challenge</button>
           <button class="btn sm ghost" data-dmwheel="${b.id}" title="launch a focus wheel on this belief">focus wheel</button>
+          ${typeof zoneThinkBtn === 'function' ? zoneThinkBtn('belief', b.id, 'text') : ''}
           <button class="btn sm ghost" data-dmtree="${b.id}" ${b.treePageId ? 'disabled' : ''}>to the Tree</button>
           <button class="del-x inline" data-dmdel="${b.id}" title="remove this one">×</button></div>
       </article>`).join('')}</div>` : '<div class="empty">Nothing here yet. This is a list of things being worked on, not a count to bring down.</div>'}`;

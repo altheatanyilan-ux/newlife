@@ -175,6 +175,7 @@ function entryExtraHTML(e){
     if(x.read) rows.push(`<div><span class="mono">what I read into it</span><br>${esc(x.read)}${versions(x.readHistory,'reading')}</div>`);
     if(x.revisit) rows.push(`<span class="status-pill">revisit later</span>`); }
   if(e.type==='manifestation'){ rows.push(`<span class="status-pill">${esc(x.status||'held')}</span>${x.setpointAt?` <span class="mono">set from ${esc(hicksName(+x.setpointAt).split(' / ')[0])} (${x.setpointAt}/22)</span>`:''}`);
+    if(typeof graspCardLine === 'function'){ const gl = graspCardLine(e); if(gl) rows.push(gl); }
     if(x.resistance) rows.push(`<div><span class="mono">resistance</span><br>${esc(x.resistance)}</div>`);
     (x.evidence||[]).forEach(ev => rows.push(`<div class="evidence-item"><span class="mono">${fmtDate(ev.date,'med')}</span><span>${esc(ev.text)}</span></div>`)); }
   /* An entry promoted out of a review says where it came from, and goes back

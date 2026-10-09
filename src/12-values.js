@@ -196,7 +196,7 @@ routes.value = function(root, params){
       <p class="vf-hint">${hint}</p>
       <div class="vf-prose">${latest?md(latest.text):'<span class="vf-empty">Not yet written.</span>'}</div>
       <footer class="vf-foot">
-        <button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>
+        <button class="btn sm ghost" data-vf="${k}">${latest?'write a new version':'write'}</button>${latest && typeof zoneThinkBtn === 'function' ? zoneThinkBtn('value', v.id, '') : ''}
         <!-- A definition you cannot produce from nothing is a definition you
              have read rather than one you hold. The question goes on the front
              and what you wrote goes on the back. -->
@@ -257,7 +257,7 @@ routes.value = function(root, params){
   $('#delValue').onclick = () => deleteValue(v, null, () => navigate('#/values'));
   root.querySelectorAll('[data-vfacet]').forEach(b => b.onclick = () => { const f = v.facets = v.facets || []; const k = b.dataset.vfacet; const i = f.indexOf(k); if(i >= 0) f.splice(i, 1); else f.push(k); saveNow(); b.classList.toggle('on'); });
   $('#valColor').onchange = e => { v.color = e.target.value; saveNow(); rerender(); };
-  root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
+  root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t,via:'direct'}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
   root.querySelectorAll('[data-vmgoal]').forEach(b => b.onclick = () => { const [sid, at] = b.dataset.vmgoal.split('|'); const sn = byId(S.valueSnapshots, sid);
     const mp = sn && ((sn.missingPoints || {})[v.id] || []).find(x => x.at === at); if(!mp) return;

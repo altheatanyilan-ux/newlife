@@ -207,24 +207,31 @@ function natureRetreatCardHTML(){
     <div class="row" style="gap:8px"><button class="btn sm" id="ntGo">I’m going</button><button class="btn sm primary" id="ntBack">I’m back</button>
       ${last ? `<span class="mono faint">last: ${esc(fmtDate(last.startAt, 'med'))}</span>` : ''}</div></div>`;
 }
+function natureGo(){
+  const m = openModal('<div class="still-guide"><p class="still-card" style="text-align:center">Leave the phone. Go out.</p><div class="row" style="justify-content:center"><button class="btn sm ghost" id="ntClose">close</button></div></div>', 'wide plain');
+  m.querySelector('#ntClose').onclick = () => m.remove();
+}
+function natureBack(){
+  const lens = [[30, 'half an hour'], [60, 'an hour'], [120, 'two hours'], [240, 'half a day'], [480, 'most of a day']];
+  let minutes = 60;
+  const m = openModal(`<h2>You went</h2>
+    <div class="field"><label>For how long</label><div class="row" style="gap:6px;flex-wrap:wrap">${lens.map(([n, l]) => `<button class="chip${n === 60 ? ' on' : ''}" data-ntl="${n}">${l}</button>`).join('')}</div></div>
+    <div class="field"><label>What arrived out there?</label><textarea class="ta" id="ntWords" rows="4" placeholder="Leave it empty if nothing did. Most days nothing does."></textarea></div>
+    <div class="row" style="justify-content:flex-end"><button class="btn primary" id="ntKeep">Keep it</button></div>`, 'narrow');
+  m.querySelectorAll('[data-ntl]').forEach(b => b.onclick = () => { minutes = +b.dataset.ntl; m.querySelectorAll('[data-ntl]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelector('#ntKeep').onclick = () => {
+    const words = m.querySelector('#ntWords').value.trim(), ids = [];
+    if(words){ const e = lifeEntryNew({type: 'reflection', title: 'What arrived outdoors', body: words, extra: {source: 'nature-retreat'}}); ids.push(e.id); }
+    const b = breakAdd({kind: 'nature', startAt: today(), endAt: today(), note: '', entryIds: ids}); if(b) b.minutes = minutes;
+    practiceLogAdd('nature-retreat', {minutes});
+    if(typeof retreatStepSet === 'function') retreatStepSet('nature', 'back', {answer: words, entryId: ids[0] || null, minutes});
+    saveNow(); m.remove(); sound('success'); toast('Kept.'); rerender();
+  };
+}
 function bindNatureRetreat(root){
   const go = root.querySelector('#ntGo'), back = root.querySelector('#ntBack');
-  if(go) go.onclick = () => { const m = openModal('<div class="still-guide"><p class="still-card" style="text-align:center">Leave the phone. Go out.</p><div class="row" style="justify-content:center"><button class="btn sm ghost" id="ntClose">close</button></div></div>', 'wide plain'); m.querySelector('#ntClose').onclick = () => m.remove(); };
-  if(back) back.onclick = () => {
-    const lens = [[30, 'half an hour'], [60, 'an hour'], [120, 'two hours'], [240, 'half a day'], [480, 'most of a day']];
-    let minutes = 60;
-    const m = openModal(`<h2>You went</h2>
-      <div class="field"><label>For how long</label><div class="row" style="gap:6px;flex-wrap:wrap">${lens.map(([n, l]) => `<button class="chip${n === 60 ? ' on' : ''}" data-ntl="${n}">${l}</button>`).join('')}</div></div>
-      <div class="field"><label>What arrived out there?</label><textarea class="ta" id="ntWords" rows="4" placeholder="Leave it empty if nothing did. Most days nothing does."></textarea></div>
-      <div class="row" style="justify-content:flex-end"><button class="btn primary" id="ntKeep">Keep it</button></div>`, 'narrow');
-    m.querySelectorAll('[data-ntl]').forEach(b => b.onclick = () => { minutes = +b.dataset.ntl; m.querySelectorAll('[data-ntl]').forEach(x => x.classList.toggle('on', x === b)); });
-    m.querySelector('#ntKeep').onclick = () => {
-      const words = m.querySelector('#ntWords').value.trim(), ids = [];
-      if(words){ const e = lifeEntryNew({type: 'reflection', title: 'What arrived outdoors', body: words, extra: {source: 'nature-retreat'}}); ids.push(e.id); }
-      const b = breakAdd({kind: 'nature', startAt: today(), endAt: today(), note: '', entryIds: ids}); if(b) b.minutes = minutes;
-      practiceLogAdd('nature-retreat', {minutes}); saveNow(); m.remove(); sound('success'); toast('Kept.'); rerender();
-    };
-  };
+  if(go) go.onclick = natureGo;
+  if(back) back.onclick = natureBack;
 }
 
 /* ---------- Library: the reinspiring flag; People: the role flags ---------- */

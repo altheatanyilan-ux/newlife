@@ -45,7 +45,7 @@ function strengthCardHTML(s, i, total){
     <div class="st-field"><label class="sc">What it means to me</label>
       <p class="st-text">${gloss ? esc(gloss.text) : '<span class="faint">Not yet written — your own words, after the gut check: is this authentic, or did it get chosen out of obligation?</span>'}</p>
       <div class="row" style="gap:6px"><button class="btn sm ghost" data-stedit="${s.id}|gloss">${gloss ? 'write a new version' : 'write'}</button>
-        ${s.gloss.length > 1 ? `<span class="mono faint">${s.gloss.length - 1} earlier</span>` : ''}</div></div>
+        ${s.gloss.length > 1 ? `<span class="mono faint">${s.gloss.length - 1} earlier</span>` : ''}${typeof zoneThinkBtn === 'function' ? zoneThinkBtn('strength', s.id, 'gloss') : ''}</div>${typeof canonLineHTML === 'function' ? canonLineHTML('strength', s.id, 'gloss') : ''}</div>
     <div class="st-field"><label class="sc">The shadow — the backside of this, and where it has cost me</label>
       <p class="st-text">${shadow ? esc(shadow.text) : '<span class="faint">Every strength has one. An extrovert may be poor at being alone.</span>'}</p>
       <div class="row" style="gap:6px"><button class="btn sm ghost" data-stedit="${s.id}|shadow">${shadow ? 'write a new version' : 'write'}</button>

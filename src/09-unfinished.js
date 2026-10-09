@@ -59,6 +59,7 @@ function openMemoryDump(after){
     <div class="stack">
       <textarea class="ta serif-lg" id="dumpBody" style="min-height:150px"
         placeholder="The thought, however half-formed. Come back to it later."></textarea>
+      ${typeof zoneAbouts === 'function' && zoneAbouts().length ? `<select class="sel" id="dumpAbout" style="max-width:22em" title="optional: put it in the contemplation zone, in front of the canon"><option value="">about nothing in particular</option>${zoneAbouts().map(a => `<option value="${esc(zoneAboutKey(a))}">${esc(a.label)}</option>`).join('')}</select>` : ''}
       <div class="row between">
         <span class="faint mono" style="font-size:.7rem">⌘↵ to keep it</span>
         <button class="btn primary" id="dumpSave" style="padding:12px 28px;font-size:1rem">Keep it</button>
@@ -76,6 +77,8 @@ function openMemoryDump(after){
       links: {stages: [], substages: [], threads: [], values: [], visions: [], skills: [], projects: [], people: []},
       people: [], places: [], emotions: [], tags: [], confidence: '',
       extra: {unfinished: true, dumpedAt: new Date().toISOString()}};
+    const ab = m.querySelector('#dumpAbout');
+    if(ab && ab.value && typeof zoneFlag === 'function'){ zoneFlag(e, zoneAboutParse(ab.value)); e.thirdPerson = voiceOn('zone'); }
     S.entries.push(e);
     saveNow();
     m.remove();

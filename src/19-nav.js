@@ -329,7 +329,7 @@ function compassBodyHTML(){
 
     ${typeof weekShapeHTML === 'function' ? weekShapeHTML() : ''}
 
-    ${typeof positionHTML === 'function' ? positionHTML() : ''}
+    ${typeof lensesHTML === 'function' ? lensesHTML() : typeof positionHTML === 'function' ? positionHTML() : ''}
 
     <!-- the house diagram is gone by request -->
 
@@ -351,6 +351,7 @@ function compassBodyHTML(){
 function bindCompassBody(root, redraw){
   /* the house diagram is gone, and so is the wiring that made it hoverable */
   if(typeof bindPosition === 'function') bindPosition(root, redraw || (() => rerender()));
+  if(typeof bindLenses === 'function') bindLenses(root, redraw || (() => rerender()));
   if(typeof bindWeekShape === 'function') bindWeekShape(root, redraw || (() => rerender()));
 }
 /* the old address still answers — it goes where the content went */

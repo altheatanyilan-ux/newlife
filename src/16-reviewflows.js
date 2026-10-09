@@ -328,6 +328,7 @@ function flowAnnual(){
      body: () => { if(typeof portfolioTotals !== 'function') return '';
        const {totalCurrentBase, totalTargetBase} = portfolioTotals();
        return `<div class="rev-summary">${money(totalCurrentBase)}/mo now, against a target of ${money(totalTargetBase)}/mo.</div><div class="row" style="margin-top:8px"><button class="btn sm ghost" data-flowgo="#/finance">open Finance</button></div>`; }},
+    {title:'The authenticity question.', hint:'', body: () => authenticityBodyHTML('annual'), next: b => { if(typeof authenticitySave === 'function') authenticitySave(b); }},
     {title:'Three things the coming year is for.',
      body: () => `<textarea class="ta serif-lg" id="fwYear" placeholder="Three lines. Not resolutions — the shape you want the year to have.">${esc(S.reviews.nextYearFocus || '')}</textarea>`,
      next: b => { S.reviews.nextYearFocus = b.querySelector('#fwYear').value.trim(); saveNow(); }},

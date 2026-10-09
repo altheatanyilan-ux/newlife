@@ -123,7 +123,7 @@ function verSave(list, text, {force = false, note = '', extra = null} = {}){
   const cur = verLatest(list);
   if(!text) return 'same';
   if(cur && cur.text === text && !force) return 'same';
-  const row = Object.assign({text, at: new Date().toISOString(), note}, extra || {});
+  const row = Object.assign({text, at: new Date().toISOString(), note, via: 'direct'}, extra || {});
   if(!cur){ list.push(row); return 'first'; }
   if(force || verIsNewWording(cur.text, text)){ list.push(row); return 'version'; }
   cur.text = text; if(extra) Object.assign(cur, extra); cur.correctedAt = row.at;

@@ -42,6 +42,8 @@ function ppFieldHTML(k){
   return `<section class="pp-art ${k === 'statement' ? 'pp-statement' : ''}">
     <div class="pp-label"><span class="sc">${esc(f.label)}</span>${extra}</div>
     ${text ? `<p class="pp-text serif">${esc(text)}</p>${domainCats}` : `<p class="pp-ask faint">${esc(f.q)}</p>`}
+    ${text && typeof canonLineHTML === 'function' ? canonLineHTML('purpose', 'sheet', k) : ''}
+    ${text && typeof zoneThinkBtn === 'function' ? zoneThinkBtn('purpose', 'sheet', k) : ''}
   </section>`;
 }
 function ppValuesHTML(){
@@ -107,9 +109,9 @@ function ppFearsHTML(){
 }
 function ppCommitmentsHTML(){
   const cs = S.entries.filter(e => e.type === 'letter' && e.extra && e.extra.commitment);
-  if(!cs.length) return '';
+  if(!cs.length) return '<p class="faint pp-commit"><button class="btn sm ghost" id="ppCommit">Make a commitment</button></p>';
   const open = cs.filter(e => !e.extra.openedAt).length;
-  return `<p class="faint pp-commit">${cs.length} commitment${cs.length === 1 ? '' : 's'}, ${open} open.</p>`;
+  return `<p class="faint pp-commit">${cs.length} commitment${cs.length === 1 ? '' : 's'}, ${open} open. <button class="btn sm ghost" id="ppCommit">make one</button></p>`;
 }
 function purposeSheetRender(body){
   const p = purposeState();
@@ -139,17 +141,20 @@ function purposeSheetRender(body){
     ${ppCommitmentsHTML()}
     ${ppFearsHTML()}
     ${ppScreeningHTML()}
+    ${typeof ppCandidatesHTML === 'function' ? ppCandidatesHTML() : ''}
     ${ppVersionsHTML()}
   </div>`;
   const q = s => body.querySelector(s);
   q('#ppReview').onclick = () => purposeReview();
   q('#ppEdit').onclick = () => { p.mode = 'edit'; saveNow(); rerender(); };
   q('#ppPrint').onclick = () => purposePrint();
+  if(q('#ppCommit')) q('#ppCommit').onclick = () => openCommitmentModal();
   body.querySelectorAll('[data-ppref]').forEach(b => b.onclick = () => {
     const [id, k] = b.dataset.ppref.split('|');
     const o = purposeScreenGroups().flatMap(g => g.items.map(i => i.o)).find(x => x.id === id);
     if(o){ purposeToggleRef(o, k); rerender(); }
   });
+  body.querySelectorAll('[data-ppcdel]').forEach(b => b.onclick = () => { p.candidates = (p.candidates || []).filter(c => c.id !== b.dataset.ppcdel); saveNow(); rerender(); });
   body.querySelectorAll('details.pp-vers').forEach(d => d.ontoggle = () => { p.foldVersions = !d.open; saveNow(); });
 }
 function ppVersionsHTML(){

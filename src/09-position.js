@@ -330,6 +330,19 @@ const SPIRAL = [
 ];
 const spiralMeta = k => SPIRAL.find(s => s[0] === k);
 
+/* what each stage's reading is made of, in the order the inputs are listed below
+   — kept beside the computation so the screen can say what was read */
+let SPIRAL_LAST = {};
+const SPIRAL_LABELS = {
+  beige: ['the body tier, turned over (low body = more survival)', 'physical energy low', 'the body tier under 30'],
+  purple: ['how recently the people in your core circle were seen', 'relational habits kept', 'words in your entries, last 30 days: family, home, tradition, ritual, grandmother, ancestor'],
+  red: ['nods on projects, last 30 days', 'distance from the core and close circles', 'words in your entries, last 30 days: win, beat, prove, fight, dominate, impatient, angry, frustrated'],
+  blue: ['habits kept', 'congruence with discipline, duty, integrity, order', 'words in your entries, last 30 days: should, discipline, routine, duty, obligation, proper'],
+  orange: ['earning income streams', 'skill practice', 'writing rate', 'words in your entries, last 30 days: optimise, efficient, target, goal, metric, productive, leverage, scale'],
+  green: ['how recently core, close and warm circles were seen', 'congruence with connection, community, belonging, empathy, compassion', 'words in your entries, last 30 days: connect, together, belong, listen, empathy, community, care for'],
+  yellow: ['link density: entries linked to three or more kinds of thing', 'words in your entries, last 30 days: system, pattern, both, paradox, depends, framework, integrate, whole', 'the becoming tier', 'more than forty entries'],
+  turquoise: ['congruence with spirit, transcendence, awe, service', 'words in your entries, last 30 days: meaning, surrender, oneness, sacred, service, humanity, planet', 'the becoming tier', 'set-point above 75'],
+};
 function spiralResonance(){
   const ms = {}; maslowScores().forEach(m => ms[m.key] = m.effectiveScore);
   const inv = v => v == null ? null : 100 - v;
@@ -355,6 +368,7 @@ function spiralResonance(){
     turquoise: [mValueCongruence(['spirit','transcend','awe','service']), themed(/\bmeaning|surrender|oneness|sacred|service|humanity|planet/i),
                 ms.becoming, mSetpointScore() != null && mSetpointScore() > 75 ? 90 : null],
   };
+  SPIRAL_LAST = sig;
   const out = {};
   SPIRAL.forEach(([k]) => { const v = avgDefined(sig[k]); out[k] = v == null ? 0 : Math.round(v); });
   return out;
@@ -589,6 +603,29 @@ function spiralBarsHTML(read){
     </div>`; }).join('')}</div>`;
 }
 
+/* The override that every lens shares: how it actually feels, against what the
+   numbers say, with a note asking why they differ. The Maslow tiers use it, and
+   so do the alignment readings and the Spiral. */
+function lensOverrideHTML(o){
+  const id = o.id, v = o.value ?? 50;
+  return `<div class="field" style="margin-top:10px"><label>How it actually feels ${o.auto != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${o.auto}</span>` : ''}</label>
+        <input type="range" class="slider" min="0" max="100" id="${id}Override" value="${v}" style="--c:${o.hue || 'var(--sage)'}">
+        <div class="row between mono"><span class="faint">0</span><span id="${id}OverrideV">${v}</span><span class="faint">100</span></div>
+      </div>
+      <textarea class="ta" id="${id}Note" rows="2" placeholder="Why does this feel different from what the numbers say?">${esc(o.note || '')}</textarea>
+      <div class="row" style="gap:8px;margin-top:8px">
+        ${o.go ? `<a class="btn sm ghost" href="${o.go}">${o.goLabel || '→ go deeper'}</a>` : ''}
+        ${o.hasOverride ? `<button class="btn sm ghost" id="${id}ClearOv">use the data's number</button>` : ''}
+      </div>`;
+}
+/* get(): the {score,note} record for what is open; set(patch); clear() */
+function lensOverrideBind(sec, id, get, set, clear, redraw){
+  const ov = sec.querySelector('#' + id + 'Override');
+  if(ov){ ov.oninput = () => { sec.querySelector('#' + id + 'OverrideV').textContent = ov.value; }; ov.onchange = () => { set({score: +ov.value}); saveNow(); redraw(); }; }
+  const nt = sec.querySelector('#' + id + 'Note'); if(nt) nt.onchange = () => { set({note: nt.value.trim()}); saveNow(); };
+  const cl = sec.querySelector('#' + id + 'ClearOv'); if(cl) cl.onclick = () => { clear(); saveNow(); redraw(); };
+}
+
 function positionHTML(){
   const p = maslowStore();
   const levels = maslowScores();
@@ -609,15 +646,7 @@ function positionHTML(){
         .map(([k,v]) => `<span class="chip" style="--c:${sel.hue}">${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('') || '<span class="faint">Nothing logged for this level yet.</span>'}</div>
       ${sel.hollow && sel.hollow.length ? `<p class="faint" style="font-size:.78rem;margin:6px 0 0">Computed from fewer readings than it was designed for — missing: ${sel.hollow.map(esc).join(', ')} (the inputs behind them were taken out).</p>` : ''}
       ${Object.entries(MASLOW_FACETS).map(([f, name]) => { const s = (S._maslowSrc || {})[f]; return s && sel.inputs[name] != null ? `<p class="faint" style="font-size:.78rem;margin:4px 0 0">${esc(name)}: ${s.tagged.length ? 'read from the values you tagged with this facet (' + s.tagged.map(esc).join(', ') + ')' : ''}${s.tagged.length && s.guessed.length ? '; ' : ''}${s.guessed.length ? 'a name guess for ' + s.guessed.map(esc).join(', ') + ' — tag a value on its page to replace the guess' : ''}.</p>` : ''; }).join('')}
-      <div class="field" style="margin-top:10px"><label>How it actually feels ${sel.autoScore != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${sel.autoScore}</span>` : ''}</label>
-        <input type="range" class="slider" min="0" max="100" id="mOverride" value="${sel.effectiveScore ?? 50}" style="--c:${sel.hue}">
-        <div class="row between mono"><span class="faint">0</span><span id="mOverrideV">${sel.effectiveScore ?? 50}</span><span class="faint">100</span></div>
-      </div>
-      <textarea class="ta" id="mNote" rows="2" placeholder="Why does this feel different from what the numbers say?">${esc(sel.note)}</textarea>
-      <div class="row" style="gap:8px;margin-top:8px">
-        <a class="btn sm ghost" href="${sel.go}">→ go deeper</a>
-        ${sel.override != null ? `<button class="btn sm ghost" id="mClearOv">use the data's number</button>` : ''}
-      </div>
+      ${lensOverrideHTML({id: 'm', auto: sel.autoScore, value: sel.effectiveScore, hue: sel.hue, note: sel.note, hasOverride: sel.override != null, go: sel.go, goLabel: '→ go deeper'})}
     </div>`
   : `
     <div class="mas-side">
@@ -657,23 +686,15 @@ function bindPosition(root, redraw){
     S._mTier = S._mTier === g.dataset.mtier ? null : g.dataset.mtier; redraw(); });
   sec.querySelectorAll('[data-mspark]').forEach(s => s.onclick = () => { S._mTier = s.dataset.mspark; redraw(); });
 
-  const ov = sec.querySelector('#mOverride');
-  if(ov){
-    const key = S._mTier;
-    ov.oninput = () => { sec.querySelector('#mOverrideV').textContent = ov.value; };
-    ov.onchange = () => { p.overrides[key] = Object.assign({}, p.overrides[key], {score:+ov.value}); saveNow(); redraw(); };
-  }
-  const nt = sec.querySelector('#mNote');
-  if(nt) nt.onchange = () => { const key = S._mTier;
-    p.overrides[key] = Object.assign({}, p.overrides[key], {note:nt.value.trim()}); saveNow(); };
-  sec.querySelector('#mClearOv') && (sec.querySelector('#mClearOv').onclick = () => {
-    const key = S._mTier; if(p.overrides[key]) delete p.overrides[key].score; saveNow(); redraw(); });
+  lensOverrideBind(sec, 'm', null, patch => { const key = S._mTier; p.overrides[key] = Object.assign({}, p.overrides[key], patch); },
+    () => { const key = S._mTier; if(p.overrides[key]) delete p.overrides[key].score; }, redraw);
   sec.querySelector('#mClose') && (sec.querySelector('#mClose').onclick = () => { S._mTier = null; redraw(); });
 
   sec.querySelector('#posLog') && (sec.querySelector('#posLog').onclick = () => {
     const levels = maslowScores().map(m => ({key:m.key, level:m.level, name:m.name,
       autoScore:m.autoScore, override:m.override, effectiveScore:m.effectiveScore, note:m.note, inputs:m.inputs}));
     p.history.push({timestamp:new Date().toISOString(), levels});
+    if(typeof alignmentSnapshot === 'function') alignmentSnapshot();
     saveNow(); sound('success'); toast(`Check-in logged for ${fmtDate(today(),'med')}.`); redraw();
   });
 }

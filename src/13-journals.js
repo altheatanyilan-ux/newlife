@@ -108,7 +108,7 @@ routes.journals = function(root, params){
   if(JOURNAL_HIDDEN.includes(type) || type === 'library' || type === 'timeline') type = journalDefault();
   S._journal = type;
   const j = S.journals.find(x=>x.type===type) || journalsShown()[0] || S.journals[0];
-  if(type === 'letter') registerPageEntry({pageName:'Journals', addLabel:'Seal a letter', defaultEntryType:'letter', prefilledFields:{}, options:[{icon:'✉', label:'Seal a letter', desc:'To be opened on a date you choose.', run:()=>openLetterModal()}]});
+  if(type === 'letter') registerPageEntry({pageName:'Journals', addLabel:'Seal a letter', defaultEntryType:'letter', prefilledFields:{}, options:[{icon:'✉', label:'Seal a letter', desc:'To be opened on a date you choose.', run:()=>openLetterModal()}, {icon:'⚑', label:'Make a commitment', desc:'A hundred per cent, as a declaration with a date.', run:()=>openCommitmentModal()}]});
   else if(type === 'decision') registerPageEntry({pageName:'Journals', addLabel:'Log a decision', defaultEntryType:'decision', prefilledFields:{}, options:[{icon:'⚖', label:'Log a decision', desc:'Your reasoning now, so you can grade it later.', run:()=>openDecisionModal()}]});
   else if(type === 'quote') registerPageEntry({pageName:'Journals', addLabel:'New quote or saved link', defaultEntryType:'quote', prefilledFields:{journalType:'quote'}, options:[{label:'New quote', run:()=>EntryActions.libraryQuote()}]});
   else registerPageEntry({pageName:'Journals', addLabel:`New ${typeName(type).toLowerCase()}`, defaultEntryType:type, prefilledFields:{journalType:type}, options:[{label:'New entry', run:(pre)=>openEntryModal({type:pre.journalType, allowedTypes:[pre.journalType], heading:`New ${typeName(pre.journalType).toLowerCase()}`})}]});

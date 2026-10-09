@@ -50,6 +50,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
      counts only the time actually spent on it — see 07-writeclock.js. */
   const wclock = startWritingClock(m);
   const x = () => e.extra;
+  if(typeof entryVoiceBind === 'function') entryVoiceBind(m, e);
   /* type-specific fields. Anything with data-x saves itself on the way out;
      the pickers below write straight into extra so a click is a save. */
   const MOOD_SCALE = [['heavy','heavy'],['low','low'],['level','level'],['light','light'],['luminous','luminous']];
@@ -79,6 +80,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     if(t==='manifestation') html = `<div class="field"><label>Status</label><select class="sel" data-x="status">${['held','evidence appearing','arrived','released'].map(s=>`<option ${x().status===s?'selected':''}>${s}</option>`).join('')}</select></div>`
       + `<div class="field"><label>Where you were when you set it</label><div class="faint" style="font-size:.76rem;margin-bottom:4px">Abraham's point: an intention set from alignment behaves differently from one set from desperation.</div>
          <input class="rng" type="range" min="1" max="22" data-x="setpointAt" value="${x().setpointAt || checkin().setpoint || 11}" style="width:100%"><div class="mono" id="xSpName">${esc(hicksName(x().setpointAt || checkin().setpoint || 11))}</div></div>`
+      + (typeof graspFieldHTML === 'function' ? graspFieldHTML(x()) : '')
       + f('resistance','Resistance notes','What doubts or fears arrived after you set it?',true)
       + `<div class="field"><label>Evidence log</label><textarea class="ta" data-xlist="evidence" style="min-height:60px" placeholder="one piece of evidence per line">${esc((x().evidence||[]).map(v=>v.text).join('\n'))}</textarea></div>`;
     if(t==='dream') html = `<div class="field"><label>Vividness</label><div class="feeling">${[1,2,3,4,5].map(n=>`<button data-vivid="${n}" class="${x().vivid===n?'on':''}">${n}</button>`).join('')}</div></div>`
@@ -172,6 +174,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     [['read','readHistory'],['waking','wakingHistory']].forEach(([k, hk]) => { const prev = existing?.extra?.[k];
       if(prev && e.extra[k] && prev !== e.extra[k]) e.extra[hk] = [...(existing.extra[hk]||[]), {date:today(), text:prev}]; });
     if(e.extra.setpointAt) e.extra.setpointAt = +e.extra.setpointAt;
+    if(typeof graspSaveHook === 'function') graspSaveHook(e, existing);
     /* the switch is the only thing that clears this: saving an edit does not
        decide on your behalf that a thought is now finished */
     if(m.querySelector('#eUnfinished')?.checked){

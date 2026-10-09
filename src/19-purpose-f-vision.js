@@ -75,6 +75,7 @@ function visionEditorRender(body, v){
     <div class="field"><label class="sc">The future memory</label>
       <p class="faint pp-help">First person, present tense: you are living it. What do you see, who is there, what has changed for them and for you?</p>
       <textarea class="ta" id="vsFm" rows="8">${esc(v.futureMemory)}</textarea>
+      ${typeof zoneThinkBtn === 'function' ? zoneThinkBtn('vision', v.id, 'futureMemory') : ''}
       ${(v.futureMemoryHistory || []).length ? `<details class="pp-vers"><summary class="mono">${v.futureMemoryHistory.length} earlier wording${v.futureMemoryHistory.length === 1 ? '' : 's'}</summary>${v.futureMemoryHistory.slice().reverse().map(h => `<div class="pp-v"><span class="mono faint">${esc(fmtDate(h.date, 'med'))}</span> ${esc(h.text)}</div>`).join('')}</details>` : ''}</div>
     <div class="field"><label class="sc">Sensory notes</label>
       <p class="faint pp-help">The nervous system is literal. The first hour of that day: light, sound, sensation.</p>
