@@ -388,6 +388,8 @@ function sdHandleKey(root, k){
 }
 async function sdReviewKey(root, action){
   const ui = sdUi(), c = SD.cards.get(ui.cardId);
+  /* Space only ever shows the answer: once it is shown, nothing happens, so a second tap (or a held key) cannot rate the card */
+  if(action === 'reveal'){ if(!ui.shown) sdReveal(root); return; }
   if(action === 'show'){ if(!ui.shown) sdReveal(root); else sdRate(root, 3); return; }
   if(/^rate[1-4]$/.test(action)){ if(ui.shown) sdRate(root, +action.slice(4)); return; }
   if(action === 'undo'){ const u = await sdUndo(); if(u){ if(ui.session) ui.session.answered = Math.max(0, ui.session.answered - 1); toast('Undone.'); sdShowNext(root); } return; }

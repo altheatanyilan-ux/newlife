@@ -191,11 +191,11 @@ function sdCardInfo(cardId){
 }
 
 /* ---------- shortcuts, all remappable ---------- */
-const SD_DEFAULT_KEYS = {' ': 'show', 'Enter': 'show', '1': 'rate1', '2': 'rate2', '3': 'rate3', '4': 'rate4', 'Ctrl+z': 'undo', 'Meta+z': 'undo',
+const SD_DEFAULT_KEYS = {' ': 'reveal', 'Enter': 'show', '1': 'rate1', '2': 'rate2', '3': 'rate3', '4': 'rate4', 'Ctrl+z': 'undo', 'Meta+z': 'undo',
   'Ctrl+1': 'flag1', 'Ctrl+2': 'flag2', 'Ctrl+3': 'flag3', 'Ctrl+4': 'flag4', 'Ctrl+5': 'flag5', 'Ctrl+6': 'flag6', 'Ctrl+7': 'flag7', 'Ctrl+0': 'flag0',
   'Meta+1': 'flag1', 'Meta+2': 'flag2', 'Meta+3': 'flag3', 'Meta+4': 'flag4', 'Meta+5': 'flag5', 'Meta+6': 'flag6', 'Meta+7': 'flag7',
   '*': 'mark', '-': 'bury', '@': 'suspend', '!': 'suspend', 'e': 'edit', 'i': 'info', 'r': 'replay', 'f': 'focus', 'w': 'scratch', '?': 'help'};
-const SD_ACTION_NAMES = {show: 'Show answer / Good', rate1: 'Again', rate2: 'Hard', rate3: 'Good', rate4: 'Easy', undo: 'Undo', mark: 'Mark note', bury: 'Bury',
+const SD_ACTION_NAMES = {reveal: 'Show answer (only)', show: 'Show answer / Good', rate1: 'Again', rate2: 'Hard', rate3: 'Good', rate4: 'Easy', undo: 'Undo', mark: 'Mark note', bury: 'Bury',
   suspend: 'Suspend', edit: 'Edit', info: 'Card info', replay: 'Replay audio', focus: 'Focus mode', scratch: 'Scratchpad', help: 'This sheet',
   flag0: 'Remove flag', flag1: 'Flag 1', flag2: 'Flag 2', flag3: 'Flag 3', flag4: 'Flag 4', flag5: 'Flag 5', flag6: 'Flag 6', flag7: 'Flag 7'};
 function sdShortcuts(){ const m = sdMisc('shortcuts', () => ({map: {}})); return Object.assign({}, SD_DEFAULT_KEYS, m.map); }

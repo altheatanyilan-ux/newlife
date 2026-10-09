@@ -11104,8 +11104,11 @@ html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
 .sx-menu{position:fixed;z-index:1000;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:4px;display:grid;min-width:170px}
 .sx-menu button{background:none;border:0;text-align:left;padding:8px 12px;border-radius:7px;color:var(--text);font:inherit;font-size:.88rem;cursor:pointer}
 .sx-menu button:hover,.sx-menu button:focus{background:var(--surface-2);outline:none}
-.sx-undo{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1200;display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 16px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:.88rem;animation:sxUp .2s ease-out}
+/* low in the left corner, clear of the card, its header and the answer buttons in the middle */
+.sx-undo{position:fixed;left:244px;bottom:24px;right:auto;top:auto;z-index:1200;max-width:min(320px,calc(100vw - 36px));display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 16px;box-shadow:0 8px 24px rgba(0,0,0,.16);font-size:.88rem;animation:sxUp .2s ease-out}
 .sx-undo svg{width:18px;height:18px;transform:rotate(-90deg)}.sx-undo circle{fill:none;stroke:var(--faint);stroke-width:2;stroke-dasharray:50.3;animation:sxDrain 5s linear forwards}
+@media (max-width:900px){.sx-undo{left:12px;bottom:auto;top:56px}}
+html.page-focus .sx-undo{left:60px}
 @keyframes sxDrain{to{stroke-dashoffset:50.3}}
 @keyframes sxUp{from{opacity:0;transform:translate(-50%,8px)}}
 

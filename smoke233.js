@@ -37,6 +37,7 @@ const shown = (p, sels) => p.evaluate(sels => sels.filter(s => { const n = docum
   p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|ERR_CERT_AUTHORITY_INVALID|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(1200);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
+  await p.evaluate(() => { window.fzCloseout = () => {}; window.fzShow = () => {}; });   /* the sitting's close-out card has its own suite (smoke292) */
   /* the clock is moved on by hand, so a sitting of minutes takes a moment */
   await p.evaluate(() => { const real = Date.now.bind(Date); window._skew = 0; Date.now = () => real() + window._skew;
     S.settings.todayView = 'do'; saveNow(); location.hash = '#/values'; });
@@ -55,8 +56,8 @@ const shown = (p, sels) => p.evaluate(sels => sels.filter(s => { const n = docum
   yes('pressed on Values: focus mode, full screen, and the page is still the page', F1.on && F1.fs && F1.page && !F1.desk, F1);
   is('  nothing else on the glass — no sidebar, top bar, Back, +, clock or time pill', await shown(p, CHROME), []);
   yes('  (they were there before)', before.includes('.sidebar') && before.includes('.topbar'), before);
-  yes('  the page takes the sidebar\'s width, and the corner says how to leave (no desk swap here)',
-    F1.left === 0 && /leave focus mode/.test(F1.exit) && /Esc/.test(F1.exit) && !F1.swap, F1);
+  yes('  the page sits where the sidebar was (a thin margin), and the corner says how to leave (no desk swap here)',
+    F1.left === 36 && /leave focus mode/.test(F1.exit) && /Esc/.test(F1.exit) && !F1.swap, F1);
   await p.keyboard.press('Escape'); await p.waitForTimeout(600);
   const F2 = await p.evaluate(() => ({on: document.documentElement.classList.contains('page-focus'), fs: !!document.fullscreenElement,
     exit: !!document.querySelector('#pfExit')}));
@@ -117,9 +118,12 @@ const shown = (p, sels) => p.evaluate(sels => sels.filter(s => { const n = docum
   await p.evaluate(() => { FocusTimer.reset(); FocusTimer.setMode('countdown'); FocusTimer.setLength(25); FocusTimer.start(); });
   await p.waitForTimeout(400);
   await p.evaluate(() => { window._skew += 26 * 60000; }); await p.waitForTimeout(1600);
+  /* a countdown that runs out does not stop the work: it carries on as overtime, and the rest begins when asked for */
+  yes('a countdown done goes into overtime and does not end the sitting', await p.evaluate(() => { const s = FocusTimer.state(); return s.phase === 'focus' && !!s.overtime && s.running; }));
+  await p.evaluate(() => FocusTimer.skip()); await p.waitForTimeout(900);
   const Rst = await p.evaluate(() => ({phase: FocusTimer.state().phase, tag: (document.querySelector('#fpRest') || {}).tagName,
     did: !!document.querySelector('#fpDid')}));
-  yes('a countdown done, a rest begins: it asks what the rest is for, in a box of lines', Rst.phase !== 'focus' && Rst.tag === 'TEXTAREA' && !Rst.did, Rst);
+  yes('and a rest, when it begins, asks what the rest is for, in a box of lines', Rst.phase !== 'focus' && Rst.tag === 'TEXTAREA' && !Rst.did, Rst);
   await p.fill('#fpRest', 'a walk round the block\nno phone'); await p.waitForTimeout(500);
   await p.evaluate(() => { document.activeElement.blur(); FocusTimer.stop(); }); await p.waitForTimeout(500);
   const RR = await p.evaluate(() => { const s = focusSessions().slice(-1)[0] || {};

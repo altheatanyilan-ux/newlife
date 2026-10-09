@@ -970,7 +970,7 @@ Spaced repetition, built to Anki's own model so a deck made in Anki arrives and 
 
 - **Decks** nest (`Parent::Child`) and each has a preset of options (daily limits, learning steps, **FSRS** scheduling by default or SM-2, burying, leeches, the timer). **Filtered decks** borrow cards for custom study and give them back.
 - **Note types**: Basic, Basic (and reversed), optional reversed, type-in, **Cloze** (`Ctrl/⌘+Shift+C`), and **Image Occlusion**. The editor shows the card as it will look; paste images, drop or record sound; fields can be pinned for the next note; duplicates are caught.
-- **Reviewing**: `Space`/`Enter` to show the answer, then `1` Again, `2` Hard, `3` Good, `4` Easy — each button shows the interval it would give. `Ctrl/⌘+Z` undo, `-` bury, `@` suspend, `*` mark, `E` edit, `I` card info, `F` focus. On touch, swipe left for Again, right for Good, up for Easy, down for Hard.
+- **Reviewing**: `Space` shows the answer and does nothing else — pressing it again (or holding it) never rates the card; `Enter` shows it, and then rates Good. Then `1` Again, `2` Hard, `3` Good, `4` Easy — each button shows the interval it would give. `Ctrl/⌘+Z` undo (the *Undo* chip after each rating sits low in the left corner, clear of the card and the answer buttons), `-` bury, `@` suspend, `*` mark, `E` edit, `I` card info, `F` focus. On touch, swipe left for Again, right for Good, up for Easy, down for Hard.
 - **Browse** with Anki's search syntax, bulk edits and find-and-replace; **Stats** with every graph and its numbers (true retention included); **Import** `.apkg` and `.colpkg` from any Anki version, CSV or JSON; **Tools** to postpone, advance, load-balance, take a break, reschedule and fit FSRS to your own reviews — each previews its effect and can be undone. The review log is add-only.
 
 **How it connects:** **Remember this** (`Ctrl/⌘+Shift+R`) anywhere in the house makes a card from the text you have selected, filed in a deck named for the room it came from. Japanese notebook errors go **to the deck** as production cards. Today shows how many cards are due and offers five minutes of them; the weekly review reports the week's reviews; the card box in the house opens here.
@@ -1173,7 +1173,7 @@ Nothing fires while you are typing into a field.
 
 **Repertoire:** `Space` play/stop; `L` loop.
 
-**Study Deck:** `Space`/`Enter` show and Good; `1`–`4` Again/Hard/Good/Easy; `Ctrl/⌘+Z` undo; `-` bury; `@` suspend; `*` mark; `E` edit; `I` card info; `F` focus.
+**Study Deck:** `Space` shows the answer (only); `Enter` shows, then Good; `1`–`4` Again/Hard/Good/Easy; `Ctrl/⌘+Z` undo; `-` bury; `@` suspend; `*` mark; `E` edit; `I` card info; `F` focus.
 
 **Knowledge Tree text boxes:** `[[` opens the page list; `↑` `↓` move; `Enter`/`Tab` complete; `Ctrl/⌘+Enter` keep a capture.
 

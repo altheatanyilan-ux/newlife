@@ -93,10 +93,15 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('Space shows the answer', /back \d/.test(shown.doc));
   is('  four buttons', shown.btns, ['Again', 'Hard', 'Good', 'Easy']);
   yes('  each with the interval it would give', shown.ivls.every(Boolean), JSON.stringify(shown.ivls));
+  await p.keyboard.press('Space'); await p.keyboard.press('Space'); await p.waitForTimeout(500);
+  is('  Space again, and again, does nothing more: it only ever shows the answer (no rating, no undo toast)', await p.evaluate(() => [SD.revlog.length, !!document.querySelector('.sx-undo'), document.querySelectorAll('.sx-ans').length]), [before, false, 4]);
   await p.keyboard.press('3'); await p.waitForTimeout(700);
   const after = await p.evaluate(() => ({n: SD.revlog.length, last: SD.revlog[SD.revlog.length - 1]}));
   is('Good (3) writes one review', after.n - before, 1);
   yes('  with the memory FSRS gave it', after.last && after.last.s > 0 && after.last.d > 0, JSON.stringify(after.last));
+  const ut = await p.evaluate(() => { const u = document.querySelector('.sx-undo'); if(!u) return null; const r = u.getBoundingClientRect(), as = [...document.querySelectorAll('#sxCard, #sxShow, .sx-ans, #sxCounts')].filter(Boolean); const hit = as.some(a => { const q = a.getBoundingClientRect(); return !(r.right < q.left || r.left > q.right || r.bottom < q.top || r.top > q.bottom); });
+    return {top: Math.round(r.top), bottom: Math.round(innerHeight - r.bottom), over: hit}; });
+  yes('  the undo toast sits low in the left corner, clear of the card and the answer buttons', ut && ut.bottom < 60 && ut.over === false, JSON.stringify(ut));
   await p.keyboard.press('Control+z'); await p.waitForTimeout(600);
   is('Ctrl+Z takes the answer back', await p.evaluate(() => SD.revlog.length), before);
 

@@ -70,7 +70,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n3. ticking one plans it, and the dated one is left alone');
   await p.evaluate(i => document.querySelector(`.modal [data-pick2="${i}"]`).click(), set.ids.w1);
   await p.waitForTimeout(400);
-  await next(); await next();   // through habits, to the last step
+  await next(); await next(); await next();   // through the rest, to the last step
   await p.click('#pmNext'); await p.waitForTimeout(1200);
   const tomorrow = await p.evaluate(() => addDays(today(), 1));
   is('the ticked task is set aside for the day', await p.evaluate(i => byId(S.tasks, i).doDay, set.ids.w1), tomorrow);
