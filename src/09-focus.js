@@ -454,7 +454,7 @@ function focusBreakHTML(s){
 function focusNowHTML(s){
   const cur = s.curKind || 'work';
   return `<div class="tf-now" id="fpNow"><span class="k mono">now:</span>
-    ${TIME_NOW_KINDS.map(([k, l]) => `<button type="button" class="chip tf-chip${cur === k ? ' on' : ''}" data-fpnow="${esc(k)}"${cur === k ? ' aria-pressed="true" disabled' : ''}>${esc(l)}</button>`).join('')}
+    ${TIME_NOW_KINDS.map(([k, l]) => `<button type="button" class="chip tf-chip${cur === k ? ' on' : ''}" data-fpnow="${esc(k)}"${cur === k ? ' aria-pressed="true" disabled' : ''} title="${k === 'admin' ? 'the work around the work: finding the instructions, printing, emailing to ask — timed on its own' : 'the work itself'}">${esc(l)}</button>`).join('')}
     <span class="faint tf-or">or a break:</span>
     ${timeBreakChips().slice(0, 5).map(c => `<button type="button" class="chip tf-chip" data-fpnowbrk="${esc(c.id)}">${esc(c.label)}</button>`).join('')}
   </div>`;

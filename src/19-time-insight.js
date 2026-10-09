@@ -101,8 +101,8 @@ const timeDaysIn = (from, to) => { const out = []; for(let d = from, i = 0; d <=
    evenly between them — values work that way). An entry that belongs to
    nothing under the lens is counted under "not hung on …" so the bars always
    add up to what was tracked. */
-const TIME_LENSES = [['category', 'Category'], ['list', 'List / project'], ['skill', 'Skill'], ['person', 'Person'], ['habit', 'Habit'], ['value', 'Value'], ['tag', 'Tag']];
-const TIME_LENS_NONE = {category: 'Untagged', list: 'Not on a list', skill: 'No skill', person: 'No one', habit: 'No habit', value: 'No value', tag: 'No tag'};
+const TIME_LENSES = [['category', 'Category'], ['list', 'List / project'], ['skill', 'Skill'], ['person', 'Person'], ['habit', 'Habit'], ['value', 'Value'], ['tag', 'Tag'], ['kind', 'Work / admin']];
+const TIME_LENS_NONE = {category: 'Untagged', list: 'Not on a list', skill: 'No skill', person: 'No one', habit: 'No habit', value: 'No value', tag: 'No tag', kind: 'work'};
 const TIME_PALETTE = ['#6b7f8e', '#c47832', '#7f916a', '#a0727e', '#8a7560', '#c4484e', '#8060a0', '#b08968'];
 
 function timeSkillValues(id){
@@ -149,6 +149,7 @@ function timeLensKeys(e, lens){
     const ids = timeEntryValues(e); if(!ids.length) return [];
     return ids.map(id => { const v = byId(S.values || [], id); return {key: 'v:' + id, label: v.name, color: v.color, share: 1 / ids.length, split: ids.length > 1}; });
   }
+  if(lens === 'kind') return [{key: 'k:' + (e.kind || 'work'), label: e.kind === 'work' || !e.kind ? 'Work itself' : e.kind === 'admin' ? 'Admin around it' : (TIME_KIND_NAMES[e.kind] || e.kind), share: 1}];
   if(lens === 'tag'){
     const tg = (e.tags || []); if(!tg.length) return [];
     return tg.map(t => ({key: 't:' + t, label: '#' + t, share: 1 / tg.length}));
@@ -208,7 +209,9 @@ function timeMetrics(from, to, narrow){
   const driftRead = sum(rows.filter(e => e.verdict === 'drifted' && e.kind !== 'break').map(mins));
   let awake = 0, untracked = 0;
   if(!narrow) days.forEach(d => { const a = timeAwakeOn(d), t = sum(timeOnDay(d).map(mins)); awake += a; untracked += Math.max(0, a - t); });
-  return {from, to, rows, days: days.length, tracked, focused, readMin, meantMin, meantShare: readMin >= 30 ? meantMin / readMin : null,
+  /* the work and the admin around it, from the sittings: each timed on its own */
+  const adminMin = sum(rows.filter(e => e.focusSit && e.kind === 'admin').map(mins)), workMin = sum(rows.filter(e => e.focusSit && e.kind === 'work').map(mins));
+  return {from, to, rows, days: days.length, tracked, focused, adminMin, workMin, adminShare: adminMin + workMin >= 30 ? adminMin / (adminMin + workMin) : null, readMin, meantMin, meantShare: readMin >= 30 ? meantMin / readMin : null,
     kindMin, driftRead, investShare: tracked ? kindMin.invest / tracked : null, unsorted: kindMin.none,
     awake: narrow ? null : awake, untracked: narrow ? null : untracked};
 }
@@ -221,6 +224,7 @@ const TIME_GLANCE = [
   {id: 'tracked', label: 'tracked', pick: m => m.tracked, kind: 'min', hint: m => 'everything the clock and your hand wrote down, breaks included'},
   {id: 'untracked', label: 'untracked, awake', pick: m => m.untracked, kind: 'min', needsAll: true, hint: m => 'the waking hours nobody accounted for — drawn, not hidden. Waking hours are read from the wake and bed times on Today.'},
   {id: 'focused', label: 'focused', pick: m => m.focused, kind: 'min', hint: m => 'time inside focus sittings, breaks left out'},
+  {id: 'admin', label: 'admin', pick: m => m.adminShare, kind: 'pct', hint: m => m.adminShare == null ? 'too little of the sitting time is marked work or admin yet (it takes half an hour)' : `${timeSaid(m.adminMin)} of admin against ${timeSaid(m.workMin)} of the work itself, in your sittings \u2014 the work around the work: finding the instructions, printing, emailing to ask`},
   {id: 'meant', label: 'meant it', pick: m => m.meantShare, kind: 'pct', hint: m => m.meantShare == null ? 'too few stretches have been read yet (it takes half an hour of readings)' : `${timeSaid(m.meantMin)} of the ${timeSaid(m.readMin)} you read as meant, partly or drifted`},
   {id: 'invest', label: 'investing', pick: m => m.investShare, kind: 'pct', hint: m => `time in categories you marked as investing, of everything tracked${m.unsorted ? `; ${timeSaid(m.unsorted)} sits in categories with no kind` : ''}`}];
 function timeGlance(r, narrow){

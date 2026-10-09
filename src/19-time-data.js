@@ -94,7 +94,9 @@ const TIME_BREAK_CHIPS = [
   {id: 'messages', label: 'messages', categoryId: 'social',     kind: 'break', minutes: 5,  defaultVerdict: 'partly'},
   {id: 'phone',    label: 'phone',    categoryId: null,         kind: 'break', minutes: 5,  defaultVerdict: 'drifted'}];
 /* the "now:" row: what a stretch can be switched to, beside the break chips */
-const TIME_NOW_KINDS = [['work', 'work'], ['admin', 'admin'], ['leisure', 'leisure'], ['social', 'social']];
+/* Two kinds, because every piece of work has the work around the work — finding the instructions, printing, emailing to ask for something — and it is
+   worth seeing how much of the time it takes. Each is timed on its own, and the Time view adds them up. (Older entries may still be leisure or social; they keep their kind.) */
+const TIME_NOW_KINDS = [['work', 'work'], ['admin', 'admin']];
 /* A timer left running overnight is not fourteen hours of piano. Past this,
    the entry is closed where it stopped being believable and says so. */
 const TIME_RUNAWAY = 6 * 60;

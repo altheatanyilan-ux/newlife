@@ -160,7 +160,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.click('#fpVerdict .suggest'); await p.waitForTimeout(400);
   is('pressing the suggested one answers it, and nothing is left to ask', await p.evaluate(() => [!!document.getElementById('fpVerdict'), FocusTimer.unread().length]), [false, 0]);
   const now = await p.evaluate(() => document.querySelectorAll('#fpNow [data-fpnow]').length);
-  is('the "now:" row is there with the four kinds', now, 4);
+  is('the "now:" row is there with two kinds, work and admin', now, 2);
   await p.evaluate(() => { FocusTimer.stop(true); });
 
   console.log('\n6. a distraction tagged to a habit I am breaking');

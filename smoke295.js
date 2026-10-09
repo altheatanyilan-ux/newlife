@@ -209,6 +209,22 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.evaluate(() => document.querySelector('[data-tmunit="week"]').click()); await p.waitForTimeout(600);
   yes('the week carries its seven bars', await p.evaluate(() => document.querySelectorAll('.tm-wday').length === 7));
 
+  console.log('\n11. the work and the admin around it');
+  const adm = await p.evaluate(() => {
+    S.timeEntries.length = 0;
+    const put = (hm, mins, kind) => { const s = window.__at(today(), hm); logTime({what: kind + ' bit', categoryId: 'work', kind, focusSit: s.toISOString(), startTime: s.toISOString(), endTime: new Date(s.getTime() + mins * 60000).toISOString()}); };
+    put('08:00', 45, 'work'); put('08:45', 15, 'admin'); put('09:00', 40, 'work'); put('09:40', 20, 'admin');
+    const g = timeGlance(timeRange('day')), t = g.tiles.find(x => x.id === 'admin'), m = g.m;
+    const lens = timeLensTotals(timeRowsIn(today(), today()), 'kind').map(o => [o.label, Math.round(o.minutes)]);
+    return {share: t.value, adminMin: m.adminMin, workMin: m.workMin, lens, chips: TIME_NOW_KINDS.map(x => x[0]), lensOffered: TIME_LENSES.some(x => x[0] === 'kind')};
+  });
+  is('the "now:" choice is work and admin, and nothing else', adm.chips, ['work', 'admin']);
+  is('each is added up on its own: 85m of the work itself, 35m of admin', [adm.workMin, adm.adminMin], [85, 35]);
+  yes('the glance has an admin tile: 35 of the 120 minutes, said in words', Math.abs(adm.share - 35 / 120) < 1e-9, adm);
+  is('and "Work / admin" is a lens of the breakdown', [adm.lensOffered, adm.lens], [true, [['Work itself', 85], ['Admin around it', 35]]]);
+  yes('an entry can be corrected to work or admin from its editor', await p.evaluate(() => { const e = S.timeEntries[0]; openTimeEntryModal(e.id); const sel = document.querySelector('#teKind'); const ok = !!sel && [...sel.options].map(o => o.value).join() === 'work,admin';
+    sel.value = 'admin'; document.querySelector('#teSave, .modal .btn.primary').click(); const k = S.timeEntries.find(x => x.id === e.id).kind; closeModals(); return ok && k === 'admin'; }));
+
   yes('no page errors', !errs.length, errs.join('\n'));
   await b.close();
   console.log(bad ? `\n${bad} FAILED` : '\nall ok');

@@ -236,6 +236,9 @@ function openTimeEntryModal(id, day){
       <input class="inp mono" type="number" id="teMins" min="0" max="1440" placeholder="120"></label>`}
     <label class="pd-q" style="margin-top:10px"><span class="k">category</span>
       ${timeCategoryPickHTML(e ? e.categoryId : timeSettings().defaultCategory, 'teCat')}</label>
+    <label class="pd-q" style="margin-top:10px"><span class="k">is it</span>
+      <select class="sel" id="teKind">${(() => { const cur = e ? e.kind : 'work', ks = ['work', 'admin'].concat(['work', 'admin'].includes(cur) ? [] : [cur]);
+        return ks.map(k => `<option value="${esc(k)}" ${k === cur ? 'selected' : ''}>${esc(k === 'work' ? 'the work itself' : k === 'admin' ? 'admin around it' : (TIME_KIND_NAMES[k] || k))}</option>`).join(''); })()}</select></label>
     <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
       <input class="inp" id="teTags" value="${esc(e ? e.tags.join(', ') : '')}" placeholder="jazz, theory"></label>
     <!-- There were two more fields here, "hang it on" and "which", offering to
@@ -269,6 +272,7 @@ function openTimeEntryModal(id, day){
        knows which piece it was, and nothing here should quietly forget it */
     const common = {what: m.querySelector('#teWhat').value.trim(),
       categoryId: m.querySelector('#teCat').value || null,
+      kind: (m.querySelector('#teKind') || {value: 'work'}).value,
       tags: timeTagsOf(m.querySelector('#teTags').value)};
     if(e){
       /* a sitting the focus timer wrote, corrected here, is left as corrected */
