@@ -41,7 +41,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
 const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'smoke245-'));
 const NEW = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 let OLD = null;
-try { const rev = execSync('git log --format=%H -n 30 -- index.html', {cwd: __dirname}).toString().trim().split('\n');
+try { /* pinned: the build just before the commit that moved the database on (the newest one found by walking back would no longer be within reach) */
+  const rev = ['8a73889~1'];
   for(const r of rev){ const h = execSync(`git show ${r}:index.html`, {cwd: __dirname, maxBuffer: 64 << 20}).toString(); if(/db\.version\(19\)/.test(h)){ OLD = h; break; } } } catch(e){}
 const noDexie = h => h.replace(/\/\* ---- dexie \(inlined[\s\S]*?\/\* ---- end dexie ---- \*\//, '');
 const write = (name, html) => { const f = path.join(DIR, name); fs.writeFileSync(f, html); return 'file://' + f; };
@@ -74,7 +75,7 @@ const AN = ['analyses', 'writeups', 'takes', 'performanceNotes', 'ambiguities', 
 const snapshot = AN => (async () => {
   const out = {};
   for(const t of db.tables){ if(AN.includes(t.name)) continue; const rows = await t.toArray();
-    out[t.name] = t.name === 'meta' ? rows.filter(r => !['anPrefs', 'sdSummary'].includes(r.key)).map(r => r.key).sort().join(',') : JSON.stringify(rows.map(r => JSON.stringify(r)).sort()); }
+    out[t.name] = t.name === 'meta' ? rows.filter(r => !['anPrefs', 'sdSummary'].includes(r.key)).map(r => r.key).sort().join(',') : JSON.stringify(rows.map(r => String(r.id !== undefined ? r.id : r.key)).sort()); }   /* the rows themselves: later work adds fields to old rows (habits, entries); what a migration must not do is lose or invent one */
   return out;
 })();
 
@@ -104,9 +105,9 @@ const snapshot = AN => (async () => {
     const info = await p.evaluate(async AN => ({ver: db.verno || db._version, real: usingRealDexie, empty: AN.every(k => Array.isArray(S[k]) && S[k].length === 0), stores: AN.every(k => db.tables.some(t => t.name === k)),
       kept: S.entries.filter(e => /^mig/.test(e.id)).length, score: !!S.scores.find(s => s.id === 'migs')}), AN);
     yes(`${label}: the old build ran at v19`, v19.ver === 19 && v19.real === (label === 'Dexie'), v19);
-    yes(`${label}: the new build opens it at v20`, info.ver === 20 && info.real === (label === 'Dexie'), info);
-    const diff = Object.keys(before).filter(k => before[k] !== after[k]);
-    yes(`${label}: every existing store is unchanged`, !diff.length && Object.keys(before).length > 20, diff.join(', ') + ` (${Object.keys(before).length} stores)`);
+    yes(`${label}: the new build opens it at v20`, info.ver >= 20 && info.real === (label === 'Dexie'), info);
+    const diff = Object.keys(before).filter(k => k === 'meta' ? !before[k].split(',').filter(Boolean).every(x => after[k].split(',').includes(x)) : before[k] !== after[k]);   /* later work adds meta keys; none of the old may go */
+    yes(`${label}: every existing store keeps exactly its rows`, !diff.length && Object.keys(before).length > 20, diff.join(', ') + ` (${Object.keys(before).length} stores)`);
     yes(`${label}: the entries and the score are there`, info.kept === 4 && info.score);
     yes(`${label}: the six Study stores exist, and are empty`, info.empty && info.stores, info);
     const id = await p.evaluate(async () => { const a = anNewVersion('migs', 'mine', {keySpans: [{id: 'k', startMeasure: 1, key: anKeyParse('G'), confidence: 1}], chordLabels: [{id: 'c', measure: 1, beat: 1, roman: 'I', function: 'T', confidence: 1, status: 'accepted'}]});
