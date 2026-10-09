@@ -4,6 +4,8 @@ This is the user's guide. The [README](../README.md) is for building and maintai
 
 For the inward half in depth — journals, the Morning Theatre, stillness and divination, values, the Skill Tree, people, the Knowledge Tree, the reviews, and the quiet mechanisms behind them — see the companion [**INNER-LIFE.md**](INNER-LIFE.md), which is written from the code and says which parts of this guide are out of date.
 
+The two music rooms in depth — the Jazz Studio's curriculum, twelve-key flashcards, daily plan, tune library, band and piano input, and the Songwriting Studio's Path, thirteen tools and rule engines — are in [**STUDIOS.md**](STUDIOS.md).
+
 The purpose layer — the sheet, the zone-of-genius workbench, convergence, values and strengths work, the inner-demons registers, the guided vision hour, retreats and the lenses — is described in [**PURPOSE.md**](PURPOSE.md).
 
 It is long because the house is large. You do not need to read it in order. Start with **Part I**, then read the chapter for whichever room you are about to use. **Part VI** has suggested daily, weekly and yearly rhythms, a map of how the rooms connect, a keyboard reference, a glossary and answers to common questions.

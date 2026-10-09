@@ -869,3 +869,5 @@ Collected from the **Check** notes above, with a few more. None of these is a fa
 ---
 
 *The purpose layer added after this account was written — the sheet, the workbench, convergence, the demons registers, retreats, the lenses — is described in [PURPOSE.md](PURPOSE.md). Where the two differ, PURPOSE.md is newer.*
+
+For the two music rooms (Jazz and Songwriting) in the same depth, see [STUDIOS.md](STUDIOS.md).
