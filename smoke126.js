@@ -20,6 +20,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   console.log('\n1. walking the evening review');
   await p.evaluate(() => flowEvening()); await p.waitForTimeout(900);
   const titles = [];
+  /* the open-questions step appears only while questions are open; it is not one of the four */
   for(let i = 0; i < 15; i++){
     if(!(await p.$('#fwNext'))) break;
     titles.push(await p.evaluate(() => document.querySelector('.modal h2').textContent.trim()));
@@ -27,6 +28,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
     await p.click('#fwNext'); await p.waitForTimeout(700);
     if(last) break;
   }
+  while(titles.length && /Open questions/i.test(titles[titles.length - 1])) titles.pop();
   yes('it is not asked for one line', !titles.some(t => /one line/i.test(t)), titles.join(' | '));
   yes('  and no field for it is drawn anywhere', !(await p.$('#fwLine')));
   is('four steps remain', titles.length, 4);

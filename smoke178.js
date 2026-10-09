@@ -119,10 +119,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
       drawn: document.querySelectorAll('.wk-act').length,
       /* no second store was invented for these */
       onTheDay: (S.dailyRhythm[d].blocks || []).length,
-      newStore: typeof S.timeBlocks};
+      newStore: (S.timeBlocks || []).length};
   });
   is('what was logged is read off the day itself', acct.onTheDay, 3);
-  is('  not out of a store invented for the chart', acct.newStore, 'undefined');
+  is('  not out of a store invented for the chart (the planning board\u2019s is empty)', acct.newStore, 0);
   is('  and each one is drawn in the gap', acct.drawn, 3);
   is('  counted by what it was', acct.by, {commute: 45, meal: 45, exercise: 60});
   is('  and what is left over is what is yours', acct.free, acct.awake - 150);
