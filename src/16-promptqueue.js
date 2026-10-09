@@ -262,9 +262,9 @@ function pqHTML(T = today()){
     ${shown.map((it, i) => pqRowHTML(it, i)).join('')}
     ${more > 0 ? `<div class="faint mono pq-more">${more} more, below these in rank</div>` : ''}</div>`;
 }
-function pqBind(box, T = today()){
+function pqBind(box, T = today(), list){
   if(!box) return;
-  const q = _pqCur;
+  const q = list || _pqCur;
   const done = () => { sound('click'); pqRepaint(); };
   box.querySelectorAll('[data-pqgo]').forEach(b => b.onclick = ev => { const it = q[+b.dataset.pqgo]; if(it && it.go){ ev.stopPropagation(); it.go[1](); if(it.source === 'block') setTimeout(pqRepaint, 50); } });
   box.querySelectorAll('[data-pqact]').forEach(b => b.onclick = () => { const [i, j] = b.dataset.pqact.split(':').map(Number); const it = q[i]; if(it && it.acts && it.acts[j]){ it.acts[j][1](); done(); } });
@@ -274,6 +274,8 @@ function pqBind(box, T = today()){
     toast(esc(`That one is off. It can be turned back on in Settings → Prompts.`), 5000, {label: 'undo', fn: () => { pqOn(it.id); pqRepaint(); }}); done(); } });
 }
 function pqRepaint(){
+  /* the strip on the Time view carries the same flags; it is drawn again with the page */
+  if(document.querySelector('.tmv-attn') && !document.getElementById('pq') && typeof rerender === 'function'){ rerender(); return; }
   const box = document.getElementById('pq') ? document.getElementById('pq').parentNode : document.getElementById('todayAutoPrompts');
   if(!box) return;
   box.innerHTML = pqHTML(today()); pqBind(box, today());

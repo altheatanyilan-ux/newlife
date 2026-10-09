@@ -227,7 +227,8 @@ function flowWeekly(opts = {}){
       <div class="row"><button class="btn sm ghost" data-flowgo="#/score">open the scores</button></div></div>`}] : [];
   const tmSaid = typeof timeReviewLines === 'function' ? timeReviewLines(days[0], days[6]) : [];
   const tmWeek = tmSaid.length ? [{title:'Where the hours went.', hint:'What you tracked, against the week before, and against what you say matters.',
-    body: () => `<div class="stack" style="gap:6px">${tmSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
+    body: () => `<div class="stack" style="gap:6px">${typeof timeGlanceHTML === 'function' ? timeGlanceHTML(timeRange('week', days[0]), null, {noRings: false}) + `<div class="rev-summary">${esc(timeNarrative(timeRange('week', days[0])))}</div>` + timeBreakdownHTML(timeRange('week', days[0]), null, {lens: 'category', second: '', max: 6}) : ''}
+      ${tmSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
       <div class="row"><button class="btn sm ghost" data-flowgo="#/time/week">open the week</button></div></div>`}] : [];
   guidedFlow('Weekly review', [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',

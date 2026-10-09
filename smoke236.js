@@ -65,7 +65,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('#/planning with the habits room remembered opens Today\'s Habits', (await state()).hash === '#/today/habits');
   await go('#/time/week');
   const TM = await p.evaluate(() => ({hash: location.hash, h1: (document.querySelector('#todayRoom h1') || {}).textContent,
-    week: (document.querySelector('[data-tmview].on') || {}).dataset?.tmview}));
+    week: (document.querySelector('[data-tmunit].on') || {}).dataset?.tmunit}));
   yes('#/time/week opens Time tracking, on its week', TM.hash === '#/today/time/week' && TM.h1 === 'Time tracking' && TM.week === 'week', TM);
   await go('#/journals/review');
   const RV = await p.evaluate(() => ({hash: location.hash, charts: !!document.querySelector('#todayRoom .rv-dash'),

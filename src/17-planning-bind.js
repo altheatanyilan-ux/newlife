@@ -407,6 +407,9 @@ function openPlanListModal(id, {folderId = null} = {}){
       <span class="faint">hrs / wk for</span>
       <input class="inp" id="plnWks" type="number" min="0" step="1" value="${l?.targetWeeks ?? ''}" placeholder="wks" style="width:70px">
       <span class="faint">weeks</span></div></div>
+    ${(S.values || []).length ? `<div class="field"><label>Serves</label><div class="chip-row" id="plnValRow">
+      ${(S.values || []).map(v => `<button type="button" class="chip click${(l?.valueIds || []).includes(v.id) ? ' on' : ''}" style="--c:${esc(v.color)}" data-plval="${esc(v.id)}">${esc(v.name)}</button>`).join('')}</div>
+      <div class="faint" style="font-size:.74rem;margin-top:2px">The Time view splits this list’s hours evenly across the values it serves.</div></div>` : ''}
     <div class="field"><label>Folder</label><select class="sel" id="plnFolder">
       <option value="">— none —</option>${p.folders.map(f => `<option value="${f.id}" ${preFolder === f.id ? 'selected' : ''}>${esc(f.name)}</option>`).join('')}</select></div>
     <div class="field"><label>Opens as</label><select class="sel" id="plnView">
@@ -421,6 +424,8 @@ function openPlanListModal(id, {folderId = null} = {}){
   let listType = l?.listType || 'task';
   let priority = l?.priority || 'normal';
   let importance = l?.importance || 'supporting';
+  let valueIds = (l?.valueIds || []).slice();
+  m.querySelectorAll('[data-plval]').forEach(b => b.onclick = () => { const v = b.dataset.plval; valueIds = valueIds.includes(v) ? valueIds.filter(x => x !== v) : valueIds.concat(v); b.classList.toggle('on', valueIds.includes(v)); });
   m.querySelectorAll('[data-plc]').forEach(b => b.onclick = () => { color = b.dataset.plc;
     m.querySelectorAll('[data-plc]').forEach(x => x.classList.toggle('on', x === b)); });
   m.querySelectorAll('[data-pltype]').forEach(b => b.onclick = () => { listType = b.dataset.pltype;
@@ -450,13 +455,13 @@ function openPlanListModal(id, {folderId = null} = {}){
       l.name = name; l.color = color; l.folderId = folderId; l.defaultView = view;
       l.listType = listType; l.priority = priority; l.activeFrom = activeFrom;
       l.description = description; l.targetHoursPerWeek = hpw; l.targetWeeks = wks;
-      l.importance = importance;
+      l.importance = importance; l.valueIds = valueIds;
     } else {
       const nl = planNewList(name, {folderId, color});
       nl.defaultView = view; nl.listType = listType; nl.priority = priority;
       nl.activeFrom = activeFrom; nl.description = description;
       nl.targetHoursPerWeek = hpw; nl.targetWeeks = wks;
-      nl.importance = importance;
+      nl.importance = importance; nl.valueIds = valueIds;
       S._planSel = {kind:'list', id:nl.id};
     }
     saveNow(); m.remove(); sound('success'); rerender();

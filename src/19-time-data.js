@@ -130,7 +130,7 @@ function timeState(){
     c.name = String(c.name || 'Something').trim().slice(0, 40) || 'Something';
     c.emoji = String(c.emoji || '\u25cb').trim().slice(0, 8) || '\u25cb';
     c.color = /^#[0-9a-fA-F]{3,8}$/.test(c.color || '') ? c.color : '#8a8d8f';
-    c.off = !!c.off; });
+    c.off = !!c.off; timeCatNormalize(c); });
   /* FILLED IN, NOT REPLACED. This used to be
         t.settings = Object.assign({…defaults}, t.settings || {});
      which builds a NEW object every time it is called — and it is called by

@@ -181,6 +181,7 @@ function planState(){
     if(l.targetHoursPerWeek === undefined) l.targetHoursPerWeek = null;
     if(l.targetWeeks === undefined) l.targetWeeks = null;
     if(!l.importance) l.importance = 'supporting';
+    if(!Array.isArray(l.valueIds)) l.valueIds = [];
     l.milestones.forEach(m => {
       if(m.prepFrom === undefined) m.prepFrom = null;
       if(m.winNote === undefined) m.winNote = '';

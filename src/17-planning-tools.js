@@ -751,6 +751,12 @@ function bindPlanHabits(root){
 
 /* ---------- win card ---------- */
 function winCardHTML(w){
+  /* a win about how the time was used, not what was finished: no list, no date
+     to be early or late for — the rule that earned it is its meta line */
+  if(w.kind === 'process') return `<div class="ps-win-card">
+    <div class="ps-win-date mono">${esc(w.date || '')} \u00b7 a week</div>
+    <div class="ps-win-name">${esc(w.milestoneLabel || '')}</div>
+    <div class="ps-win-meta mono">${esc(w.rule || '')}</div></div>`;
   const l = typeof planList === 'function' ? planList(w.listId) : null;
   const el = w.earlyLate;
   const sign = el > 0 ? `${el}d early` : el < 0 ? `${Math.abs(el)}d late` : 'on the day';
@@ -822,6 +828,7 @@ function planStatsHTML(){
         <div class="sub">${sess.length} started · ${best && best.m ? `best day ${fmtDate(best.d, 'med')}, ${hrs(best.m)}` : 'no best day yet'}</div></div>
     </div>
 
+    ${typeof timeFocusQualityHTML === 'function' ? `<div class="ps-sec"><span class="sc">How the focus went, this week</span>${timeFocusQualityHTML(timeRange('week'))}</div>` : ''}
     <div class="ps-sec"><span class="sc">Where the focus went</span>
       ${topTasks.length ? `<div class="ps-bars">${topTasks.map(x => { const max = topTasks[0].m;
         return `<div class="ps-bar"><span>${esc(x.t.text)}</span><div class="bar" style="--c:var(--sage)">

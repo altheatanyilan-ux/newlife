@@ -209,26 +209,23 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('seven days, stacked', await p.evaluate(() => document.querySelectorAll('.tm-wday').length), 7);
   await p.evaluate(() => { location.hash = '#/time/reports'; }); await p.waitForTimeout(800);
   const rep = await p.evaluate(async () => {
-    const all = document.querySelectorAll('.tm-sumrow').length;
-    const sel = document.querySelector('#tmCat');
-    sel.value = 'reading'; sel.dispatchEvent(new Event('change'));
-    await new Promise(r => setTimeout(r, 600));
-    const one = [...document.querySelectorAll('.tm-sumrow')].map(n => n.textContent.replace(/\s+/g,' ').trim());
-    const t = document.querySelector('#tmTag');
-    document.querySelector('#tmCat').value = ''; document.querySelector('#tmCat').dispatchEvent(new Event('change'));
-    await new Promise(r => setTimeout(r, 600));
-    const tag = document.querySelector('#tmTag');
-    tag.value = 'theory'; tag.dispatchEvent(new Event('change'));
-    await new Promise(r => setTimeout(r, 600));
-    const byTag = [...document.querySelectorAll('.tm-sumrow')].map(n => n.textContent.replace(/\s+/g,' ').trim());
-    timeUi().tag = null;
-    return {all, one, byTag};
+    const wait = () => new Promise(r => setTimeout(r, 500));
+    const bars = () => [...document.querySelectorAll('.tmv-bar')].map(n => n.textContent.replace(/\s+/g,' ').trim());
+    const all = bars().length;
+    document.querySelector('.tmv-bar[data-tmnarrow="category|c:reading"]').click(); await wait();
+    const one = bars();
+    document.querySelector('[data-tmclear]').click(); await wait();
+    const l = document.querySelector('#tmLens'); l.value = 'tag'; l.dispatchEvent(new Event('change')); await wait();
+    const tags = bars();
+    document.querySelector('.tmv-bar[data-tmnarrow="tag|t:theory"]').click(); await wait();
+    const byTag = [...document.querySelectorAll('.tm-row')].map(n => n.textContent.replace(/\s+/g,' ').trim());
+    timeUi().narrow = null; timeUi().lens = 'category';
+    return {all, one, tags, byTag};
   });
-  yes('the reports hold every category at once', rep.all >= 3, String(rep.all));
-  yes('  and one when you ask for one', rep.one.length === 1 && /Reading/.test(rep.one[0]),
-    JSON.stringify(rep.one));
-  yes('  or one tag, across categories', rep.byTag.length === 1 && /Reading/.test(rep.byTag[0]),
-    JSON.stringify(rep.byTag));
+  yes('the month holds every category at once, as bars', rep.all >= 3, String(rep.all));
+  yes('  pressing one narrows to it', rep.one.length === 1 && /Reading/.test(rep.one[0]), JSON.stringify(rep.one));
+  yes('  the tag lens lists the tags', rep.tags.some(t => /theory/.test(t)), JSON.stringify(rep.tags));
+  yes('  and pressing a tag narrows the ledger to what carries it', rep.byTag.length >= 1 && rep.byTag.every(t => /Reading|theory|reading/i.test(t)), JSON.stringify(rep.byTag));
 
   console.log('\n11. an hour is logged once and shows up everywhere');
   const out = await p.evaluate(() => {

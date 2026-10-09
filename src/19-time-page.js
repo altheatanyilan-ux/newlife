@@ -20,32 +20,38 @@ const timeDay = () => { const u = timeUi(); return u.day || today(); };
 
 routes.time = function(root, params){
   timeState();
-  const u = timeUi();
+  const u = timeViewState();
   const want = params && params[0];
-  if(['day','week','reports','categories'].includes(want)) u.view = want;
+  /* the older addresses name a period: they open the overview on it */
+  if(['day', 'week'].includes(want)){ u.view = 'overview'; u.unit = want; u.narrow = null; }
+  else if(want === 'reports'){ u.view = 'overview'; u.unit = 'month'; }
+  else if(want === 'categories') u.view = 'categories';
+  else if(want === 'overview') u.view = 'overview';
+  if(!['overview', 'categories'].includes(u.view)) u.view = 'overview';
   registerPageEntry({pageName:'Time tracking', addLabel:'Log a sitting', defaultEntryType:'time',
     prefilledFields:{}, options:[
       {icon:'⏱', label:'Start the clock', desc:'Now, for whatever you are about to do.',
         run:()=>openTimeStartModal()},
       {icon:'✎', label:'A sitting, after the fact', desc:'Two hours of reading you forgot to time.',
         run:()=>openTimeEntryModal(null, timeDay())}]});
+  try { timeProcessWins(); } catch(e){ console.warn('process wins were not worked out', e); }
   root.innerHTML = `<div class="page tm-page">
     <div class="tm-head">
       <h1 class="serif">Time tracking</h1>
       <span class="grow"></span>
-      <span class="tabs sm">${[['day','Day'],['week','Week'],['reports','Reports'],['categories','Categories']].map(([k, n]) =>
+      <span class="tabs sm">${[['overview','Overview'],['categories','Categories']].map(([k, n]) =>
         `<button class="tab${u.view === k ? ' on' : ''}" data-tmview="${k}">${n}</button>`).join('')}</span>
     </div>
-    ${u.view === 'week' ? timeWeekHTML() : u.view === 'reports' ? timeReportsHTML()
-      : u.view === 'categories' ? timeCategoriesHTML() : timeDayHTML()}
+    ${u.view === 'categories' ? timeCategoriesHTML() : timeOverviewHTML()}
   </div>`;
   bindTimePage(root);
+  if(u.view === 'overview') bindTimeOverview(root);
 };
 
 /* ---------- the day ---------- */
-function timeDayHTML(){
-  const day = timeDay();
-  const rows = timeOnDay(day).slice().sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+function timeDayHTML(o = {}){
+  const day = o.day || timeDay(), narrow = o.narrow || null;
+  const rows = timeOnDay(day).filter(e => timeNarrowMatch(e, narrow)).sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
   const mins = sum(rows.map(e => timeMinutes(e)));
   const by = timeByCategory(rows);
   /* Last night's sleep, and separately the part of it that fell inside this
@@ -53,20 +59,20 @@ function timeDayHTML(){
      the untracked line has to subtract to mean the waking hours. */
   const night = timeSleepNight(day);
   const asleep = timeSleepInDay(day);
-  return `<div class="tm-bar-h">
+  return `${o.embedded ? '' : `<div class="tm-bar-h">
       <button class="tbtn" data-tmday="-1">‹ day before</button>
       <span class="mono">${esc(fmtDate(day, 'med'))}</span>
       <button class="tbtn" data-tmday="1" ${day >= today() ? 'disabled' : ''}>day after ›</button>
       <span class="grow"></span>
       <span class="mono">${timeSaid(mins)} tracked</span>
       <button class="btn sm primary" id="tmAdd">+ a sitting</button>
-    </div>
-    ${timeStripHTML(timeOnCalendarDay(day), day)}
-    ${typeof pbdPlanVsActualHTML === 'function' ? pbdPlanVsActualHTML(day) : ''}
+    </div>`}
+    ${timeStripHTML(timeOnCalendarDay(day).filter(e => timeNarrowMatch(e, narrow)), day)}
+    ${!narrow && typeof pbdPlanVsActualHTML === 'function' ? pbdPlanVsActualHTML(day) : ''}
     ${rows.length ? `<div class="tm-list">${rows.map(timeRowHTML).join('')}</div>`
       : `<div class="empty">Nothing tracked on this day. Start the clock in the corner, or write
         down a sitting you did not time.</div>`}
-    ${by.length || asleep || night ? `<div class="tm-sum">${timeSumHTML(by, 1440, day)}</div>` : ''}`;
+    ${by.length || (!narrow && (asleep || night)) ? `<div class="tm-sum">${timeSumHTML(by, narrow ? 0 : 1440, narrow ? null : day)}</div>` : ''}`;
 }
 /* Midnight to midnight, in proportion. A sitting that runs past midnight is
    clipped to the day it is being drawn for rather than allowed to run off the
@@ -183,13 +189,14 @@ function timeSumHTML(by, whole, day){
 }
 
 /* ---------- the week ---------- */
-function timeWeekHTML(){
+function timeWeekHTML(o = {}){
+  const narrow = o.narrow || null;
   const end = timeDay();
-  const days = Array.from({length:7}, (_, i) => {
+  const days = o.days || Array.from({length:7}, (_, i) => {
     const d = parseDay(end); d.setDate(d.getDate() - (6 - i));
     return d.toISOString().slice(0, 10) === '' ? end : timeDayOf(d.toISOString());
   });
-  const rows = days.map(d => ({day: d, entries: timeOnDay(d)}));
+  const rows = days.map(d => ({day: d, entries: timeOnDay(d).filter(e => timeNarrowMatch(e, narrow))}));
   const all = rows.flatMap(r => r.entries);
   const mins = sum(all.map(e => timeMinutes(e)));
   const by = timeByCategory(all);
@@ -198,81 +205,24 @@ function timeWeekHTML(){
      says you sleep three hours */
   const slept = days.reduce((a, d) => { const m = timeSleepMinutes(d);
     return m ? {mins: a.mins + m, nights: a.nights + 1} : a; }, {mins:0, nights:0});
-  return `<div class="tm-bar-h">
+  return `${o.embedded ? '' : `<div class="tm-bar-h">
       <button class="tbtn" data-tmday="-7">‹ week before</button>
       <span class="mono">${esc(fmtDate(days[0], 'med'))} – ${esc(fmtDate(days[6], 'med'))}</span>
       <button class="tbtn" data-tmday="7" ${end >= today() ? 'disabled' : ''}>week after ›</button>
       <span class="grow"></span>
       <span class="mono">${timeSaid(mins)} in the week</span>
-    </div>
+    </div>`}
     <div class="tm-week">${rows.map(r => `<div class="tm-wday">
       <button class="tbtn mono tm-wname" data-tmpick="${esc(r.day)}">${esc(fmtDate(r.day, 'short'))}</button>
       <div class="tm-wstrip">${timeStripHTML(r.entries, r.day)}</div>
       <span class="mono faint">${r.entries.length ? timeSaid(sum(r.entries.map(timeMinutes))) : '—'}</span>
     </div>`).join('')}</div>
     ${by.length ? `<div class="tm-sum">${timeSumHTML(by, 0)}
-      <p class="faint sm">${timeSaid(mins / 7)} a day on average${
+      <p class="faint sm">${timeSaid(mins / days.length)} a day on average${
         by[0] ? `, most of it on ${esc(by[0].cat.name.toLowerCase())}` : ''}.${slept.nights
           ? ` ${TIME_SLEEP_CAT.emoji} ${timeSaid(slept.mins / slept.nights)} asleep a night across ${
             slept.nights} night${slept.nights === 1 ? '' : 's'} you wrote down.` : ''}</p></div>`
       : '<div class="empty">Nothing tracked this week.</div>'}`;
-}
-
-/* ---------- the reports ----------
-   The one question the day and the week cannot answer: how much of the last
-   month went on one particular thing — not one category, one thing. Filtering
-   by what an entry is hung on is the whole reason entries carry a link. */
-function timeReportsHTML(){
-  const u = timeUi();
-  const to = today();
-  const d = parseDay(to); d.setDate(d.getDate() - (u.span - 1));
-  const from = timeDayOf(d.toISOString());
-  let rows = timeBetween(from, to);
-  if(u.cat) rows = rows.filter(e => e.categoryId === u.cat);
-  if(u.tag) rows = rows.filter(e => e.tags.includes(u.tag));
-  if(u.link) rows = rows.filter(e => `${e.linkedType}:${e.linkedId}` === u.link);
-  const by = timeByCategory(rows);
-  const mins = sum(rows.map(e => timeMinutes(e)));
-  const tags = [...new Set(timeBetween(from, to).flatMap(e => e.tags))].sort();
-  const links = [...new Map(timeBetween(from, to).filter(e => e.linkedId)
-    .map(e => [`${e.linkedType}:${e.linkedId}`, e.linkedLabel || e.linkedId])).entries()];
-  return `<div class="tm-bar-h">
-      <label class="pd-q"><span class="k">over</span>
-        <select class="sel sm" id="tmSpan">${[7, 30, 90, 365].map(n =>
-          `<option value="${n}" ${u.span === n ? 'selected' : ''}>${n} days</option>`).join('')}</select></label>
-      <label class="pd-q"><span class="k">category</span>
-        <select class="sel sm" id="tmCat"><option value="">all</option>${timeCategories().map(c =>
-          `<option value="${esc(c.id)}" ${u.cat === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select></label>
-      <label class="pd-q"><span class="k">tag</span>
-        <select class="sel sm" id="tmTag"><option value="">all</option>${tags.map(t =>
-          `<option value="${esc(t)}" ${u.tag === t ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select></label>
-      <label class="pd-q"><span class="k">on</span>
-        <select class="sel sm" id="tmLink"><option value="">anything</option>${links.map(([k, label]) =>
-          `<option value="${esc(k)}" ${u.link === k ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select></label>
-      <span class="grow"></span>
-      <span class="mono">${timeSaid(mins)}</span>
-    </div>
-    ${rows.length ? `${timeTrendHTML(rows, from, to)}
-      <div class="tm-sum">${timeSumHTML(by, 0)}</div>`
-      : '<div class="empty">Nothing matches that.</div>'}`;
-}
-/* A day-by-day line, so a habit that died three weeks ago is visible as the
-   place the line goes flat rather than as a number that is merely smaller. */
-function timeTrendHTML(rows, from, to){
-  const days = [];
-  const d = parseDay(from), end = parseDay(to);
-  while(d <= end){ days.push(timeDayOf(d.toISOString())); d.setDate(d.getDate() + 1); }
-  const per = days.map(day => sum(rows.filter(e => timeLivingDay(e.startTime) === day).map(timeMinutes)));
-  const top = Math.max(60, ...per);
-  const W = 640, H = 110, pad = 6;
-  const at = (v, i) => [pad + (W - pad * 2) * (days.length < 2 ? 0 : i / (days.length - 1)),
-    H - pad - (H - pad * 2) * (v / top)];
-  const line = per.map((v, i) => { const q = at(v, i); return `${i ? 'L' : 'M'}${q[0].toFixed(1)} ${q[1].toFixed(1)}`; }).join(' ');
-  return `<div class="tm-trend"><svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" aria-hidden="true">
-      <path d="${line}" fill="none" stroke="#5c7c8a" stroke-width="1.8" stroke-linejoin="round"/>
-    </svg>
-    <div class="mono faint sm">${esc(fmtDate(days[0], 'short'))} → ${esc(fmtDate(days[days.length - 1], 'short'))}
-      · tallest day ${timeSaid(top)}</div></div>`;
 }
 
 function bindTimePage(root){
@@ -285,7 +235,7 @@ function bindTimePage(root){
     saveNow(); rerender();
   });
   $$('[data-tmpick]', root).forEach(b => b.onclick = () => {
-    u.day = b.dataset.tmpick; u.view = 'day'; saveNow(); navigate('#/time/day'); });
+    u.day = b.dataset.tmpick; u.unit = 'day'; u.view = 'overview'; saveNow(); navigate('#/time/day'); });
   $$('[data-tmedit]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     openTimeEntryModal(b.dataset.tmedit); });
   $$('[data-tmgo]', root).forEach(b => b.onclick = () => openTimeEntryModal(b.dataset.tmgo));
@@ -294,9 +244,6 @@ function bindTimePage(root){
   bindTimeWrite(root);
   const add = root.querySelector('#tmAdd');
   if(add) add.onclick = () => openTimeEntryModal(null, timeDay());
-  const pick = (sel, key, num) => { const n = root.querySelector(sel); if(!n) return;
-    n.onchange = () => { u[key] = num ? (+n.value || 0) : (n.value || null); saveNow(); rerender(); }; };
-  pick('#tmSpan', 'span', true); pick('#tmCat', 'cat'); pick('#tmTag', 'tag'); pick('#tmLink', 'link');
   bindTimeCategories(root);
 }
 
@@ -327,6 +274,9 @@ function timeCategoriesHTML(){
       <span class="mono faint">${list.length} · ${off ? `${off} put away` : 'all in use'}</span></div>
     <p class="muted" style="font-size:.85rem">The whole list is yours. Rename any of them, change the colour they
       are drawn in, put the ones you have stopped using away, or throw them out. Nothing here is the app’s.</p>
+    <p class="muted" style="font-size:.85rem">Under each: its <b>kind</b> — investing, maintaining, restoring or drift — which the Overview adds up as shares (the
+      app starts you with a guess; change it), a category it sits <b>inside</b> (its time rolls up under that one), and a
+      <b>value</b> it serves when nothing more specific says so.</p>
     <div class="tm-catrows">
       <div class="tm-cathead mono">
         <span></span><span>name</span><span>colour</span><span>used</span><span>order</span><span></span><span></span></div>
@@ -351,6 +301,16 @@ function timeCategoriesHTML(){
             title="${c.off ? 'put it back in the pickers' : 'take it out of the pickers, keeping what is already filed under it'}"
             >${c.off ? 'put back' : 'put away'}</button>
           <button class="del-x inline" data-tmcatdel="${esc(c.id)}" title="throw it out for good">×</button>
+          <div class="tm-catmore">
+            <label class="pd-q"><span class="k">kind</span><select class="sel sm" data-tmcatf="kind" data-tmcat="${esc(c.id)}"
+              title="what this time does for the life it comes out of">
+              <option value="">unsorted</option>${TIME_CAT_KINDS.map(k => `<option value="${k}" ${c.kind === k ? 'selected' : ''}>${esc(TIME_CAT_KIND_WORDS[k])}</option>`).join('')}</select></label>
+            <label class="pd-q"><span class="k">inside</span><select class="sel sm" data-tmcatf="parentId" data-tmcat="${esc(c.id)}">
+              <option value="">— nothing —</option>${timeCatParentOptions(c.id).map(v => `<option value="${esc(v.id)}" ${c.parentId === v.id ? 'selected' : ''}>${esc(v.emoji)} ${esc(v.name)}</option>`).join('')}</select></label>
+            <label class="pd-q"><span class="k">serves</span><select class="sel sm" data-tmcatf="valueId" data-tmcat="${esc(c.id)}"
+              title="when nothing else says which value a stretch serves, this does">
+              <option value="">— no value —</option>${(S.values || []).map(v => `<option value="${esc(v.id)}" ${c.valueId === v.id ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></label>
+          </div>
         </div>`; }).join('')}
     </div>
     <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
@@ -373,7 +333,10 @@ function bindTimeCategories(root){
     const write = () => { const c = timeCategory(n.dataset.tmcat);
       if(!c || !c.id) return;
       const v = n.value;
-      if(n.dataset.tmcatf === 'name') c.name = v.trim().slice(0, 40) || c.name;
+      if(n.dataset.tmcatf === 'kind') c.kind = TIME_CAT_KINDS.includes(v) ? v : null;
+      else if(n.dataset.tmcatf === 'parentId') c.parentId = v && v !== c.id ? v : null;
+      else if(n.dataset.tmcatf === 'valueId') c.valueId = v || null;
+      else if(n.dataset.tmcatf === 'name') c.name = v.trim().slice(0, 40) || c.name;
       else if(n.dataset.tmcatf === 'emoji') c.emoji = v.trim().slice(0, 8) || c.emoji;
       else if(/^#[0-9a-fA-F]{3,8}$/.test(v)) c.color = v;
       saveNow(); };
