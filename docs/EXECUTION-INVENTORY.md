@@ -174,7 +174,7 @@ Time ↔ projects/skills/people/habits (B5); Study Deck five-minute offer on Tod
 
 ## Part C — Seams, gaps and inconsistencies (what I found)
 
-*Evidence-based; "unverified" where I did not run it.*
+*Evidence-based; "unverified" where I did not run it. Resolved and corrected by `docs/EXECUTION-PHASE0.md` (read that for the latest).*
 
 **Planning model**
 1. **Three planning vocabularies for one day.** A task has `day` (due) and `doDay/doEnd`; a day plan has `intentions[3]` (free text) and a legacy `items[]` (`est` in **hours**); the week plan holds `taskIds` per goal/stage; time blocks hold their own `label`s. Only the do-date drives Today. The "three that matter" are *text*, not references to tasks, so completing a task never ticks an intention.
@@ -187,7 +187,7 @@ Time ↔ projects/skills/people/habits (B5); Study Deck five-minute offer on Tod
 8. **Quarter / half / year have reviews but no plans**; there is no "objectives → projects → tasks" ladder, no OKR-like cascade, and no yearly theme feeding down.
 
 **Time tracking & focus**
-9. **Two clocks that are reconciled, not one.** The focus timer (a state machine in `FocusTimer` + `timerLive`) and the time tracker (rows with `endTime:null`) are kept in agreement by `timeSyncFocus` every minute and on every event. It works, but it is the most intricate subsystem and the source of most prior bugs.
+9. **Two sources of time, one of them already derived.** *(Phase 0 refinement: the focus sitting record is the source of truth and the tracker's focus entries are projections of it; the second clock is every non-focus timer — the pill's unlabeled start and room-started clocks — which are plain rows with no sitting behind them. See `EXECUTION-PHASE0.md`.)* Original note: The focus timer (a state machine in `FocusTimer` + `timerLive`) and the time tracker (rows with `endTime:null`) are kept in agreement by `timeSyncFocus` every minute and on every event. It works, but it is the most intricate subsystem and the source of most prior bugs.
 10. **Estimates are not learned.** Estimate vs actual is *displayed* ("13m of 15m", writing-to-doing delay) but no estimate is suggested from history, and the day-capacity bar uses raw estimates.
 11. **Categories are flat and per-task single-valued**; no project/client dimension, no billable flag, no tags on tasks flowing to entries (entries have `tags` but the task→entry path only sets category and link — unverified).
 12. **No idle/away detection and no automatic capture** (by design: "no network, no analytics"), so untracked time is shown honestly but never inferred or prompted beyond the idle nudge.
@@ -197,12 +197,12 @@ Time ↔ projects/skills/people/habits (B5); Study Deck five-minute offer on Tod
 **Habits**
 15. **No scheduled reminders for habits** (reminders exist only for tasks); habit "time of day" is used for grouping, not alerting.
 16. **Habit ↔ task is loose**: a habit can be linked to values/skills/rooms and credited by tracked hours, but cannot spawn or be fulfilled by a task, and "stacking after another habit" is a text field, not a chain the UI enforces (unverified).
-17. **`18-habit-area.js` is a stub**; the planned per-life-area pages were never built. Habit fixtures in rooms are half-wired (Stillness, Japanese; the regex fallback remains).
+17. ~~`18-habit-area.js` is a stub~~ **Corrected in Phase 0:** it is a real 212-line feature (routes `#/habit-area/:category` and `#/habit-detail/:id`, linked from the Habits dashboard). Habit fixtures in rooms are half-wired (Stillness, Japanese; the regex fallback remains).
 18. **No streak protection** (freeze/grace) — deliberate (the design is "accounts, not scolding") but a lever to decide on.
 
 **Prompting**
 19. **Three prompt systems that don't share a queue** (duties → Pending, nudges → one slot, reminders → floating list + banner). Only 3 of the 8 designed nudges exist; "start the next block", "did this happen?", "habit milestone near", "person in a time label" do not.
-20. **Duty windows depend on median wake/sleep, but "I woke up at" is manual and the Settings wake/sleep times are a second source** (`wakeTime` vs the logged `wakeAt`); two truths for the start of the day.
+20. **Three truths for the start of the day** (Phase 0): `checkins[d].wakeAt`, `dailyRhythm[d].wakeTime` (copied once, then independent) and `settings.wakeTime`.
 
 **Surface and cost**
 21. **Today carries a lot above the fold** (milestones, head, switch, jump index, nudge, pending) — partly fixed in the latest update, but at 800 px tall the Execution view's own content still starts around 270 px down.
