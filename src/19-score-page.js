@@ -1642,9 +1642,16 @@ function bindScoreViewer(root, x){
      handler cleared the score and redrew, the redraw read the id straight
      back out of the address it was still at, and only the anchor's own
      navigation — a beat later — actually left. One press, one navigation. */
+  /* The address is not always #/score/<id>. Coming back to the room by its own
+     link — the sidebar, Today, a review — lands on #/score and the room draws
+     the score that was open last. Setting the hash to what it already is
+     fires nothing, so from there the button did nothing at all. In that case
+     the page is redrawn here instead of waiting for a navigation that will
+     not come. */
   on('#scBack', () => { ui.id = null; ui.focus = null;
     scoreLeaveReading();
-    saveNow(); navigate('#/score'); });
+    saveNow();
+    if(/^#\/score\/?$/.test(location.hash)) rerender(); else navigate('#/score'); });
   $$('[data-scdetails]', root).forEach(b => b.onclick = () => openScoreDetails(b.dataset.scdetails));
   on('#scNewSec', () => openSectionModal(x.id));
   on('#scUnfocus', () => { ui.focus = null; rerender(); });

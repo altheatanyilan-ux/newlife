@@ -133,6 +133,23 @@ const THIN = `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1
   is('  and one press leaves both', [back.now, back.id], ['#/score', null]);
   yes('  the shelf is what is on the page', back.shelf && !back.viewer, JSON.stringify(back));
 
+  /* the room entered by its own link: the address is a bare #/score and the
+     score last open is drawn. The button has to work from there too. */
+  await p.evaluate(() => { const x = scores().find(y => y.title === 'A Thick One');
+    scoreUi().id = x.id; location.hash = '#/today'; });
+  await p.waitForTimeout(1500);
+  await p.evaluate(() => { location.hash = '#/score'; });
+  await p.waitForTimeout(6000);
+  const bare = await p.evaluate(async () => {
+    const was = {hash: location.hash, viewer: !!document.querySelector('.sc-open')};
+    document.querySelector('#scBack').click();
+    await new Promise(r => setTimeout(r, 1400));
+    return {was, now: location.hash, id: scoreUi().id,
+      shelf: !!document.querySelector('#scInv'), viewer: !!document.querySelector('.sc-open')};
+  });
+  yes('from a bare #/score the score is open', bare.was.viewer && bare.was.hash === '#/score', JSON.stringify(bare));
+  yes('  and one press still reaches the shelf', bare.shelf && !bare.viewer && bare.id === null, JSON.stringify(bare));
+
   console.log('\n3. a thick page is labelled, not refused');
   await p.evaluate(() => { const x = scores().find(y => y.title === 'A Thick One');
     document.querySelector(`[data-scopen="${x.id}"]`).click(); });
