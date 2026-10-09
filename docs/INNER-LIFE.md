@@ -544,7 +544,7 @@ A personal wiki for a lifelong inquiry — what you think about the questions th
 
 **Proof.** *Experiments* record trials, hits and the chance rate, and give your hit rate and the **exact one-sided binomial p-value** — "if only chance were at work, k or more hits in n would happen with probability p". *Sealed predictions* are fingerprinted with **SHA-256** when saved (so you can later verify the text was not altered) and resolved true or false once; **calibration** shows your **Brier score** (0 is perfect; always saying 50 % scores 0.25) and how often you were right at each level of confidence.
 
-**The week**, computed when the site is opened and kept (up to 104 weeks): new pages, red links that turned blue, positions revised, pages pruned, open tensions.
+**The week**, computed when the Tree home is opened and kept (up to 104 weeks; only the current week is drawn): new pages, red links that turned blue, positions revised, pages pruned, open tensions.
 
 The Tree can be exported and imported on its own from its home page; an import only adds what is missing.
 
@@ -870,4 +870,4 @@ Collected from the **Check** notes above, with a few more. None of these is a fa
 
 *The purpose layer added after this account was written — the sheet, the workbench, convergence, the demons registers, retreats, the lenses — is described in [PURPOSE.md](PURPOSE.md). Where the two differ, PURPOSE.md is newer.*
 
-For the two music rooms (Jazz and Songwriting) in the same depth, see [STUDIOS.md](STUDIOS.md).
+For the two music rooms (Jazz and Songwriting) in the same depth, see [STUDIOS.md](STUDIOS.md); for the Knowledge Tree on its own, see [KNOWLEDGE-TREE.md](KNOWLEDGE-TREE.md).

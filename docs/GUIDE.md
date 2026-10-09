@@ -6,6 +6,8 @@ For the inward half in depth — journals, the Morning Theatre, stillness and di
 
 The two music rooms in depth — the Jazz Studio's curriculum, twelve-key flashcards, daily plan, tune library, band and piano input, and the Songwriting Studio's Path, thirteen tools and rule engines — are in [**STUDIOS.md**](STUDIOS.md).
 
+The Knowledge Tree — pages, positions, grafts, tending, proof — has its own long explanation in [**KNOWLEDGE-TREE.md**](KNOWLEDGE-TREE.md).
+
 The purpose layer — the sheet, the zone-of-genius workbench, convergence, values and strengths work, the inner-demons registers, the guided vision hour, retreats and the lenses — is described in [**PURPOSE.md**](PURPOSE.md).
 
 It is long because the house is large. You do not need to read it in order. Start with **Part I**, then read the chapter for whichever room you are about to use. **Part VI** has suggested daily, weekly and yearly rhythms, a map of how the rooms connect, a keyboard reference, a glossary and answers to common questions.
