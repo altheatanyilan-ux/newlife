@@ -168,9 +168,10 @@ function pqFlags(T){
   /* an in-focus skill with no hours in seven days */
   try { (typeof focusSkills === 'function' ? focusSkills() : []).forEach(sk => {
     const recent = (S.timeEntries || []).some(e => e.linkedType === 'skill' && e.linkedId === sk.id && daysBetween(timeLivingDay(e.startTime), T) <= 7);
-    const last = sk.lastPracticed ? daysBetween(sk.lastPracticed, T) : 999;
+    const lp = (typeof ledgerUnified === 'function' && ledgerUnified()) ? (typeof skillLastPracticed === 'function' ? skillLastPracticed(sk) : null) : sk.lastPracticed;
+    const last = lp ? daysBetween(lp, T) : 999;
     if(!recent && last > 7) push({id: 'skill-idle:' + sk.id, period: 'week', msg: `${sk.name} is in focus and has had no time this week.`,
-      rule: `it is marked in focus, with no hours logged against it in seven days${sk.lastPracticed ? ` (last practised ${fmtDate(sk.lastPracticed, 'short')})` : ''}`, go: ['open', () => navigate('#/identity/skills')]});
+      rule: `it is marked in focus, with no hours logged against it in seven days${lp ? ` (last practised ${fmtDate(lp, 'short')})` : ''}`, go: ['open', () => navigate('#/identity/skills')]});
   }); } catch(e){}
   /* an in-progress list or project with no time in fourteen days */
   try { planLists().filter(l => planListActive(l) && !l.archivedAt && l.id !== 'inbox').forEach(l => {
@@ -244,7 +245,7 @@ function pqSystem(T){
 /* ---------- the queue ---------- */
 function promptQueue(T = today()){
   let all = [];
-  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews, pqSystem].forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
+  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews, pqSystem, typeof pqPurpose === 'function' ? pqPurpose : null, typeof pqBets === 'function' ? pqBets : null].filter(Boolean).forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
   all = all.filter(it => !pqSuppressed(it));
   const seen = new Set(); all = all.filter(it => seen.has(it.id) ? false : (seen.add(it.id), true));
   return all.sort((a, b) => a.rank - b.rank || String(a.id).localeCompare(String(b.id)));

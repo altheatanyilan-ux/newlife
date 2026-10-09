@@ -13,6 +13,7 @@ routes.values = function(root){
   const drift = (cur !== null && prev !== null) ? Math.round(cur - prev) : null;
   const age = latest ? daysSince(latest.date) : null;
   root.innerHTML = `<div class="page">
+    ${typeof valuesPurposeBarHTML === 'function' ? valuesPurposeBarHTML() : ''}
 
     ${S.valueOrder.length ? `
     <!-- 2. the four numbers worth knowing -->
@@ -64,6 +65,7 @@ routes.values = function(root){
     ` : `<div class="empty rv">The compass has no points yet. Add the handful of words you would want said about how you lived — five is plenty to start.</div>`}
   </div>`;
 
+  if(typeof bindValuesPurposeBar === 'function') bindValuesPurposeBar(root);
   if(!S.valueOrder.length) return;
   const list = $('#valuesList'); let dragId = null;
   list.querySelectorAll('li').forEach(li => { li.addEventListener('dragstart', ()=>{ dragId = li.dataset.vid; li.classList.add('dragging'); }); li.addEventListener('dragend', ()=>li.classList.remove('dragging')); li.addEventListener('dragover', e=>{ e.preventDefault(); li.classList.add('over'); }); li.addEventListener('dragleave', ()=>li.classList.remove('over')); li.addEventListener('drop', e=>{ e.preventDefault(); li.classList.remove('over'); if(!dragId || dragId===li.dataset.vid) return; const o = S.valueOrder.filter(x=>x!==dragId); o.splice(o.indexOf(li.dataset.vid),0,dragId); S.valueOrderHistory.push({date:today(),order:[...S.valueOrder]}); S.valueOrder = o; saveNow(); rerender(); toast('Priorities re-ranked. The previous order is kept.'); }); });
@@ -93,7 +95,7 @@ function deleteValue(v, node, after){
     const habits = S.habits.filter(h => (h.links?.values||[]).includes(v.id)); habits.forEach(h => h.links.values = h.links.values.filter(id => id !== v.id));
     const orderIdx = S.valueOrder.indexOf(v.id); S.valueOrderHistory.push({date: today(), order: [...S.valueOrder]}); S.valueOrder = S.valueOrder.filter(id => id !== v.id);
     const back = spliceOut(S.values, x => x.id === v.id);
-    return () => { back(); rl(); vis.forEach(x => x.values.push(v.id)); habits.forEach(h => h.links.values.push(v.id)); S.valueOrder.splice(Math.min(orderIdx, S.valueOrder.length), 0, v.id); S.valueOrderHistory.pop(); };
+    return () => { back(); rl(); habits.forEach(h => h.links.values.push(v.id)); S.valueOrder.splice(Math.min(orderIdx, S.valueOrder.length), 0, v.id); S.valueOrderHistory.pop(); };
   }});
 }
 async function lastSnapshotFromDB(){
@@ -108,7 +110,13 @@ async function openSnapshotModal(after, existing=null){
   S.valueOrder.forEach(id => { base[id] = ref ? (ref.ratings[id] ?? 50) : 50; });
   const m = openModal(`<h2>${existing?'Edit snapshot':'Congruence snapshot'}</h2><p class="muted">${existing?`Taken ${fmtDate(existing.date,'med')}. Adjust a value to change it; notes stay editable below.`:`0–100 for each value. Not aspiration — where you actually are, this week.${last?` Sliders start where you left them on ${fmtDate(last.date,'med')}; move one and a note opens beneath it.`:''}`}</p>${existing?`<div class="field" style="margin-bottom:10px"><label>Date</label><input class="inp" type="date" id="snapDate" value="${existing.date}"></div>`:''}
     <div class="snapshot-form">${S.valueOrder.map(id=>{ const v=byId(S.values,id); return `<div class="sv-block" data-svb="${id}" style="--c:${v.color}"><div class="r"><span class="n" style="color:${v.color}">${esc(v.name)}</span><input type="range" class="slider" min="0" max="100" value="${base[id]}" data-sv="${id}" style="--c:${v.color}"><span class="mono" data-svl="${id}">${base[id]}</span></div>
-      <div class="sv-note" data-svn="${id}" style="height:0" aria-hidden="true"><textarea class="ta" rows="2" data-svt="${id}" placeholder="What's driving this score today?" disabled tabindex="-1">${esc(existing?.notes?.[id]||'')}</textarea></div></div>`; }).join('')}</div>
+      <div class="sv-note" data-svn="${id}" style="height:0" aria-hidden="true"><textarea class="ta" rows="2" data-svt="${id}" placeholder="What's driving this score today?" disabled tabindex="-1">${esc(existing?.notes?.[id]||'')}</textarea></div>
+      <!-- The gap question. The note above asks what is driving the score,
+           which is diagnostic. This asks the one the course asks: why is it
+           an eight and not a ten, and what are the missing points. Below ninety
+           only, never nagging; a snapshot without it is complete. -->
+      <div class="sv-miss" data-svm="${id}" hidden><label class="mono">What exactly would take this from <b data-svmn="${id}"></b> to 10? Name the missing points \u2014 specific and tangible. The thing that gets you there may not be the obvious one. One per line.</label>
+        <textarea class="ta" rows="2" data-svmt="${id}" placeholder="e.g. a place to publish it; one wise friend to talk it over with">${esc((existing?.missingPoints?.[id]||[]).map(x => x.text).join('\n'))}</textarea></div></div>`; }).join('')}</div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn primary" id="snapSave">${existing?'Save changes':'Take snapshot'}</button></div>`);
   if(existing) Object.keys(existing.notes||{}).forEach(id => { const note = m.querySelector(`[data-svn="${id}"]`); if(note){ note.classList.add('open'); note.style.height='auto'; note.setAttribute('aria-hidden','false'); const ta = note.querySelector('textarea'); ta.disabled=false; ta.tabIndex=0; } });
   const openNote = (note) => { if(note.classList.contains('open')) return; const ta = note.querySelector('textarea'); note.classList.add('open'); note.setAttribute('aria-hidden','false'); ta.disabled = false; ta.tabIndex = 0;
@@ -116,14 +124,20 @@ async function openSnapshotModal(after, existing=null){
     note.style.height = '0px'; requestAnimationFrame(() => { note.style.height = note.scrollHeight + 'px'; }); note.addEventListener('transitionend', () => { if(note.classList.contains('open')) note.style.height = 'auto'; }, {once:true}); };
   const closeNote = (note) => { if(!note.classList.contains('open')) return; const ta = note.querySelector('textarea'); ta.value = ''; ta.disabled = true; ta.tabIndex = -1; note.setAttribute('aria-hidden','true');   // collapse and discard
     note.classList.remove('open'); if(reduced()){ note.style.height = '0px'; return; } note.style.height = note.scrollHeight + 'px'; requestAnimationFrame(() => { note.style.height = '0px'; }); };
-  const onMove = r => { const id = r.dataset.sv; const cur = +r.value; m.querySelector(`[data-svl="${id}"]`).innerHTML = `${cur}${cur!==base[id] ? ' ' + deltaHTML(cur, base[id]) : ''}`;
+  const showMiss = r => { const id = r.dataset.sv, cur = +r.value, box = m.querySelector(`[data-svm="${id}"]`); if(!box) return;
+    box.hidden = cur >= 90; const n = m.querySelector(`[data-svmn="${id}"]`); if(n) n.textContent = congruenceCourse(cur); };
+  const onMove = r => { showMiss(r); const id = r.dataset.sv; const cur = +r.value; m.querySelector(`[data-svl="${id}"]`).innerHTML = `${cur}${cur!==base[id] ? ' ' + deltaHTML(cur, base[id]) : ''}`;
     const block = m.querySelector(`[data-svb="${id}"]`), note = m.querySelector(`[data-svn="${id}"]`); const changed = cur !== base[id];
     block.classList.toggle('changed', changed); if(changed) openNote(note); else closeNote(note); };
   m.querySelectorAll('[data-sv]').forEach(r => { r.addEventListener('input', () => onMove(r)); r.addEventListener('change', () => onMove(r)); });
+  m.querySelectorAll('[data-sv]').forEach(showMiss);
   m.querySelector('#snapSave').onclick = e => {
-    const ratings = {}, notes = {};
-    m.querySelectorAll('[data-sv]').forEach(r => { const id = r.dataset.sv; ratings[id] = +r.value; const open = m.querySelector(`[data-svn="${id}"]`).classList.contains('open'); if(+r.value !== base[id] || (existing && open)){ const t = m.querySelector(`[data-svt="${id}"]`).value.trim(); if(t) notes[id] = t; } });
-    if(existing){ Object.assign(existing, {ratings, notes, date: m.querySelector('#snapDate').value || existing.date}); } else S.valueSnapshots.push({id:uid(), date:today(), ratings, notes, note:''}); saveNow();
+    const ratings = {}, notes = {}, missingPoints = {};
+    m.querySelectorAll('[data-sv]').forEach(r => { const id = r.dataset.sv; ratings[id] = +r.value; const open = m.querySelector(`[data-svn="${id}"]`).classList.contains('open'); if(+r.value !== base[id] || (existing && open)){ const t = m.querySelector(`[data-svt="${id}"]`).value.trim(); if(t) notes[id] = t; }
+      /* the missing points are a reading of this moment, kept on the snapshot and not on the value */
+      if(+r.value < 90){ const old = (existing?.missingPoints?.[id]) || []; const lines = (m.querySelector(`[data-svmt="${id}"]`).value || '').split('\n').map(x => x.trim()).filter(Boolean);
+        if(lines.length) missingPoints[id] = lines.map(text => { const hit = old.find(o => o.text === text); return hit || {text, at: new Date().toISOString(), goalId: null}; }); } });
+    if(existing){ Object.assign(existing, {ratings, notes, missingPoints, date: m.querySelector('#snapDate').value || existing.date}); } else S.valueSnapshots.push({id:uid(), date:today(), ratings, notes, missingPoints, note:''}); saveNow();
     ripple(e.clientX,e.clientY,'var(--terra)'); sound('success'); m.remove(); toast('Snapshot taken.'); after ? after() : rerender();
   };
 }
@@ -225,6 +239,7 @@ routes.value = function(root, params){
     <section class="section rv"><div class="row between"><span class="sc">Evidence feed</span><span class="row"><button class="btn sm" data-pol="+">+ embodied</button><button class="btn sm" data-pol="-">− betrayed</button></span></div>
       ${es.map(e=>{ const pol = e.links.values.find(x=>x.id===v.id)?.pol||'+'; return `<div class="vev ${pol==='+'?'pos':'neg'}"><span class="vev-mark">${pol==='+'?'+':'−'}</span>${entryCard(e)}</div>`; }).join('')||'<div class="empty">No entries tagged to this value yet.</div>'}</section>
 
+    ${valueMissingHTML(v)}
     <section class="section rv"><span class="sc">Four questions</span>
       <div class="vfacets">
         ${F('embody','How would I know if I embody this value?','Observable, behavioural indicators. Not aspirations — evidence.')}
@@ -234,13 +249,19 @@ routes.value = function(root, params){
       </div>
     </section>
     ${moreSection(`<div class="row" style="gap:20px"><div class="field"><label>Colour</label><input type="color" id="valColor" value="${v.color}" style="width:40px;height:28px;border:none;background:none;padding:0;cursor:pointer"></div></div>
+      <div class="field"><label>Which parts of the Maslow reading this value feeds</label><div class="deps">${[['authenticity', 'authenticity'], ['awe', 'awe & creativity'], ['beyond', 'beyond the self']].map(([k, n]) => `<button class="chip ${(v.facets || []).includes(k) ? 'on' : ''}" data-vfacet="${k}">${n}</button>`).join('')}</div>
+        <div class="faint" style="font-size:.76rem">Optional. A value with none set is read by guessing from its name; one with a facet is read by the facet.</div></div>
       <div class="danger-zone"><span>A compass point, not a tag. Deleting it unlinks entries and habits from it.</span><button class="btn sm ghost danger" id="delValue">Delete this value</button></div>`, 'More about this value')}
   </div>`;
   root.querySelectorAll('[data-vfdel]').forEach(b => b.onclick = () => { const [k,i] = b.dataset.vfdel.split(':'); const h = v.fields[k][+i]; requestDelete({label: `Version from ${fmtDate(h.date,'med')}`, node: b.closest('.v'), remove: () => spliceOut(v.fields[k], x => x === h)}); });
   $('#delValue').onclick = () => deleteValue(v, null, () => navigate('#/values'));
+  root.querySelectorAll('[data-vfacet]').forEach(b => b.onclick = () => { const f = v.facets = v.facets || []; const k = b.dataset.vfacet; const i = f.indexOf(k); if(i >= 0) f.splice(i, 1); else f.push(k); saveNow(); b.classList.toggle('on'); });
   $('#valColor').onchange = e => { v.color = e.target.value; saveNow(); rerender(); };
   root.querySelectorAll('[data-vf]').forEach(b => b.onclick = () => { const k = b.dataset.vf; const latest = (v.fields[k]||[]).slice(-1)[0]; const m = openModal(`<h2>A new version</h2><textarea class="ta" id="vfText" style="min-height:160px">${esc(latest?.text||'')}</textarea><p class="faint" style="font-size:.78rem">The previous version is kept. Growth in self-understanding stays visible.</p><div class="row" style="justify-content:flex-end"><button class="btn primary" id="vfSave">Keep</button></div>`); m.querySelector('#vfSave').onclick = () => { const t = m.querySelector('#vfText').value.trim(); if(!t) return; v.fields[k] = v.fields[k]||[]; v.fields[k].push({date:today(),text:t}); saveNow(); m.remove(); rerender(); sound('save'); }; });
   root.querySelectorAll('[data-pol]').forEach(b => b.onclick = () => openEntryModal({type:'reflection', links:{values:[{id:v.id,pol:b.dataset.pol}]}}));
+  root.querySelectorAll('[data-vmgoal]').forEach(b => b.onclick = () => { const [sid, at] = b.dataset.vmgoal.split('|'); const sn = byId(S.valueSnapshots, sid);
+    const mp = sn && ((sn.missingPoints || {})[v.id] || []).find(x => x.at === at); if(!mp) return;
+    const g = purposeMakeGoal({text: mp.text, valueId: v.id}); mp.goalId = g.id; saveNow(); sound('success'); toast('Made a goal \u2014 it is under Time tracking \u2192 Intentions & goals.'); rerender(); });
 
 };
 
@@ -252,3 +273,18 @@ routes.value = function(root, params){
    what you last said, and you adjust from there.
    ============================================================ */
 function isoWeek(d = today()){ const x = parseDay(d); const day = (x.getDay()+6)%7; x.setDate(x.getDate()-day+3); const first = new Date(x.getFullYear(),0,4); const n = 1 + Math.round(((x - first)/DAY - 3 + ((first.getDay()+6)%7))/7); return `${x.getFullYear()}-W${pad(n)}`; }
+
+/* ---------- what you have said would take this to ten ----------
+   The missing points named on each snapshot, rolled up newest first, so you
+   can see whether the same one has been named for two years. Each can become
+   a goal: the way the compass steers and not only reports. */
+function valueMissingHTML(v){
+  const rows = [];
+  (S.valueSnapshots || []).slice().sort((a, b) => a.date < b.date ? 1 : -1).forEach(sn => {
+    ((sn.missingPoints || {})[v.id] || []).forEach(mp => rows.push({sn, mp, score: (sn.ratings || {})[v.id]})); });
+  if(!rows.length) return '';
+  return `<section class="section rv"><span class="sc">What you have said would take this to ten</span>
+    <div class="vmiss">${rows.slice(0, 20).map(({sn, mp, score}) => `<div class="vmiss-row"><span class="mono faint">${esc(fmtDate(sn.date, 'med'))} \u00B7 ${congruenceCourse(score)}</span>
+      <span class="vmiss-t">${esc(mp.text)}</span>
+      ${mp.goalId ? '<span class="mono faint">a goal</span>' : `<button class="btn sm ghost" data-vmgoal="${esc(sn.id)}|${esc(mp.at)}">make this a goal</button>`}</div>`).join('')}</div></section>`;
+}

@@ -51,20 +51,20 @@ const TH_DURATIONS = [5, 15, 30];
    placed the aim, it is left where it was placed. The rule that holds
    everywhere is one chief aim, never none and never two. */
 const TH_RECIPES = {
-  on_fire:   {5:['scene'],      15:['scene','scripting'],   30:['scene','scripting','tension','aim','board']},
-  foggy:     {5:['tension'],    15:['tension','script'],    30:['tension','script','winning']},
-  resistant: {5:['wheel'],      15:['wheel','thanks'],      30:['wheel','thanks','winning']},
-  grateful:  {5:['thanks'],     15:['thanks','scene'],      30:['thanks','scene','scripting']},
-  inspired:  {5:['scripting'],  15:['scripting','scene'],   30:['scripting','scene','board']},
+  on_fire:   {5:['scene'],      15:['scene','scripting'],   30:['scene','scripting','tension','visualise','aim','board']},
+  foggy:     {5:['contemplate'], 15:['contemplate','tension'], 30:['contemplate','tension','script','winning']},
+  resistant: {5:['wheel'],      15:['wheel','affirm'],      30:['wheel','affirm','thanks','winning']},
+  grateful:  {5:['thanks'],     15:['thanks','scene'],      30:['thanks','scene','scripting','visualise']},
+  inspired:  {5:['scripting'],  15:['scripting','scene'],   30:['scripting','scene','visualise','board']},
 };
 const TH_STEP_NAME = {
   script:'Self-image script', winning:'The winning feeling', aim:'Definite chief aim',
   board:'Vision board', scene:'A scene, entered', scripting:'Scripting',
-  tension:'Structural tension', thanks:'Thanks, in advance', wheel:'The focus wheel',
+  tension:'Structural tension', thanks:'Thanks, in advance', wheel:'The focus wheel', affirm:'Affirmation', contemplate:'Contemplation', visualise:'Purpose visualisation',
 };
 /* how long each step is meant to take, so the timer can say "about four
    minutes" rather than counting down at you */
-const TH_BUDGETS = {5:[4, 1], 15:[7, 5, 3], 30:[12, 8, 5, 3, 2]};
+const TH_BUDGETS = {5:[4, 1], 15:[7, 5, 3], 30:[9, 6, 5, 5, 3, 2]};
 
 const thMood = id => TH_MOODS.find(m => m.id === id) || TH_MOODS[0];
 function thRecipe(mood, minutes){

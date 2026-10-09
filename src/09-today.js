@@ -638,6 +638,7 @@ routes.today = function(root, params = []){
     </section><!-- /execution -->
 
     <section class="today-view" data-view="in"${view === 'in' ? '' : ' hidden'}>
+    ${typeof purposeText === 'function' && purposeText('statement') ? `<a class="pp-today mono-soft serif" href="#/purpose" title="the purpose sheet">${esc(purposeText('statement'))}</a>` : ''}
 
     <div class="daybox daybox-solo">
 
@@ -669,6 +670,7 @@ routes.today = function(root, params = []){
         </div>
       </div>
     </details>
+    ${typeof zogTodayHTML === 'function' ? zogTodayHTML() : ''}
 
     </div><!-- /daybox -->
 

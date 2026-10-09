@@ -144,6 +144,26 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
      The duty states themselves are derived live from existing records; dutyLog
      is the immutable audit trail that backs the Review page graphs. */
   dutyLog:          'id, dutyId, date',
+  /* The purpose spine (19-purpose-*.js). Words and readings like any
+     other store; practiceLog, strengthRankHistory and the nested challenge,
+     release, verdict and restart rows are add-only (lifeGuard,
+     20-purpose-a-model.js). 'convergence' is a cache and may be emptied. */
+  practiceLog:      'id, kind, date',
+  strengths:        'id',
+  strengthSnapshots:'id, date',
+  strengthRankHistory: 'id, at',
+  affirmations:     'id',
+  beliefs:          'id, kind',
+  bets:             'id',
+  retreats:         'id, cadence, date',
+  negativeValues:   'id',
+  masterValues:     'id, family',
+  zoneItems:        'id, zone',
+  flowClues:        'id',
+  breaks:           'id, date',
+  habitsToDrop:     'id',
+  alignmentChecks:  'id, date',
+  convergence:      'id',
 };
 /* keys of S that are single objects/arrays without their own identity — kept as rows in `meta` */
 /* Every top-level key of S that is an object rather than an array has to be
@@ -166,8 +186,8 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview','purpose','purposeImprint','valuesImprint','museState','zogTarget','journeyOverride','zogStreak'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals','practiceLog','strengths','strengthSnapshots','strengthRankHistory','affirmations','beliefs','bets','retreats','negativeValues','masterValues','zoneItems','flowClues','breaks','habitsToDrop','alignmentChecks','convergence'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -255,7 +275,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(23).stores(DB_SCHEMA);   // v23 timeIntentions + perfGoals (new stores only), v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(24).stores(DB_SCHEMA);   // v24 the purpose spine (new stores only), v23 timeIntentions + perfGoals (new stores only), v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -497,6 +517,7 @@ async function persist(){
   if(typeof anGuard === 'function') anGuard(rows, prevText);
   if(typeof lsSnapshotGuard === 'function') lsSnapshotGuard(rows, prevText);
   if(typeof lsRecallGuard === 'function') lsRecallGuard(rows, prevText);
+  if(typeof lifeGuard === 'function') lifeGuard(rows, prevText);
   /* One snapshot, row by row: each row's text, and by key where the rows can be
      told apart. Whether a store changed is read off the rows; the text of the
      whole store (byte for byte what stringifying the array would give) is only

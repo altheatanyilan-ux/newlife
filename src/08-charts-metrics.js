@@ -120,7 +120,7 @@ function signals(){
   /* "Thinnest dimension" is gone with the energy dimensions of habits */
   return out;
 }
-function onThisDay(){ const d = parseDay(today()); const md_ = x => { const dd = parseDay(x); return {m:dd.getMonth(), d:dd.getDate(), y:dd.getFullYear()}; }; return S.entries.filter(e => /^\d{4}-\d{2}-\d{2}/.test(e.occurredAt||'') && (()=>{ const o = md_(e.occurredAt.slice(0,10)); if(o.y >= d.getFullYear()) return false; const a = new Date(d.getFullYear(), o.m, o.d); return Math.abs((a - d)/DAY) <= 3; })()).sort((a,b)=>occurredSort(b)-occurredSort(a)); }
+function onThisDay(){ const d = parseDay(today()); const md_ = x => { const dd = parseDay(x); return {m:dd.getMonth(), d:dd.getDate(), y:dd.getFullYear()}; }; return S.entries.filter(e => e.type !== 'memento' && /^\d{4}-\d{2}-\d{2}/.test(e.occurredAt||'') && (()=>{ const o = md_(e.occurredAt.slice(0,10)); if(o.y >= d.getFullYear()) return false; const a = new Date(d.getFullYear(), o.m, o.d); return Math.abs((a - d)/DAY) <= 3; })()).sort((a,b)=>occurredSort(b)-occurredSort(a)); }
 function gentlePrompt(){
   const ps = [];
   const sync = S.entries.filter(e=>e.type==='synchronicity').sort((a,b)=>b.createdAt<a.createdAt?-1:1);

@@ -213,10 +213,20 @@ function mEntryRate(types, days = 7){
   const n = S.entries.filter(e => types.includes(e.type) && (e.occurredAt||e.createdAt||'').slice(0,10) >= since).length;
   return n ? clamp(n / days * 100 * 1.5, 0, 100) : (S.entries.some(e => types.includes(e.type)) ? 0 : null);
 }
-function mValueCongruence(names = null){
+/* A value can say which tier it feeds (authenticity, awe, beyond the self) by a
+   facet it carries. A facet is preferred; the name guess is kept only for values
+   with no facet set, and the tier says which one it used. */
+function mValueCongruence(names = null, facet = null){
   if(typeof valueGaps !== 'function' || !S.valueOrder?.length || !latestSnapshot()) return null;
   const gaps = valueGaps();
-  const picked = names ? gaps.filter(g => names.some(n => g.name.toLowerCase().includes(n))) : gaps;
+  const facets = g => ((byId(S.values, g.id) || {}).facets || []);
+  let picked;
+  if(facet){
+    const tagged = gaps.filter(g => facets(g).includes(facet));
+    const guessed = names ? gaps.filter(g => !facets(g).length && names.some(n => g.name.toLowerCase().includes(n))) : [];
+    S._maslowSrc = S._maslowSrc || {}; S._maslowSrc[facet] = {tagged: tagged.map(g => g.name), guessed: guessed.map(g => g.name)};
+    picked = tagged.concat(guessed);
+  } else picked = names ? gaps.filter(g => names.some(n => g.name.toLowerCase().includes(n))) : gaps;
   return picked.length ? avgDefined(picked.map(g => g.congruence)) : null;
 }
 function mRehearsalRate(days = 21){
@@ -230,6 +240,8 @@ function mSetpointScore(days = 7){
   return avgDefined(lastDays(days).map(d => { const sp = S.checkins?.[d]?.setpoint; return sp ? pct(sp, 1, 22) : null; }));
 }
 /* --- the seven levels --- */
+const MASLOW_HOLLOW = ['body energy', 'movement', 'mind energy', 'learning habits', 'relational habits'];
+const MASLOW_FACETS = {authenticity: 'authenticity', awe: 'awe & creativity', beyond: 'beyond the self'};
 function maslowScores(){
   const store = maslowStore();
   const raw = {
@@ -254,7 +266,7 @@ function maslowScores(){
       'craft':    mSkillPractice(),
       'projects': mNodRate(),
       'writing':  mWritingRate(),
-      'authenticity': mValueCongruence(['authentic','integrity','honest']),
+      'authenticity': mValueCongruence(['authentic','integrity','honest'], 'authenticity'),
     },
     mind: {
       'learning':    mMediaRate(),
@@ -265,7 +277,7 @@ function maslowScores(){
     beauty: {
       'creating':     mNodRate(p => !(p.income?.current || p.income?.target)),
       'beauty taken in': mMediaRate(['film','album','exhibition','documentary']),
-      'awe & creativity': mValueCongruence(['awe','creativ','beauty']),
+      'awe & creativity': mValueCongruence(['awe','creativ','beauty'], 'awe'),
     },
     becoming: {
       'congruence':       mValueCongruence(),
@@ -277,7 +289,7 @@ function maslowScores(){
        give attention to without being asked */
     beyond: {
       'gratitude & awe':  mEntryRate(['gratitude','synchronicity']),
-      'beyond the self':  mValueCongruence(['service','steward','contribut','generos','sacred','unity','compassion']),
+      'beyond the self':  mValueCongruence(['service','steward','contribut','generos','sacred','unity','compassion'], 'beyond'),
       'given attention':  mCircleRecency(['warm','orbit'], 45),
     },
   };
@@ -287,7 +299,11 @@ function maslowScores(){
     const autoScore = known.length ? Math.round(avgDefined(known.map(([, v]) => v))) : null;
     const saved = store.overrides[m.key] || {};
     const override = typeof saved.score === 'number' ? saved.score : null;
-    return {...m, inputs, autoScore, override, note: saved.note || '',
+    /* five readings depend on inputs that were taken out (the mood shapes and the
+       energy dimensions); a tier that lacks them is computed from fewer readings
+       than it was designed for, and says so */
+    const hollow = Object.entries(inputs).filter(([k, v]) => v == null && MASLOW_HOLLOW.includes(k)).map(([k]) => k);
+    return {...m, inputs, hollow, autoScore, override, note: saved.note || '',
             effectiveScore: override ?? autoScore, hasData: known.length > 0};
   });
 }
@@ -591,6 +607,8 @@ function positionHTML(){
       <p class="mas-ask">${esc(sel.ask)}</p>
       <div class="mas-inputs">${Object.entries(sel.inputs).filter(([,v])=>v!=null)
         .map(([k,v]) => `<span class="chip" style="--c:${sel.hue}">${esc(k)} <b class="mono">${Math.round(v)}</b></span>`).join('') || '<span class="faint">Nothing logged for this level yet.</span>'}</div>
+      ${sel.hollow && sel.hollow.length ? `<p class="faint" style="font-size:.78rem;margin:6px 0 0">Computed from fewer readings than it was designed for — missing: ${sel.hollow.map(esc).join(', ')} (the inputs behind them were taken out).</p>` : ''}
+      ${Object.entries(MASLOW_FACETS).map(([f, name]) => { const s = (S._maslowSrc || {})[f]; return s && sel.inputs[name] != null ? `<p class="faint" style="font-size:.78rem;margin:4px 0 0">${esc(name)}: ${s.tagged.length ? 'read from the values you tagged with this facet (' + s.tagged.map(esc).join(', ') + ')' : ''}${s.tagged.length && s.guessed.length ? '; ' : ''}${s.guessed.length ? 'a name guess for ' + s.guessed.map(esc).join(', ') + ' — tag a value on its page to replace the guess' : ''}.</p>` : ''; }).join('')}
       <div class="field" style="margin-top:10px"><label>How it actually feels ${sel.autoScore != null ? `<span class="mono faint" style="text-transform:none;letter-spacing:0">· the data says ${sel.autoScore}</span>` : ''}</label>
         <input type="range" class="slider" min="0" max="100" id="mOverride" value="${sel.effectiveScore ?? 50}" style="--c:${sel.hue}">
         <div class="row between mono"><span class="faint">0</span><span id="mOverrideV">${sel.effectiveScore ?? 50}</span><span class="faint">100</span></div>

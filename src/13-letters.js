@@ -134,7 +134,7 @@ function openDecisionPanel(id){
    when the day itself is empty, and says how long ago each thing was. */
 function onThisDayRich({window: w = 3} = {}){
   const T = today(); const d = parseDay(T); const md_ = x => { const dd = parseDay(x); return {m:dd.getMonth(), day:dd.getDate(), y:dd.getFullYear()}; };
-  const dated = S.entries.filter(e => /^\d{4}-\d{2}-\d{2}/.test(e.occurredAt||'') && !letterIsSealed(e));
+  const dated = S.entries.filter(e => e.type !== 'memento' && /^\d{4}-\d{2}-\d{2}/.test(e.occurredAt||'') && !letterIsSealed(e));
   const withDist = dated.map(e => {
     const o = md_(e.occurredAt.slice(0,10)); if(o.y >= d.getFullYear()) return null;
     const anniv = new Date(d.getFullYear(), o.m, o.day);

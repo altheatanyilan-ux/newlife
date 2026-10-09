@@ -309,6 +309,8 @@ function timeCategoriesHTML(){
               <option value="">unsorted</option>${TIME_CAT_KINDS.map(k => `<option value="${k}" ${c.kind === k ? 'selected' : ''}>${esc(TIME_CAT_KIND_WORDS[k])}</option>`).join('')}</select></label>
             <label class="pd-q"><span class="k">inside</span><select class="sel sm" data-tmcatf="parentId" data-tmcat="${esc(c.id)}">
               <option value="">— nothing —</option>${timeCatParentOptions(c.id).map(v => `<option value="${esc(v.id)}" ${c.parentId === v.id ? 'selected' : ''}>${esc(v.emoji)} ${esc(v.name)}</option>`).join('')}</select></label>
+            <label class="pd-q"><span class="k">zone of genius</span><select class="sel sm" data-tmcatf="zog" data-tmcat="${esc(c.id)}"
+              title="time in this category counts towards the zone-of-genius hour"><option value="">no</option><option value="yes" ${c.zog ? 'selected' : ''}>yes \u2014 this is zone-of-genius work</option></select></label>
             <label class="pd-q"><span class="k">serves</span><select class="sel sm" data-tmcatf="valueId" data-tmcat="${esc(c.id)}"
               title="when nothing else says which value a stretch serves, this does">
               <option value="">— no value —</option>${(S.values || []).map(v => `<option value="${esc(v.id)}" ${c.valueId === v.id ? 'selected' : ''}>${esc(v.name)}</option>`).join('')}</select></label>
@@ -338,6 +340,7 @@ function bindTimeCategories(root){
       if(n.dataset.tmcatf === 'kind') c.kind = TIME_CAT_KINDS.includes(v) ? v : null;
       else if(n.dataset.tmcatf === 'parentId') c.parentId = v && v !== c.id ? v : null;
       else if(n.dataset.tmcatf === 'valueId') c.valueId = v || null;
+      else if(n.dataset.tmcatf === 'zog') c.zog = v === 'yes';
       else if(n.dataset.tmcatf === 'name') c.name = v.trim().slice(0, 40) || c.name;
       else if(n.dataset.tmcatf === 'emoji') c.emoji = v.trim().slice(0, 8) || c.emoji;
       else if(/^#[0-9a-fA-F]{3,8}$/.test(v)) c.color = v;

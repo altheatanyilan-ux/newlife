@@ -97,6 +97,9 @@ function _reviewLog(){ return S.reviews || {}; }
 
 function _dutyDoneCheck(id, T){
   try {
+    /* a duty registered by a room carries its own rule */
+    const reg = _extraDuties.find(x => x.id === id);
+    if(reg && typeof reg.doneCheck === 'function') return !!reg.doneCheck(T);
     const c = typeof checkin === 'function' ? checkin(T) : (S.checkins?.[T]||{});
     switch(id){
       case 'wake_log':
@@ -291,7 +294,7 @@ const DUTIES = [
     id: 'stillness_practice',
     label: 'Stillness',
     anchor: '[data-duty-id="stillness_practice"]',
-    route: '#/stillness',
+    route: '#/today',
     windowDef: {type:'anytime'},
     recurrence: {type:'daily'},
     skipDone: true,
@@ -313,7 +316,7 @@ const DUTIES = [
     id: 'study_deck',
     label: 'Study Deck cards',
     anchor: '[data-duty-id="study_deck"]',
-    route: '#/studydeck',
+    route: '#/study',
     windowDef: {type:'anytime'},
     recurrence: {type:'daily-conditional', check: () => typeof sdDueCount === 'function' && sdDueCount() > 0},
     skipDone: true,
@@ -335,7 +338,7 @@ const DUTIES = [
     id: 'ls_recall',
     label: 'Learning Studio recall',
     anchor: '[data-duty-id="ls_recall"]',
-    route: '#/learningStudio',
+    route: '#/studio',
     windowDef: {type:'anytime'},
     recurrence: {type:'event-driven', check: T => {
       const cutoff = addDays(T,-3);

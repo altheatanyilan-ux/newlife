@@ -63,8 +63,8 @@ function flowMorning(){
      body: () => `<div class="card"><div class="quote">${esc((S.rehearsal.winning || '').slice(0, 300) || 'The winning feeling is not written yet. Today has the field.')}</div></div>
        <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowquick="visualization">log what you saw</button></div>`},
     {title:'Read your Definite Chief Aim aloud.', hint:'With emotion, twice a day. Hill was specific about the emotion.',
-     body: () => `<div class="intention-card serif-lg">${esc(S.rehearsal.aim || 'Not written yet — Today has the field, and Finance can draft the number for you.')}</div>`},
-    {title:'Where are you on the scale?', hint:'Honestly, not aspirationally. You cannot leap the scale; you can only reach for the rung above.',
+     body: () => `<div class="intention-card serif-lg">${esc((typeof purposeText === 'function' && purposeText('statement')) || S.rehearsal.aim || 'Not written yet — the Purpose sheet has the field.')}</div>`},
+    {title:'Where are you on the scale?', hint:'The 22-rung emotional scale. Honestly, not aspirationally. You cannot leap the scale; you can only reach for the rung above.',
      body: () => `<input class="rng" type="range" min="1" max="22" value="${c.setpoint || 11}" id="fwSp" style="width:100%">
        <div class="row between"><span id="fwSpName" class="serif">${esc(hicksName(c.setpoint || 11))}</span><span class="mono" id="fwSpNum">${c.setpoint || 11}</span></div>`,
      bind: b => { const r = b.querySelector('#fwSp'); r.oninput = () => { b.querySelector('#fwSpName').textContent = hicksName(+r.value); b.querySelector('#fwSpNum').textContent = r.value; }; },
@@ -104,11 +104,12 @@ function flowEvening(opts = {}){
     /* "Tonight, in four dimensions" — the four energy scores — is gone by
        request. Scores already given on earlier nights are kept; nothing new
        is asked for here. */
-    {title:'And the set-point — where did it land?', hint:`This morning you were ${c.setpoint ? hicksName(c.setpoint).split(' / ')[0] : 'not on the scale yet'}.`,
+    {title:"The day's energy — one to five.", hint:`How much was in the day by the end of it: 1 drained, 5 full. (This morning\u2019s set-point is a separate reading, on the 22-rung scale${c.setpoint ? ` \u2014 you placed yourself at ${hicksName(c.setpoint).split(' / ')[0]}` : ''}.)`,
      body: () => `<div class="energy-faces">${[1,2,3,4,5].map(n=>`<button class="ef ${r.energy===n?'on':''}" data-fwef="${n}" title="${['drained','low','level','good','full'][n-1]}">${n}</button>`).join('')}</div>`,
      bind: b => b.querySelectorAll('[data-fwef]').forEach(btn => btn.onclick = () => { r.energy = +btn.dataset.fwef; saveNow(); b.querySelectorAll('[data-fwef]').forEach(x => x.classList.toggle('on', x === btn)); })},
     {title:'What actually got done.', hint:'The list you made this morning, against the day you had.',
      body: () => tasksReviewHTML(T, T)},
+    ...(typeof beliefClearingStep === 'function' ? beliefClearingStep(T) : []),
     ...(() => {
       const planned = (S.timeBlocks||[]).filter(b => b.date === T);
       if(!planned.length) return [];
@@ -258,6 +259,9 @@ function flowWeekly(opts = {}){
      body: () => typeof marginalStepHTML === 'function' ? marginalStepHTML(days[0], days[6]) : '',
      next: b => { if(typeof marginalStepSave === 'function') marginalStepSave(b, days[0]); }},
     ...studyWeek,
+    ...(typeof resistanceWeekStep === 'function' ? resistanceWeekStep(days[0], days[6]) : []),
+    ...(typeof betWeekStep === 'function' ? betWeekStep() : []),
+    ...(typeof happinessWeekStep === 'function' ? happinessWeekStep(days[0], days[6]) : []),
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",
@@ -365,6 +369,7 @@ function flowMonthly(){
        return `${sps.filter(Boolean).length > 2 ? sparkline(sps, {h:44, color:'var(--gold)', min:1, max:22}) : ''}
          <div class="row between mono" style="margin-top:6px"><span>average set-point</span><span>${sps.filter(Boolean).length ? avg(sps.filter(Boolean)).toFixed(1) : '—'} / 22</span></div>
          <div class="row between mono"><span>average evening energy</span><span>${revs.length ? avg(revs.map(r=>r.energy)).toFixed(1) : '—'} / 5</span></div>
+         <p class="faint" style="font-size:.76rem;margin:4px 0 0">Two different readings: the set-point is the 22-rung emotional scale you place yourself on in the morning; the evening energy is the day\u2019s one-to-five. Neither is a score of the other.</p>
          ${Object.keys(moods).length ? `<div class="row" style="gap:6px;flex-wrap:wrap;margin-top:8px">${Object.entries(moods).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([mm,n])=>`<span class="chip on">${esc(mm)} · ${n}</span>`).join('')}</div>` : ''}`; }},
     {title:'What carries into next month.',
      body: () => `<textarea class="ta" id="fwMr" placeholder="What this month was, and what it hands over.">${esc(mr.note || '')}</textarea>`,

@@ -165,6 +165,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     e.title = m.querySelector('#eTitle').value.trim(); e.body = m.querySelector('#eBody').value; e.occurredAt = m.querySelector('#eWhen').value.trim() || today();
     if(!e.title && !e.body){ toast('Write something first — even one line.'); return; }
     if(e.type==='quote' && !m.querySelector('[data-x=why]')?.value.trim()){ toast('“Why this caught me” is required for a quote.'); return; }
+    if(e.type==='gratitude' && !(e.extra && e.extra.anticipatory) && !m.querySelector('[data-x=gratWhy]')?.value.trim()){ toast('\u201CWhy does this matter to me?\u201D is required \u2014 it is what separates a practice that is deepening from one on autopilot.'); return; }
     e.tags = normTags((m.querySelector('#eTags')?.value || '').split(/[\s,]+/));
     m.querySelectorAll('[data-x]').forEach(i => e.extra[i.dataset.x] = i.value);
     /* the readings that deepen are versioned, not overwritten */

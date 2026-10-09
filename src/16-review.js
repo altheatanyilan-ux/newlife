@@ -315,6 +315,7 @@ function reviewSectionHTML(key, d){
     const t = d.theatre, s = d.stillness, i = d.intuition;
     return [
       t && t.days ? line('theatre', `${t.days} day${t.days === 1 ? '' : 's'}${t.scenes ? ` · ${t.scenes} scene${t.scenes === 1 ? '' : 's'}` : ''}${t.scripts ? ` · ${t.scripts} script${t.scripts === 1 ? '' : 's'}` : ''}`) : '',
+      t && t.vis && t.vis.n ? line('purpose visualisations felt', `${t.vis.vividness || '\u2014'}/5 vivid, ${t.vis.intensity || '\u2014'}/5 strong (kept apart from scenes)`) : '',
       t && t.vividness ? line('scenes felt', `${t.vividness}/5 vivid, ${t.intensity}/5 strong`) : '',
       s && s.sessions ? line('sat still', `${s.minutes} minutes across ${s.sessions} sitting${s.sessions === 1 ? '' : 's'}`) : '',
       s && s.depth ? line('how deep', `${s.depth}/5`) : '',

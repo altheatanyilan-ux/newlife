@@ -156,6 +156,7 @@ routes.skills = function(root, params){
   const counts = {}; Object.keys(SKILL_HORIZONS).forEach(k => counts[k] = S.skills.filter(s => skillHorizon(s) === k).length);
   const liveN = SKILL_LIVE.reduce((n, k) => n + counts[k], 0);
   root.innerHTML = `<div class="page">
+    ${typeof ledgerStripHTML === 'function' ? ledgerStripHTML() : ''}
 
     <!-- 1. what you are actually doing now -->
     <section class="section rv"><div class="row between"><span class="sc" style="margin:0">In focus now</span><span class="mono">${foc.length ? `${foc.length} skill${foc.length===1?'':'s'} · everything else is waiting patiently` : 'nothing in focus'}</span></div>
@@ -226,6 +227,7 @@ routes.skills = function(root, params){
   $('#skSomeday').onclick = () => newSkillDialog({horizon:'someday'});
   const bindF = (id, key, ev='change') => { const el_ = $('#'+id); if(el_) el_.addEventListener(ev, () => { f[key] = el_.value; rerender(); if(key==='q'){ const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } } }); };
   const q = $('#skq'); if(q) q.addEventListener('input', debounce(() => { f.q = q.value; rerender(); const i = $('#skq'); if(i){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } }, 350));
+  if(typeof ledgerStripBind === 'function') ledgerStripBind(root);
   bindF('skHorizon','horizon'); bindF('skCat','cat'); bindF('skLevel','level'); bindF('skPrio','prio'); bindF('skSort','sort');
   if($('#skClearF')) $('#skClearF').onclick = () => { S._skf = {q:'', horizon:'all', cat:'all', level:'all', prio:'all', sort:'horizon'}; rerender(); };
   /* the id is consumed, not kept: a re-render must not reopen the panel */
@@ -1017,6 +1019,8 @@ function openSkillPanel(id){
       <select class="sel" style="width:auto" id="skCatSel">${skillCatOptions(s.cat).map(c=>`<option ${s.cat===c?'selected':''}>${c}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skHzSel" title="how near this skill is">${Object.entries(SKILL_HORIZONS).map(([k,v])=>`<option value="${k}" ${skillHorizon(s)===k?'selected':''}>${v[0]} ${v[1]}</option>`).join('')}</select>
       <select class="sel" style="width:auto" id="skPrioSel" title="priority">${Object.keys(SKILL_PRIOS).map(pp=>`<option ${(s.priority||'P3')===pp?'selected':''}>${pp}</option>`).join('')}</select>
+      <select class="sel" style="width:auto" id="skZogSel" title="time on this skill counts towards the zone-of-genius hour"><option value="">not zone-of-genius work</option><option value="1" ${s.zog ? 'selected' : ''}>zone-of-genius work</option></select>
+      <select class="sel" style="width:auto" id="skDomSel" title="does this skill serve the domain of mastery on the purpose sheet"><option value="">not marked as serving the domain</option><option value="1" ${s.servesDomain ? 'selected' : ''}>serves the domain of mastery</option></select>
     </div>
     <div class="faint" style="font-size:.78rem;margin-bottom:10px">${esc(SKILL_HORIZONS[skillHorizon(s)][2])}</div>
     <div class="field" style="margin-bottom:14px"><label>Why this one?</label>${ed(`skills.#${s.id}.why`,{ph:'One line, for the day you have forgotten.'})}</div>
@@ -1041,6 +1045,8 @@ function openSkillPanel(id){
   p.querySelector('#skCatSel').onchange = e => { s.cat = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindRecImages(p, () => openSkillPanel(s.id));
   p.querySelector('#skHzSel').onchange = e => { s.horizon = e.target.value; s.planned = s.horizon === 'someday'; if(!s.planned && s.currentLevel===0) s.currentLevel = 1; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
+  p.querySelector('#skZogSel').onchange = e => { s.zog = !!e.target.value; saveNow(); };
+  p.querySelector('#skDomSel').onchange = e => { s.servesDomain = !!e.target.value; saveNow(); };
   p.querySelector('#skPrioSel').onchange = e => { s.priority = e.target.value; saveNow(); reopenPanel(() => { rerender(); openSkillPanel(id); }); };
   bindLevelTrack(p, s);
   bindAbilities(p, s, () => reopenPanel(() => { rerender(); openSkillPanel(id); }));

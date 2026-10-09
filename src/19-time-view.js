@@ -158,6 +158,7 @@ function timeOverviewHTML(){
       ${timeBreakdownHTML(r, n)}</section>
     <section class="tmv-sec"><span class="sc">Twelve ${esc(r.unit)}s</span>${timeTrendSVG(r, n)}</section>
     <section class="tmv-sec"><span class="sc">How the focus went</span>${timeFocusQualityHTML(r, n)}</section>
+    ${typeof happinessPanelHTML === 'function' && !n ? `<div class="tmv-sec">${happinessPanelHTML(r.from, r.to, timeRangeWord(r))}${r.unit === 'month' || r.unit === 'week' ? challengeMonthLine() : ''}</div>` : ''}
     <section class="tmv-sec"><span class="sc">The ${esc(r.unit === 'day' ? 'day' : r.unit)}, as written</span>${timeLedgerHTML(r, n)}</section>`}
   </div>`;
 }

@@ -239,6 +239,13 @@ function timeEntryDefaults(e){
   e.verdict = TIME_VERDICTS.includes(e.verdict) ? e.verdict : null;
   e.verdictAt = e.verdict ? (e.verdictAt || null) : null;
   e.chipId = e.chipId || null;
+  /* how the sitting felt (optional; unclassified is not neutral), whether it
+     was zone-of-genius work when set by hand, the challenge against skill for
+     zone sittings, and whether it was outdoors — none inferred from anything */
+  e.felt = ['frustrated', 'neutral', 'happy'].includes(e.felt) ? e.felt : null;
+  e.challenge = ['below', 'at', 'above'].includes(e.challenge) ? e.challenge : null;
+  if(e.zogManual !== true && e.zogManual !== false) delete e.zogManual;
+  e.outdoors = !!e.outdoors;
   e.createdAt = e.createdAt || e.startTime;
   return e;
 }

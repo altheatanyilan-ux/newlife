@@ -20,6 +20,7 @@ const STILL_KINDS = [
   ['breath',     'Breathwork', '🌬'],
   ['scan',       'Body scan',  '🫧'],
   ['sanctuary',  'Sanctuary',  '🚪'],
+  ['finitude',   'Finitude',   '\u231B'],
 ];
 const STILL_LENGTHS = [3, 5, 10, 15, 20, 30, 45];
 const STILL_ANCHORS = [
@@ -302,6 +303,13 @@ function stillnessHTML(){
              <div class="row" style="gap:5px;flex-wrap:wrap">${SCAN_PICTURES.map(([k, n]) =>
                `<button class="chip ${p.picture === k ? 'on' : ''}" data-stpic="${k}">${n}</button>`).join('')}</div></div>
            <div class="field"><label>How long, after the walk-through</label>${lengths}</div>`
+        : kind === 'finitude'
+        ? `<p class="th-quote">The counterweight to wanting: you will die, and what you build will be forgotten. The course\u2019s claim is that this grounds a purpose that is yours and undermines one that is not.</p>
+           <div class="field"><label>Which form</label>
+             <div class="row" style="gap:5px;flex-wrap:wrap">${Object.entries(FINITUDE_FORMS).map(([k, f]) =>
+               `<button class="chip ${(p.finForm || 'urgency') === k ? 'on' : ''}" data-stfin="${k}">${f.name}</button>`).join('')}</div>
+             <p class="faint" style="margin:6px 0 0;font-size:.82rem">${(p.finForm || 'urgency') === 'urgency' ? 'Urgency holds one question: what would you stop doing if you took that seriously?' : 'Grounding holds no question \u2014 only the scale of things.'}</p></div>
+           <div class="field"><label>How long</label>${lengths}</div>`
         : `<p class="th-quote">Maltz: take as much care in building this room in your imagination as you would in building an actual one. Nothing can touch you here.</p>
            ${s.sanctuary.built
              ? `<div class="sanct-card"><b class="serif">Your quiet room</b>
@@ -384,6 +392,7 @@ function bindStillness(root){
   root.querySelectorAll('[data-stanchor]').forEach(b => b.onclick = () => { p.anchor = b.dataset.stanchor; re(); });
   root.querySelectorAll('[data-stpat]').forEach(b => b.onclick = () => { p.pattern = b.dataset.stpat; re(); });
   root.querySelectorAll('[data-stpic]').forEach(b => b.onclick = () => { p.picture = b.dataset.stpic; re(); });
+  root.querySelectorAll('[data-stfin]').forEach(b => b.onclick = () => { p.finForm = b.dataset.stfin; re(); });
   if(q('#stMantra')) q('#stMantra').oninput = () => { p.mantra = q('#stMantra').value; save(); };
   if(q('#stRebuild')) q('#stRebuild').onclick = () => { s.sanctuary.built = false; re(); };
   /* Every sitting starts in the dark, the way the cards do: a full-screen
@@ -392,12 +401,14 @@ function bindStillness(root){
     breath: ['Sit tall, and let your shoulders drop.', 'Breathe out everything you are holding.', 'Now follow the circle — in, and out.'],
     scan: ['Lie down, or sit with your back supported.', 'Let your eyes close.', 'Attention goes where it is asked. Begin at the crown.'],
     sanctuary: ['Close your eyes.', 'Picture a door you have never opened.', 'Step through it, slowly.'],
+    finitude: ['Sit as you are.', 'Let the question come.', 'There is nothing to get right.'],
   };
   if(q('#stBegin')) q('#stBegin').onclick = () => ceremonyVeil(
     STILL_ARRIVE[p.kind] || ['Find a comfortable seat.', 'Let your breath find its own pace.', 'Set one intention for this sitting.'],
     () => {
       if(p.kind === 'scan') openBodyScan(p.minutes, p.picture);
       else if(p.kind === 'sanctuary') openSanctuary(p.minutes);
+      else if(p.kind === 'finitude') ppFinitude(p.minutes, p.finForm || 'urgency');
       else openStillTimer({kind:p.kind, minutes:p.minutes, anchor:p.anchor, mantra:p.mantra, pattern:p.pattern});
     }, {label: 'a moment before the sitting'});
   if(q('#stDraw')) q('#stDraw').onclick = () => openQuickDraw();

@@ -54,6 +54,11 @@ function valueTrend(id, snaps){
 /* Is anything actually being built toward this? A vision that names the value,
    or an entry that links the two together, counts. Nothing does not. */
 function valueServed(id){
+  /* A blind spot means no vision serves this value. With no vision written
+     there is nothing to serve it, and drawing every orbit dashed says nothing
+     about the person; it says the page that makes visions was retired. So the
+     orbit is not drawn until there is a vision to measure against. */
+  if(!(S.visions || []).some(v => v && !v.archived && v.status !== 'completed')) return true;
   if((S.visions || []).some(v => (v.links?.values || []).some(x => x.id === id) ||
     (v.valueIds || []).includes(id))) return true;
   return (S.entries || []).some(e => (e.links?.values || []).some(x => x.id === id)
@@ -656,7 +661,7 @@ function solarTipHTML(p){
     <div class="st-row"><span>evidence</span><b>${p.evidence} <span class="mono">${p.embodied}+ · ${p.betrayed}−</span></b></div>
     <div class="st-row"><span>last tended</span><b>${esc(tended)}</b></div>
     ${p.tagline ? `<p class="st-line">${esc(p.tagline.slice(0, 120))}${p.tagline.length > 120 ? '…' : ''}</p>` : ''}
-    ${p.served ? '' : '<p class="st-warn">Nothing is being built toward this one.</p>'}`;
+    ${p.served ? ((S.visions || []).some(v => v && !v.archived && v.status !== 'completed') ? '' : '<p class="mono faint">A dashed orbit means no vision serves a value. None are drawn until you have written a vision (Purpose \u2192 Vision).</p>') : '<p class="st-warn">Nothing is being built toward this one.</p>'}`;
 }
 /* built, wired and left running until the page is drawn again */
 let _solar = null;

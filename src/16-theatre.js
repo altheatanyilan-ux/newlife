@@ -45,10 +45,13 @@ const TH_SECTIONS = [
   ['pins',     'Pinned'],
   ['board',    'Vision board'],
   ['scene',    'A scene, entered'],
+  ['visualise','Purpose visualisation'],
   ['scripting','Scripting'],
+  ['contemplate','Contemplation'],
   ['tension',  'Structural tension'],
   ['thanks',   'Thanks, in advance'],
   ['aim',      'Definite chief aim'],
+  ['affirm',   'Affirmation'],
 ];
 
 /* ---------- state ---------- */
@@ -126,7 +129,8 @@ function theatreDigest(from, to){
     words: sum(scripts.map(x => +x.words || 0)),
     tension: r.tension.filter(inRange).length, thanks: r.thanks.filter(inRange).length,
     wheels: r.wheels.filter(inRange).length,
-    vividness: avg(scenes, 'vivid'), intensity: avg(scenes, 'intensity')};
+    vividness: avg(scenes, 'vivid'), intensity: avg(scenes, 'intensity'),
+    vis: typeof visualisationDigest === 'function' ? visualisationDigest(from, to) : null};
 }
 
 /* ---------- the vision board ---------- */
@@ -362,13 +366,21 @@ function saveScript(cat, body, projectId){
 /* ---------- structural tension ---------- */
 /* Fritz's pivotal technique: hold the result you want and where you actually
    are, at the same time, without resolving either — the gap is the engine. */
+/* the results a tension can be held against: visions that are still open, and
+   the projects that exist as Planning lists made into projects */
+function thTensionTargets(){
+  const vs = (S.visions || []).filter(v => v && !v.archived && v.status !== 'completed' && v.confidence !== 'lived').map(v => ({id: v.id, label: '\u25C7 ' + (v.name || v.title || 'A vision')}));
+  const ps = thProjects().map(p => ({id: p.id, label: p.name}));
+  return vs.concat(ps);
+}
 function tensionFor(projectId){
   const p = byId(S.projects, projectId);
+  const v = byId(S.visions || [], projectId);
   const r = theatre();
   const last = r.tension.find(x => x.projectId === projectId);
   return {
-    vision: last?.vision || p?.description || '',
-    reality: last?.reality || p?.notes || '',
+    vision: last?.vision || p?.description || v?.futureMemory || '',
+    reality: last?.reality || p?.notes || v?.currentReality || '',
   };
 }
 function saveTension(projectId, vision, reality, chose){
@@ -378,6 +390,12 @@ function saveTension(projectId, vision, reality, chose){
   /* the edits belong to the project too, or they are lost the moment you leave */
   const p = byId(S.projects, projectId);
   if(p){ if(vision) p.description = vision; if(reality) p.notes = reality; }
+  /* a vision is a result too; what is written here is its future and its present */
+  const v = byId(S.visions || [], projectId);
+  if(v){
+    if(vision && vision !== v.futureMemory){ if(v.futureMemory && typeof verIsNewWording === 'function' && verIsNewWording(v.futureMemory, vision)) (v.futureMemoryHistory = v.futureMemoryHistory || []).push({date: today(), text: v.futureMemory}); v.futureMemory = vision; }
+    if(reality && reality !== v.currentReality){ if(v.currentReality && typeof verIsNewWording === 'function' && verIsNewWording(v.currentReality, reality)) (v.currentRealityHistory = v.currentRealityHistory || []).push({date: today(), text: v.currentReality}); v.currentReality = reality; }
+  }
   r.prefs.project = projectId;
   theatreMark(); saveNow();
 }
@@ -387,6 +405,17 @@ function saveThanks(lines, projectId){
   const kept = (lines || []).map(x => (x || '').trim()).filter(Boolean);
   if(!kept.length) return null;
   const r = theatre();
+  /* Giving thanks a second time in a day adds to the first: one record, one
+     entry in the Lived Record, so the tracker and the journal cannot disagree
+     about how many times gratitude was given in advance today. */
+  const again = S._thMore && r.thanks.find(x => x.date === today());
+  if(again){
+    again.lines.push(...kept);
+    const en = S.entries.find(x => x.extra && x.extra.thanksId === again.id);
+    if(en) en.body = again.lines.map(l => '· ' + l).join('\n');
+    S._thMore = false; theatreMark(); saveNow();
+    return again;
+  }
   const rec = {id:uid(), date:today(), lines:kept, projectId: projectId || null, createdAt:new Date().toISOString()};
   r.thanks.unshift(rec);
   S.entries.push({id:uid(), type:'gratitude', title:'Thanks, in advance',
@@ -477,23 +506,39 @@ function theatrePanelHTML(key){
     thanks: r.thanks.some(x => x.date === T),
     script: !!(r.script || '').trim(),
     winning: !!(r.winning || '').trim(),
-    aim: !!(r.aim || '').trim(),
+    contemplate: typeof practiceOn === 'function' && practiceOn(T).some(x => x.kind === 'contemplation'),
+    visualise: typeof practiceOn === 'function' && practiceOn(T).some(x => x.kind === 'visualization'),
+    affirm: typeof practiceOn === 'function' && practiceOn(T).some(x => x.kind === 'affirmation'),
+    aim: !!(r.aim || '').trim() || (typeof purposeHas === 'function' && purposeHas('statement')),
   })[k];
   const head = (name, note) => `<summary><span class="th-name">${esc(name)}</span>
     <span class="mono faint">${esc(note || '')}</span>${done(key) ? '<i class="th-tick">✓</i>' : ''}</summary>`;
   const quote = t => `<p class="th-quote">${esc(t)}</p>`;
+  const spine = typeof purposeSpineHTML === 'function' ? purposeSpineHTML() : '';
   const projSelect = (id, sel, first) => projects.length
     ? `<select class="inp sm" id="${id}"><option value="">${esc(first)}</option>
         ${projects.map(p => `<option value="${p.id}" ${sel === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : '';
 
   if(key === 'script') return `<details class="th-sec" data-th="script" open>${head('Self-image script', 'Maltz')}
-    <div class="th-body">${quote('Close your eyes for thirty minutes. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.')}
+    <div class="th-body">${spine}${quote('Close your eyes for thirty minutes. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.')}
       ${ed('rehearsal.script', {multi:true, mdr:true, cls:'prose serif-lg', ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}
       ${typeof perfPersonaOfferHTML === 'function' ? perfPersonaOfferHTML() : ''}</div></details>`;
 
   if(key === 'winning') return `<details class="th-sec" data-th="winning">${head('The winning feeling', 'Maltz')}
     <div class="th-body"><div class="faint" style="font-size:.8rem;margin-bottom:6px">Recall a moment when you felt self-confident and successful. Capture that feeling, then weld it to your vision of the future.</div>
       ${ed('rehearsal.winning', {multi:true, cls:'prose', ph:'Where were you? What did your body do?'})}</div></details>`;
+
+  /* The chief aim is a reading of the purpose statement: one sentence, kept on
+     the purpose sheet, versioned there. Editing it here writes a version
+     there and not a second field. What was written in the older free field is
+     kept, folded, and can be taken as the statement. */
+  if(key === 'aim' && typeof purposeHas === 'function' && purposeHas('statement')) return `<details class="th-sec" data-th="aim">${head('Definite chief aim', 'Hill')}
+    <div class="th-body"><div class="faint" style="font-size:.8rem;margin-bottom:6px">Your purpose statement, as it stands on the sheet. Read it aloud, morning and night, with feeling.</div>
+      <p class="serif-lg" style="margin:6px 0 10px">${esc(purposeText('statement'))}</p>
+      <textarea class="inp" id="aimEdit" rows="2">${esc(purposeText('statement'))}</textarea>
+      <div class="row" style="gap:8px;margin-top:6px"><button class="btn sm" id="aimSave">save (a new wording is kept as a version)</button><a class="btn sm ghost" href="#/purpose">the sheet</a></div>
+      ${(r.aim || '').trim() ? `<details style="margin-top:8px"><summary class="mono faint">your earlier chief aim</summary><p>${esc(r.aim)}</p><button class="btn sm ghost" id="aimUse">use this as my statement</button></details>` : ''}
+    </div></details>`;
 
   if(key === 'aim') return `<details class="th-sec" data-th="aim">${head('Definite chief aim', 'Hill')}
     <div class="th-body"><div class="faint" style="font-size:.8rem;margin-bottom:6px">The exact thing desired, what you will give in return, the date, the plan. Read aloud morning and night, with feeling.</div>
@@ -521,7 +566,7 @@ function theatrePanelHTML(key){
   if(key === 'scene'){
     const scenes = theatre().scenes.slice(0, 6);
     return `<details class="th-sec" data-th="scene">${head('A scene, entered', scenes.length ? `${theatre().scenes.length} kept` : 'none yet')}
-      <div class="th-body">
+      <div class="th-body">${spine}
         <div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:10px">
           <button class="btn sm primary" id="scNew">＋ build a scene</button></div>
         ${scenes.length ? `<div class="th-list">${scenes.map(sc => `<button class="th-row" data-scene="${sc.id}">
@@ -536,7 +581,7 @@ function theatrePanelHTML(key){
   if(key === 'scripting'){
     const recent = theatre().scripts.slice(0, 4);
     return `<details class="th-sec" data-th="scripting">${head('Scripting', recent.length ? `${theatre().scripts.length} written` : 'nothing written')}
-      <div class="th-body">
+      <div class="th-body">${spine}
         ${quote('Write it in the present tense, in the first person, as though the day has already happened exactly as you would have it.')}
         <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
           <select class="inp sm" id="scrCat">${SCRIPT_CATS.map(([k, n]) => `<option value="${k}">${esc(n)}</option>`).join('')}</select>
@@ -552,13 +597,15 @@ function theatrePanelHTML(key){
   }
 
   if(key === 'tension'){
-    const pid = r.prefs.project || projects[0]?.id || '';
+    const targets = thTensionTargets();
+    const focus = S._thSession && typeof thStepVision === 'function' ? thStepVision(S._thSession.i) : null;
+    const pid = (targets.some(x => x.id === r.prefs.project) ? r.prefs.project : '') || (focus && targets.some(x => x.id === focus.id) ? focus.id : '') || targets[0]?.id || '';
     const t = pid ? tensionFor(pid) : {vision:'', reality:''};
     const chosen = r.tension.find(x => x.projectId === pid && x.date === T && x.chose);
     return `<details class="th-sec" data-th="tension">${head('Structural tension', 'Fritz')}
       <div class="th-body">
         ${quote('Hold the result you want and where you actually are, at the same time, without resolving either. The gap between them is not a problem to be solved — it is the thing that does the work.')}
-        ${projects.length ? `<div class="field"><label>The result</label>${projSelect('stProj', pid, 'choose a project')}</div>
+        ${targets.length ? `<div class="field"><label>The result</label><select class="inp sm" id="stProj"><option value="">choose one</option>${targets.map(x => `<option value="${x.id}" ${pid === x.id ? 'selected' : ''}>${esc(x.label)}</option>`).join('')}</select></div>
         <div class="st-cols">
           <div class="st-col"><label class="mono">what you want</label>
             <textarea class="inp" id="stVision" rows="5" placeholder="Written as a result, not as a wish. What is true when it is done?">${esc(t.vision)}</textarea></div>
@@ -569,7 +616,30 @@ function theatrePanelHTML(key){
         <div class="row between" style="margin-top:10px">
           <button class="btn sm ghost" id="stSave">save both</button>
           <button class="btn sm ${chosen ? '' : 'primary'}" id="stChoose">${chosen ? '✓ chosen today' : 'I choose this result'}</button></div>`
-        : `<div class="empty">Structural tension needs a result to hold against the present. Name a project first, on the Projects page.</div>`}
+        : `<div class="empty">Structural tension needs a result to hold against the present. Write a vision (<a href="#/purpose/vision">Purpose \u2192 Vision</a>), or make a Planning list into a project.</div>`}
+      </div></details>`;
+  }
+
+  if(key === 'contemplate') return `<details class="th-sec" data-th="contemplate">${head('Contemplation', 'five minutes')}
+      <div class="th-body">${spine}
+        ${quote('Close the eyes and think about the question. If the mind wanders, bring it back. The first step is to frame the question \u2014 what does it mean to make people wiser? unfolds into what wisdom is, and who you want to give it to.')}
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn sm primary" id="ctBeginPanel">Frame a question</button></div>
+      </div></details>`;
+
+  if(key === 'visualise') return `<details class="th-sec" data-th="visualise">${head('Purpose visualisation', 'ten minutes')}
+      <div class="th-body">${spine}
+        ${quote('Eyes closed, the target in as much detail as possible, at a long horizon \u2014 what the purpose will be like in the future, the impact it lands, the money, the work, how proud you will feel. Twenty years out is allowed; so is next month.')}
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn sm primary" id="pvBeginPanel">Begin</button></div>
+      </div></details>`;
+
+  if(key === 'affirm'){
+    const set = typeof affirmationsAll === 'function' ? affirmationsAll() : [];
+    const next = typeof affirmationNext === 'function' ? affirmationNext() : null;
+    return `<details class="th-sec" data-th="affirm">${head('Affirmation', set.length ? `${set.length} in the set` : 'five minutes')}
+      <div class="th-body">${spine}
+        ${quote('A statement repeated as a declaration of something you want to have in your mind \u2014 said into the mind, eyes closed, without stopping. It need not be true yet.')}
+        ${next ? `<p class="serif-lg" style="margin:6px 0">${esc(next.text)}</p><div class="mono faint">next in the rotation</div>` : '<div class="empty">Write one, or take a shape from your purpose or values.</div>'}
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn sm primary" id="affBeginPanel">${next ? 'Begin' : 'Choose or write one'}</button></div>
       </div></details>`;
   }
 
@@ -578,9 +648,9 @@ function theatrePanelHTML(key){
     return `<details class="th-sec" data-th="thanks">${head('Thanks, in advance', todayThanks ? 'given today' : '60 seconds')}
       <div class="th-body">
         ${quote('Wattles: the man who can sincerely give thanks for the things which as yet he owns only in imagination has real faith. This is not gratitude for what is here. It is gratitude for what is coming.')}
-        ${todayThanks
+        ${todayThanks && !S._thMore
           ? `<ul class="th-thanks">${todayThanks.lines.map(l => `<li>${esc(l)}</li>`).join('')}</ul>
-             <button class="btn sm ghost" id="thAgain">give thanks again</button>`
+             <button class="btn sm ghost" id="thAgain">add more thanks</button>`
           : `<div class="stack" style="gap:6px">
               ${[0,1,2].map(i => `<input class="inp" data-thanks="${i}" placeholder="${i === 0 ? 'I am grateful for…' : 'And…'}">`).join('')}
               ${projSelect('thProj', r.prefs.project, 'nothing in particular')}
@@ -619,6 +689,9 @@ function theatreTrackerHTML(cycleStart, cycleDay, kept, did){
   return `<div class="field"><label>21-day tracker <span class="mono" style="text-transform:none;letter-spacing:0">· day ${clamp(cycleDay + 1, 1, 21)} of 21 · ${kept} practised${did ? ' · today: ' + did : ''}</span></label>
       <div class="tracker">${Array.from({length:21}, (_, i) => { const d = addDays(cycleStart, i);
         return `<i class="${r.days.includes(d) ? 'done' : ''} ${d === T ? 'today' : ''}" data-td="${d}" title="${fmtDate(d, 'med')}"></i>`; }).join('')}</div>
+      <p class="faint" style="font-size:.76rem;margin:8px 0 0">The twenty-one-day tracker is forgiving by design: squares can be corrected either way, a new cycle keeps the history, and today not yet practised is a day still going.</p>
+      ${typeof imprintLine === 'function' && (purposeAny() || imprintState('purpose').lastDay) ? `<div class="th-imprint"><span class="sc">ninety-day imprint</span> <b class="serif">${esc(imprintLine('purpose').text)}</b>
+        <p class="faint" style="font-size:.76rem;margin:4px 0 0">Strict by design: it cannot be corrected by hand and a missed day restarts it, with the restart kept. The consecutiveness is the mechanism, not the bookkeeping.${imprintLine('purpose').notes ? ' ' + esc(imprintLine('purpose').notes) + '.' : ''}</p></div>` : ''}
       <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
         <button class="btn sm ${theatreDoneToday() ? '' : 'primary'}" id="markTheatre">${theatreDoneToday() ? '✓ Practised today' : "Mark today's practice"}</button>
         <button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button>
@@ -691,10 +764,17 @@ function bindTheatre(root){
       <div class="prose serif-lg" style="white-space:pre-wrap">${esc(s.body)}</div>`, 'wide');
   });
 
+  if(q('#affBeginPanel')) q('#affBeginPanel').onclick = () => ppAffirmChooser();
+  if(q('#ctBeginPanel')) q('#ctBeginPanel').onclick = () => ppContemplate();
+  if(q('#pvBeginPanel')) q('#pvBeginPanel').onclick = () => ppVisualise();
+  /* the chief aim is the purpose statement */
+  if(q('#aimSave')) q('#aimSave').onclick = () => { const how = purposeSave('statement', q('#aimEdit').value); toast(how === 'version' ? 'Saved. The earlier wording is kept on the sheet.' : 'Saved.'); re(); };
+  if(q('#aimUse')) q('#aimUse').onclick = () => { purposeSave('statement', r.aim, {force: true}); toast('That is the statement now. It is on the sheet.'); re(); };
+
   /* structural tension */
   if(q('#stProj')) q('#stProj').onchange = () => { r.prefs.project = q('#stProj').value || null; re(); };
   const stSave = (chose) => {
-    const pid = q('#stProj')?.value || r.prefs.project; if(!pid){ toast('Choose a project first.'); return; }
+    const pid = q('#stProj')?.value || r.prefs.project; if(!pid){ toast('Choose a result first.'); return; }
     saveTension(pid, q('#stVision').value.trim(), q('#stReality').value.trim(), chose);
     sound(chose ? 'success' : 'click');
     if(chose) toast('Chosen. Now let it go and get on with the day.');
@@ -710,8 +790,7 @@ function bindTheatre(root){
     sound('success'); toast('Given — and filed under Gratitude.'); re();
   };
   if(q('#thAgain')) q('#thAgain').onclick = () => {
-    const i = r.thanks.findIndex(x => x.date === today());
-    if(i >= 0) r.thanks.splice(i, 1); re();
+    S._thMore = true; rerender();
   };
 
   /* the sections can be dragged into the order you actually practise in */

@@ -200,7 +200,7 @@ function jaSkill(){
 function jaCredit(mins){
   const m = +mins || 0; if(m < 1) return;
   const sk = jaSkill();
-  if(sk){ sk.hours = +(((+sk.hours || 0) + m / 60).toFixed(2)); sk.lastPracticed = today(); }
+  if(sk && !(typeof ledgerUnified === 'function' && ledgerUnified())){ sk.hours = +(((+sk.hours || 0) + m / 60).toFixed(2)); sk.lastPracticed = today(); }
   const d = today();
   (S.habits || []).forEach(h => {
     if(h.archived) return;

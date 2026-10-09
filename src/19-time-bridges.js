@@ -35,6 +35,7 @@ function timeOnList(listId, days){
 function timeAfterSave(e){
   if(!e || !e.endTime) return e;      /* nothing is derived from a clock still running */
   try { timeCreditSkill(e); } catch(err){ console.warn('skill credit skipped', err); }
+  try { if(typeof timeOfferProgress === 'function') timeOfferProgress(e); } catch(err){ console.warn('progress offer skipped', err); }
   try { timeMakeNod(e); } catch(err){ console.warn('nod skipped', err); }
   try { timeMakeInteraction(e); } catch(err){ console.warn('interaction skipped', err); }
   try { habClockSettleFor(e); } catch(err){ console.warn('habits not read against the clock', err); }
@@ -44,6 +45,7 @@ function timeAfterSave(e){
    entry has already added; anything else double-counts every correction. */
 function timeCreditSkill(e){
   if(e.linkedType !== 'skill' || !e.linkedId) return null;
+  if(typeof ledgerUnified === 'function' && ledgerUnified()) return null;   /* the separate tally is retired */
   const sk = byId(S.skills || [], e.linkedId);
   if(!sk) return null;
   const want = +(timeMinutes(e) / 60).toFixed(2);

@@ -105,7 +105,7 @@ function timeCategoryPickHTML(id, sel){
    them; the entry is dated to the sitting's day, carries the sitting's id in
    extra.sittingId, and the sitting keeps the entry's id (entryIds), so each
    can find the other. An entry deleted later just drops out of the list. */
-const TIME_WRITE_SKIP = ['nod', 'drink'];
+const TIME_WRITE_SKIP = ['nod', 'drink', 'memento', 'affirmation', 'betlog'];
 const timeWriteTypes = () => ENTRY_TYPES.filter(([k]) => !TIME_WRITE_SKIP.includes(k));
 function timeWritePickHTML(id, cls = ''){
   return `<select class="sel sm tm-write ${cls}" data-search data-tmwrite="${esc(id)}" aria-label="write a journal entry about this sitting">
@@ -239,6 +239,10 @@ function openTimeEntryModal(id, day){
     <label class="pd-q" style="margin-top:10px"><span class="k">is it</span>
       <select class="sel" id="teKind">${(() => { const cur = e ? e.kind : 'work', ks = ['work', 'admin'].concat(['work', 'admin'].includes(cur) ? [] : [cur]);
         return ks.map(k => `<option value="${esc(k)}" ${k === cur ? 'selected' : ''}>${esc(k === 'work' ? 'the work itself' : k === 'admin' ? 'admin around it' : (TIME_KIND_NAMES[k] || k))}</option>`).join(''); })()}</select></label>
+    <div class="grid c2" style="gap:10px;margin-top:10px">
+      <label class="pd-q"><span class="k">how was it? (optional)</span><select class="sel" id="teFelt"><option value="">not said</option>${['frustrated', 'neutral', 'happy'].map(k => `<option ${e && e.felt === k ? 'selected' : ''}>${k}</option>`).join('')}</select></label>
+      <label class="pd-q"><span class="k">zone-of-genius work?</span><select class="sel" id="teZog"><option value="">${e && typeof timeEntryZog === 'function' ? esc(timeEntryZog(e).said) : 'as its category says'}</option><option value="yes" ${e && e.zogManual === true ? 'selected' : ''}>yes</option><option value="no" ${e && e.zogManual === false ? 'selected' : ''}>no</option></select></label></div>
+    <label class="row" style="gap:8px;margin-top:6px;align-items:center"><input type="checkbox" id="teOut" ${e && e.outdoors ? 'checked' : ''}> <span class="faint">outdoors</span></label>
     <label class="pd-q" style="margin-top:10px"><span class="k">tags</span>
       <input class="inp" id="teTags" value="${esc(e ? e.tags.join(', ') : '')}" placeholder="jazz, theory"></label>
     <!-- There were two more fields here, "hang it on" and "which", offering to
@@ -273,11 +277,14 @@ function openTimeEntryModal(id, day){
     const common = {what: m.querySelector('#teWhat').value.trim(),
       categoryId: m.querySelector('#teCat').value || null,
       kind: (m.querySelector('#teKind') || {value: 'work'}).value,
-      tags: timeTagsOf(m.querySelector('#teTags').value)};
+      tags: timeTagsOf(m.querySelector('#teTags').value),
+      felt: (m.querySelector('#teFelt') || {}).value || null, outdoors: !!(m.querySelector('#teOut') || {}).checked};
+    { const z = (m.querySelector('#teZog') || {}).value; if(z === 'yes') common.zogManual = true; else if(z === 'no') common.zogManual = false; else common.zogManual = undefined; }
     if(e){
       /* a sitting the focus timer wrote, corrected here, is left as corrected */
       if(e.focusSit) e.edited = true;
       Object.assign(e, common);
+      if(common.zogManual === undefined) delete e.zogManual;
       if(from) e.startTime = timeAtOn(dayV, from);
       if(toEl && toEl.value) e.endTime = timeAtOn(dayV, toEl.value);
       else if(minsEl && +minsEl.value > 0) e.endTime = new Date(Date.parse(e.startTime) + (+minsEl.value) * 60000).toISOString();

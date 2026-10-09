@@ -211,11 +211,13 @@ function fzCloseout(info){
       <span class="fz-yn"><button type="button" class="chip tf-chip" data-pcmet="yes">yes</button><button type="button" class="chip tf-chip" data-pcmet="no">no</button></span></div>` : ''}
     <div class="fz-f"><span class="k mono">how was the focus? (optional)</span>
       <span class="fz-yn">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="chip tf-chip" data-pcq="${n}">${n}</button>`).join('')}</span></div>
+    ${typeof closeoutExtraHTML === 'function' ? closeoutExtraHTML(info) : ''}
     <div class="row between dx-fc-foot"><button type="button" class="dp-lnk" data-pcskip>skip</button>
       <button type="button" class="btn sm primary" data-pcdone${done ? '' : ' disabled'}>Done</button></div></div>`);
   document.body.appendChild(box);
   requestAnimationFrame(() => box.classList.add('in'));
-  const st = {met: null, q: null};
+  const st = {met: null, q: null, felt: null, challenge: null};
+  if(typeof closeoutExtraBind === 'function') closeoutExtraBind(box, info, st);
   const inp = box.querySelector('[data-pcup]'), go = box.querySelector('[data-pcdone]');
   const close = () => { box.classList.remove('in'); box.classList.add('out'); setTimeout(() => box.remove(), 320); };
   inp.oninput = () => { go.disabled = !done && !inp.value.trim(); };
@@ -225,6 +227,7 @@ function fzCloseout(info){
     box.querySelectorAll('[data-pcq]').forEach(x => x.classList.toggle('on', x === b)); });
   const finish = skipped => {
     fzSaveCloseout(info.sessionId, skipped ? {skipped: true} : {pickUp: inp.value.trim(), goalMet: st.met, quality: st.q});
+    if(typeof closeoutExtraSave === 'function') closeoutExtraSave(info, st);
     close();
     if(!skipped && typeof sound === 'function') sound('success');
     setTimeout(() => fzKolbMaybe(info), 450);
