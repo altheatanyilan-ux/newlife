@@ -373,7 +373,7 @@ function openPlanRowMenu(ev, id){
     if(k === 'deepwork'){ t.deepWork = !t.deepWork; saveNow(); sound('click'); rerender(); return; }
     if(k === 'dup'){ const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify(
       {listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, doEnd:t.doEnd, duration:t.duration,
-       desc:t.desc, tags:t.tags, subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn})));
+       desc:t.desc, tags:t.tags, subtasks:t.subtasks, quadrant:t.quadrant})));
       c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; }); S.tasks.push(c); }
     else t.day = k === 'today' ? today() : k === 'tomorrow' ? addDays(today(), 1)
       : k === 'week' ? addDays(today(), 7) : '';

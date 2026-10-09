@@ -77,24 +77,6 @@ const PLAN_QUADRANTS = [
   {n:3, name:'Urgent',             act:'Delegate',  color:'var(--gold)'},
   {n:4, name:'Delegated / Waiting', act:'Waiting on', color:'var(--faint)'},
 ];
-/* Which column a task is in. Every task is stamped 'todo' when it is first
-   seen, so the stamp alone cannot say whether anyone ever decided anything —
-   which is why a task you had plainly sat down and worked on still sat under
-   To do. A column dragged by hand sets kanbanPinned and is honoured exactly;
-   otherwise the sessions answer, because a task with time logged against it
-   is in progress whether or not anyone moved its card. */
-function planTaskColumn(t, hasWip = true){
-  if(t.kanbanPinned) return t.kanbanColumn || 'todo';
-  if(t.done) return 'done';
-  if(hasWip && typeof taskIsInProgress === 'function' && taskIsInProgress(t.id)) return 'in_progress';
-  return t.kanbanColumn || 'todo';
-}
-const DEFAULT_KANBAN = () => [
-  {id:'todo',        name:'To do',       color:'#a89f94', wipLimit:null, sortOrder:0},
-  {id:'in_progress', name:'In progress', color:'#d4a44c', wipLimit:5,    sortOrder:1},
-  {id:'done',        name:'Done',        color:'#7f916a', wipLimit:null, sortOrder:2},
-];
-
 /* ---------- the task, grown ----------
    `text`, `day` and `done` are the old names and stay the canonical ones:
    renaming them would break four other rooms for no gain a reader could see. */
@@ -131,8 +113,8 @@ function planTaskDefaults(t){
   t.subtasks  = Array.isArray(t.subtasks) ? t.subtasks : [];
   t.reminders = Array.isArray(t.reminders) ? t.reminders : [];
   t.recurrence = t.recurrence || null;
-  t.kanbanColumn = t.kanbanColumn || (t.done ? 'done' : 'todo');
-  t.kanbanPinned = !!t.kanbanPinned;
+  /* the board was retired; its columns are cleaned off whatever still carries them */
+  delete t.kanbanColumn; delete t.kanbanPinned;
   t.quadrant  = t.quadrant == null ? null : clamp(+t.quadrant, 1, 4);
   /* the date this task is for. A milestone is the reason a piece of work
      exists — "ship it" is why the four things under it are on the list at
@@ -182,9 +164,9 @@ function planState(){
     group:'auto', sidebarCollapsed:false, lastView:'today', calMode:'month', tlScale:'week'}, p.prefs || {});
   if(!p.lists.some(l => l.id === 'inbox'))
     p.lists.unshift({id:'inbox', name:'Inbox', color:'#a89f94', folderId:null, sortOrder:-1,
-      defaultView:PLAN_VIEW_DEFAULT, kanbanColumns:DEFAULT_KANBAN(), sections:[], isDefault:true, createdAt:new Date().toISOString()});
+      defaultView:PLAN_VIEW_DEFAULT, sections:[], isDefault:true, createdAt:new Date().toISOString()});
   p.lists.forEach((l, i) => {
-    l.kanbanColumns = Array.isArray(l.kanbanColumns) && l.kanbanColumns.length ? l.kanbanColumns : DEFAULT_KANBAN();
+    delete l.kanbanColumns;
     l.sections = Array.isArray(l.sections) ? l.sections : [];
     /* a list has dates of its own that are not tasks: the shipping date, the
        hearing, the day the deposit is due */
@@ -256,7 +238,7 @@ function planListColor(id){ return planList(id)?.color || 'var(--faint)'; }
 function planNewList(name, {folderId = null, color = null} = {}){
   const p = planState();
   const l = {id:uid(), name: name || 'New list', color: color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length],
-    folderId, sortOrder: p.lists.length, defaultView:PLAN_VIEW_DEFAULT, kanbanColumns:DEFAULT_KANBAN(), sections:[],
+    folderId, sortOrder: p.lists.length, defaultView:PLAN_VIEW_DEFAULT, sections:[],
     isDefault:false, createdAt:new Date().toISOString(),
     listType:'task', priority:'normal', activeFrom:null, description:'', targetHoursPerWeek:null, targetWeeks:null,
     importance:'supporting'};
@@ -647,12 +629,19 @@ function planRollRecurrence(t){
   const next = planNextDue(t); if(!next) return null;
   const r = t.recurrence;
   if(r.endAfter != null){ r.endAfter -= 1; if(r.endAfter <= 0) return null; }
+  /* The do-days move with the due date. The copy used to carry them over
+     unchanged, so the next occurrence arrived already dated in the past and
+     sat under "carried over" from the minute it was made. */
+  const was = t.day || t.doDay || today();
+  const by = daysBetween(was, next);
+  const doDay = t.doDay ? addDays(t.doDay, by) : t.doDay;
+  const doEnd = t.doEnd ? addDays(t.doEnd, by) : t.doEnd;
   const copy = newPlanTask(t.text, next, {
-    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, doEnd:t.doEnd,
+    listId:t.listId, sectionId:t.sectionId, priority:t.priority, dueTime:t.dueTime, doDay, doEnd,
     duration:t.duration, desc:t.desc, tags:t.tags.slice(),
     subtasks:t.subtasks.map(s => ({...s, id:uid(), isCompleted:false, completedAt:null})),
     reminders:t.reminders.map(x => ({...x})), recurrence:JSON.parse(JSON.stringify(r)),
-    kanbanColumn:'todo', quadrant:t.quadrant, links:JSON.parse(JSON.stringify(t.links)), streamId:t.streamId,
+    quadrant:t.quadrant, links:JSON.parse(JSON.stringify(t.links)), streamId:t.streamId,
   });
   t.recurrence = null;                             // the finished one is no longer the repeater
   S.tasks.push(copy);
@@ -660,8 +649,6 @@ function planRollRecurrence(t){
 }
 function planSetDone(t, done){
   t.done = !!done; t.doneAt = done ? today() : null; t.updatedAt = new Date().toISOString();
-  if(done) t.kanbanColumn = 'done';
-  else if(t.kanbanColumn === 'done') t.kanbanColumn = 'todo';
   const rolled = done ? planRollRecurrence(t) : null;
   saveNow();
   if(typeof taskCrossedOff === 'function') taskCrossedOff(t.id, done);

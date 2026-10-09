@@ -274,13 +274,17 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('an existing entry corrected to thirty seconds stays', edit.there === true);
   is('  at the thirty seconds it was corrected to', edit.mins, 30);
 
-  console.log('\n7. the runaway closer is untouched by any of this');
+  console.log('\n7. a clock left running all night is still closed at six hours');
   const away = await p.evaluate(() => {
     S.timeEntries.length = 0;
-    const e = startTimer({what:'left running overnight'});
-    e.startTime = new Date(Date.now() - 14 * 3600 * 1000).toISOString();
-    const closed = closeRunawayTimer();
-    return {closed: !!closed, hours: Math.round(timeMinutes(S.timeEntries[0] || {}) / 60),
+    startTimer({what:'left running overnight'});
+    const snap = JSON.parse(JSON.stringify(planState().timerLive));
+    FocusTimer.reset();
+    const back = 14 * 3600 * 1000;
+    snap.startedAt = new Date(Date.parse(snap.startedAt) - back).toISOString(); snap.since -= back;
+    planState().timerLive = snap; S.timeEntries.length = 0;
+    const closed = FocusTimer.restore() === 'runaway';
+    return {closed, hours: Math.round(timeMinutes(S.timeEntries[0] || {}) / 60),
       count: S.timeEntries.length};
   });
   yes('a timer left running all night is still closed at six hours',

@@ -68,6 +68,33 @@ const TIME_FED_BY_ROOM = {
   study:      'the study deck, during a review',
   tasks:      'the focus clock on a task'};
 const TIME_ROUNDING = [1, 5, 15];
+/* What a stretch of a sitting can be, and the readings it can be given. A
+   stretch is work unless it was said to be something else; a break is a
+   stretch of its own, with a kind, so what the time that was not work went on
+   is as much on the record as the work. The reading is the person's, about
+   that stretch once it is over — never counted as drifted until it is said. */
+const TIME_KINDS = ['work', 'break', 'admin', 'leisure', 'social'];
+const TIME_KIND_NAMES = {work: 'work', break: 'a break', admin: 'admin', leisure: 'leisure', social: 'social'};
+const TIME_VERDICTS = ['meant', 'partly', 'drifted'];
+/* the question each kind is asked, once it is over */
+const TIME_VERDICT_ASK = {work: 'on what you meant to do?', break: 'chosen and restful?', admin: 'done and contained?',
+  leisure: 'chosen and enjoyed?', social: 'present?'};
+const TIME_VERDICT_WORDS = {meant: 'meant it', partly: 'partly', drifted: 'drifted'};
+/* The chips a pause offers, so that "what are you doing?" is one tap: each
+   names what the break is, the category it belongs to, how long it is meant
+   to be, and the reading it usually earns. The list is yours (Settings → The
+   clock): rename, add, take out. */
+const TIME_BREAK_CHIPS = [
+  {id: 'walk',     label: 'walk',     categoryId: 'exercise',   kind: 'break', minutes: 10, defaultVerdict: 'meant'},
+  {id: 'stretch',  label: 'stretch',  categoryId: 'exercise',   kind: 'break', minutes: 3,  defaultVerdict: 'meant'},
+  {id: 'snack',    label: 'snack',    categoryId: 'meal',       kind: 'break', minutes: 10, defaultVerdict: 'meant'},
+  {id: 'water',    label: 'water',    categoryId: 'rest',       kind: 'break', minutes: 3,  defaultVerdict: 'meant'},
+  {id: 'nap',      label: 'nap',      categoryId: 'rest',       kind: 'break', minutes: 20, defaultVerdict: 'meant'},
+  {id: 'breathe',  label: 'breathe',  categoryId: 'meditation', kind: 'break', minutes: 3,  defaultVerdict: 'meant'},
+  {id: 'messages', label: 'messages', categoryId: 'social',     kind: 'break', minutes: 5,  defaultVerdict: 'partly'},
+  {id: 'phone',    label: 'phone',    categoryId: null,         kind: 'break', minutes: 5,  defaultVerdict: 'drifted'}];
+/* the "now:" row: what a stretch can be switched to, beside the break chips */
+const TIME_NOW_KINDS = [['work', 'work'], ['admin', 'admin'], ['leisure', 'leisure'], ['social', 'social']];
 /* A timer left running overnight is not fourteen hours of piano. Past this,
    the entry is closed where it stopped being believable and says so. */
 const TIME_RUNAWAY = 6 * 60;
@@ -128,13 +155,18 @@ function timeState(){
        and deleting those entries one at a time afterwards is worse than
        not recording them. Starting the clock by hand still works. */
     autoTrack: true,
+    breakMin: 5,                /* how long a break is meant to be, unless its chip says */
   };
   for(const k in timeDefaults)
     if(t.settings[k] === undefined) t.settings[k] = timeDefaults[k];
   t.settings.round = TIME_ROUNDING.includes(+t.settings.round) ? +t.settings.round : 1;
+  t.settings.breakMin = Math.min(120, Math.max(1, Math.round(+t.settings.breakMin || 5)));
+  /* the break chips: seeded from the shipped list once, and yours after that */
+  if(!Array.isArray(t.settings.breakChips)) t.settings.breakChips = TIME_BREAK_CHIPS.map(c => Object.assign({}, c));
   return S.timeEntries;
 }
 const timeEntries = () => timeState();
+const timeBreakChips = () => { timeState(); return S.time.settings.breakChips; };
 /* what to offer for something new */
 const timeCategories = () => timeState() && S.time.cats.filter(c => !c.off);
 /* and what exists at all, which is what naming an old entry needs */
@@ -199,6 +231,12 @@ function timeEntryDefaults(e){
   /* journal entries written about this sitting, by id (added later; an older
      sitting simply has none) */
   e.entryIds = Array.isArray(e.entryIds) ? e.entryIds.filter(Boolean) : [];
+  /* a stretch's kind and the reading on it (see TIME_KINDS) — an entry made
+     before they existed is plain work with nothing said about it */
+  e.kind = TIME_KINDS.includes(e.kind) ? e.kind : 'work';
+  e.verdict = TIME_VERDICTS.includes(e.verdict) ? e.verdict : null;
+  e.verdictAt = e.verdict ? (e.verdictAt || null) : null;
+  e.chipId = e.chipId || null;
   e.createdAt = e.createdAt || e.startTime;
   return e;
 }
@@ -240,10 +278,52 @@ function timeDayOf(iso){
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 const timeRunning = () => timeEntries().find(e => !e.endTime) || null;
-const timeOnDay = day => timeEntries().filter(e => timeDayOf(e.startTime) === day);
+const timeOnDay = day => timeBetween(day, day);
+/* THE LIVING DAY. A sitting at 1:30 a.m. belongs to the evening you were still
+   living, not to the next calendar date — the same boundary hour today() uses
+   (settable, four by default). timeDayOf() stays the calendar date, because it
+   is also used for plain date arithmetic; anything that files an instant under
+   a day asks this one instead.
+
+   An entry that crosses the boundary is split WHEN READ, never when written:
+   the stored times are exactly what was typed or timed, so a correction is
+   never overwritten, and each day sees only its own part. */
+function timeLivingDay(iso){
+  const d = new Date(iso);
+  if(isNaN(d)) return null;
+  d.setHours(d.getHours() - dayBoundaryHour());
+  return timeDayOf(d.toISOString());
+}
+/* the span of a living day, as two instants (ms): boundary hour to boundary hour */
+function timeDayWindow(day, lastDay){
+  const b = dayBoundaryHour();
+  const a = parseDay(day); a.setHours(b, 0, 0, 0);
+  const z = parseDay(addDays(lastDay || day, 1)); z.setHours(b, 0, 0, 0);
+  return [a.getTime(), z.getTime()];
+}
+/* The part of an entry inside [a, z): the entry itself when it lies wholly
+   inside, a clipped copy (same id, `_clipOf` says so) when it crosses an edge,
+   null when it does not touch. A clock still running is measured to now. */
+function timeClipTo(e, a, z){
+  const s = Date.parse(e.startTime); if(isNaN(s)) return null;
+  const t = e.endTime ? Date.parse(e.endTime) : Date.now();
+  const touches = (s < z && t > a) || (s === t && s >= a && s < z);
+  if(!touches) return null;
+  if(s >= a && (t <= z)) return e;
+  const c = Object.assign({}, e, {_clipOf: e.id});
+  if(s < a) c.startTime = new Date(a).toISOString();
+  if(t > z) c.endTime = new Date(z).toISOString();
+  return c;
+}
 function timeBetween(from, to){
-  return timeEntries().filter(e => { const d = timeDayOf(e.startTime);
-    return d && d >= from && d <= to; });
+  const [a, z] = timeDayWindow(from, to);
+  return timeEntries().map(e => timeClipTo(e, a, z)).filter(Boolean);
+}
+/* the calendar day instead, midnight to midnight — for the bars that are drawn
+   on a 24-hour face, where an hour after midnight is at the left edge */
+function timeOnCalendarDay(day){
+  const a = parseDay(day).getTime(), z = parseDay(addDays(day, 1)).getTime();
+  return timeEntries().map(e => timeClipTo(e, a, z)).filter(Boolean);
 }
 const timeMinutesOn = day => sum(timeOnDay(day).map(e => timeMinutes(e)));
 
@@ -251,10 +331,31 @@ const timeMinutesOn = day => sum(timeOnDay(day).map(e => timeMinutes(e)));
 /* Starting while something is already running stops that first: two clocks
    running at once is two answers to "what am I doing", and the whole point of
    this is that there is one. */
+/* ONE CLOCK. The clock is the focus timer's: a sitting. Pressing the pill, or
+   a room asking for the clock, opens a sitting with a label and no target
+   (`FocusTimer.startOpen`), and the entry in the day's record is written from
+   it — the part under way is the pill's live row, the finished parts are
+   rows written when a part ends. So there is no second clock to keep in line:
+   the only row that is ever "running" is the mirror of the sitting. */
 function startTimer(fields){
   timeState();
-  const was = timeRunning();
-  if(was) stopTimer();
+  const f = fields || {};
+  /* the mirror of a sitting's running part (see 19-time-focus.js) */
+  if(f.focusSit) return timeOpenLiveRow(f);
+  /* an older clock with no sitting behind it is closed the way it always was */
+  const old = timeRunning();
+  if(old && !old.focusSit) stopTimer();
+  const meta = {what: f.what || '', categoryId: f.categoryId || timeSettings().defaultCategory || null,
+    linkedType: f.linkedType || null, linkedId: f.linkedId || null, linkedLabel: f.linkedLabel || '',
+    source: f.source || 'timer', feature: f.feature || null, tags: Array.isArray(f.tags) ? f.tags.slice() : []};
+  /* a sitting started for a habit's minimum says what that minimum is */
+  if(f.habitId) meta.habitId = f.habitId;
+  if(f.goal) meta.goal = String(f.goal);
+  FocusTimer.startOpen(meta);
+  return timeRunning();
+}
+function timeOpenLiveRow(fields){
+  timeState();
   const e = timeEntryDefaults(Object.assign({id:uid(), startTime:new Date().toISOString(),
     endTime:null, source:'timer'}, fields || {}));
   if(!e.categoryId) e.categoryId = timeSettings().defaultCategory || null;
@@ -278,6 +379,19 @@ const TIME_TOO_SHORT = 1;                              /* minutes */
 function stopTimer(at){
   const e = timeRunning();
   if(!e) return null;
+  /* the sitting under this row is closed — which writes its entries — and the
+     last of them is handed back, or the row itself marked as dropped when the
+     sitting was too short to be written down */
+  if(e.focusSit && !at){
+    const s = FocusTimer.state();
+    if(!s.idle && s.startedAt === e.focusSit){
+      const key = e.focusSit;
+      FocusTimer.stop(true);
+      const mine = S.timeEntries.filter(x => x.focusSit === key && x.endTime)
+        .sort((a, b) => Date.parse(a.endTime) - Date.parse(b.endTime));
+      return mine.length ? mine[mine.length - 1] : Object.assign({}, e, {dropped: true});
+    }
+  }
   e.endTime = at || new Date().toISOString();
   /* a timer stopped before it started is a clock somebody wound backwards */
   if(Date.parse(e.endTime) < Date.parse(e.startTime)) e.endTime = e.startTime;
@@ -323,14 +437,21 @@ function logTime(fields){
   return e;
 }
 function removeTimeEntry(id){
+  const was = timeState().find(e => e.id === id);
   const gone = spliceOut(timeState(), e => e.id === id);
   saveNow();
-  return gone;
+  /* a habit the clock counted is read again without it */
+  const reread = () => { try { if(was) habClockSettleFor(was); } catch(err){} };
+  reread();
+  return () => { gone(); reread(); };
 }
 /* Two ISO times out of a day and a clock face, which is what a form gives. */
 function timeAtOn(day, hhmm){
   const [h, m] = String(hhmm || '').split(':').map(Number);
   const d = parseDay(day);
+  /* a clock face earlier than the day's boundary is the small hours AFTER
+     that day's evening: 01:30 on Friday is Saturday morning by the calendar */
+  if(isFinite(h) && h < dayBoundaryHour()) d.setDate(d.getDate() + 1);
   d.setHours(isFinite(h) ? h : 0, isFinite(m) ? m : 0, 0, 0);
   return d.toISOString();
 }
@@ -342,7 +463,8 @@ const timeClockOf = iso => { const d = new Date(iso);
    that fires while the tab is shut is a clock that does not fire. */
 function closeRunawayTimer(){
   const e = timeRunning();
-  if(!e) return null;
+  /* a clock that is a sitting is closed by the sitting (FocusTimer.restore) */
+  if(!e || e.focusSit) return null;
   const mins = timeMinutes(e);
   if(mins <= TIME_RUNAWAY) return null;
   e.endTime = new Date(Date.parse(e.startTime) + TIME_RUNAWAY * 60000).toISOString();

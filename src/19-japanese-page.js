@@ -206,7 +206,8 @@ function jaCredit(mins){
     if(h.archived) return;
     const linked = Array.isArray(h.linkedRooms) && h.linkedRooms.includes('japanese');
     const nameMatch = /japanese|日本語|language/i.test(h.name || '');
-    if((linked || (!h.linkedRooms?.length && nameMatch)) && typeof habKept === 'function' && !habKept(h, d))
+    const decided = h.countsState === 'confirmed' || h.countsState === 'declined';
+    if((linked || (!h.linkedRooms?.length && nameMatch && !decided)) && typeof habKept === 'function' && !habKept(h, d))
       typeof habSetEntry === 'function' && habSetEntry(h, d, {status:'completed', note:'practised'});
   });
 }

@@ -125,8 +125,8 @@ const near = (n,a,b,tol) => Math.abs(a-b) <= tol ? ok(n, `${a.toFixed(1)} vs ${b
   await p.waitForTimeout(800);
   yes('the pencil on the pin opens the form', !!(await p.$('#msName')));
   /* the first pin is "First draft", which was already met, so the toggle
-     un-marks it — either way the switch has to be written down */
-  await p.click('#msDone'); await p.click('#msSave');
+     goes back to open — either way the switch has to be written down */
+  await p.evaluate(() => { const r = document.querySelector('input[name="msStatus"][value="open"]'); r.checked = true; r.dispatchEvent(new Event('change', {bubbles: true})); }); await p.click('#msSave');
   await p.waitForTimeout(1100);
   is('the met switch is written down',
      await p.evaluate(id => planList(id).milestones.find(m => m.name === 'First draft').done, listId), false);

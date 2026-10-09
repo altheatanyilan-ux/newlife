@@ -49,7 +49,7 @@ function projectListsSync(){
     let l = P.lists.find(x => x.id === p.id);
     if(!l){
       l = {id: p.id, name: p.name || 'A project', color: (typeof PSTATUS === 'object' && PSTATUS[p.status] ? PSTATUS[p.status][2] : '#b08968'), folderId: PROJECT_FOLDER_ID,
-        sortOrder: P.lists.length + pi, defaultView: typeof PLAN_VIEW_DEFAULT !== 'undefined' ? PLAN_VIEW_DEFAULT : 'list', kanbanColumns: typeof DEFAULT_KANBAN === 'function' ? DEFAULT_KANBAN() : [], sections: [], milestones: [], isDefault: false, createdAt: new Date().toISOString()};
+        sortOrder: P.lists.length + pi, defaultView: typeof PLAN_VIEW_DEFAULT !== 'undefined' ? PLAN_VIEW_DEFAULT : 'list', sections: [], milestones: [], isDefault: false, createdAt: new Date().toISOString()};
       P.lists.push(l);
     }
     l.projectId = p.id;

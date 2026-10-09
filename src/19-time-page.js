@@ -61,7 +61,7 @@ function timeDayHTML(){
       <span class="mono">${timeSaid(mins)} tracked</span>
       <button class="btn sm primary" id="tmAdd">+ a sitting</button>
     </div>
-    ${timeStripHTML(rows, day)}
+    ${timeStripHTML(timeOnCalendarDay(day), day)}
     ${rows.length ? `<div class="tm-list">${rows.map(timeRowHTML).join('')}</div>`
       : `<div class="empty">Nothing tracked on this day. Start the clock in the corner, or write
         down a sitting you did not time.</div>`}
@@ -96,6 +96,17 @@ function timeStripHTML(rows, day){
   <div class="tm-ticks mono">${marks.map(h =>
     `<span style="left:${(h / 24 * 100).toFixed(2)}%">${h === 24 ? '24' : String(h).padStart(2, '0')}</span>`).join('')}</div>`;
 }
+/* the reading on a stretch, once it is over: said once, in the words of what
+   it was; nothing is asked of a stretch that was never read except a quiet
+   offer, and a skipped one is simply left */
+function timeVerdictHTML(e){
+  if(!e.endTime || e.kind === undefined) return '';
+  const kindTag = e.kind !== 'work' ? `<span class="tm-kind mono sm">${esc(TIME_KIND_NAMES[e.kind] || e.kind)}${e.overrun ? ' · ran over' : ''}</span> ` : '';
+  if(e.verdict) return `<div class="tm-verdict sm">${kindTag}<span class="tm-v tm-v-${esc(e.verdict)}">${esc(TIME_VERDICT_WORDS[e.verdict])}</span></div>`;
+  if(!e.focusSit) return kindTag ? `<div class="tm-verdict sm">${kindTag}</div>` : '';
+  return `<div class="tm-verdict sm">${kindTag}<span class="faint">${esc(TIME_VERDICT_ASK[e.kind] || TIME_VERDICT_ASK.work)}</span>
+    ${TIME_VERDICTS.map(v => `<button type="button" class="chip tf-chip" data-tmverdict="${esc(e.id)}|${v}">${esc(TIME_VERDICT_WORDS[v])}</button>`).join('')}</div>`;
+}
 function timeRowHTML(e){
   const c = timeCategory(e.categoryId);
   return `<div class="tm-row" style="--c:${esc(c.color)}" data-tmrow="${esc(e.id)}">
@@ -109,6 +120,7 @@ function timeRowHTML(e){
         e.source === 'auto' ? ' · started by the room' : ''}</div>
       ${e.notes.length ? `<div class="tm-notes">${e.notes.map(n =>
         `<span class="mono sm">${esc(timeClockOf(n.at))}</span> ${esc(n.text)}`).join('<br>')}</div>` : ''}
+      ${timeVerdictHTML(e)}
       ${timeWrittenHTML(e)}
     </div>
     <span class="mono tm-mins">${e.endTime ? timeSaid(timeMinutes(e)) : 'running'}</span>
@@ -249,7 +261,7 @@ function timeTrendHTML(rows, from, to){
   const days = [];
   const d = parseDay(from), end = parseDay(to);
   while(d <= end){ days.push(timeDayOf(d.toISOString())); d.setDate(d.getDate() + 1); }
-  const per = days.map(day => sum(rows.filter(e => timeDayOf(e.startTime) === day).map(timeMinutes)));
+  const per = days.map(day => sum(rows.filter(e => timeLivingDay(e.startTime) === day).map(timeMinutes)));
   const top = Math.max(60, ...per);
   const W = 640, H = 110, pad = 6;
   const at = (v, i) => [pad + (W - pad * 2) * (days.length < 2 ? 0 : i / (days.length - 1)),
@@ -276,6 +288,8 @@ function bindTimePage(root){
   $$('[data-tmedit]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
     openTimeEntryModal(b.dataset.tmedit); });
   $$('[data-tmgo]', root).forEach(b => b.onclick = () => openTimeEntryModal(b.dataset.tmgo));
+  $$('[data-tmverdict]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const [id, v] = b.dataset.tmverdict.split('|'); if(timeSetVerdict(id, v)){ sound('click'); rerender(); } });
   bindTimeWrite(root);
   const add = root.querySelector('#tmAdd');
   if(add) add.onclick = () => openTimeEntryModal(null, timeDay());

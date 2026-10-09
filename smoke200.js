@@ -168,11 +168,19 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('  with the moment it was made', noted.stamped, JSON.stringify(noted));
 
   console.log('\n8. a timer left running overnight');
+  /* the clock is a sitting now, so a night of it is closed by the sitting on
+     the way in (FocusTimer.restore), which writes the entry and says so */
   const away = await p.evaluate(() => {
-    const e = startTimer({what:'left running'});
-    e.startTime = new Date(Date.now() - 14 * 3600 * 1000).toISOString();
-    const closed = closeRunawayTimer();
-    return {mins: Math.round(timeMinutes(closed)), said: closed.notes[0].text,
+    startTimer({what:'left running'});
+    const snap = JSON.parse(JSON.stringify(planState().timerLive));
+    FocusTimer.reset();
+    const back = 14 * 3600 * 1000;
+    snap.startedAt = new Date(Date.parse(snap.startedAt) - back).toISOString(); snap.since -= back;
+    planState().timerLive = snap;
+    const live = timeRunning(); if(live) S.timeEntries.splice(S.timeEntries.indexOf(live), 1);   /* the page that went away took its live row with it */
+    FocusTimer.restore();
+    const closed = S.timeEntries.find(x => x.endTime && x.focusSit === snap.startedAt);
+    return {mins: Math.round(timeMinutes(closed)), said: closed.notes[closed.notes.length - 1].text,
       running: !!timeRunning()};
   });
   is('fourteen hours of piano is closed at six', away.mins, 360);

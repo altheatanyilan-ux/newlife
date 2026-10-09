@@ -95,7 +95,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n4. three ways of looking at them');
   await room();
-  yes('there are three views', await p.evaluate(() => document.querySelectorAll('[data-hbview]').length === 3));
+  yes('there are four views', await p.evaluate(() => document.querySelectorAll("[data-hbview]").length === 4));
   yes('  the dashboard is one', !!(await p.$('.hb-grid')));
   /* the four energy dimensions were taken out of habits by request */
   yes('  with no energy dimensions on it any more',

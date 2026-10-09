@@ -31,6 +31,19 @@ routes.settings = function(root){
       <div class="opt"><div><b>Say the minutes</b><div class="d">How lengths are read out. The exact times are always what is kept underneath, and anything that happened counts as at least one step.</div></div>
         <select class="sel" style="width:auto" id="sTimeRound">${[[1,'to the minute'],[5,'to five minutes'],[15,'to the quarter hour']].map(([v, l]) =>
           `<option value="${v}" ${timeSettings().round === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+      <!-- a pause is a break, and a break is asked about in one line with these underneath -->
+      <div class="opt"><div><b>How long a break is meant to be</b><div class="d">When you pause, the break is held against this \u2014 or against its chip's own length \u2014 and what runs past it is recorded as its own stretch, so a walk is not blamed for the scrolling after it.</div></div>
+        <input class="inp" type="number" min="1" max="120" style="width:80px" id="sBreakMin" value="${timeSettings().breakMin}"></div>
+      <div class="opt" style="display:block"><div><b>The break chips</b><div class="d">What a pause offers, so that \u201cwhat are you doing?\u201d is one tap. Each has a category, a length, and the reading it usually earns. Rename, change or take out any of them.</div></div>
+        <div id="sBreakChips">${timeBreakChips().map(c => `<div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap" data-bchip="${esc(c.id)}">
+          <input class="inp" style="width:110px" data-bf="label" value="${esc(c.label)}" aria-label="name">
+          <select class="sel" style="width:auto" data-bf="categoryId" aria-label="category"><option value="">no category</option>${timeAllCategories().map(k =>
+            `<option value="${esc(k.id)}" ${c.categoryId === k.id ? 'selected' : ''}>${esc(k.emoji)} ${esc(k.name)}</option>`).join('')}</select>
+          <input class="inp" type="number" min="1" max="240" style="width:64px" data-bf="minutes" value="${+c.minutes || 5}" aria-label="minutes">
+          <select class="sel" style="width:auto" data-bf="defaultVerdict" aria-label="usually"><option value="">no usual reading</option>${TIME_VERDICTS.map(v =>
+            `<option value="${v}" ${c.defaultVerdict === v ? 'selected' : ''}>usually: ${esc(TIME_VERDICT_WORDS[v])}</option>`).join('')}</select>
+          <button class="pl-mini" data-bdel="${esc(c.id)}" title="take it out">\u00d7</button></div>`).join('')}
+          <button class="btn sm ghost" id="sBreakAdd" style="margin-top:8px">+ a chip</button></div></div>
       <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
       <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
       <!-- there used to be a place here to add your own beside the shipped
@@ -184,7 +197,7 @@ routes.settings = function(root){
        leaving one running that you have just said you did not want. What you
        started by hand is yours and keeps running. */
     if(!on){ const e = timeRunning();
-      if(e && e.source === 'auto'){ stopTimer(); paintTimeDock(); } }
+      if(e && e.source === 'auto' && e.feature !== 'focus'){ stopTimer(); paintTimeDock(); } }
     saveNow();
     this.classList.toggle('on', on);
     toast(on ? 'Rooms will start the clock again.'
@@ -196,6 +209,21 @@ routes.settings = function(root){
     timeSettings().defaultCategory = this.value || null; saveNow(); });
   $('#sTimeRound') && ($('#sTimeRound').onchange = function(){
     timeSettings().round = +this.value || 1; saveNow(); });
+  $('#sBreakMin') && ($('#sBreakMin').onchange = function(){
+    timeSettings().breakMin = Math.min(120, Math.max(1, Math.round(+this.value || 5))); this.value = timeSettings().breakMin; saveNow(); });
+  document.querySelectorAll('#sBreakChips [data-bchip]').forEach(row => {
+    const c = timeBreakChips().find(x => x.id === row.dataset.bchip); if(!c) return;
+    row.querySelectorAll('[data-bf]').forEach(f => f.onchange = () => {
+      const k = f.dataset.bf;
+      c[k] = k === 'minutes' ? Math.min(240, Math.max(1, Math.round(+f.value || 5))) : (f.value || (k === 'label' ? c.label : null));
+      if(k === 'label' && !f.value.trim()) f.value = c.label;
+      saveNow(); });
+    row.querySelector('[data-bdel]').onclick = () => requestDelete({label: `The \u201c${c.label}\u201d chip`, skipConfirm: true,
+      remove: () => spliceOut(timeBreakChips(), x => x.id === c.id)});
+  });
+  $('#sBreakAdd') && ($('#sBreakAdd').onclick = () => {
+    timeBreakChips().push({id: uid(), label: 'a break', categoryId: 'rest', kind: 'break', minutes: timeSettings().breakMin, defaultVerdict: null});
+    saveNow(); rerender(); });
   $('#sTimeNods') && ($('#sTimeNods').onclick = function(){
     timeSettings().autoNods = !timeSettings().autoNods; saveNow();
     this.classList.toggle('on', timeSettings().autoNods); });

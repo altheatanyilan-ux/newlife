@@ -54,17 +54,39 @@ function focusRecordParts(rec, openFrom){
     return out;
   });
   const open = openFrom ? Date.parse(openFrom) : NaN;
-  return ivs.map(([x, y]) => {
+  const tail = rec.cur || {};
+  const work = ivs.map(([x, y]) => {
     const seg = segs.find(s => Date.parse(s.from) <= x && x < Date.parse(s.to));
+    /* a stretch's own kind, category and reading; the part after the last
+       mark is the stretch still under way, whose are kept on the record */
+    const at = seg || tail;
     return {from: new Date(x).toISOString(), to: new Date(y).toISOString(),
       text: seg ? (seg.text || '') : (rec.note || '').trim(),
       taskId: seg && seg.taskId !== undefined ? seg.taskId : (rec.taskId || null),
+      kind: at.kind || 'work', categoryId: at.categoryId || null, chipId: at.chipId || null, origin: at.origin || 'manual',
+      verdict: at.verdict || null, verdictAt: at.verdictAt || null, stretchId: seg ? seg.id : null,
       open: x === open};
   });
+  /* the breaks are stretches too: each its own part, with what it was, the
+     category it was given and the reading on it */
+  const brks = (rec.breaks || []).filter(b => b.to && Date.parse(b.to) > Date.parse(b.from)).map(b => ({
+    from: new Date(Date.parse(b.from)).toISOString(), to: new Date(Date.parse(b.to)).toISOString(),
+    text: b.note || '', taskId: null, kind: 'break', categoryId: b.categoryId || null, chipId: b.chipId || null,
+    origin: b.origin || 'pause', verdict: b.verdict || null, verdictAt: b.verdictAt || null, stretchId: b.id || null,
+    overrun: !!b.overrun, overrunReason: b.overrunReason || '', overrunState: b.overrunState || '', rest: b.rest || null, open: false}));
+  return work.concat(brks).sort((p, q) => Date.parse(p.from) - Date.parse(q.from));
 }
 
 /* the task's name and the category its time belongs to, as the tracker files it */
-function focusEntryFields(taskId){
+function focusEntryFields(taskId, meta){
+  /* a sitting that is not a task — the pill's clock, a room's — says in its own
+     words what it was, and what category and link it carries */
+  if(!taskId && meta){
+    let cat = meta.categoryId || null;
+    if(cat && !timeAllCategories().some(c => c.id === cat)) cat = timeSettings().defaultCategory || null;
+    return {what: meta.what || '', categoryId: cat || timeSettings().defaultCategory || null,
+      linkedType: meta.linkedType || null, linkedId: meta.linkedId || null, linkedLabel: meta.linkedLabel || '', habitId: meta.habitId || null};
+  }
   const t = taskId && typeof taskById === 'function' ? taskById(taskId) : null;
   const name = t ? (t.title || t.text || '') : '';
   let cat = (t && t.timeCategory) || 'tasks';
@@ -76,7 +98,7 @@ function focusEntryFields(taskId){
    still running began, if the sitting is running: that part is the live
    clock's, and is left to it. */
 function timeSyncFocus(rec, {openFrom = null} = {}){
-  if(!rec || !rec.startedAt || (rec.type && rec.type !== 'focus')) return;
+  if(!rec || !rec.startedAt || (rec.type && rec.type !== 'focus' && rec.type !== 'clock')) return;
   timeState();
   const key = rec.startedAt;
   const parts = focusRecordParts(rec, openFrom)
@@ -87,23 +109,41 @@ function timeSyncFocus(rec, {openFrom = null} = {}){
   parts.forEach(p => {
     if(skip.has(key + '|' + p.from)) return;
     let e = mine.find(x => x.focusFrom === p.from);
-    if(e && e.edited){ kept.add(e.id); return; }
-    const f = focusEntryFields(p.taskId);
-    const want = {startTime: p.from, endTime: p.to, source: 'auto', feature: 'focus', focusSit: key, focusFrom: p.from,
-      what: f.what || p.text || 'a sitting', linkedType: f.linkedType, linkedId: f.linkedId, linkedLabel: f.linkedLabel};
-    if(!e){ e = timeEntryDefaults(Object.assign({id: uid(), categoryId: f.categoryId}, want)); S.timeEntries.push(e); }
-    else Object.assign(e, want);
-    /* the stretch's words, as the entry's note — one, kept current */
+    /* Your word wins: an entry you corrected is left as you left it. That
+       includes the start of the clock still running, which you may have set
+       back ("I actually began at ten") — it keeps the start you gave and
+       takes its end from the part. */
+    if(e && (e.edited || e.startTime !== e.focusFrom)){ if(!e.endTime) e.endTime = p.to; if(p.verdict && !e.verdict){ e.verdict = p.verdict; e.verdictAt = p.verdictAt || null; } kept.add(e.id); try { timeAfterSave(e); } catch(err){} return; }
+    const meta = rec.meta || null;
+    const brk = p.kind === 'break';
+    const f = brk ? {what: '', categoryId: p.categoryId || 'rest', linkedType: null, linkedId: null, linkedLabel: ''} : focusEntryFields(p.taskId, meta);
+    if(brk && !timeAllCategories().some(c => c.id === f.categoryId)) f.categoryId = timeSettings().defaultCategory || null;
+    const chip = brk && p.chipId ? timeBreakChips().find(c => c.id === p.chipId) : null;
+    const want = {startTime: p.from, endTime: p.to, source: meta ? (meta.source || 'timer') : 'auto', feature: meta ? (meta.feature || 'clock') : 'focus',
+      focusSit: key, focusFrom: p.from,
+      what: brk ? (p.text || (chip && chip.label) || 'a break') : (f.what || p.text || (meta ? '' : 'a sitting')),
+      linkedType: f.linkedType, linkedId: f.linkedId, linkedLabel: f.linkedLabel, habitId: f.habitId || null,
+      kind: p.kind || 'work', chipId: p.chipId || null, origin: p.origin || 'manual', stretchId: p.stretchId || null,
+      overrun: !!p.overrun, overrunReason: p.overrunReason || ''};
+    /* a reading, once said, is kept as said; the record is where it is said */
+    if(p.verdict && !(e && e.verdict)){ want.verdict = p.verdict; want.verdictAt = p.verdictAt || null; }
+    if(!e){ e = timeEntryDefaults(Object.assign({id: uid(), categoryId: f.categoryId, tags: meta && meta.tags ? meta.tags.slice() : []}, want)); S.timeEntries.push(e); }
+    else { if(brk) want.categoryId = f.categoryId; Object.assign(e, want); }
+    /* the stretch's words, as the entry's note — one, kept current (a break's
+       words are its name already) */
     e.notes = (e.notes || []).filter(n => !n.stretch);
-    if(p.text) e.notes.push({at: p.to, text: p.text, stretch: true});
+    if(p.text && !brk) e.notes.push({at: p.to, text: p.text, stretch: true});
+    if(p.overrunReason) e.notes.push({at: p.to, text: p.overrunReason, stretch: true});
+    if(p.overrunState && typeof habStateName === 'function') e.notes.push({at: p.to, text: `in a state of ${habStateName(p.overrunState)}`, stretch: true});
     kept.add(e.id);
-    try { timeAfterSave(e); } catch(err){}
+    if(!brk) try { timeAfterSave(e); } catch(err){}
   });
   /* a finished entry for a part the record no longer has (a part that turned
      out shorter than half a minute, a mark taken back) goes — unless it is
      one you changed; the live clock is never touched here */
-  mine.filter(e => e.endTime && !kept.has(e.id) && !e.edited)
-    .forEach(e => { const i = S.timeEntries.indexOf(e); if(i >= 0) S.timeEntries.splice(i, 1); });
+  const gone = mine.filter(e => e.endTime && !kept.has(e.id) && !e.edited);
+  gone.forEach(e => { const i = S.timeEntries.indexOf(e); if(i >= 0) S.timeEntries.splice(i, 1); });
+  gone.forEach(e => { try { habClockSettleFor(e); } catch(err){} });
   saveNow();
   if(typeof paintTimeDock === 'function') paintTimeDock();
 }
@@ -121,34 +161,48 @@ function timeFollowFocus(){
   if(sig === _focusLiveSig) return;
   _focusLiveSig = sig;
   const run = timeRunning();
-  const ours = run && run.feature === 'focus' && run.source === 'auto';
+  /* the live row is a mirror of a sitting's running part: it carries the
+     sitting's key (`focusSit`). Any other running row is an older clock that
+     no sitting stands behind, and is none of this function's business. */
+  const ours = !!(run && run.focusSit);
   if(!on){
     /* the record closes the part when it is written; a live clock the record
        has not reached (a sitting under half a minute) is simply let go */
-    if(ours && run.focusSit){
+    if(ours){
       const rec = (planState().focusSessions || []).find(r => r.startedAt === run.focusSit);
       if(rec) timeSyncFocus(rec, {});
-      if(timeRunning() === run){ const i = S.timeEntries.indexOf(run); if(i >= 0) S.timeEntries.splice(i, 1); saveNow(); }
-    } else if(ours){ timeAutoStop('focus'); }
+      if(timeRunning() === run){
+        /* a clock whose start you set back is still a sitting, even when the
+           sitting's own record never reached a minute */
+        if(run.startTime !== run.focusFrom || run.edited){
+          run.endTime = new Date().toISOString();
+          if(timeMinutes(run) >= TIME_TOO_SHORT){ try { timeAfterSave(run); } catch(e){} saveNow(); }
+          else { const i = S.timeEntries.indexOf(run); if(i >= 0) S.timeEntries.splice(i, 1); saveNow(); }
+        } else { const i = S.timeEntries.indexOf(run); if(i >= 0) S.timeEntries.splice(i, 1); saveNow(); }
+      }
+    }
     if(typeof paintTimeDock === 'function') paintTimeDock();
     return;
   }
   /* already the right clock — after a reload, say */
   if(ours && run.focusSit === s.startedAt && run.focusFrom === part) return;
   if(run){
-    if(ours && run.focusSit){
+    if(ours){
       /* the part before this one: the record will close it; until then it
          ends where this one starts */
       run.endTime = part; try { timeAfterSave(run); } catch(e){}
     } else {
       const was = run.what || run.linkedLabel || 'the other clock';
       stopTimer();
-      if(run.source === 'timer') toast(esc(`The clock on “${was}” was stopped — this focus sitting is counted from here.`), 5000);
+      if(run.source === 'timer') toast(esc(`The clock on \u201c${was}\u201d was stopped \u2014 this sitting is counted from here.`), 5000);
     }
   }
-  const f = focusEntryFields(s.taskId);
-  startTimer({source: 'auto', feature: 'focus', startTime: part, focusSit: s.startedAt, focusFrom: part,
-    what: f.what || 'a sitting', categoryId: f.categoryId, linkedType: f.linkedType, linkedId: f.linkedId, linkedLabel: f.linkedLabel});
+  const meta = s.meta || null;
+  const f = focusEntryFields(s.taskId, meta);
+  timeOpenLiveRow({source: meta ? (meta.source || 'timer') : 'auto', feature: meta ? (meta.feature || 'clock') : 'focus',
+    startTime: part, focusSit: s.startedAt, focusFrom: part, tags: meta && meta.tags ? meta.tags.slice() : [],
+    what: f.what || (meta ? '' : 'a sitting'), categoryId: f.categoryId, linkedType: f.linkedType, linkedId: f.linkedId, linkedLabel: f.linkedLabel,
+    habitId: f.habitId || null});
   if(typeof paintTimeDock === 'function') paintTimeDock();
 }
 
@@ -157,7 +211,7 @@ function timeFollowFocus(){
    at the last moment the record knew about, not at now. */
 function timeRepairFocus(){
   const run = timeRunning();
-  if(!run || run.feature !== 'focus' || run.source !== 'auto') return;
+  if(!run || !run.focusSit) return;
   const s = FocusTimer.state();
   if(s.running && s.phase === 'focus' && run.focusSit === s.startedAt) return;
   const recs = planState().focusSessions || [];
@@ -176,9 +230,40 @@ function timeRepairFocus(){
 /* How far the two accounts of a day agree: focus minutes on the record, and
    focus minutes in the tracker. Used by the tests, and cheap to ask. */
 function focusTimeAgreement(day = today()){
-  const recs = (planState().focusSessions || []).filter(r => r.type === 'focus' && (r.startedAt || '').slice(0, 10) === day);
-  const worked = recs.reduce((a, r) => a + focusRecordParts(r).reduce((b, p) => b + (Date.parse(p.to) - Date.parse(p.from)) / 60000, 0), 0);
-  const tracked = (S.timeEntries || []).filter(e => e.feature === 'focus' && e.focusSit && timeDayOf(e.startTime) === day)
+  const recs = (planState().focusSessions || []).filter(r => r.type === 'focus' && timeLivingDay(r.startedAt) === day);
+  const worked = recs.reduce((a, r) => a + focusRecordParts(r).filter(p => p.kind !== 'break').reduce((b, p) => b + (Date.parse(p.to) - Date.parse(p.from)) / 60000, 0), 0);
+  const tracked = (S.timeEntries || []).filter(e => e.feature === 'focus' && e.focusSit && e.kind !== 'break' && timeLivingDay(e.startTime) === day)
     .reduce((a, e) => a + timeMinutes(e), 0);
   return {worked: Math.round(worked * 10) / 10, tracked: Math.round(tracked * 10) / 10};
+}
+
+/* A sitting that was left running and closed at six hours on the way in says
+   so, on the last entry it wrote — the same words the older clock used. */
+function timeNoteRunaway(key){
+  const mine = (S.timeEntries || []).filter(e => e.focusSit === key && e.endTime)
+    .sort((a, b) => Date.parse(a.endTime) - Date.parse(b.endTime));
+  const last = mine[mine.length - 1]; if(!last) return null;
+  last.notes = last.notes || [];
+  last.notes.push({at: new Date().toISOString(), text: `Left running \u2014 closed at ${fmtHM(TIME_RUNAWAY)}. Correct it if that is wrong.`});
+  saveNow();
+  return last;
+}
+
+/* A reading on a stretch that is already over — from the day's list, after
+   the sitting has ended. Said once and kept as said; it goes onto the entry
+   and, when the entry is a part of a sitting, onto the record that made it,
+   so the next time the record is read into the tracker it is still there. */
+function timeSetVerdict(id, v){
+  if(!TIME_VERDICTS.includes(v)) return false;
+  const e = (S.timeEntries || []).find(x => x.id === id);
+  if(!e || e.verdict) return false;
+  e.verdict = v; e.verdictAt = new Date().toISOString();
+  const rec = e.focusSit ? (planState().focusSessions || []).find(r => r.startedAt === e.focusSit) : null;
+  if(rec){
+    const own = (rec.segments || []).find(s => s.id === e.stretchId) || (rec.breaks || []).find(b => b.id === e.stretchId);
+    const t = own || (e.kind !== 'break' && !e.stretchId ? rec.cur : null);
+    if(t && !t.verdict){ t.verdict = v; t.verdictAt = e.verdictAt; }
+  }
+  saveNow();
+  return true;
 }

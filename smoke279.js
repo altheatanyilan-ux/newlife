@@ -52,7 +52,8 @@ const FILE = 'file://' + path.join(__dirname, 'index.html');
     return {a: mk('Chapter three'), b: mk('The index'), c: mk('Letters')};
   });
   const entriesFor = sit => p.evaluate(sit => S.timeEntries.filter(e => e.focusSit === sit)
-    .map(e => ({from: e.startTime, to: e.endTime, mins: Math.round(timeMinutes(e) * 10) / 10, task: e.linkedId, what: e.what})), sit);
+    .sort((a, b) => a.startTime < b.startTime ? -1 : 1)
+    .map(e => ({from: e.startTime, to: e.endTime, mins: Math.round(timeMinutes(e) * 10) / 10, task: e.linkedId, what: e.what, kind: e.kind})), sit);
 
   console.log('\n1. always counted, whatever the rooms do');
   await p.evaluate(id => { timeSettings().autoTrack = false; FocusTimer.reset(); FocusTimer.setMode('stopwatch'); FocusTimer.setTask(id); FocusTimer.start(); }, ids.a);
@@ -69,15 +70,17 @@ const FILE = 'file://' + path.join(__dirname, 'index.html');
   await p.evaluate(() => FocusTimer.stop()); await p.waitForTimeout(300);
   const e1 = await entriesFor(sit1);
   const parts1 = await p.evaluate(sit => focusRecordParts(planState().focusSessions.find(x => x.startedAt === sit)).map(q => ({from: q.from, to: q.to})), sit1);
-  yes('two entries: the stretch before the pause and the one after it', e1.length === 2 && Math.abs(e1[0].mins - 3) < .05 && Math.abs(e1[1].mins - 4) < .05, e1);
+  const w1 = e1.filter(x => x.kind !== 'break');
+  yes('two entries of work: the stretch before the pause and the one after it', w1.length === 2 && Math.abs(w1[0].mins - 3) < .05 && Math.abs(w1[1].mins - 4) < .05, e1);
+  yes('  and the pause between them is its own entry, a break of two minutes', e1.length === 3 && e1[1].kind === 'break' && Math.abs(e1[1].mins - 2) < .05, e1);
   yes('  with exactly the record\'s times', JSON.stringify(e1.map(x => ({from: x.from, to: x.to}))) === JSON.stringify(parts1), {e1, parts1});
-  yes('  on the task', e1.every(x => x.task === ids.a && x.what === 'Chapter three'));
+  yes('  the work on the task', w1.every(x => x.task === ids.a && x.what === 'Chapter three'));
   yes('  and no clock left running', await p.evaluate(() => !timeRunning()));
 
   console.log('\n3. another clock gives way');
   await p.evaluate(() => { startTimer({what: 'reading the paper', source: 'timer'}); });
   await p.clock.fastForward('05:00');
-  await p.evaluate(id => { FocusTimer.reset(); FocusTimer.setMode('stopwatch'); FocusTimer.setTask(id); FocusTimer.start(); }, ids.b);
+  await p.evaluate(id => { FocusTimer.setMode('stopwatch'); FocusTimer.setTask(id); FocusTimer.start(); }, ids.b);
   await p.waitForTimeout(300);
   const took = await p.evaluate(() => ({hand: S.timeEntries.find(e => e.what === 'reading the paper'), run: timeRunning(),
     toast: [...document.querySelectorAll('.toast')].map(t => t.textContent).join(' ')}));

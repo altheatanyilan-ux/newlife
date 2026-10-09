@@ -275,7 +275,7 @@ function bindPlanDetail(p, t){
   p.querySelector('#pdDup').onclick = () => {
     const c = newPlanTask(t.text + ' (copy)', t.day, JSON.parse(JSON.stringify({listId:t.listId, sectionId:t.sectionId,
       priority:t.priority, dueTime:t.dueTime, doDay:t.doDay, doEnd:t.doEnd, duration:t.duration, desc:t.desc, tags:t.tags,
-      subtasks:t.subtasks, quadrant:t.quadrant, kanbanColumn:t.kanbanColumn, links:t.links})));
+      subtasks:t.subtasks, quadrant:t.quadrant, links:t.links})));
     c.subtasks.forEach(s => { s.id = uid(); s.isCompleted = false; s.completedAt = null; });
     S.tasks.push(c); saveNow(); closePanel(); sound('success'); rerender(); };
   p.querySelector('#pdDel').onclick = () => { closePanel();

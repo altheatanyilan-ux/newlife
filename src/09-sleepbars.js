@@ -112,7 +112,7 @@ function barBlocksOn(d){
      pictures of the same day that disagreed. So the clock is the source, and
      the blocks somebody logged by hand are kept beside it except where they
      cover the same ground, which would draw the same hour twice. */
-  const tracked = (typeof timeOnDay === 'function' ? timeOnDay(d) : []).map(e => {
+  const tracked = (typeof timeOnCalendarDay === 'function' ? timeOnCalendarDay(d) : []).map(e => {
     const at = new Date(e.startTime);
     const a = at.getHours() * 60 + at.getMinutes();
     const z = Math.min(1440, a + timeMinutes(e));

@@ -5,12 +5,38 @@
    what "planning" means here: deciding when, not making new work.
    ============================================================ */
 function newTask(text='', day=''){ return {id:uid(), text, day, done:false, doneAt:null, notes:'', order:Date.now(), createdAt:new Date().toISOString(), links:{projects:[],skills:[]}}; }
+/* ONE UNIT FOR HOW LONG A THING TAKES: minutes, in a task's `duration`.
+   Two older ways of saying it are folded in, once, and nothing is dropped:
+   the day-planning flow kept `est` in HOURS, and the old plan-for-the-day
+   panel kept its own list of items (text, done, `est` in hours) beside the
+   tasks. A task's `est` becomes minutes in `duration` unless it already has
+   one (which is the one that was used); each plan item that was not already
+   a task becomes an Inbox task for that day, done or not, with its length. */
+function migrateEstimateUnits(){
+  const fix = t => { if(!t || t.est === undefined) return;
+    if(!(+t.duration > 0) && +t.est > 0) t.duration = Math.round(+t.est * 60);
+    delete t.est; };
+  (S.tasks || []).forEach(fix);
+  (S.projects || []).forEach(p => (p.phases || []).forEach(ph => (ph.tasks || []).forEach(fix)));
+  Object.keys(S.plans || {}).forEach(d => {
+    const p = S.plans[d]; if(!p || p.items === undefined) return;
+    (Array.isArray(p.items) ? p.items : []).forEach(it => {
+      if(!it || it.ref || !String(it.text || '').trim()) return;
+      const t = newTask(String(it.text).trim(), '');
+      t.doDay = d; t.done = !!it.done; t.doneAt = it.done ? d : null;
+      t.duration = Math.round((+it.est || 0) * 60); t.fromPlanItem = true;
+      S.tasks.push(t);
+    });
+    delete p.items;
+  });
+}
 function migrateTasks(){
   S.tasks = Array.isArray(S.tasks) ? S.tasks : [];
   S.tasks.forEach(t => { t.links = t.links || {projects:[],skills:[]};
     if(t.day === undefined) t.day = ''; if(t.doDay === undefined) t.doDay = '';
     if(t.doEnd === undefined) t.doEnd = '';
     if(t.done === undefined) t.done = false; });
+  migrateEstimateUnits();
   // reminders were dated one-liners: the same thing, so fold them in once
   if(Array.isArray(S.reminders) && S.reminders.length){
     S.reminders.forEach(r => { if(!S.tasks.some(t => t.id === r.id)) S.tasks.push(Object.assign(newTask(r.text || '', r.date || ''), {id:r.id, done:!!r.done, doneAt:r.doneAt||null})); });

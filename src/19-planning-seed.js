@@ -74,7 +74,7 @@ function planSeedIfEmpty(){
 
   /* one finished yesterday, so the statistics have something to stand on */
   const done = add('Set this house up', {listId:'inbox', day:addDays(T, -1), priority:3, focusTime:75});
-  done.done = true; done.doneAt = addDays(T, -1); done.kanbanColumn = 'done';
+  done.done = true; done.doneAt = addDays(T, -1);
   [25, 25, 25].forEach((d, i) => p.focusSessions.push({id:uid(), taskId:done.id,
     startedAt:new Date(Date.parse(addDays(T, -1) + 'T09:00:00') + i * 1800000).toISOString(),
     endedAt:new Date(Date.parse(addDays(T, -1) + 'T09:25:00') + i * 1800000).toISOString(),

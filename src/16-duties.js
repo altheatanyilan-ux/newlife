@@ -41,12 +41,23 @@ function _medianMins(field, days){
   const mid = Math.floor(vals.length/2);
   return vals.length%2 ? vals[mid] : Math.round((vals[mid-1]+vals[mid])/2);
 }
-function dutyMedianWake(days=14){
-  return _medianMins('wakeAt', days);
+/* the median of the wake / bed times logged on the last `days` days, in
+   minutes — read through the one helper (dayWakeHM / dayBedHM) */
+function _medianOfDays(read, days, pastMidnightIsLate){
+  const vals = [];
+  for(let i = 0; i < days; i++){
+    const hm = read(addDays(today(), -i)); if(!hm) continue;
+    let mins = _hmToMins(hm);
+    if(pastMidnightIsLate && mins < 180) mins += 1440;   // a bedtime past midnight
+    vals.push(mins);
+  }
+  if(!vals.length) return null;
+  vals.sort((a, b) => a - b);
+  const mid = Math.floor(vals.length / 2);
+  return vals.length % 2 ? vals[mid] : Math.round((vals[mid - 1] + vals[mid]) / 2);
 }
-function dutyMedianSleep(days=14){
-  return _medianMins('sleepAt', days);
-}
+function dutyMedianWake(days=14){ return _medianOfDays(dayWakeHM, days, false); }
+function dutyMedianSleep(days=14){ return _medianOfDays(dayBedHM, days, true); }
 
 /* Compute a {start, end} window from a window definition */
 function dutyWindowFor(id, T){

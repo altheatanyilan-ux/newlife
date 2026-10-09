@@ -37,6 +37,7 @@ function timeAfterSave(e){
   try { timeCreditSkill(e); } catch(err){ console.warn('skill credit skipped', err); }
   try { timeMakeNod(e); } catch(err){ console.warn('nod skipped', err); }
   try { timeMakeInteraction(e); } catch(err){ console.warn('interaction skipped', err); }
+  try { habClockSettleFor(e); } catch(err){ console.warn('habits not read against the clock', err); }
   return e;
 }
 /* The hours on a skill, kept as a difference. `e.creditedHours` is what this
@@ -49,7 +50,7 @@ function timeCreditSkill(e){
   const had = +e.creditedHours || 0;
   if(Math.abs(want - had) < 0.005) return sk;
   sk.hours = Math.max(0, +(((+sk.hours || 0) + want - had).toFixed(2)));
-  sk.lastPracticed = timeDayOf(e.startTime) || today();
+  sk.lastPracticed = timeLivingDay(e.startTime) || today();
   e.creditedHours = want;
   return sk;
 }
@@ -60,7 +61,7 @@ function timeMakeNod(e){
   if(!Array.isArray(S.nods)) S.nods = [];
   let nod = e.nodId ? byId(S.nods, e.nodId) : null;
   const fields = {projectId: e.linkedId, text: e.what || 'a sitting',
-    duration: Math.round(timeMinutes(e)), date: timeDayOf(e.startTime) || today(),
+    duration: Math.round(timeMinutes(e)), date: timeLivingDay(e.startTime) || today(),
     fromTime: e.id};
   if(nod){ Object.assign(nod, fields); return nod; }
   nod = Object.assign({id:uid(), link:'', image:null, energy:null}, fields);
@@ -73,7 +74,7 @@ function timeMakeInteraction(e){
   if(e.linkedType !== 'person' || !e.linkedId || !timeSettings().autoInteractions) return null;
   if(!Array.isArray(S.interactions)) S.interactions = [];
   let it = e.interactionId ? byId(S.interactions, e.interactionId) : null;
-  const fields = {personId: e.linkedId, date: timeDayOf(e.startTime) || today(),
+  const fields = {personId: e.linkedId, date: timeLivingDay(e.startTime) || today(),
     description: e.what || '', duration: Math.round(timeMinutes(e)), fromTime: e.id};
   if(it){ Object.assign(it, fields); return it; }
   it = Object.assign({id:uid(), type:'met_in_person', mood:null, energy:'', quality:'',
@@ -144,6 +145,8 @@ function timeAutoStart(fields){
      starts for you. A timer you start by hand is untouched. */
   if(!timeSettings().autoTrack) return null;
   if(timeRunning()) return null;
+  /* a sitting held on a break is still a sitting under way: a room does not end it */
+  { const s = FocusTimer.state(); if(!s.idle) return null; }
   const f = Object.assign({source:'auto'}, fields || {});
   /* The category a room asks for is one you can rename, put away or throw
      out, and the room does not know that. If the one it named is gone, the
@@ -172,16 +175,12 @@ function timeAutoStop(feature){
    habit follows the hours instead of needing to be ticked beside them — and
    a correction to an entry takes the day back, which a tick could not. */
 function timeHabitMet(h, day){
-  if(!h || !h.timeCat || !(+h.timeMins > 0)) return false;
-  if(!Array.isArray(S.timeEntries) || !S.timeEntries.length) return false;
-  const mins = sum(timeOnDay(day).filter(e => e.categoryId === h.timeCat).map(e => timeMinutes(e)));
-  return mins >= +h.timeMins;
+  return typeof habClockMet === 'function' ? habClockMet(h, day) : false;
 }
 /* how far along it is, for a ring that fills rather than a box that ticks */
 function timeHabitShare(h, day){
-  if(!h || !h.timeCat || !(+h.timeMins > 0)) return null;
-  const mins = sum(timeOnDay(day).filter(e => e.categoryId === h.timeCat).map(e => timeMinutes(e)));
-  return Math.min(1, mins / +h.timeMins);
+  const p = typeof habClockProgress === 'function' ? habClockProgress(h, day) : null;
+  return p ? Math.min(1, p.mins / p.need) : null;
 }
 
 /* What the Today page says in one line, and what the weekly review says in

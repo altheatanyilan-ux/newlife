@@ -303,7 +303,7 @@ function compassBodyHTML(){
   /* where the Projects card was: the hours the clock has written down, a
      week at a time — the work, whatever list it belongs to */
   const hoursW = weeks12.map(days => Math.round((S.timeEntries || []).filter(e => typeof timeDayOf === 'function'
-    && days.includes(timeDayOf(e.startTime))).reduce((n, e) => n + (typeof timeMinutes === 'function' ? timeMinutes(e) : 0), 0) / 6) / 10);
+    && days.includes(timeLivingDay(e.startTime))).reduce((n, e) => n + (typeof timeMinutes === 'function' ? timeMinutes(e) : 0), 0) / 6) / 10);
   const entriesW = weeks12.map(days => S.entries.filter(e => days.includes(e.createdAt.slice(0,10))).length);
   const stageCounts = S.stages.map(s => ({s, n: stageEntries(s).length})); const maxStage = Math.max(...stageCounts.map(x=>x.n),1);
   const skillHrs = S.skills.filter(s=>!s.planned).map(s=>({s,h:skillHours(s)})).sort((a,b)=>b.h-a.h).slice(0,4);

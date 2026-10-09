@@ -86,7 +86,9 @@ function saveStillSession(rec){
     if(h.archived || h.negative) return;
     const linked = Array.isArray(h.linkedRooms) && h.linkedRooms.includes('stillness');
     const nameMatch = /medit|still|breath|sit\b/i.test(h.name || '');
-    if((linked || (!h.linkedRooms?.length && nameMatch)) && typeof habKept === 'function' && !habKept(h, today()))
+    /* a habit that has been linked to a room, or whose link to the clock was confirmed or refused, is no longer matched by its name */
+    const decided = h.countsState === 'confirmed' || h.countsState === 'declined';
+    if((linked || (!h.linkedRooms?.length && nameMatch && !decided)) && typeof habKept === 'function' && !habKept(h, today()))
       typeof habSetEntry === 'function' && habSetEntry(h, today(), {status:'completed', note:'stillness session'});
   });
   saveNow();
@@ -314,6 +316,7 @@ function stillnessHTML(){
      wrapper wearing the same attribute caught their clicks on the way up and
      set the view back to the one it already was. */
   return `<div class="body stillness" data-sacred="${sview}">
+    ${typeof habFixturesForRoom === 'function' ? habFixturesForRoom('stillness', today()) : ''}
     <!-- The house and the things you can do in it were stacked, and the stack
          was taller than a screen: you could not see the room you had come to
          sit in without scrolling past it, and you could not read the four ways
@@ -368,6 +371,7 @@ function setSacredView(v){
   S._sacredView = v; sound('click'); rerender();
 }
 function bindStillness(root){
+  if(typeof bindHabFixtures === 'function') bindHabFixtures(root, () => { saveNow(); rerender(); });
   const s = stillness(), p = s.prefs;
   const q = x => root.querySelector(x);
   /* the room that used to be drawn here is the house now, and Today hangs its

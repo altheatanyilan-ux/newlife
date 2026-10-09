@@ -10,7 +10,7 @@
      milestones reached and the longest runs.
    ============================================================ */
 
-const HAB_VIEWS = [['dashboard','▦','Dashboard'], ['today','◉','Today'], ['analytics','◫','Analytics']];
+const HAB_VIEWS = [['dashboard','▦','Dashboard'], ['today','◉','Today'], ['analytics','◫','Analytics'], ['limits','⊘','Limiting']];
 function habView(){ const v = S._habView || planState().prefs.habitView || 'dashboard';
   return HAB_VIEWS.some(x => x[0] === v) ? v : 'dashboard'; }
 function habSetView(v){ S._habView = v; planState().prefs.habitView = v; saveNow(); rerenderPlanBody(); }
@@ -33,7 +33,7 @@ function habRoomHTML(){
         `<button class="${v === k ? 'on' : ''}" data-hbview="${k}">${ic} <span>${n}</span></button>`).join('')}</div>
       <button class="btn sm primary" id="hbNew">＋ habit</button>
     </div>
-    ${v === 'today' ? habTodayHTML() : v === 'analytics' ? habAnalyticsHTML() : habDashboardHTML()}
+    ${v === 'today' ? habTodayHTML() : v === 'analytics' ? habAnalyticsHTML() : v === 'limits' ? habLimitsHTML() : habDashboardHTML()}
   </div>`;
 }
 
@@ -65,6 +65,7 @@ function habDashboardHTML(){
   const f = habFilter(), hs = habFiltered();
   const cats = [...new Set(habList().map(h => h.category))];
   return `${habSummaryHTML()}
+    ${typeof habProposalsHTML === 'function' ? habProposalsHTML() : ''}
     <div class="hb-filters">
       ${[['all','Everything'],['building',`${habMark('sprout')} Building`],['breaking',`${habMark('loosed')} Breaking`]].map(([k, n]) =>
         `<button class="chip click${f.type === k ? ' on' : ''}" data-hbf="type:${k}">${n}</button>`).join('')}
@@ -104,12 +105,13 @@ function habCardHTML(h){
         : (s === 'completed' ? 'on' : s === 'partial' ? 'half' : habDue(h, d) ? '' : 'off');
       return `<i class="${cls}" title="${esc(fmtDate(d, 'short'))}${s ? ' — ' + HAB_SESSION_STATUS[s][1] : ''}"></i>`; }).join('')}</div>
     <div class="hb-meta mono">
-      <span>${!due ? 'not due today' : kept ? '✓ done today' : 'due today'}</span>
+      <span>${!due ? 'not due today' : kept ? (habEntry(h, T)?.fromClock ? '✓ kept by the clock' : '✓ done today') : 'due today'}</span>
+      ${(() => { const p = !br && typeof habClockProgress === 'function' ? habClockProgress(h, T) : null; return p && !kept ? `<span>${esc(p.say)}</span>` : ''; })()}
     </div>
     ${(h.links.values || []).length ? `<div class="hb-vals">${(h.links.values || []).map(id =>
       byId(S.values, id)).filter(Boolean).map(v => `<span class="hb-val" style="--c:${v.color}">${esc(v.name)}</span>`).join('')}</div>` : ''}
     ${r != null ? `<div class="hb-rate mono">${r}% over thirty days${t.dir !== 'stable' ? ` · ${t.dir === 'up' ? 'improving ↑' : 'slipping ↓'}` : ''}</div>` : ''}
-    ${habRetireReady(h) ? habRetireOfferHTML(h, st) : due && !kept ? `<button class="btn sm hb-checkin" data-hbcheck="${h.id}">Check in</button>` : ''}
+    ${habRetireReady(h) ? habRetireOfferHTML(h, st) : due && !kept ? `<div class="row" style="gap:6px"><button class="btn sm hb-checkin" data-hbcheck="${h.id}">Check in</button>${!br ? `<button class="btn sm ghost" data-hbstart="${h.id}" title="${h.min ? 'the minimum: ' + esc(h.min) : 'a sitting for the smallest version'}">▶ the minimum</button>` : ''}</div>` : ''}
   </div>`;
 }
 /* the offer, on the card and in the habit's own panel */
@@ -180,7 +182,8 @@ function habTodayRowHTML(h){
     </div>
     <div class="hb-tright">
       <span class="mono hb-tstreak">${habRunMark(br)} ${st.cur}</span>
-      ${h.durationTarget ? `<span class="mono hb-tdur">${h.durationTarget} min</span>` : ''}
+      ${(() => { const p = !br && typeof habClockProgress === 'function' ? habClockProgress(h, T) : null; return p ? `<span class="mono hb-tdur">${esc(p.say)}</span>` : h.durationTarget ? `<span class="mono hb-tdur">${h.durationTarget} min</span>` : ''; })()}
+      ${!br && !kept ? `<button class="tbtn" data-hbstart="${h.id}" title="${h.min ? 'the minimum: ' + esc(h.min) : 'start the minimum'}">▶</button>` : ''}
     </div></div>`;
 }
 
@@ -290,10 +293,12 @@ function habitFixtureHTML(h, d){
       <div class="hab-fix-row">
         ${st.cur ? `<span class="hab-fix-stat">${habRunMark(br)}${st.cur}d</span>` : ''}
         ${next ? `<span class="hab-fix-stat mono faint">${next.days}d milestone</span>` : ''}
-        ${h.durationTarget > 0 ? `<span class="hab-fix-stat mono faint">${minsLogged}/${h.durationTarget}m</span>` : ''}
+        ${(() => { const p = !br && typeof habClockProgress === 'function' ? habClockProgress(h, d) : null;
+          return p ? `<span class="hab-fix-stat mono faint">${esc(p.say)}</span>` : h.durationTarget > 0 ? `<span class="hab-fix-stat mono faint">${minsLogged}/${h.durationTarget}m</span>` : ''; })()}
       </div>
       ${due && !kept ? `<div class="hab-fix-actions">
         <button class="btn sm" data-habfix-check="${h.id}">Kept</button>
+        ${!br && d === today() ? `<button class="btn sm ghost" data-hbstart="${h.id}" title="${h.min ? 'the minimum: ' + esc(h.min) : 'start the minimum'}">▶ minimum</button>` : ''}
         ${HAB_MISS_REASONS.map(([k, ic]) =>
           `<button class="chip click hab-fix-miss" data-habfix-miss="${h.id}:${k}" title="${habMissReason(k)}">${ic}</button>`).join('')}
       </div>` : kept ? `<div class="mono faint" style="font-size:.8rem">done today ✓</div>` : ''}

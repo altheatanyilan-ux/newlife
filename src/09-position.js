@@ -27,6 +27,37 @@ function avgDefined(vals){ const v = vals.filter(x => x != null && !isNaN(x)); r
 const pct = (n, lo, hi) => n == null ? null : clamp((n - lo) / (hi - lo) * 100, 0, 100);
 
 /* ---------- the daily rhythm: sleep and the shape of the hours ---------- */
+/* ONE ANSWER TO "WHEN DID THE DAY START, AND WHEN DID IT END".
+   There were three: the check-in's wakeAt, the day record's wakeTime (copied
+   from it once, then independent) and the Settings default. Now there is one
+   reading, in order of how sure it is — what the day record says (which is
+   where every editor writes), else what the check-in says, else, for a day
+   with nothing logged, the Settings default. Duty windows, the plan-tomorrow
+   timeline and the day strips all ask here. Reading never creates a record. */
+function dayWakeHM(d){
+  const r = S.dailyRhythm && S.dailyRhythm[d];
+  if(r && r.wakeTime) return r.wakeTime;
+  const c = S.checkins && S.checkins[d];
+  return c && c.wakeAt ? isoToHM(c.wakeAt) : '';
+}
+function dayBedHM(d){
+  const r = S.dailyRhythm && S.dailyRhythm[d];
+  if(r && r.sleepTime) return r.sleepTime;
+  const c = S.checkins && S.checkins[d];
+  return c && c.closeAt ? isoToHM(c.closeAt) : '';
+}
+const dayWakeOrSetting = d => dayWakeHM(d) || (S.settings && S.settings.wakeTime) || '07:00';
+/* a bedtime past midnight would put the end of the day before its start on a
+   timeline drawn from wake to sleep, so those fall back to the default end */
+const dayBedOrSetting  = d => { const b = dayBedHM(d), w = dayWakeOrSetting(d);
+  return b && b > w ? b : ((S.settings && S.settings.sleepTime) || '23:00'); };
+/* writing a wake time anywhere keeps the check-in's copy in line, so the two
+   cannot drift again */
+function daySetWake(d, hm){
+  const r = rhythmDay(d); r.wakeTime = hm;
+  if(hm){ const c = checkin(d), t = parseDay(d), [h, m] = hm.split(':').map(Number);
+    t.setHours(h, m, 0, 0); c.wakeAt = t.toISOString(); }
+}
 function rhythmDay(d = today()){
   S.dailyRhythm = S.dailyRhythm || {};
   const r = S.dailyRhythm[d] = S.dailyRhythm[d] || {};
@@ -401,7 +432,7 @@ function bindTimeUse(root, redraw){
   [wt, st].forEach(el => { if(!el) return;
     const seed = () => { if(!el.value) el.value = nowHM(); };
     el.addEventListener('focus', seed); el.addEventListener('mousedown', seed); });
-  if(wt) wt.onchange = () => { r.wakeTime = wt.value; save(); redraw(); };
+  if(wt) wt.onchange = () => { daySetWake(r.day || today(), wt.value); save(); redraw(); };
   if(st) st.onchange = () => { r.sleepTime = st.value; save(); redraw(); };
 
   const minsAt = ev => { const b = bar.getBoundingClientRect();

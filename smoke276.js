@@ -117,7 +117,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.evaluate(d => openTimeEntryModal(null, d.Y), days); await p.waitForTimeout(300);
   is('a sitting after waking beats the wake time', (await form()).from, '22:00');
   await p.evaluate(() => closeModals());
-  await p.evaluate(d => { logTime({what: 'Night work', startTime: timeAtOn(d.E, '00:10'), endTime: timeAtOn(d.E, '00:50')}); saveNow(); }, days);
+  await p.evaluate(d => { logTime({what: 'Night work', startTime: new Date(d.E + 'T00:10:00').toISOString(), endTime: new Date(d.E + 'T00:50:00').toISOString()}); saveNow(); }, days);
   await p.evaluate(d => openTimeEntryModal(null, d.E), days); await p.waitForTimeout(300);
   is('a sitting that ended before waking does not count as the last one', (await form()).from, '06:45');
   await p.fill('#teWhat', 'Stretch'); await p.fill('#teMins', '20');

@@ -125,7 +125,7 @@ function timeWriteAbout(id, type, after){
   const e = byId(S.timeEntries, id); if(!e || !type) return;
   const before = new Set(S.entries.map(x => x.id));
   const c = timeCategory(e.categoryId);
-  openEntryModal({type, occurredAt: timeDayOf(e.startTime),
+  openEntryModal({type, occurredAt: timeLivingDay(e.startTime),
     heading: `${typeName(type)} — about “${e.what || c.name}”`,
     after: () => {
       const made = S.entries.find(x => !before.has(x.id));
@@ -186,7 +186,7 @@ function openTimeNoteModal(){
 function timeLastEndedOn(day){
   let best = null;
   timeState().forEach(x => {
-    if(!x.endTime || timeDayOf(x.endTime) !== day) return;
+    if(!x.endTime || timeLivingDay(x.endTime) !== day) return;
     if(!best || Date.parse(x.endTime) > Date.parse(best.endTime)) best = x;
   });
   return best;
@@ -212,7 +212,7 @@ function openTimeEntryModal(id, day){
   timeState();
   const e = id ? byId(S.timeEntries, id) : null;
   const running = e && !e.endTime;
-  const on = e ? timeDayOf(e.startTime) : (day || today());
+  const on = e ? timeLivingDay(e.startTime) : (day || today());
   /* A sitting written down afterwards usually starts where the last one
      stopped, or at waking if it is the first of the day, so that is where
      "from" starts, said underneath so it is plain where the time came from.

@@ -221,7 +221,9 @@ function habPanelHTML(h){
       ${!br ? `<div class="grid c2" style="gap:10px">
         <div class="field"><label>Before</label>${ed(`${path}.preRitual`, {multi:true, ph:'light the candle, close the door'})}</div>
         <div class="field"><label>After</label>${ed(`${path}.postRitual`, {multi:true, ph:'one sentence about what came'})}</div></div>
-        ${h.stackAfter && byId(S.habits, h.stackAfter) ? `<div class="hb-stack mono">→ ${esc(byId(S.habits, h.stackAfter).name)} → <b>${esc(h.name)}</b> →</div>` : ''}` : ''}`)}
+        ${h.stackAfter && byId(S.habits, h.stackAfter) ? `<div class="hb-stack mono">→ ${esc(byId(S.habits, h.stackAfter).name)} → <b>${esc(h.name)}</b> →</div>`
+          : h.stackAfterTask && typeof taskById === 'function' && taskById(h.stackAfterTask) ? `<div class="hb-stack mono">→ ${esc(taskById(h.stackAfterTask).title || taskById(h.stackAfterTask).text || 'a task')} (task) → <b>${esc(h.name)}</b> →</div>` : ''}
+        ${habCountsAs(h) ? `<div class="mono faint" style="font-size:.78rem;margin-top:6px">counted by the clock — ${esc(habCountsLabel(habCountsAs(h)))}, ${habThreshold(h)} min a day</div>` : ''}` : ''}`)}
 
     ${sec('how it is going', `
       <div class="hb-mini big">${lastDays(90).map(d => { const s = habStatus(h, d);
@@ -231,6 +233,7 @@ function habPanelHTML(h){
       <div class="hb-facts mono"><span>now ${st.cur}</span><span>best ${st.best}</span>
         <span>${habRate(h, 7) ?? '—'}% · 7d</span><span>${habRate(h, 30) ?? '—'}% · 30d</span><span>${habRate(h, 90) ?? '—'}% · 90d</span>
         <span class="hb-htrend ${t.dir}">${t.dir === 'up' ? 'improving ↑' : t.dir === 'down' ? 'slipping ↓' : 'steady →'}</span></div>
+      ${!br ? habMissInsightHTML(h) : ''}
       <div class="hb-msrow">${h.milestones.map(m => `<span class="hb-ms${m.reached ? ' on' : ''}" title="${m.reached ? 'reached ' + esc(fmtDate((m.reachedAt||'').slice(0,10),'med')) : `${Math.max(0, m.days - st.cur)} days away`}">${m.days}</span>`).join('')}</div>
       ${!br && h.progression.length ? `<div class="k mono" style="margin-top:10px">the plan</div>
         <div class="hb-prog">${h.progression.map((x, i) => `<div class="hb-progrow">
@@ -254,13 +257,15 @@ function habPanelHTML(h){
           <button class="del-x inline" data-hptrigdel="${tr.id}">×</button></div>
         ${ed(`${path}.triggers.${i}.description`, {multi:true, ph:'when I feel… / after… / whenever…'})}
         <div class="hb-tstrat">${ed(`${path}.triggers.${i}.strategy`, {multi:true, ph:'and what I do about it'})}</div>
+        <div class="hb-tstates" title="the states that set this off \u2014 a distraction put down to one brings this up">${HAB_STATES.map(([sid, sn]) =>
+          `<button type="button" class="chip tf-chip${(tr.states || []).includes(sid) ? ' on' : ''}" data-hptrigstate="${tr.id}:${sid}">${esc(sn)}</button>`).join('')}</div>
       </div>`).join('') || '<div class="pk-empty">Nothing mapped yet. Naming the trigger is most of the work.</div>'}</div>
       <button class="tbtn" id="hpTrigAdd">+ trigger</button>`)
       + sec('the urges that did not win', `
       ${h.urgeLog.length ? `<div class="hb-urges">${h.urgeLog.slice(0, 30).map(u => `<div class="hb-urge ${esc(u.outcome)}">
         <span class="mono">${esc(fmtDate(u.date, 'short'))}</span>
         <span class="hb-uout">${u.outcome === 'slipped' ? '↯ slipped' : `${habMark('guard')} resisted`}${u.intensity ? ` · ${u.intensity}/5` : ''}</span>
-        <span class="hb-unote">${esc(u.note || '')}</span></div>`).join('')}</div>`
+        <span class="hb-unote">${esc(u.note || '')}${u.source === 'distraction' ? ` <span class="faint">· ${u.returned ? 'back within the break' : 'ran past the break'}</span>` : ''}</span></div>`).join('')}</div>`
         : '<div class="pk-empty">Nothing logged. Every resisted urge belongs here — it is the evidence the new self-image is forming.</div>'}`)
     : sec('the two sizes of it', `
       <div class="field"><label>On the worst day</label>${ed(`${path}.min`, {multi:true, ph:'sit on the mat for two minutes'})}
@@ -339,6 +344,11 @@ function bindHabitPanel(p, h){
   const ta = p.querySelector('#hpTrigAdd'); if(ta) ta.onclick = () => {
     h.triggers.push({id:uid(), type:'emotional', description:'', intensity:3, strategy:''}); saveNow(); habRedraw(h); };
   p.querySelectorAll('[data-hptrigdel]').forEach(b => b.onclick = () => { spliceOut(h.triggers, x => x.id === b.dataset.hptrigdel); saveNow(); habRedraw(h); });
+  p.querySelectorAll('[data-hptrigstate]').forEach(b => b.onclick = () => {
+    const [id, st] = b.dataset.hptrigstate.split(':'); const t = h.triggers.find(x => x.id === id); if(!t) return;
+    t.states = Array.isArray(t.states) ? t.states : [];
+    const i = t.states.indexOf(st); if(i < 0) t.states.push(st); else t.states.splice(i, 1);
+    b.classList.toggle('on', i < 0); saveNow(); });
   p.querySelectorAll('[data-hptrigtype]').forEach(s => s.onchange = () => {
     const t = h.triggers.find(x => x.id === s.dataset.hptrigtype); if(t){ t.type = s.value; saveNow(); } });
   p.querySelectorAll('[data-hptrigint]').forEach(b => b.onclick = () => {
@@ -394,6 +404,10 @@ function bindHabRoom(root){
     rerenderPlanBody(); });
   $$('[data-hbopen]', root).forEach(b => b.onclick = ev => { ev.stopPropagation(); openHabitPanel(b.dataset.hbopen); });
   $$('[data-hbcheck]', root).forEach(b => b.onclick = ev => { ev.stopPropagation(); openHabitCheckIn(b.dataset.hbcheck); });
+  $$('[data-hbstart]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const h = byId(S.habits, b.dataset.hbstart); if(h){ habStartMinimum(h); sound('click'); } });
+  if(typeof bindHabProposals === 'function') bindHabProposals(root, rerenderPlanBody);
+  if(typeof bindHabLimits === 'function') bindHabLimits(root);
   $$('[data-hbcard]', root).forEach(c => c.addEventListener('click', ev => {
     if(ev.target.closest('button')) return; openHabitPanel(c.dataset.hbcard); }));
   habBindRetire(root, rerenderPlanBody);
@@ -405,6 +419,8 @@ function bindHabRoom(root){
 /* Wire fixture buttons — call this from any room that hosts hab-fixtures. */
 function bindHabFixtures(root, rerender){
   const re = rerender || (() => { saveNow(); });
+  $$('[data-hbstart]', root).forEach(b => b.onclick = ev => { ev.stopPropagation();
+    const h = byId(S.habits, b.dataset.hbstart); if(h){ habStartMinimum(h); sound('click'); } });
   $$('[data-habfix-check]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation();
     openHabitCheckIn(b.dataset.habfixCheck);

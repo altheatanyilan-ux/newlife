@@ -74,7 +74,10 @@ function openHabitModal(id){
       <div class="field"><label>Minimum version</label><textarea class="ta hb-grow" rows="1" id="hMin" placeholder="1 pushup">${esc(h.min)}</textarea></div>
       <div class="field"><label>Ideal version</label><textarea class="ta hb-grow" rows="1" id="hIdeal" placeholder="30-minute workout">${esc(h.ideal)}</textarea></div>
     </div>
-    <div class="field"><label>Stack after</label><select class="sel" id="hStack"><option value="">—</option>${S.habits.filter(x=>x.id!==h.id&&!x.archived&&!x.negative).map(x=>`<option value="${x.id}" ${h.stackAfter===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>
+    <div class="field"><label>Stack after</label><select class="sel" id="hStack"><option value="">—</option>
+      <optgroup label="a habit">${S.habits.filter(x=>x.id!==h.id&&!x.archived&&!x.negative).map(x=>`<option value="h:${x.id}" ${h.stackAfter===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</optgroup>
+      <optgroup label="a task">${(S.tasks||[]).filter(t=>!t.done&&!t.isCompleted).slice(0,150).map(t=>`<option value="t:${t.id}" ${h.stackAfterTask===t.id?'selected':''}>${esc(t.title||t.text||'(untitled)')}</option>`).join('')}</optgroup></select>
+      <div class="faint" style="font-size:.74rem">When a sitting on that closes, this is offered next \u2014 \u201cNext: \u2026, start?\u201d.</div></div>
     <div class="grid c2" style="gap:10px">
       <div class="field"><label>The cue</label><textarea class="ta hb-grow" rows="1" id="hCue" placeholder="After I pour the coffee…">${esc(h.cue || '')}</textarea>
         <div class="faint" style="font-size:.74rem">A ritual hangs off something that already happens.</div></div>
@@ -84,13 +87,16 @@ function openHabitModal(id){
          than by a tick: the tracked time either reaches it or it does not, and
          correcting an entry un-keeps it, which a written tick could never do. -->
     <div class="grid c2" style="gap:10px">
-      <div class="field"><label>Kept by the clock (optional)</label>
-        <select class="sel" id="hTimeCat"><option value="">no — I tick it myself</option>${
-          (typeof timeCategories === 'function' ? timeCategories() : []).map(c =>
-            `<option value="${esc(c.id)}" ${h.timeCat === c.id ? 'selected' : ''}>${esc(c.emoji)} ${esc(c.name)}</option>`).join('')}</select>
-        <div class="faint" style="font-size:.74rem">It keeps itself once the day's tracked time reaches the number beside it.</div></div>
+      <div class="field"><label>Counted by the clock (optional)</label>
+        <div class="row" style="gap:6px;flex-wrap:wrap">
+          <select class="sel" id="hCountType" style="width:auto"><option value="">no \u2014 I tick it myself</option>${
+            HAB_COUNT_TYPES.map(([k, n]) => `<option value="${k}" ${(habCountsAs(h) || {}).type === k ? 'selected' : ''}>counts as ${n}</option>`).join('')}</select>
+          <select class="sel" id="hCountId" style="flex:1;min-width:150px">${
+            ((habCountsAs(h) || {}).type ? habCountsChoices(habCountsAs(h).type) : []).map(([v, n]) =>
+              `<option value="${esc(v)}" ${(habCountsAs(h) || {}).id === v ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+        <div class="faint" style="font-size:.74rem">${h.countsState === 'proposed' && h.countsProposal ? `Proposed: ${esc(habCountsLabel(h.countsProposal))} (${esc(h.countsProposal.why)}) \u2014 choose it here to confirm. ` : ''}It keeps itself once the day's tracked time on that reaches the number beside it, and the ring shows how far along it is.</div></div>
       <div class="field"><label>Minutes a day</label>
-        <input class="inp" type="number" min="1" max="1440" id="hTimeMins" value="${h.timeMins || ''}" placeholder="30"></div>
+        <input class="inp" type="number" min="1" max="1440" id="hCountMins" value="${habThreshold(h) || ''}" placeholder="30"></div>
     </div>
     <div class="field"><label>Micro-journal prompt (optional)</label><textarea class="ta hb-grow" rows="1" id="hPrompt" placeholder="How was the run?">${esc(h.prompt)}</textarea></div>
     <div class="field"><label>Relational ritual (optional)</label><select class="sel" id="hRelational"><option value="">not relational</option>
@@ -154,12 +160,14 @@ function openHabitModal(id){
       h.instead = g('#hInstead') ?? h.instead; h.cost = g('#hCost') ?? h.cost; }
     else { h.min = g('#hMin') ?? h.min; h.ideal = g('#hIdeal') ?? h.ideal;
       h.timeOfDay = g('#hTod') ?? h.timeOfDay;
-      h.stackAfter = (g('#hStack') || null); h.relational = g('#hRelational') ?? h.relational;
+      { const sv = g('#hStack') || ''; h.stackAfter = sv.startsWith('h:') ? sv.slice(2) : null; h.stackAfterTask = sv.startsWith('t:') ? sv.slice(2) : null; }
+      h.relational = g('#hRelational') ?? h.relational;
       const ft = g('#hFreq'); if(ft) h.freq = {type: ft,
         days: [...m.querySelectorAll('[data-day].primary')].map(b => +b.dataset.day),
         count: +g('#hCountN') || 1};
-      h.timeCat = g('#hTimeCat') || null;
-      h.timeMins = Math.max(0, +g('#hTimeMins') || 0) || null;
+      { const ty = g('#hCountType') || '', idv = g('#hCountId') || '', mn = +g('#hCountMins') || 0;
+        const nl = ty && idv ? {type: ty, id: idv} : null, cur = habCountsAs(h);
+        if(JSON.stringify(cur) !== JSON.stringify(nl) || (nl && mn && mn !== habThreshold(h))) habSetCounts(h, nl, mn); }
       h.progressHabit = !!m.querySelector('#hProgress')?.checked; }
     h.dimension = g('#hDim') ?? h.dimension;
     h.prompt = g('#hPrompt') ?? h.prompt;
@@ -169,6 +177,9 @@ function openHabitModal(id){
   const bindBody = () => {
     habGrow(m);
     const f = m.querySelector('#hFreq'); if(f){ updFreq(); f.onchange = updFreq; }
+    const ct = m.querySelector('#hCountType'), ci = m.querySelector('#hCountId');
+    if(ct && ci) ct.onchange = () => { ci.innerHTML = ct.value ? habCountsChoices(ct.value).map(([v, n]) => `<option value="${esc(v)}">${esc(n)}</option>`).join('') : '';
+      const mn = m.querySelector('#hCountMins'); if(mn && ct.value && !mn.value) mn.value = h.durationTarget || 20; };
     m.querySelectorAll('[data-day]').forEach(b => b.onclick = () => b.classList.toggle('primary'));
   };
   bindBody();
@@ -203,7 +214,8 @@ function openHabitModal(id){
     habDefaults(h);
     /* a habit you are breaking is never "due", so it keeps a frequency only so
        that nothing downstream has to guard against its absence */
-    if(neg){ h.freq = {type:'daily', days:[], count:1}; h.stackAfter = null; h.relational = ''; }
+    if(neg){ h.freq = {type:'daily', days:[], count:1}; h.stackAfter = null; h.stackAfterTask = null; h.relational = ''; }
+    if(!neg && !h.countsState) habProposeFor(h);
     h.links = {values: [...m.querySelectorAll('[data-lv].on')].map(c => c.dataset.lv),
                skills: neg ? [] : [...m.querySelectorAll('[data-lsk].on')].map(c => c.dataset.lsk)};
     if(!id) S.habits.push(h);

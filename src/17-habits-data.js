@@ -140,11 +140,24 @@ function habDefaults(h){
   h.links = h.links && typeof h.links === 'object' ? h.links : {};
   ['values','skills','projects'].forEach(k => { h.links[k] = Array.isArray(h.links[k]) ? h.links[k] : []; });
   h.linkedRooms = Array.isArray(h.linkedRooms) ? h.linkedRooms : [];
+  /* what the clock counts this habit as (see 17-habits-clock.js): a link and
+     the minutes that make a day of it. The older category-and-number pair is
+     read as a link the person already made. */
+  if(!h.countsAs && h.timeCat && +h.timeMins > 0){
+    h.countsAs = {type:'category', id:h.timeCat}; h.thresholdMin = +h.timeMins; h.countsState = 'confirmed'; }
+  h.countsAs = h.countsAs && h.countsAs.type && h.countsAs.id ? {type:h.countsAs.type, id:h.countsAs.id} : null;
+  h.thresholdMin = +h.thresholdMin > 0 ? Math.round(+h.thresholdMin) : null;
+  if(h.countsAs && h.countsState !== 'confirmed') h.countsState = 'confirmed';
+  if(h.countsState && !['none','proposed','confirmed','declined'].includes(h.countsState)) h.countsState = 'none';
+  h.clockSkip = Array.isArray(h.clockSkip) ? h.clockSkip : [];
+  if(h.negative) (h.triggers || []).forEach(t => { t.states = Array.isArray(t.states) ? t.states : []; });
   return h;
 }
 function migrateHabits(){
   (S.habits || []).forEach(habDefaults);
   S.habitLog = S.habitLog && typeof S.habitLog === 'object' ? S.habitLog : {};
+  /* habits whose names suggested a link are asked about, once */
+  try { if(typeof habProposeLinks === 'function') habProposeLinks(); } catch(e){}
 }
 
 /* ---------- the record ----------
@@ -167,13 +180,15 @@ function habSetEntry(h, d, patch){
   S.habitLog[d] = S.habitLog[d] || {};
   const cur = S.habitLog[d][h.id] || {};
   S.habitLog[d][h.id] = Object.assign({}, cur, patch, {at: patch.at || cur.at || new Date().toISOString()});
+  /* said by hand now, so it is no longer the clock's */
+  if(cur.fromClock && patch.fromClock === undefined){ delete S.habitLog[d][h.id].fromClock; delete S.habitLog[d][h.id].sitting; }
   /* the rings read `level`, so keep it true to the status */
   const st = S.habitLog[d][h.id].status;
   if(st) S.habitLog[d][h.id].level = st === 'partial' ? 'min' : 'full';
   habCheckMilestones(h);
   saveNow();
 }
-function habClearEntry(h, d){ if(S.habitLog?.[d]) delete S.habitLog[d][h.id]; saveNow(); }
+function habClearEntry(h, d){ if(typeof habClockNoteCleared === 'function') habClockNoteCleared(h, d); if(S.habitLog?.[d]) delete S.habitLog[d][h.id]; saveNow(); }
 
 /* ---------- is it due ----------
    A breaking habit is due every day it exists: not slipping is a thing you do

@@ -118,6 +118,7 @@ routes.journals = function(root, params){
   const dimOpts = [...S.stages.map(s=>[s.id,s.char+' '+s.name]),...S.threads.map(t=>[t.id,'thread · '+t.name]),...S.values.map(v=>[v.id,'value · '+v.name]),...S.skills.map(s=>[s.id,'skill · '+s.name]),...S.projects.map(p=>[p.id,'project · '+p.name])];
   root.innerHTML = `<div class="page">
     ${journalsHeadHTML('entries')}
+    ${typeof habFixturesForRoom === 'function' ? habFixturesForRoom('journals', today()) : ''}
     <div class="journal-layout">
       <div class="jnav">${journalsShown().map(x=>`<button class="${x.type===type?'active':''}" data-go="#/journals/${x.type}"><span>${typeIcon(x.type)} ${esc(x.name)}</span><span class="n">${S.entries.filter(e=>e.type===x.type).length}</span></button>`).join('')}<button id="jNew" style="color:var(--faint)">+ new journal type</button><button id="jManage" style="color:var(--faint);font-size:.75rem">manage journals…</button></div>
       <div>
@@ -142,6 +143,7 @@ routes.journals = function(root, params){
   root.querySelectorAll('[data-dictsym]').forEach(b => b.onclick = () => { S._jq = b.dataset.dictsym; rerender(); });
   if(type === 'dream') bindDreamCalendar(root);
   bindJournalViews(root);
+  if(typeof bindHabFixtures === 'function') bindHabFixtures(root, () => { saveNow(); rerender(); });
 };
 
 function deleteJournalType(t){

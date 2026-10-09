@@ -265,7 +265,18 @@ const clockOf = iso => { if(!iso) return '—'; const d = new Date(iso); return 
    spent. The thin arc stays, behind the hands, because for a countdown the
    proportion is worth seeing too. */
 const FP_R = 52;
+/* A break that has a length it was meant to be: the dial counts it down, and
+   past it counts the overrun up, in the rose colour, so it is read at a
+   glance rather than discovered. */
+function focusBreakDial(s){
+  if(!s.onBreak || !s.breakPlanned || s.breakLeft == null) return null;
+  const over = s.breakLeft < 0;
+  return {text: (over ? '+' : '') + fmtClock(Math.abs(s.breakLeft)), secs: Math.abs(s.breakLeft),
+    frac: over ? 1 : 1 - s.breakLeft / (s.breakPlanned * 60), col: over ? 'var(--rose)' : 'var(--sage)', over};
+}
 function focusClockHTML(face, frac, col, s, stop){
+  const bd = focusBreakDial(s);
+  if(bd){ face = bd.secs; frac = bd.frac; col = bd.col; }
   const C = 2 * Math.PI * FP_R;
   const secs = Math.max(0, face | 0);
   const secDeg = (secs % 60) * 6;
@@ -282,7 +293,7 @@ function focusClockHTML(face, frac, col, s, stop){
       x1="${(60 + Math.sin(a) * r1).toFixed(2)}" y1="${(60 - Math.cos(a) * r1).toFixed(2)}"
       x2="${(60 + Math.sin(a) * r2).toFixed(2)}" y2="${(60 - Math.cos(a) * r2).toFixed(2)}"/>`;
   }).join('');
-  const phase = s.phase === 'focus' ? (s.onBreak ? 'on a break' : (stop ? 'counting up' : 'focus'))
+  const phase = s.phase === 'focus' ? (s.onBreak ? (bd ? (bd.over ? 'over by' : 'of a break') : 'on a break') : (stop ? 'counting up' : 'focus'))
     : s.phase === 'long' ? 'long break' : 'break';
   return `<div class="fp-ring${s.running ? ' ticking' : ''}${s.onBreak ? ' resting' : ''}">
     <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -298,7 +309,7 @@ function focusClockHTML(face, frac, col, s, stop){
         <line x1="60" y1="66" x2="60" y2="20"/></g>
       <circle cx="60" cy="60" r="3.2" class="fc-pin" style="fill:${col}"/>
     </svg>
-    <div class="fp-face"><div class="fp-time mono">${fmtClock(face)}</div>
+    <div class="fp-face"><div class="fp-time mono">${bd ? bd.text : fmtClock(face)}</div>
       <div class="fp-phase mono">${phase}</div></div>
   </div>`;
 }
@@ -367,6 +378,7 @@ function focusSectionHTML(){
             : 'Drag a task here to time it — or start the clock at the foot of the sidebar without one.'}</div>`}
       </div>
 
+      ${s.meta && s.meta.goal && !s.idle ? `<div class="tf-goal"><span class="k mono">the minimum</span> ${esc(s.meta.goal)}</div>` : ''}
       <!-- Two notes, and they answer different questions. One is what the work
            actually was; the other is what the time that was not work went on.
            Both are written while they are happening, because neither is
@@ -389,12 +401,9 @@ function focusSectionHTML(){
           placeholder="the second draft · the tricky bit of the proof">${esc(s.notes || '')}</textarea>
         <div class="faint tf-howto">Return logs this stretch and starts the next — the clock keeps running. Shift+Return for a new line.</div>
       </div>`}
-      ${s.onBreak ? `<div class="tf-note resting">
-        <label class="k mono" for="fpBreakNote">what is this break for?</label>
-        <textarea class="inp tf-area" id="fpBreakNote" rows="3"
-          placeholder="tea · a walk · scrolling, honestly">${esc(s.breakNote || '')}</textarea>
-        <div class="faint" style="font-size:.72rem">Since ${clockOf(s.breakSince)}. It is not counted as work.</div>
-      </div>` : ''}
+      ${s.onBreak ? focusBreakHTML(s) : ''}
+      ${s.idle || resting ? '' : focusNowHTML(s)}
+      ${s.idle || resting ? '' : focusVerdictHTML()}
 
       ${focusAsidesHTML()}
       ${typeof focusLogHTML === 'function' ? focusLogHTML() : ''}
@@ -404,6 +413,58 @@ function focusSectionHTML(){
 /* The stretches of the sitting so far: each thing it went on, one after
    another, with when and for how long (less any break inside it). The words
    can be corrected with a press; the times are what the clock said. */
+
+/* ---------- a break is a stretch ----------
+   Pausing opens one. The prompt is a line, the chips are what the break
+   usually is, and the length it was meant to be is held against the clock. */
+function focusBreakMeta(s){
+  const since = s.breakSince ? `since ${clockOf(s.breakSince)}` : '';
+  if(!s.breakPlanned) return `${since} · not counted as work`;
+  return s.breakLeft < 0
+    ? `${since} · meant to be ${s.breakPlanned} min — ${s.breakOver}m over`
+    : `${since} · meant to be ${s.breakPlanned} min — ${fmtClock(Math.max(0, s.breakLeft))} left`;
+}
+function focusBreakHTML(s){
+  const chips = timeBreakChips();
+  const name = id => { const c = chips.find(x => x.id === id); return c ? c.label : 'the same'; };
+  return `<div class="tf-note resting tf-break" id="fpBreak">
+    <label class="k mono" for="fpBreakNote">Break — what are you doing?</label>
+    <div class="tf-chips" role="group" aria-label="what the break is">${chips.map(c =>
+      `<button type="button" class="chip tf-chip${s.breakChip === c.id ? ' on' : ''}" data-fpbchip="${esc(c.id)}" title="${esc(`${c.minutes} min`)}">${esc(c.label)}</button>`).join('')}</div>
+    <textarea class="inp tf-area" id="fpBreakNote" rows="2"
+      placeholder="tea · a walk · scrolling, honestly">${esc(s.breakNote || '')}</textarea>
+    <div class="faint tf-bmeta mono" id="fpBMeta">${esc(focusBreakMeta(s))}</div>
+    ${s.overrunAsked ? `<div class="tf-overrun" id="fpOver">
+      <span class="k mono">still the same?</span>
+      <button type="button" class="chip on" data-fpover="same">yes — ${esc(s.breakChip ? name(s.breakChip) : (s.breakNote || 'this'))}</button>
+      ${chips.filter(c => c.id !== s.breakChip).slice(0, 5).map(c => `<button type="button" class="chip" data-fpover="${esc(c.id)}">${esc(c.label)}</button>`).join('')}
+      <input class="inp tf-overwhy" id="fpOverWhy" value="${esc(s.overrunReason || '')}" placeholder="what kept you? (optional)" aria-label="what kept you">
+      ${typeof habStatePickerHTML === 'function' ? `<div class="tf-overstate"><span class="k mono">in what state?</span> ${habStatePickerHTML('data-fpostate', s.overrunState)}</div>${habStateScriptHTML(s.overrunState)}` : ''}
+    </div>` : ''}
+  </div>`;
+}
+/* "now:" — what the stretch under way is, in one tap, and what to switch to */
+function focusNowHTML(s){
+  const cur = s.curKind || 'work';
+  return `<div class="tf-now" id="fpNow"><span class="k mono">now:</span>
+    ${TIME_NOW_KINDS.map(([k, l]) => `<button type="button" class="chip tf-chip${cur === k ? ' on' : ''}" data-fpnow="${esc(k)}"${cur === k ? ' aria-pressed="true" disabled' : ''}>${esc(l)}</button>`).join('')}
+    <span class="faint tf-or">or a break:</span>
+    ${timeBreakChips().slice(0, 5).map(c => `<button type="button" class="chip tf-chip" data-fpnowbrk="${esc(c.id)}">${esc(c.label)}</button>`).join('')}
+  </div>`;
+}
+/* the reading on the stretch that just ended, in the words of what it was */
+function focusVerdictHTML(){
+  const u = FocusTimer.unread ? FocusTimer.unread() : [];
+  if(!u.length) return '';
+  const x = u[u.length - 1];
+  const what = x.text ? `“${esc(x.text.length > 48 ? x.text.slice(0, 47) + '…' : x.text)}”` : (TIME_KIND_NAMES[x.kind] || 'that stretch');
+  return `<div class="tf-verdict" id="fpVerdict" data-fpvid="${esc(x.id)}">
+    <span class="tf-vq">${what} — ${esc(TIME_VERDICT_ASK[x.kind] || TIME_VERDICT_ASK.work)}</span>
+    <span class="tf-vbtns">${TIME_VERDICTS.map(v => `<button type="button" class="chip tf-chip${x.suggest === v ? ' suggest' : ''}" data-fpverdict="${v}"${x.suggest === v ? ' title="what this usually is — press to say so"' : ''}>${esc(TIME_VERDICT_WORDS[v])}</button>`).join('')}
+    <button type="button" class="pl-mini" data-fpvskip title="not now — it will not be asked again">skip</button></span>
+    ${u.length > 1 ? `<span class="faint mono">+${u.length - 1} more</span>` : ''}
+  </div>`;
+}
 const fmtStretch = m => m < 1 ? '<1m' : fmtEst(Math.round(m));
 function focusStretchesHTML(){
   const xs = FocusTimer.stretches ? FocusTimer.stretches() : [];
@@ -504,6 +565,23 @@ function bindFocusSection(root, redraw){
   if(rest) rest.oninput = debounce(function(){ FocusTimer.noteWork(this.value); }, 300);
   const note = box.querySelector('#fpBreakNote');
   if(note) note.oninput = debounce(function(){ FocusTimer.noteBreak(this.value); }, 300);
+  /* the chips on a break, the "now:" row and the readings: each one tap */
+  box.querySelectorAll('[data-fpbchip]').forEach(b => b.onclick = () => {
+    const ta = box.querySelector('#fpBreakNote'); if(ta) ta.value = '';  /* the chip names it unless words were written */
+    FocusTimer.setBreakChip(b.dataset.fpbchip); sound('click'); });
+  box.querySelectorAll('[data-fpover]').forEach(b => b.onclick = () => { FocusTimer.answerOverrun(b.dataset.fpover); sound('click'); });
+  box.querySelectorAll('[data-fpostate]').forEach(b => b.onclick = () => { FocusTimer.setOverrunState(b.dataset.fpostate); sound('click'); });
+  const why = box.querySelector('#fpOverWhy');
+  if(why) why.oninput = debounce(function(){ FocusTimer.noteOverrun(this.value); }, 300);
+  box.querySelectorAll('[data-fpnow]').forEach(b => b.onclick = () => { FocusTimer.switchTo({kind: b.dataset.fpnow}); sound('click'); });
+  box.querySelectorAll('[data-fpnowbrk]').forEach(b => b.onclick = () => {
+    const c = timeBreakChips().find(x => x.id === b.dataset.fpnowbrk); if(c) FocusTimer.switchTo(Object.assign({kind: 'break'}, c)); sound('click'); });
+  const vbox = box.querySelector('#fpVerdict');
+  if(vbox){
+    const id = vbox.dataset.fpvid;
+    vbox.querySelectorAll('[data-fpverdict]').forEach(b => b.onclick = () => { FocusTimer.setVerdict(id, b.dataset.fpverdict); sound('click'); });
+    const sk = vbox.querySelector('[data-fpvskip]'); if(sk) sk.onclick = () => FocusTimer.skipVerdict(id);
+  }
   /* each note grows with what is written in it rather than scrolling inside
      three lines; Enter is a new line, as it is anywhere you write — except in
      the note on the sitting itself, where Return logs a stretch (above) and
@@ -537,6 +615,7 @@ function bindFocusSection(root, redraw){
     if(!n || !n.isConnected){ clearInterval(iv); return; }
     const st = FocusTimer.state();
     n.textContent = fmtClock(st.mode === 'stopwatch' && st.phase === 'focus' ? st.elapsed : st.left);
+    const bm = box.querySelector('#fpBMeta'); if(bm && st.onBreak) bm.textContent = focusBreakMeta(st);
   };
   const iv = setInterval(live, 1000);
   live();

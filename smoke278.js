@@ -111,8 +111,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('what was written when it stopped is the last stretch', {t: rec.segs[2].t, m: Math.round(rec.segs[2].m)}, {t: 'first page', m: 7});
   yes('the stretches follow each other with no gaps, from the start', rec.contiguous && rec.first, rec);
   yes('  and add up to the sitting', Math.abs(rec.sum - rec.dur) <= 1, rec);
-  const te = await p.evaluate(() => S.timeEntries.filter(e => e.feature === 'focus').map(e => ({mins: Math.round(timeMinutes(e)), notes: (e.notes || []).map(n => n.text).join('|')})));
-  yes('in the time tracker, one entry per stretch (the break between two of them)', te.length === 4 && te.map(x => x.notes).join(' / ').includes('first page'), te);
+  const te = await p.evaluate(() => S.timeEntries.filter(e => e.feature === 'focus').sort((a, b) => a.startTime < b.startTime ? -1 : 1).map(e => ({mins: Math.round(timeMinutes(e)), notes: (e.notes || []).map(n => n.text).join('|'), kind: e.kind})));
+  yes('in the time tracker, one entry per stretch (the break between two of them is an entry of its own)', te.length === 5 && te.map(x => x.notes).join(' / ').includes('first page'), te);
   await p.evaluate(() => { S.settings.todayView = 'do'; rerender(); }); await p.waitForTimeout(500);
   const ledger = await p.evaluate(() => [...document.querySelectorAll('.fl-stretches')].pop()?.textContent.replace(/\s+/g, ' ').trim() || '');
   yes('the day\'s ledger lists the stretches in order', /emails to the grant committee.*the outline.*first page/.test(ledger), ledger);

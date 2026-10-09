@@ -96,16 +96,19 @@ function focusDockBubbleHTML(s){
   const c = planState().timer;
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
   const frac = up ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
-  const col = s.phase === 'focus' ? 'var(--terra)' : 'var(--sage)';
+  let col = s.phase === 'focus' ? 'var(--terra)' : 'var(--sage)';
+  const bd = typeof focusBreakDial === 'function' ? focusBreakDial(s) : null;
+  let frac2 = frac;
+  if(bd){ col = bd.col; frac2 = bd.frac; }
   return `<button class="fd-bubble${s.running ? ' ticking' : ''}${s.onBreak ? ' resting' : ''}"
       id="fdOpen" data-focusdrop title="${s.idle ? 'the clock' : 'the sitting under way'}"
       aria-label="${s.idle ? 'Open the clock' : 'Open the sitting under way'}">
     <svg viewBox="0 0 48 48" aria-hidden="true">
       <circle cx="24" cy="24" r="${R}" class="ft-track"/>
       ${s.idle ? '' : `<circle cx="24" cy="24" r="${R}" class="ft-arc"
-        style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac)).toFixed(1)}"/>`}
+        style="stroke:${col};stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${(C * (1 - frac2)).toFixed(1)}"/>`}
     </svg>
-    <span class="fd-bmark mono">${s.idle ? '◷' : fmtDockShort(secs)}</span>
+    <span class="fd-bmark mono">${s.idle ? '◷' : bd ? (bd.over ? '+' + Math.max(1, Math.floor(bd.secs / 60)) : fmtDockShort(bd.secs)) : fmtDockShort(secs)}</span>
   </button>`;
 }
 /* 48:12 does not fit in a circle and is not what you want from a glance
@@ -161,7 +164,7 @@ function focusDockHTML(o = {}){
     <a class="fd-on" href="#/today"${ref ? ` data-fdjump="${esc(ref.id)}"` : ''}
        title="${ref ? 'go to this task on Today' : 'the sitting, in words, on Today'}">${
       ref ? `<span class="fd-onname">${esc(ref.text)}</span>`
-          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : 'no task'}</span>`}</a>`}
+          : `<span class="fd-onname faint">${s.idle ? 'nothing parked' : (s.meta ? esc(s.meta.what || 'the clock') : 'no task')}</span>`}</a>`}
   </div>`;
 }
 
@@ -183,7 +186,9 @@ function focusDockTyping(){
    move and nothing else is touched. */
 function focusDockSig(s){
   return [focusDockShut() ? 'shut' : 'open', s.idle ? 'idle' : s.running ? 'run' : 'held',
-    s.onBreak ? 'break' : '', s.phase, s.taskId || '', s.subId || ''].join('|');
+    s.onBreak ? 'break' : '', s.phase, s.taskId || '', s.subId || '',
+    s.breakChip || '', s.breakPlanned || '', s.overrunAsked ? 'over' : '', s.overrunState || '', s.curKind || '',
+    (FocusTimer.unread ? FocusTimer.unread().map(x => x.id).join(',') : '')].join('|');
 }
 /* The words about the sitting are on Today, and Today is a rendered page
    rather than a subscriber — so when the shape of the sitting changes while
@@ -196,7 +201,27 @@ function focusSectionFollow(sig){
   if(first) return;
   if(typeof parseHash === 'function'
     && (parseHash().name === 'today' || (typeof focusDeskOn === 'function' && focusDeskOn()))
-    && document.getElementById('t-focus') && !focusSectionTyping()) rerender();
+    && document.getElementById('t-focus') && !focusSectionTyping()){
+    /* only the focus section is drawn again — the page, its scroll, the
+       folds and everything typed elsewhere stay as they are; a page that
+       cannot be patched falls back to drawing the lot */
+    if(!focusSectionRepaint()) rerender();
+  }
+}
+/* The focus section drawn again in place. It was a whole-page redraw on every
+   start, pause, mark and end, which also threw away the milestones' open
+   state, the scroll under the pointer and any half-built plan on the page. */
+function focusSectionRepaint(){
+  const old = document.getElementById('t-focus');
+  if(!old || typeof focusSectionHTML !== 'function' || typeof bindFocusSection !== 'function') return false;
+  const tpl = document.createElement('template');
+  tpl.innerHTML = focusSectionHTML().trim();
+  const fresh = tpl.content.firstElementChild;
+  if(!fresh || fresh.id !== 't-focus') return false;
+  if(old.classList.contains('in')) fresh.classList.add('in');
+  old.replaceWith(fresh);
+  bindFocusSection(document, () => rerender());
+  return true;
 }
 /* never over a half-written note */
 function focusSectionTyping(){
@@ -376,13 +401,15 @@ function focusFaceIn(dock){
   const total = (s.phase === 'focus' ? c.focusDuration : s.phase === 'long' ? c.longBreak : c.shortBreak) * 60;
   const frac = up ? (s.elapsed % 3600) / 3600 : (total ? 1 - s.left / total : 0);
 
+  const bd = typeof focusBreakDial === 'function' ? focusBreakDial(s) : null;
   const mark = dock.querySelector('.fd-bmark');
-  if(mark && !s.idle) mark.textContent = fmtDockShort(secs);
+  if(mark && !s.idle) mark.textContent = bd ? (bd.over ? '+' + Math.max(1, Math.floor(bd.secs / 60)) : fmtDockShort(bd.secs)) : fmtDockShort(secs);
   const tEl = dock.querySelector('.fp-time');
-  if(tEl) tEl.textContent = fmtClock(secs);
+  if(tEl) tEl.textContent = bd ? bd.text : fmtClock(secs);
   dock.querySelectorAll('.ft-arc').forEach(arc => {
     const r = +arc.getAttribute('r') || FP_R, C = 2 * Math.PI * r;
-    arc.style.strokeDashoffset = (C * (1 - frac)).toFixed(1);
+    arc.style.strokeDashoffset = (C * (1 - (bd ? bd.frac : frac))).toFixed(1);
+    if(bd) arc.style.stroke = bd.col;
   });
   const hh = dock.querySelector('.fc-hour'), mh = dock.querySelector('.fc-min'), sh = dock.querySelector('.fc-sec');
   if(hh) hh.style.transform = `rotate(${((secs % 43200) / 43200 * 360).toFixed(2)}deg)`;
@@ -403,6 +430,7 @@ function mountFocusDock(){
     if(was === 'finished') setTimeout(() => toast('Your sitting finished while the page was closed. It is written down, ending when it ran out.', 6000), 800);
     else if(was === 'runaway') setTimeout(() => toast('A focus sitting had been left running. It was closed at six hours.', 6000), 800);
   } catch(e){ console.warn('the sitting could not be carried over', e); }
+  try { if(typeof habWatchSittings === 'function') habWatchSittings(); } catch(e){}
   if(document.getElementById('focusDock')) return;
   const dock = el('<div id="focusDock" class="fdock" aria-live="polite"></div>');
   document.body.appendChild(dock);

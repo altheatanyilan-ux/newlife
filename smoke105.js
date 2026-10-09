@@ -46,12 +46,12 @@ const DRAG = `(fromSel, toSel, atFraction) => {
     await p.evaluate(v => {
       let l = planLists().find(x => x.name === 'Reorder bench');
       if(!l){ l = {id: uid(), name: 'Reorder bench', color: 'var(--sage)', folderId: null,
-        sortOrder: 99, sections: [], kanbanColumns: DEFAULT_KANBAN(), defaultView: null, isArchived: false};
+        sortOrder: 99, sections: [], defaultView: null, isArchived: false};
         planState().lists.push(l); }
       S.tasks = S.tasks.filter(t => t.listId !== l.id);
       ['alpha','beta','gamma','delta'].forEach((n, i) => {
         const t = newPlanTask(n, today(), {listId: l.id});
-        t.order = i; t.quadrant = 1; t.kanbanColumn = 'todo'; t.dueTime = '';
+        t.order = i; t.quadrant = 1; t.dueTime = '';
         S.tasks.push(t);
       });
       planState().prefs.sort = 'dueDate'; planState().prefs.sortDir = 'asc';

@@ -571,8 +571,8 @@ routes.today = function(root, params = []){
       const bs=(S.timeBlocks||[]).filter(b=>b.date===T);
       if(!bs.length) return '';
       const timeToMin=s=>{if(!s)return 0;const[h,m]=(s||'').split(':').map(Number);return(h||0)*60+(m||0);};
-      const wake=timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
-      const slp=timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+      const wake=timeToMin(dayWakeOrSetting(T));
+      const slp=timeToMin(dayBedOrSetting(T));
       const totalMin=slp-wake;
       const nowMin=(()=>{const n=new Date();return n.getHours()*60+n.getMinutes();})();
       const nowPct=Math.min(100,Math.max(0,(nowMin-wake)/totalMin*100));
@@ -582,10 +582,10 @@ routes.today = function(root, params = []){
         const width=Math.max(0.5,(e-s)/totalMin*100);
         const isCurrent=s<=nowMin&&e>nowMin;
         const cls={task:'tb-bar-task',break:'tb-bar-break',meal:'tb-bar-meal',commute:'tb-bar-commute',habit:'tb-bar-habit',label:'tb-bar-lbl'}[b.kind]||'tb-bar-lbl';
-        return `<div class="tb-bar ${cls}${isCurrent?' tb-bar-now':''}" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%" title="${esc(b.label||b.kind)} ${esc(b.start)}–${esc(b.end)}"><span class="tb-bar-label">${esc(b.label||b.kind)}</span></div>`;
+        return `<div class="tb-bar ${cls}${isCurrent?' tb-bar-now':''}" data-s="${s}" data-e="${e}" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%" title="${esc(b.label||b.kind)} ${esc(b.start)}–${esc(b.end)}"><span class="tb-bar-label">${esc(b.label||b.kind)}</span></div>`;
       }).join('');
       return `<div class="today-blocks-strip">
-        <div class="tb-strip-bar" style="position:relative">
+        <div class="tb-strip-bar" style="position:relative" data-wake="${wake}" data-total="${totalMin}">
           ${blockBars}
           <div class="tb-now-line" style="left:${nowPct.toFixed(1)}%"></div>
         </div>
@@ -948,6 +948,17 @@ routes.today = function(root, params = []){
   if(_apAnchor) _apAnchor.insertAdjacentElement('afterend', _apBox);
   const _refreshAP = () => { if(!document.contains(_apBox)) return; todayAutoPromptsHTML(_apBox, T, c); };
   _refreshAP();
+  /* the line for "now" on the day's blocks moves by itself, a minute at a time,
+     without the page being drawn again */
+  const _tbIv = setInterval(() => {
+    const bar = document.querySelector('.today-blocks-strip .tb-strip-bar');
+    if(!bar){ if(!document.contains(root)) clearInterval(_tbIv); return; }
+    const wake = +bar.dataset.wake, total = +bar.dataset.total; if(!(total > 0)) return;
+    const n = new Date(), nowMin = n.getHours() * 60 + n.getMinutes();
+    const line = bar.querySelector('.tb-now-line');
+    if(line) line.style.left = Math.min(100, Math.max(0, (nowMin - wake) / total * 100)).toFixed(1) + '%';
+    bar.querySelectorAll('.tb-bar').forEach(b => b.classList.toggle('tb-bar-now', +b.dataset.s <= nowMin && +b.dataset.e > nowMin));
+  }, 30000);
   const _apIv = setInterval(() => { if(!document.contains(_apBox)) { clearInterval(_apIv); return; } _refreshAP(); }, 60000);
 
   /* activation notifications: lists whose activeFrom === today */

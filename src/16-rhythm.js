@@ -113,8 +113,8 @@ function migrateRhythm(){
 }
 function dayPlan(d = today()){
   migrateRhythm();
-  if(!S.plans[d]) S.plans[d] = {intentions:['','',''], items:[], planned:false, capacity:8};
-  const p = S.plans[d]; p.intentions = p.intentions || ['','','']; p.items = p.items || []; p.capacity = p.capacity || 8;
+  if(!S.plans[d]) S.plans[d] = {intentions:['','',''], planned:false, capacity:8};
+  const p = S.plans[d]; p.intentions = p.intentions || ['','','']; p.capacity = p.capacity || 8;
   /* a plan is more than a list: why the day exists, how it starts, and what
      is already known to be in its way */
   if(p.why === undefined) p.why = '';
@@ -139,14 +139,15 @@ function dayReview(d = today()){
 }
 const MOOD_TAGS = ['Focused','Scattered','Energised','Drained','Grateful','Stressed','Calm','Restless'];
 const fmtHour = h => { const H = Math.floor(h), m = Math.round((h-H)*60); return `${String(H).padStart(2,'0')}:${String(m).padStart(2,'0')}`; };
-const EST_OPTIONS = [[0,'—'],[0.25,'15m'],[0.5,'30m'],[1,'1h'],[1.5,'1½h'],[2,'2h'],[3,'3h'],[4,'4h']];
+/* minutes — the one unit an estimate is kept in, everywhere (a task's `duration`) */
+const EST_OPTIONS = [[0,'—'],[15,'15m'],[30,'30m'],[60,'1h'],[90,'1½h'],[120,'2h'],[180,'3h'],[240,'4h']];
 
 /* everything that lands on one day, from all three sources */
 function dayBlocks(d){
   const out = [];
   S.events.filter(e => e.day === d).forEach(e => out.push({kind:'event', id:e.id, title:e.title, start:+e.start, dur:+e.dur, color:domainColor(e.domain), imported:!!e.imported, ref:e}));
   allTaskRefs().filter(r => taskOnDay(r.task, d)).forEach(r => { const at = r.task.at; if(at == null) return;
-    out.push({kind:'task', id:r.id, title:r.text, start:+at, dur:+(r.task.est || 1), color:'var(--terra)', done:r.done, ref:r}); });
+    out.push({kind:'task', id:r.id, title:r.text, start:+at, dur:(taskEstOf(r.task) / 60) || 1, color:'var(--terra)', done:r.done, ref:r}); });
   S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d) && h.at != null).forEach(h => {
     out.push({kind:'habit', id:h.id, title:`${h.icon||''} ${h.name}`.trim(), start:+h.at, dur:+(h.dur || 0.5), color:habitHue(h), done:!!habitDone(h,d), ref:h});
   });
@@ -350,7 +351,7 @@ function openTaskSidePanel(r){
       <div class="field"><label>Do until (a stretch)</label><input class="inp" type="date" id="tsDoEnd" value="${r.task.doEnd||''}"></div>
       <div class="field"><label>Time on the calendar</label><select class="sel" id="tsAt"><option value="">unscheduled</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(h=>`<option value="${h}" ${+r.task.at===h?'selected':''}>${fmtHour(h)}</option>`).join('')}</select></div>
     </div>
-    <div class="field" style="margin-top:10px"><label>Estimate</label><select class="sel" id="tsEst">${EST_OPTIONS.map(([v,l])=>`<option value="${v}" ${+(r.task.est||0)===v?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div class="field" style="margin-top:10px"><label>Estimate</label><select class="sel" id="tsEst">${EST_OPTIONS.map(([v,l])=>`<option value="${v}" ${taskEstOf(r.task)===v?'selected':''}>${l}</option>`).join('')}</select></div>
     <div class="vp-sec"><span class="sc">Notes</span><textarea class="ta" id="tsNote" placeholder="anything worth remembering about it">${esc(r.task.notes||'')}</textarea></div>
     <div class="row" style="margin-top:14px"><button class="btn sm ghost danger" id="tsDel">Delete this task</button></div>`, 'task-panel');
   p.querySelector('#tsDone').onclick = () => { setTaskDone(r.id, !r.done); sound(r.done?'click':'success'); closePanel(); rerender(); };
@@ -358,7 +359,7 @@ function openTaskSidePanel(r){
   p.querySelector('#tsDoDay').onchange = e => { taskSetDoRange(r.task, e.target.value, r.task.doEnd); saveNow(); rerender(); };
   p.querySelector('#tsDoEnd').onchange = e => { taskSetDoRange(r.task, r.task.doDay, e.target.value); saveNow(); rerender(); };
   p.querySelector('#tsAt').onchange = e => { r.task.at = e.target.value === '' ? null : +e.target.value; saveNow(); rerender(); };
-  p.querySelector('#tsEst').onchange = e => { r.task.est = +e.target.value; saveNow(); rerender(); };
+  p.querySelector('#tsEst').onchange = e => { r.task.duration = +e.target.value; saveNow(); rerender(); };
   const tsN = p.querySelector('#tsNote'); tsN.addEventListener('input', debounce(() => { r.task.notes = tsN.value; saveNow(); }, 500));
   p.querySelector('#tsDel').onclick = () => { closePanel(); deleteTaskRef(r.id, null, rerender); };
   attachDictationIn(p);
@@ -426,81 +427,6 @@ function bindRunLog(box, d){
 }
 
 /* ---------- panel 2: the day's plan ---------- */
-function renderPlanPanel(box, d){
-  const p = dayPlan(d); const T = today();
-  const rows = tasksForDay(d);
-  /* left behind on either count: owed before this day, or set aside for a day
-     that has gone. Bringing it forward moves the plan and leaves the deadline
-     alone, so a thing that was late stays late. */
-  const _pmActiveOrInbox = r => r.task && (r.task.listId === 'inbox' || !r.task.listId || (typeof planListActive === 'function' && planListActive(typeof planList === 'function' ? planList(r.task.listId) : null)));
-  const carried = allTaskRefs().filter(r => !r.done && !taskOnDay(r.task, d) && _pmActiveOrInbox(r)
-    && ((r.day && r.day < d) || (r.doDay && r.doDay < d)));
-  const planned = sum(p.items.map(i => +i.est || 0)) + sum(rows.filter(r => !p.items.some(i => i.ref === r.id)).map(r => +r.task.est || 0));
-  const doneN = p.items.filter(i => i.done).length + rows.filter(r => r.done).length;
-  const totalN = p.items.length + rows.length;
-  const wk = weekStart(d); const wp = weekPlan(wk); const mp = monthPlan(monthKey(d));
-  box.innerHTML = `
-    <div class="row between"><span class="sc" style="margin:0">${d === T ? 'Today' : fmtDate(d,'med')}</span><span class="mono">${totalN ? `${doneN}/${totalN} done` : 'nothing planned'}</span></div>
-    ${(wp.theme || weekGoalsNamed(wp).length || weekWins(wp).length || weekPeriodOn(wp, d)) ? `<div class="intention-card" style="margin:10px 0;font-size:.92rem">
-      ${wp.theme ? `<b>${esc(wp.theme)}</b>` : ''}
-      ${(() => { const per = weekPeriodOn(wp, d); return per ? `<div class="wk-period"><span class="mono">${esc(wpSpan(per))}${
-        per.name ? ` \u00b7 ${esc(per.name)}` : ''}</span>${per.focus ? `<span>${esc(per.focus)}</span>` : ''}</div>` : ''; })()}
-      ${/* a goal written on Sunday and never seen again is a goal that does
-            nothing. Each one says how much of its own work has gone, so the
-            week is answerable on any day of it rather than only at the end. */
-        weekGoalsNamed(wp).length ? `<div class="wk-goals">${weekGoalsNamed(wp).map(o => {
-          const g = weekGoalProgress(o);
-          return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
-            g ? `<span class="mono faint">${g.done}/${g.total}</span>` : ''}</div>`; }).join('')}</div>` : ''}
-      ${weekWins(wp).map(w => `<div class="faint" style="font-size:.74rem;margin-top:5px">a win: ${esc(w.text)}</div>`).join('')}
-      ${weekRisks(wp).map(r => `<div class="faint" style="font-size:.74rem;margin-top:3px">in the way: ${esc(r.text)}${r.prevent ? ` \u2192 ${esc(r.prevent)}` : ''}</div>`).join('')}
-    </div>` : ''}
-    ${p.planned ? '' : `<button class="btn primary" id="planStart" style="width:100%;margin-top:10px">◎ Plan my day</button>`}
-    ${p.intentions.some(Boolean) ? `<div class="intentions">${p.intentions.map((t,i)=> t ? `<div class="intention"><span class="in-n">${i+1}</span><span>${esc(t)}</span></div>` : '').join('')}</div>` : ''}
-
-    <div class="plan-cap"><span class="mono">${planned.toFixed(1)} h planned</span><span class="cap-bar"><i style="width:${clamp(planned/(p.capacity||8)*100,0,100)}%"></i></span><span class="mono">of ${p.capacity} h</span></div>
-
-    <div class="plan-list">
-      ${rows.map(r => `<div class="plan-item ${r.done?'done':''}" data-ptask="${r.id}">
-        <button class="task-check" data-tcheck="${r.id}">${r.done?'✓':''}</button>
-        <span class="pi-text">${esc(r.text)}</span>
-        ${r.where?`<span class="task-where">${esc(r.where)}</span>`:''}
-        <select class="sel pi-est" data-testref="${r.id}">${EST_OPTIONS.map(([v,l])=>`<option value="${v}" ${+(r.task.est||0)===v?'selected':''}>${l}</option>`).join('')}</select>
-      </div>`).join('')}
-      ${p.items.map((it,i) => `<div class="plan-item ${it.done?'done':''}">
-        <button class="task-check" data-pcheck="${i}">${it.done?'✓':''}</button>
-        <span class="pi-text">${esc(it.text)}${it.doneAt?`<span class="mono pi-when"> ${esc(it.doneAt)}</span>`:''}</span>
-        <select class="sel pi-est" data-pest="${i}">${EST_OPTIONS.map(([v,l])=>`<option value="${v}" ${+(it.est||0)===v?'selected':''}>${l}</option>`).join('')}</select>
-        <button class="del-x inline" data-pdel2="${i}">×</button>
-      </div>`).join('')}
-      ${!totalN ? '<div class="empty">Nothing on the day yet.</div>' : ''}
-    </div>
-    <input class="inp quick-task" id="planQuick" placeholder="＋ add to the plan and press Enter">
-    <div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap">
-      <button class="btn sm ghost" id="planPull">pull from projects</button>
-      ${p.planned ? `<button class="btn sm ghost" id="planRedo">re-plan</button>` : ''}
-    </div>
-    <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
-      <button class="btn sm ghost" id="planWeekly">Weekly plan${wp.theme?'':' · not set'}</button>
-      <button class="btn sm ghost" id="planMonthly">Monthly plan${mp.theme?'':' · not set'}</button>
-    </div>
-    ${carried.length ? `<div class="carried"><span class="mono">${carried.length} carried over</span><button class="btn sm ghost" id="planCarry">bring forward</button></div>` : ''}
-    ${nudgesHTML(d)}`;
-  $('#planStart') && ($('#planStart').onclick = () => planMyDay(d));
-  $('#planRedo') && ($('#planRedo').onclick = () => planMyDay(d));
-  $('#planPull').onclick = () => openTaskPicker(d, rerender);
-  $('#planWeekly').onclick = () => openWeeklyPlan(d);
-  $('#planMonthly').onclick = () => openMonthlyPlan(d);
-  $('#planCarry') && ($('#planCarry').onclick = () => { carried.forEach(r => taskSetDoRange(r.task, d, '')); saveNow(); sound('success'); rerender(); });
-  $('#planQuick').addEventListener('keydown', e => { if(e.key !== 'Enter') return; const v = e.target.value.trim(); if(!v) return;
-    p.items.push({id:uid(), text:v, est:0, done:false, doneAt:''}); saveNow(); sound('click'); rerender(); });
-  bindTaskRows(box);
-  $$('[data-pcheck]',box).forEach(b => b.onclick = () => { const it = p.items[+b.dataset.pcheck]; it.done = !it.done; it.doneAt = it.done ? new Date().toTimeString().slice(0,5) : ''; saveNow(); sound(it.done?'success':'click'); rerender(); });
-  $$('[data-pdel2]',box).forEach(b => b.onclick = () => { const i = +b.dataset.pdel2; requestDelete({label:p.items[i].text, node:b.closest('.plan-item'), remove:()=>{ const g = p.items.splice(i,1)[0]; return () => p.items.splice(i,0,g); }}); });
-  $$('[data-pest]',box).forEach(s => s.onchange = () => { p.items[+s.dataset.pest].est = +s.value; saveNow(); rerender(); });
-  $$('[data-testref]',box).forEach(s => s.onchange = () => { const r = findTaskRef(s.dataset.testref); if(r){ r.task.est = +s.value; saveNow(); rerender(); } });
-  bindNudges(box);
-}
 /* the morning ritual, in three steps */
 function planMyDay(d = today()){
   const p = dayPlan(d); let step = 0;
@@ -636,8 +562,8 @@ function planMyDay(d = today()){
     const bar = m.querySelector('#pmCapBar'); if(!bar) return;
     const avail = +(S.settings&&S.settings.availableHoursPerDay)||8;
     let committed = 0;
-    chosen.forEach(id => { const r=findTaskRef(id); if(r) committed+=+(r.task.est||0); });
-    pool.filter(onDay).forEach(r => { if(!chosen.has(r.id)) committed+=+(r.task.est||0); });
+    chosen.forEach(id => { const r=findTaskRef(id); if(r) committed+=taskEstOf(r.task)/60; });
+    pool.filter(onDay).forEach(r => { if(!chosen.has(r.id)) committed+=taskEstOf(r.task)/60; });
     const pct = clamp(committed/avail*100,0,100);
     bar.innerHTML = `<span class="mono">Committed: ${fmtHrs(committed)}</span><span class="cap-bar" style="flex:1"><i style="width:${pct.toFixed(1)}%"></i></span><span class="mono faint">of ${avail}h</span>`;
   };
@@ -646,7 +572,7 @@ function planMyDay(d = today()){
     const [sh,sm] = ((S.settings&&S.settings.dayStartTime)||'09:00').split(':').map(Number);
     let cur = sh*60+(sm||0);
     const rows = [...chosen].map(id => { const r=findTaskRef(id); if(!r) return null;
-      const h=+(r.task.est||0), ts=`${String(Math.floor(cur/60)).padStart(2,'0')}:${String(cur%60).padStart(2,'0')}`;
+      const h=taskEstOf(r.task)/60, ts=`${String(Math.floor(cur/60)).padStart(2,'0')}:${String(cur%60).padStart(2,'0')}`;
       cur+=Math.round(h*60);
       return `<div class="sched-row"><span class="mono sched-t">${ts}</span><span>${esc(r.text)}</span>${h?`<span class="mono faint"> · ${fmtHrs(h)}</span>`:''}</div>`;
     }).filter(Boolean);
@@ -672,7 +598,7 @@ function planMyDay(d = today()){
        <div id="pmCapBar" class="plan-cap-live"></div>
        <div class="stack" style="gap:10px;max-height:44vh;overflow:auto">${planGroups.length ? planGroups.map(g => `<div class="pick-group">
          <div class="pick-glabel" style="--c:${g.color}">${esc(g.label)}<span class="mono">${g.rows.length}</span></div>
-         ${g.rows.map(r=>`<div class="pick-row-wrap"><div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><button class="tbtn inline" data-pickdone="${esc(r.id)}" title="mark as done \u2014 it happened">\u2713</button><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div><div class="pick-time-chips">${[0.25,0.5,1,2].map(v=>`<button class="chip sm pick-chip ${+(r.task.est||0)===v?'on':''}" data-estchip="${esc(r.id)}" data-estval="${v}">${v<1?v*60|0+'m':v+'h'}</button>`).join('')}</div></div>`).join('')}
+         ${g.rows.map(r=>`<div class="pick-row-wrap"><div class="pick-row ${chosen.has(r.id)?'on':''}" data-pickrow="${esc(r.id)}"><label><input type="checkbox" data-pick2="${r.id}" ${chosen.has(r.id)?'checked':''}><span><b>${esc(r.text)}</b>${r.kind === 'project' && r.phase ? `<span class="d">${esc(r.phase.name)}</span>` : ''}</span></label><button class="tbtn inline" data-pickdone="${esc(r.id)}" title="mark as done \u2014 it happened">\u2713</button><button class="del-x inline" data-pickdel="${esc(r.id)}" title="throw this task away \u2014 it will stop being offered">\u00d7</button></div><div class="pick-time-chips">${[15,30,60,120].map(v=>`<button class="chip sm pick-chip ${taskEstOf(r.task)===v?'on':''}" data-estchip="${esc(r.id)}" data-estval="${v}">${v<60?v+'m':v/60+'h'}</button>`).join('')}</div></div>`).join('')}
          ${g.key.startsWith('list:') ? `<div class="wp-tadd" style="margin-top:6px"><input class="inp" data-pickadd="${esc(g.key.slice(5))}" placeholder="Write a new task for ${esc(g.label)} and press Enter \u2014 ~15m sets a duration"></div>` : ''}
        </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
       (() => {
@@ -686,12 +612,12 @@ function planMyDay(d = today()){
         [...chosen].forEach(id=>{
           if(existingTaskIds.has(id)) return;
           const r=findTaskRef(id); if(!r) return;
-          const dur=Math.max(15,Math.round((+(r.task.est||0.5))*60));
+          const dur=Math.max(15,taskEstOf(r.task)||30);
           tbBlocks.push({id:uid(),kind:'task',taskId:id,label:r.text,start:lastEnd,end:lastEnd+dur});
           lastEnd+=dur;
         });
-        const wake=timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
-        const slp=timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+        const wake=timeToMin(dayWakeOrSetting(d));
+        const slp=timeToMin(dayBedOrSetting(d));
         const totalMin=slp-wake;
         const H=totalMin*TB_PX_MIN;
         const ticks=[];
@@ -750,7 +676,7 @@ function planMyDay(d = today()){
     m.querySelectorAll('[data-int]').forEach(i => i.onchange = () => p.intentions[+i.dataset.int] = i.value.trim());
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); updateCapBar(); });
     m.querySelectorAll('[data-estchip]').forEach(b => b.onclick = () => {
-      const r = findTaskRef(b.dataset.estchip); if(r) r.task.est = +b.dataset.estval;
+      const r = findTaskRef(b.dataset.estchip); if(r) r.task.duration = +b.dataset.estval;
       b.closest('.pick-time-chips').querySelectorAll('[data-estchip]').forEach(x => x.classList.toggle('on', +x.dataset.estval === +b.dataset.estval));
       updateCapBar();
     });
@@ -823,8 +749,8 @@ function planMyDay(d = today()){
       const track = m.querySelector('#tbTrack');
       if(track){
         let drag = null;
-        const wake = timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
-        const slp  = timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+        const wake = timeToMin(dayWakeOrSetting(d));
+        const slp  = timeToMin(dayBedOrSetting(d));
         const snapMin = mn => Math.round(mn/TB_SNAP)*TB_SNAP;
         track.addEventListener('pointerdown', e => {
           const blockEl = e.target.closest('[data-tbi]'); if(!blockEl) return;
@@ -860,8 +786,8 @@ function planMyDay(d = today()){
         const kind = btn.dataset.tbadd;
         const label = kind === 'label' ? (prompt('Label:')||'').trim() : kind;
         if(!label) return;
-        const wake = timeToMin((S.settings&&S.settings.wakeTime)||'07:00');
-        const slp = timeToMin((S.settings&&S.settings.sleepTime)||'23:00');
+        const wake = timeToMin(dayWakeOrSetting(d));
+        const slp = timeToMin(dayBedOrSetting(d));
         const lastEnd = tbBlocks.length ? Math.max(...tbBlocks.map(b=>b.end)) : timeToMin((S.settings&&S.settings.dayStartTime)||'09:00');
         const start = Math.min(lastEnd, slp-30);
         tbBlocks.push({id:uid(),kind,label,start,end:start+30});
@@ -922,7 +848,7 @@ function habitDayToggle(h, d){
   let justCompleted = false;
   if(!cur){ S.habitLog[d][h.id] = {level:'full', note:''}; justCompleted = true; }
   else if(cur.level === 'full') S.habitLog[d][h.id] = {level:'min', note:''};
-  else delete S.habitLog[d][h.id];
+  else { if(typeof habClockNoteCleared === 'function') habClockNoteCleared(h, d); delete S.habitLog[d][h.id]; }
   saveNow(); sound(S.habitLog[d][h.id] ? 'success' : 'click');
   /* a habit kept is one of the eight things that can be a milestone */
   if(S.habitLog[d][h.id]) try { RewardFX.check(); } catch(e){}
@@ -976,14 +902,20 @@ const habitHue = h => (h && h.color) || 'var(--page-accent)';
    in its dimension's colour. This is the face of the habits on Today and in
    the Life Tape; the grid below is for reading the record. */
 function habitRingHTML(h, d, size = 46){
-  const done = habitDone(h, d); const pct = done ? (done.level === 'min' ? .5 : 1) : 0;
+  const done = habitDone(h, d);
+  /* a habit the clock counts fills as the minutes arrive */
+  const prog = !done && typeof habClockProgress === 'function' ? habClockProgress(h, d) : null;
+  const pct = done ? (done.level === 'min' ? .5 : 1) : (prog && prog.mins > 0 ? Math.min(.98, prog.mins / prog.need) : 0);
   const st = habitStreak(h);
   const future = d > today();
+  const isToday = d === today();
+  const startable = isToday && !done && !h.negative && !future;
   const cls = [future?'future':'', window._bloomHabit === `${h.id}:${d}` ? 'bloom' : '', (window._pulseHabitId === h.id && d === today()) ? 'pulse-once' : ''].filter(Boolean).join(' ');
-  return `<button class="hring-btn ${cls}" data-hring="${h.id}:${d}" ${future?'disabled':''} title="${esc(h.name)}${st.cur?` · ${st.cur}d streak`:''}${future?' · not yet':' · right-click for the minimum version'}">
+  return `<button class="hring-btn ${cls}" data-hring="${h.id}:${d}" ${future?'disabled':''} title="${esc(h.name)}${st.cur?` · ${st.cur}d streak`:''}${future?' · not yet':' · right-click for the minimum version'}${done && done.fromClock ? ' · kept by the clock' : prog ? ` · ${prog.say}` : ''}">
     ${ringSVG(pct, {size, color: habitHue(h), stroke: Math.max(3, Math.round(size/9))})}
     ${st.cur ? `<span class="hring-streak mono">${st.cur}</span>` : ''}
-    <span class="hring-name">${esc(h.name)}</span></button>`;
+    ${startable ? `<span class="hring-go" role="button" tabindex="0" data-hrgo="${h.id}" title="start the minimum${h.min ? ': ' + esc(h.min) : ''}">▶</span>` : ''}
+    <span class="hring-name">${esc(h.name)}</span>${prog ? `<span class="hring-prog mono">${esc(prog.say)}</span>` : done && done.fromClock ? `<span class="hring-prog mono">${done.minutes ? done.minutes + ' min' : 'by the clock'}</span>` : ''}</button>`;
 }
 function habitRingRow(d = today()){
   const due = S.habits.filter(h => !h.archived && !h.negative && habitDue(h, d));
@@ -1028,7 +960,7 @@ function habitPartialMenu(h, d, after){
   m.querySelectorAll('[data-hlev]').forEach(b => b.onclick = () => {
     const lev = b.dataset.hlev;
     S.habitLog[d] = S.habitLog[d] || {};
-    if(lev) S.habitLog[d][h.id] = {level:lev, note: cur?.note || ''}; else delete S.habitLog[d][h.id];
+    if(lev) S.habitLog[d][h.id] = {level:lev, note: cur?.note || ''}; else { if(typeof habClockNoteCleared === 'function') habClockNoteCleared(h, d); delete S.habitLog[d][h.id]; }
     saveNow(); sound(lev ? 'success' : 'click'); m.remove();
     if(lev) { window._bloomHabit = `${h.id}:${d}`; checkAllHabitsDone(d); }
     rerender();
@@ -1066,6 +998,11 @@ function bindHabitRings(box){
   /* on the page, the redraw paints the rings again; anywhere else (a review
      window), they are painted where they are */
   const repaint = () => { if(!box.closest('#main')) habitRingsRefresh(box); };
+  $$('[data-hrgo]', box).forEach(g => {
+    const go = ev => { ev.preventDefault(); ev.stopPropagation(); const h = byId(S.habits, g.dataset.hrgo); if(h && typeof habStartMinimum === 'function'){ habStartMinimum(h); sound('click'); } };
+    g.onclick = go; g.onpointerdown = ev => ev.stopPropagation();
+    g.onkeydown = ev => { if(ev.key === 'Enter' || ev.key === ' ') go(ev); };
+  });
   $$('[data-hring]', box).forEach(b => {
     const open = () => { const [id, d] = b.dataset.hring.split(':'); const h = byId(S.habits, id); if(h && d <= today()) habitPartialMenu(h, d, repaint); };
     b.onclick = () => {
@@ -1183,8 +1120,8 @@ function openArchivedHabits(){
 /* ---------- panel 4: the review that closes the day ---------- */
 function renderReviewPanel(box, d){
   const T = today(); const r = dayReview(d); const p = dayPlan(d);
-  const rows = tasksForDay(d); const done = rows.filter(x=>x.done).length + p.items.filter(i=>i.done).length;
-  const total = rows.length + p.items.length;
+  const rows = tasksForDay(d); const done = rows.filter(x=>x.done).length;
+  const total = rows.length;
   const habits = S.habits.filter(h => !h.archived && !h.negative && habitDue(h,d));
   const hDone = habits.filter(h => habitDone(h,d)).length;
   const isWeekEnd = parseDay(d).getDay() === 0;
@@ -1225,7 +1162,7 @@ function openWeeklyReview(d = today()){
   const days = planDaysFrom(d); const T = today();
   const tasks = days.flatMap(x => tasksForDay(x)); const tDone = tasks.filter(t=>t.done).length;
   const plans = days.map(x => S.plans?.[x]).filter(Boolean);
-  const planned = plans.flatMap(p => p.items || []); const pDone = planned.filter(i=>i.done).length;
+  const planned = []; const pDone = 0;
   const revs = days.map(x => S.reviewLog?.[x]).filter(r => r && (r.energy || r.moods?.length));
   const energies = revs.map(r => r.energy).filter(Boolean);
   const moodCount = {}; revs.forEach(r => (r.moods||[]).forEach(m => moodCount[m] = (moodCount[m]||0)+1));

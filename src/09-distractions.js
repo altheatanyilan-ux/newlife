@@ -52,11 +52,29 @@ function dxNote(raw){
     /* it happened again, so it is not handled after all */
     if(x.handled){ x.handled = false; x.handledAt = null; }
   } else {
-    x = {id: uid(), text, fix, hits: [now], lastAt: now, cleared: 0, handled: false, handledAt: null, addedAt: now};
+    x = {id: uid(), text, fix, hits: [now], lastAt: now, cleared: 0, handled: false, handledAt: null, addedAt: now, habitId: null};
     dxAll().push(x);
   }
+  dxLogUrge(x, now);
+  S._dxLast = x.id;
   saveNow();
   return x;
+}
+/* A distraction tagged to a breaking habit is an urge on that habit's record:
+   when it was, which sitting it came in, and whether I was back within the
+   break I had planned. Back in time, and the urge did not win. */
+const dxBreakers = () => (S.habits || []).filter(h => !h.archived && typeof habIsBreaking === 'function' && habIsBreaking(h));
+function dxLogUrge(x, at){
+  if(!x || !x.habitId) return null;
+  const h = (S.habits || []).find(v => v.id === x.habitId);
+  if(!h || !Array.isArray(h.urgeLog)) return null;
+  const f = typeof FocusTimer !== 'undefined' ? FocusTimer.state() : {idle: true};
+  const standing = !f.idle && FocusTimer.breakStanding ? FocusTimer.breakStanding() : 'none';
+  const returned = standing !== 'over';
+  const u = {id: uid(), date: today(), at, intensity: 0, outcome: returned ? 'resisted' : 'slipped', strategy: x.fix || '', note: x.text,
+    source: 'distraction', dxId: x.id, sitting: f.idle ? null : (f.startedAt || null), returned, standing};
+  h.urgeLog.unshift(u);
+  return u;
 }
 const dxTimes = x => (x.hits || []).length;
 /* not seen for a fortnight after being on the sheet: probably dealt with */
@@ -72,6 +90,7 @@ function dxItemHTML(x){
         : `<button type="button" class="dx-fix none" data-dxact="fix">→ what will you do about it next time?</button>`}</span>
     <span class="mono faint dx-n" title="${n} time${n === 1 ? '' : 's'}${x.cleared ? `, cleared before ${x.cleared} sitting${x.cleared === 1 ? '' : 's'}` : ''}">${n}×${dxQuiet(x) ? ' · quiet lately' : ''}</span>
     <span class="pk-acts">
+      ${dxBreakers().length ? `<button type="button" data-dxact="tag" title="${x.habitId ? 'logged as an urge on that habit each time — press to change' : 'tag a habit you are breaking: each time is then an urge on its record'}">${x.habitId ? '↯ ' + esc((S.habits.find(h => h.id === x.habitId) || {}).name || 'habit') : '↯ tag'}</button>` : ''}
       <button type="button" data-dxact="again" title="it happened again">+1</button>
       <button type="button" data-dxact="handled" title="it has stopped happening — take it off the sheet">handled</button>
       <button type="button" data-dxact="drop" title="remove it altogether" aria-label="remove it">×</button></span>
@@ -91,6 +110,9 @@ function distractionBlockHTML({where = 'focus'} = {}){
     <input class="inp dx-inp" data-dxinp autocomplete="off" aria-label="note a distraction"
       placeholder="What pulled you away?  (phone buzzing → in the other room)">
     <div class="pk-hint mono faint">→ adds what you will do about it next time · the same thing again counts it up${where !== 'today' ? ' · D comes here' : ''}</div>
+    ${(() => { const x = S._dxLast ? dxById(S._dxLast) : null;
+      return x && typeof habStatePickerHTML === 'function' ? `<div class="dx-state"><span class="k mono">${esc(x.text)} \u2014 in what state? (optional)</span>
+        ${habStatePickerHTML('data-dxstate', x.lastState || '')}${x.lastState ? habStateScriptHTML(x.lastState) : ''}</div>` : ''; })()}
     ${on.length ? `<ul class="dx-list">${on.map(dxItemHTML).join('')}</ul>` : ''}
     <label class="dx-flash"><input type="checkbox" data-dxflash${dxFlashOn() ? ' checked' : ''}>
       <span>show it at the start of every sitting, to clear them first</span></label>
@@ -111,6 +133,10 @@ function bindDistractions(root){
       if(dxAll().length === was) toast(esc(`${x.text} — ${dxTimes(x)} times now.`), 3000);
       dxRepaint({keepFocus: true});
     };
+    box.querySelectorAll('[data-dxstate]').forEach(b => b.onclick = () => {
+      const x = S._dxLast ? dxById(S._dxLast) : null; if(!x) return;
+      x.lastState = b.dataset.dxstate; x.states = x.states || {}; x.states[x.lastState] = (x.states[x.lastState] || 0) + 1;
+      saveNow(); if(typeof sound === 'function') sound('click'); dxRepaint(); });
     const fl = box.querySelector('[data-dxflash]');
     if(fl) fl.onchange = () => { planState().dxFlash = fl.checked; saveNow(); };
     box.onclick = ev => {
@@ -118,6 +144,14 @@ function bindDistractions(root){
       const x = dxById(b.closest('[data-dx]')?.dataset.dx); if(!x) return;
       const act = b.dataset.dxact;
       if(act === 'fix'){ dxEditFix(x, b); return; }
+      if(act === 'tag'){
+        const sel = el(`<select class="sel" aria-label="the habit this is an urge on"><option value="">no habit</option>${dxBreakers().map(h =>
+          `<option value="${esc(h.id)}"${x.habitId === h.id ? ' selected' : ''}>${esc(h.name)}</option>`).join('')}</select>`);
+        b.replaceWith(sel); sel.focus();
+        sel.onchange = () => { x.habitId = sel.value || null; saveNow(); dxRepaint(); };
+        sel.onblur = () => dxRepaint();
+        return;
+      }
       if(act === 'again'){ dxNote(x.text); if(typeof sound === 'function') sound('click'); }
       else if(act === 'handled'){
         x.handled = true; x.handledAt = new Date().toISOString(); saveNow();
@@ -175,6 +209,8 @@ function dxFocusInput(){
 let _dxLastStart = null, _dxAway = null;
 function dxShouldFlash(s){
   if(!s || s.idle || !s.running || s.phase !== 'focus' || !s.startedAt) return false;
+  /* a clock the pill or a room started is not a sitting of work to clear the decks for */
+  if(s.meta) return false;
   if(s.startedAt === _dxLastStart) return false;
   _dxLastStart = s.startedAt;
   return s.elapsed <= 6 && dxFlashOn() && dxOn().length > 0;

@@ -136,7 +136,7 @@ function commitQuickTask(raw, ctx = {}){
   const t = newPlanTask(p.text, p.day || ctx.day || '', {
     listId, sectionId: ctx.sectionId || null, priority:p.priority, dueTime:p.dueTime,
     duration:p.duration, desc:p.desc, tags:p.tags, recurrence:p.recurrence,
-    quadrant: ctx.quadrant || null, kanbanColumn: ctx.kanbanColumn || 'todo',
+    quadrant: ctx.quadrant || null,
   });
   S.tasks.push(t); planSyncReminders(t); saveNow();
   return t;
