@@ -100,6 +100,7 @@ function habDefaults(h){
   h.environment= h.environment|| '';
   h.specificTime = h.specificTime || '';
   h.durationTarget = +h.durationTarget || 0;
+  h.estimateMin = +h.estimateMin > 0 ? Math.round(+h.estimateMin) : 0;   /* how long it usually takes; the planning board reserves it */
   h.reward     = h.reward     || '';
   h.accountability = ['self','partner','public'].includes(h.accountability) ? h.accountability : 'self';
   h.difficulty = clamp(+h.difficulty || 3, 1, 5);

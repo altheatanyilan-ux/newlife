@@ -48,6 +48,21 @@ function habCountsAs(h){
   return null;
 }
 const habThreshold = h => (h && +h.thresholdMin > 0) ? +h.thresholdMin : (h && h.timeCat && +h.timeMins > 0 ? +h.timeMins : 0);
+/* How long a habit usually takes, where that means anything: the figure you gave it,
+   else the minutes that count it by the clock, else its target each time. A habit you are
+   breaking has none. The planning board reserves this time first, before any task. */
+function habEstimateMin(h){
+  if(!h || h.negative) return 0;
+  return (+h.estimateMin > 0 ? Math.round(+h.estimateMin) : 0) || habThreshold(h) || (+h.durationTarget > 0 ? Math.round(+h.durationTarget) : 0) || 0;
+}
+/* what the last sittings of it say: the middle of up to eight, once there are three */
+function habLearnedMin(h){
+  if(!h) return null;
+  const rows = (S.timeEntries || []).filter(e => e.habitId === h.id && e.endTime).sort((a, b) => String(a.startTime).localeCompare(String(b.startTime))).slice(-8)
+    .map(e => timeMinutes(e)).filter(m => m >= 1).sort((a, b) => a - b);
+  if(rows.length < 3) return null;
+  return {n: rows.length, min: Math.round(rows[Math.floor(rows.length / 2)])};
+}
 function habCountsName(link){
   if(!link) return '';
   try {

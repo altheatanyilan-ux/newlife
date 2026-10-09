@@ -724,7 +724,7 @@ function updateBackButton(){
 }
 function goBack(){ if(history.length > 1) history.back(); else navigate('#/' + homeRoute()); }
 document.addEventListener('click', e => { const b = e.target.closest('[data-back]'); if(b){ e.preventDefault(); goBack(); } });
-function openModal(html, cls=''){ sound('open'); try { SoundManager.play('uiWhoosh'); } catch(e){} const ov = el(`<div class="overlay"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
+function openModal(html, cls=''){ sound('open'); try { SoundManager.play('uiWhoosh'); } catch(e){} const ov = el(`<div class="overlay${document.body.classList.contains('pbd-open') ? ' above-board' : ''}"><div class="modal ${cls}"><button class="close">×</button>${html}</div></div>`); ov.addEventListener('mousedown', e => { if(e.target===ov) ov.remove(); }); ov.querySelector('.close').onclick = () => ov.remove(); $('#modals').appendChild(ov); if(typeof attachDictationIn === 'function') attachDictationIn(ov); return ov; }
 /* A modal belongs to the page that opened it, so routing sweeps them — but a
    few belong to the session instead. The opening question is asked once, before
    any page exists, and init() sets location.hash a moment before showing it:

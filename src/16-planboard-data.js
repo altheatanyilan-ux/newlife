@@ -23,7 +23,8 @@
 const PBD_DEFAULTS = {bufferMin: 15, capPct: 75, reserveMin: 45, snap: 5};
 const PBD_PICK = [15, 30, 45, 60, 90];                  /* the estimates offered to an unestimated task */
 const PBD_LONG = 90;                                    /* beyond this, offer to split */
-const PBD_KINDS_ANCHOR = ['meal', 'commute', 'break', 'label', 'protect'];
+const PBD_KINDS_ANCHOR = ['meal', 'commute', 'break', 'label', 'protect', 'habit'];   /* habits are laid first, so a habit block is fixed ground for the work */
+const PBD_HABIT_FROM = {morning: 0, afternoon: 12 * 60, evening: 18 * 60, anytime: 0};   /* the earliest a habit of that part of the day is laid */
 
 function pbdPrefs(){
   const p = planState().prefs = planState().prefs || {};
@@ -106,13 +107,15 @@ function pbdAnchors(d){
     if(h.archived || h.negative || h.at == null || h.at === '') return;
     let due = false; try { due = habDue(h, d); } catch(e){}
     if(!due) return;
-    const len = (typeof habThreshold === 'function' && habThreshold(h)) || +h.durationTarget || 15;
+    /* a timed habit that has also been given a block is drawn once, as the block */
+    if(pbdBlocksOn(d).some(b => b.ref && b.ref.type === 'habit' && b.ref.id === h.id)) return;
+    const len = habEstimateMin(h) || 15;
     out.push({id: 'h:' + h.id, from: Math.round(+h.at * 60), to: Math.round(+h.at * 60) + len, kind: 'habit', label: h.name, fixed: true});
   });
   pbdBlocksOn(d).forEach(b => {
     if(!PBD_KINDS_ANCHOR.includes(b.kind)) return;
     const a = pbdMin(b.start); if(a == null) return;
-    out.push({id: b.id, from: a, to: a + b.durationMin, kind: b.kind, label: b.label || b.kind, block: b});
+    out.push({id: b.id, from: a, to: a + b.durationMin, kind: b.kind, label: b.kind === 'habit' ? pbdBlockLabel(b) : (b.label || b.kind), block: b});
   });
   try { (S.tasks || []).forEach(t => { if(!t.done && t.day === d && t.dueTime){ const a = pbdMin(t.dueTime);
       if(a != null) out.push({id: 'c:' + t.id, from: a, to: a + Math.max(15, Math.min(60, pbdEstOf(t) || 30)), kind: 'clock', label: t.title || t.text, fixed: true}); } }); } catch(e){}
@@ -126,6 +129,21 @@ function pbdAnchorMinutes(d){
   ivs.forEach(([a, z]) => { if(a >= end){ total += z - a; end = z; } else if(z > end){ total += z - end; end = z; } });
   return total;
 }
+/* The habits due that day with no hour of their own and no block yet: they are laid
+   first, and their time is spoken for before any task is counted. A habit with a time is
+   already an anchor; one that is done today needs no time; one you are breaking has none. */
+function pbdHabitsToPlace(d, fromMin = 0){
+  const blocks = pbdBlocksOn(d).filter(b => b.ref && b.ref.type === 'habit');
+  return (S.habits || []).filter(h => {
+    if(h.archived || h.negative || !(habEstimateMin(h) > 0)) return false;
+    if(h.at != null && h.at !== '') return false;
+    let due = false; try { due = habDue(h, d); } catch(e){}
+    if(!due) return false;
+    if(d === today()){ let done = false; try { done = !!habitDone(h, d); } catch(e){} if(done) return false; }
+    return !blocks.some(b => b.ref.id === h.id && pbdMin(b.start) + b.durationMin > fromMin);
+  });
+}
+const pbdHabitMinutes = d => pbdHabitsToPlace(d).reduce((n, h) => n + habEstimateMin(h), 0);
 /* tasks the day holds that have no hour: pencil */
 function pbdPencilOn(d, extraIds = []){
   const placed = new Set(pbdBlocksOn(d).filter(b => b.ref && b.ref.type !== 'habit').map(b => b.ref.id));
@@ -139,17 +157,17 @@ function pbdPencilOn(d, extraIds = []){
    padded length) and every pencilled task (its padded length, buffer too). */
 function pbdCapacity(d, extraIds = []){
   const bd = pbdBounds(d), pf = pbdPrefs();
-  const anchors = pbdAnchorMinutes(d);
-  const free = Math.max(30, bd.awake - anchors - pf.reserveMin);
+  const anchors = pbdAnchorMinutes(d), habits = pbdHabitMinutes(d);
+  const free = Math.max(30, bd.awake - anchors - habits - pf.reserveMin);
   let planned = 0, unestimated = 0;
-  pbdBlocksOn(d).forEach(b => { if(b.ref && b.ref.type !== 'habit') planned += b.durationMin + (b.bufferMin || 0); });
+  pbdBlocksOn(d).forEach(b => { if(b.ref && b.ref.type !== 'habit' && !PBD_KINDS_ANCHOR.includes(b.kind)) planned += b.durationMin + (b.bufferMin || 0); });
   pbdPencilOn(d, extraIds).forEach(r => { const e = pbdEstOf(r.task); if(e) planned += pbdPadded(e, r.task).total; else unestimated++; });
   const pct = Math.round(planned / free * 100);
   const over = pct > pf.capPct;
   const text = over ? `Planned ${pct}% — past the ${pf.capPct}% cap`
     : pct >= pf.capPct - 10 ? `Planned ${pct}% — nearly full` : planned ? `Planned ${pct}% — room to breathe` : 'Nothing planned yet';
-  const rule = `${pbdSay(bd.awake)} awake, less ${pbdSay(anchors)} already spoken for and ${pbdSay(pf.reserveMin)} kept unscheduled, leaves ${pbdSay(free)}; the cap is ${pf.capPct}% of that (${pbdSay(free * pf.capPct / 100)}). Planned counts each task’s estimate with its margin, and a ${pf.bufferMin}m buffer after.`;
-  return {awake: bd.awake, anchors, free, planned, pct, over, capPct: pf.capPct, text, rule, unestimated, room: Math.max(0, free * pf.capPct / 100 - planned)};
+  const rule = `${pbdSay(bd.awake)} awake, less ${pbdSay(anchors)} already spoken for${habits ? `, ${pbdSay(habits)} for the habits still to place (they come first)` : ''} and ${pbdSay(pf.reserveMin)} kept unscheduled, leaves ${pbdSay(free)}; the cap is ${pf.capPct}% of that (${pbdSay(free * pf.capPct / 100)}). Planned counts each task’s estimate with its margin, and a ${pf.bufferMin}m buffer after.`;
+  return {awake: bd.awake, anchors, habits, free, planned, pct, over, capPct: pf.capPct, text, rule, unestimated, room: Math.max(0, free * pf.capPct / 100 - planned)};
 }
 
 /* ---------- placement: ink, pencil, window ---------- */

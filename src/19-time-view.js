@@ -147,6 +147,8 @@ function timeOverviewHTML(){
     ${n ? `<div class="tmv-narrow"><span class="chip on">narrowed to ${esc(n.label)}</span> <button class="tbtn" data-tmclear>show everything</button>
       <span class="faint mono">every figure below is for this alone</span></div>` : ''}
     ${future ? '<div class="empty">That period has not begun.</div>' : `
+    <section class="tmv-sec tmv-board"><span class="sc">${r.unit === 'day' ? 'The day, hour by hour' : r.unit === 'week' ? 'The week, hour by hour' : 'Planned and tracked, week by week'}${r.unit === 'day' && !n ? ` <button class="tbtn" data-tmboard="${esc(r.from)}" title="open this day on the planning board">plan board</button>` : ''}</span>
+      ${r.unit === 'day' || r.unit === 'week' ? timeBoardHTML(r, n) : timePlanTrackedWeeksHTML(r, n)}</section>
     ${timeGlanceHTML(r, n)}
     <p class="tmv-say serif">${esc(timeNarrative(r, n))}</p>
     ${att.length ? `<div class="tmv-attn"><span class="sc">Needs attention</span>${att.slice(0, 3).map((it, i) => pqRowHTML(it, i)).join('')}${att.length > 3 ? `<div class="faint mono pq-more">${att.length - 3} more on Today</div>` : ''}</div>` : ''}
@@ -174,6 +176,7 @@ function bindTimeOverview(root){
   const cl = root.querySelector('[data-tmclear]'); if(cl) cl.onclick = () => { u.narrow = null; rerender(); };
   $$('[data-tmgoto]', root).forEach(b => b.onclick = () => { u.day = b.dataset.tmgoto > today() ? today() : b.dataset.tmgoto; rerender(); });
   const more = root.querySelector('#tmMore'); if(more) more.onclick = () => { u.more = true; rerender(); };
+  $$('[data-tmboard]', root).forEach(b => b.onclick = () => pbdOpen(b.dataset.tmboard, {onClose: () => rerender()}));
   const pr = root.querySelector('[data-tmprint]'); if(pr) pr.onclick = () => printWeek(timeViewRange().from);
   $$('[data-tmgoals]', root).forEach(b => b.onclick = () => navigate('#/time/goals'));
   const att = root.querySelector('.tmv-attn'); if(att && typeof pqBind === 'function') pqBind(att, today(), timeAttentionItems().slice(0, 3));

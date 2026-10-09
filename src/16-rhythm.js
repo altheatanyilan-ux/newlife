@@ -622,7 +622,7 @@ function planMyDay(d = today()){
        <div class="stack" style="gap:4px;max-height:44vh;overflow:auto">${habits.length ? habits.map(h => {
          const isProgress = !!h.progressHabit;
          const intent = p.habitIntentions?.[h.id] || '';
-         return `<div class="pick-row-wrap"><label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>${isProgress ? `<textarea class="ta" data-habintent="${esc(h.id)}" placeholder="What specifically will I do for ${esc(h.name)} tomorrow?" style="font-size:.85rem;margin-top:4px;${chosenH.has(h.id)?'':'display:none'}">${esc(intent)}</textarea>` : ''}</div>`; }).join('') : `<div class="empty">No habits due ${dayWord}.</div>`}</div>`,
+         return `<div class="pick-row-wrap"><label class="pick-row ${chosenH.has(h.id)?'on':''}"><input type="checkbox" data-pickh="${h.id}" ${chosenH.has(h.id)?'checked':''}><span><b>${h.icon||''} ${esc(h.name)}</b><span class="d">${esc(habitFreqLabel(h))} · ${esc(h.timeOfDay)}${habEstimateMin(h) ? ` · ~${habEstimateMin(h)}m` : ''}</span></span><select class="sel" data-hat="${h.id}" style="width:auto"><option value="">no time</option>${Array.from({length:(HOUR1-HOUR0)*2},(_,i)=>HOUR0+i/2).map(x=>`<option value="${x}" ${+h.at===x?'selected':''}>${fmtHour(x)}</option>`).join('')}</select></label>${isProgress ? `<textarea class="ta" data-habintent="${esc(h.id)}" placeholder="What specifically will I do for ${esc(h.name)} tomorrow?" style="font-size:.85rem;margin-top:4px;${chosenH.has(h.id)?'':'display:none'}">${esc(intent)}</textarea>` : ''}</div>`; }).join('') : `<div class="empty">No habits due ${dayWord}.</div>`}</div>`,
       `<h2>What does ${dayWord} start with?</h2><p class="muted" style="font-size:.88rem">The first move, decided now, so the morning is not a negotiation.</p>
        <input class="inp serif-lg" data-planfirst value="${esc(p.firstMove || '')}" placeholder="The first thing I do after I wake.">
        <div class="field" style="margin-top:16px"><label>What might get in the way?</label>
@@ -713,7 +713,7 @@ function planMyDay(d = today()){
       const open = m.querySelector('#pbOpen');
       if(open) open.onclick = () => pbdOpen(d, {extra: [...chosen], onClose: () => draw()});
       const sx = m.querySelector('#pbSixty');
-      if(sx) sx.onclick = () => { pbdOpen(d, {extra: [...chosen], onClose: () => draw()}); setTimeout(() => pbdSixty(), 60); };
+      if(sx) sx.onclick = () => pbdOpen(d, {extra: [...chosen], onClose: () => draw(), sixty: true});
     }
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {

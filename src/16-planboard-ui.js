@@ -22,16 +22,22 @@ const PBD_QUAD = {1: 'Urgent and important', 2: 'Important, not urgent', 3: 'Urg
 
 function pbdOpen(day, opts = {}){
   pbdMigrate();
-  PB = {day: day || today(), mode: opts.mode || 'day', scale: opts.scale || 'hours', tab: opts.tab || 'list', extra: (opts.extra || []).slice(),
-    onClose: opts.onClose || null, drag: null, q: ''};
+  PB = {day: day || today(), mode: opts.sixty ? 'day' : (opts.mode || 'day'), scale: opts.scale || 'hours', tab: opts.tab || 'list', extra: (opts.extra || []).slice(),
+    extraDay: day || today(), onClose: opts.onClose || null, drag: null, q: ''};
   document.getElementById('pbd')?.remove();
   const root = el('<div class="pbd-overlay" id="pbd" role="dialog" aria-label="the planning board"></div>');
   document.body.appendChild(root);
   document.body.classList.add('pbd-open');
   pbdBindRoot(root);
   pbdRender();
+  /* asked for sixty seconds: the dialog opens on the same turn the board does, never after a wait */
+  if(opts.sixty) pbdSixty();
   return root;
 }
+/* the tasks the opener ticked belong to the day it opened the board for, and to no other */
+const pbdExtra = d => (PB && d === PB.extraDay ? PB.extra : []);
+/* a day has been laid out once any of its work has an hour */
+const pbdIsPlanned = d => pbdBlocksOn(d).some(b => b.ref);
 function pbdClose(){
   const root = document.getElementById('pbd'); if(!root) return;
   const cb = PB && PB.onClose; root.remove(); document.body.classList.remove('pbd-open'); PB = null;
@@ -87,13 +93,30 @@ function pbdGroups(){
   }
   return groups;
 }
+/* the estimate, edited where it is read: type 45, 1h30 or 2h and leave the box. A task whose
+   steps carry the lengths shows their sum and says so; the figures are on the steps. */
+function pbdEstEditHTML(r, t, est){
+  if(typeof taskHasSubEst === 'function' && taskHasSubEst(t)) return `<span class="pbd-est ro" title="the steps carry the lengths — change them on the task">${pbdSay(est)} · from its steps</span>`;
+  return `<label class="pbd-est" title="how long it will take — type 45, 1h30 or 2h"><input type="text" class="pbd-esti" data-pbest-in="${esc(r.id)}" value="${est ? esc(fmtEst(est)) : ''}" placeholder="how long?" size="7" autocomplete="off" aria-label="estimate for ${esc(r.text)}"></label>`;
+}
+function pbdSetEstimate(id, text){
+  const t = pbdTask(id); if(!t) return;
+  const txt = String(text || '').trim(), n = txt ? parseEst(txt) : 0;
+  if(txt && !n){ toast(esc('Type minutes or hours — 45, 1h30, 2h.'), 3500); return pbdRender(); }
+  const was = pbdEstOf(t); if(n === was) return pbdRender();
+  const old = was ? pbdPadded(was, t) : null;
+  t.duration = n; t.updatedAt = new Date().toISOString();
+  /* a block still as long as the old estimate made it follows the new one; one you resized yourself stays */
+  if(n) pbdBlocksFor(id).forEach(b => { if(old && b.durationMin === old.durationMin && !PBD_KINDS_ANCHOR.includes(b.kind)){ const pad = pbdPadded(n, t); pbdSetBlockTimes(b, pbdMin(b.start) || 540, pad.durationMin); b.marginMin = pad.marginMin; } });
+  saveNow(); sound('click'); pbdRender();
+}
 function pbdRowHTML(r, d){
   const t = r.task, est = pbdEstOf(t), pl = pbdPlacement(t, r.id);
   const here = pl.state === 'ink' ? pl.blocks.some(b => b.date === d) : pl.state === 'pencil' && pl.from <= d && d <= pl.to;
   const cls = [here ? 'here' : '', est ? '' : 'unest'].filter(Boolean).join(' ');
   return `<div class="pbd-row ${cls}" data-pbdrag="task:${esc(r.id)}" data-pbtask="${esc(r.id)}" style="--c:${esc(r.color || 'var(--page-accent)')}">
     <span class="pbd-rt">${esc(r.text)}</span>
-    <span class="pbd-rm mono">${est ? pbdSay(est) : '?'}${t.day ? ` · due ${esc(fmtDate(t.day, 'short'))}` : ''}${pl.state === 'ink' ? ' · ink' : pl.state === 'pencil' ? ' · pencil' : ''}</span>
+    <span class="pbd-rm mono">${pbdEstEditHTML(r, t, est)}${t.day ? ` · due ${esc(fmtDate(t.day, 'short'))}` : ''}${pl.state === 'ink' ? ' · ink' : pl.state === 'pencil' ? ' · pencil' : ''}</span>
     <button type="button" class="pbd-add" data-pbpencil="${esc(r.id)}" title="give it this day, no hour yet" aria-label="pencil it in on ${esc(d)}">＋</button></div>`;
 }
 function pbdPaneHTML(){
@@ -130,16 +153,18 @@ function pbdStripHTML(d, scale){
     <div class="pbd-axis">${ticks.join('')}</div><div class="pbd-track" data-pbtrack="${esc(d)}" data-wake="${bd.wake}">${band}${anchors}${blocks}</div></div>`;
 }
 function pbdTrayHTML(d){
-  const pencil = pbdPencilOn(d, PB.extra);
+  const pencil = pbdPencilOn(d, pbdExtra(d));
   const ghosts = d >= today() ? pbdCandidates().filter(r => !r.task.doDay && r.task.day && !pbdBlocksFor(r.id).length)
     .map(r => ({r, g: pbdGhost(r.task, r.id)})).filter(x => x.g && x.g.day === d) : [];
-  return `<div class="pbd-tray" data-pbtray="${esc(d)}"><div class="pbd-trayh mono">to place · ${pencil.length}${ghosts.length ? ` · suggested ${ghosts.length}` : ''}</div>
+  const habs = pbdHabitsToPlace(d, d === today() ? pbdNowMin() : 0);
+  return `<div class="pbd-tray" data-pbtray="${esc(d)}"><div class="pbd-trayh mono">${habs.length ? `habits first · ${habs.length} · ` : ''}to place · ${pencil.length}${ghosts.length ? ` · suggested ${ghosts.length}` : ''}</div>
+    ${habs.map(h => `<div class="pbd-chip habit" data-pbdrag="habit:${esc(h.id)}" title="a habit — it is laid before any task; drag it to an hour, or let the plan place it">${esc(h.name)}<span class="mono">~${pbdSay(habEstimateMin(h))}</span></div>`).join('')}
     ${pencil.map(r => `<div class="pbd-chip pencil" data-pbdrag="task:${esc(r.id)}" data-pbtask="${esc(r.id)}" title="pencil — this day, no hour yet">${esc(r.text)}<span class="mono">${pbdEstOf(r.task) ? pbdSay(pbdEstOf(r.task)) : '?'}</span></div>`).join('')}
     ${ghosts.map(({r, g}) => `<div class="pbd-chip ghost" data-pbdrag="task:${esc(r.id)}" data-pbtask="${esc(r.id)}" data-pbghost="${esc(r.id)}" title="${esc(g.reason)}">◌ ${esc(r.text)}<span class="mono">due ${esc(fmtDate(r.task.day, 'short'))}</span><button type="button" class="pbd-add" data-pbpencil="${esc(r.id)}" title="${esc(g.reason)} — press to pencil it in">＋</button></div>`).join('')}
-    ${!pencil.length && !ghosts.length ? '<div class="faint pbd-empty">Nothing waiting for an hour.</div>' : ''}</div>`;
+    ${!pencil.length && !ghosts.length && !habs.length ? '<div class="faint pbd-empty">Nothing waiting for an hour.</div>' : ''}</div>`;
 }
 function pbdGaugeHTML(d, solo = true){
-  const c = pbdCapacity(d, PB.extra);
+  const c = pbdCapacity(d, pbdExtra(d));
   return `<div class="pbd-gauge${c.over ? ' over' : ''}" title="${esc(c.rule)}"><i style="width:${Math.min(100, c.pct)}%"></i><span>${esc(c.text)}</span></div>
     ${solo ? `<div class="pbd-rule faint">${esc(c.rule)}</div>` : ''}${c.unestimated ? `<div class="faint pbd-un">${c.unestimated} without an estimate — not counted</div>` : ''}`;
 }
@@ -172,8 +197,9 @@ function pbdRender(){
       <div class="pbd-modes"><button class="${PB.mode === 'day' ? 'on' : ''}" data-pbmode="day">Day</button><button class="${PB.mode === 'week' ? 'on' : ''}" data-pbmode="week">Week</button></div>
       ${PB.mode === 'week' ? `<div class="pbd-modes"><button class="${PB.scale === 'hours' ? 'on' : ''}" data-pbscale="hours">hours</button><button class="${PB.scale === 'days' ? 'on' : ''}" data-pbscale="days">days</button></div>` : ''}
       <span class="pbd-grow"></span>
-      ${PB.mode === 'day' ? `<button class="btn sm ghost" data-pb60 title="confirm what is pencilled, pick the top two, accept a layout">Plan in 60 seconds</button>
-        ${PB.day === T ? '<button class="btn sm ghost" data-pbreplan title="keep the blocks still ahead, and fit the rest into the hours left">Re-plan from here</button>' : ''}` : ''}
+      ${PB.mode === 'day' ? (pbdIsPlanned(PB.day) && PB.day === T
+        ? '<button class="btn sm ghost" data-pbreplan title="keep the blocks still ahead, and fit the rest into the hours left">Re-plan from here</button>'
+        : '<button class="btn sm ghost" data-pb60 title="habits first, then the top two, then the rest: confirm what is pencilled and accept a layout">Plan in 60 seconds</button>') : ''}
       <button class="btn sm primary" data-pbclose>Done</button></div>
     <div class="pbd-body">
       <div class="pbd-left"><div class="pbd-cols${PB.mode === 'week' ? ' week' : ''}${scale === 'days' ? ' days' : ''}">${days.map(d => pbdColHTML(d, scale, PB.mode === 'day')).join('')}</div></div>
@@ -227,6 +253,13 @@ function pbdPlaceTask(id, d, startMin, source = 'dragged'){
   const est = pbdEstOf(t);
   if(!est) pbdAskEstimate(t, go); else go(est);
 }
+/* a habit given an hour: a block that points at the habit, as long as it usually takes */
+function pbdPlaceHabit(id, d, startMin){
+  const h = byId(S.habits || [], id); if(!h) return;
+  const bd = pbdBounds(d);
+  pbdAddBlock(d, {ref: {type: 'habit', id}, start: pbdHM(Math.min(bd.bed - 15, Math.max(bd.wake, startMin))), durationMin: habEstimateMin(h) || 15, source: 'dragged'});
+  saveNow(); sound('click'); pbdRender();
+}
 function pbdMoveBlock(bid, d, startMin){
   const b = S.timeBlocks.find(x => x.id === bid); if(!b) return;
   const bd = pbdBounds(d);
@@ -267,6 +300,33 @@ function pbdUnplace(kind, id, d){
 }
 
 /* ---------- the pointer ---------- */
+/* Where a drag would land if it were let go here, worked out the one way and used both for the
+   line drawn while dragging and for the drop itself, so what is shown is what happens. */
+function pbdDropInfo(drag, track, y){
+  const day = track.dataset.pbtrack, wake = +track.dataset.wake, bd = pbdBounds(day);
+  const raw = pbdRound(wake + (y - track.getBoundingClientRect().top) / PBD_PX, PBD_DEFAULTS.snap);
+  let len = 30, unknown = false, self = null;
+  if(drag.kind === 'task'){ const t = pbdTask(drag.id), est = t ? pbdEstOf(t) : 0; unknown = !est; len = pbdPadded(est || 30, t).durationMin; }
+  else if(drag.kind === 'habit'){ const h = byId(S.habits || [], drag.id); len = (h && habEstimateMin(h)) || 15; }
+  else if(drag.kind === 'block'){ const b = S.timeBlocks.find(x => x.id === drag.id); if(b){ len = b.durationMin; self = b.id; } }
+  const start = Math.min(drag.kind === 'block' ? bd.bed - 5 : bd.bed - 15, Math.max(bd.wake, raw));
+  const end = start + len;
+  const hit = pbdAnchors(day).find(a => start < a.to && end > a.from && !(a.block && a.block.id === self))
+    || pbdBlocksOn(day).filter(b => !PBD_KINDS_ANCHOR.includes(b.kind) && b.id !== self).find(b => start < pbdMin(b.start) + b.durationMin && end > pbdMin(b.start));
+  return {day, start, end, len, unknown, clash: hit ? (hit.label || (hit.ref ? pbdBlockLabel(hit) : hit.kind)) : ''};
+}
+function pbdDropShow(drag, track, y){
+  const info = pbdDropInfo(drag, track, y), bd = pbdBounds(info.day);
+  let line = track.querySelector('.pbd-drop');
+  if(!line){ line = el('<div class="pbd-drop" aria-hidden="true"><b class="mono"></b></div>'); track.appendChild(line); }
+  line.style.top = ((info.start - bd.wake) * PBD_PX).toFixed(1) + 'px';
+  line.style.height = Math.max(4, info.len * PBD_PX).toFixed(1) + 'px';
+  line.classList.toggle('clash', !!info.clash);
+  const said = `${pbdHM(info.start)} – ${info.unknown ? 'how long?' : pbdHM(info.end)}${info.clash ? ` · overlaps ${info.clash}` : ''}`;
+  line.firstChild.textContent = said;
+  return said;
+}
+function pbdDropClear(){ document.querySelectorAll('.pbd-drop').forEach(n => n.remove()); }
 function pbdBindRoot(root){
   root.addEventListener('click', ev => {
     const q = s => ev.target.closest(s);
@@ -283,11 +343,13 @@ function pbdBindRoot(root){
     if(q('[data-pbfast-go]')) return;
   });
   root.addEventListener('input', ev => { if(ev.target.matches('[data-pbq]')){ PB.q = ev.target.value; PB._qfocus = true; pbdRender(); PB._qfocus = false; } });
-  root.addEventListener('keydown', ev => { if(ev.key === 'Escape' && !ev.target.matches('input,textarea')){ ev.stopPropagation(); pbdClose(); } });
+  root.addEventListener('change', ev => { if(ev.target.matches('[data-pbest-in]')) pbdSetEstimate(ev.target.dataset.pbestIn, ev.target.value); });
+  root.addEventListener('keydown', ev => { if(ev.key === 'Enter' && ev.target.matches('[data-pbest-in]')){ ev.preventDefault(); ev.target.blur(); return; }
+    if(ev.key === 'Escape' && !ev.target.matches('input,textarea')){ ev.stopPropagation(); pbdClose(); } });
   root.addEventListener('pointerdown', ev => {
     const rz = ev.target.closest('[data-pbrz]');
     const src = rz || ev.target.closest('[data-pbdrag]');
-    if(!src || ev.button > 0 || ev.target.closest('[data-pbpencil]')) return;
+    if(!src || ev.button > 0 || ev.target.closest('[data-pbpencil],.pbd-est')) return;
     const spec = rz ? 'resize:' + rz.dataset.pbrz : src.dataset.pbdrag;
     const [kind, id] = spec.split(':');
     const blk = rz ? rz.closest('[data-pbblk]') : null;
@@ -313,13 +375,21 @@ function pbdBindRoot(root){
     document.querySelectorAll('.pbd-over').forEach(n => n.classList.remove('pbd-over'));
     d.ghost.style.display = 'none';
     const under = document.elementFromPoint(ev.clientX, ev.clientY); d.ghost.style.display = '';
-    const tgt = under && (under.closest('[data-pbtrack]') || under.closest('[data-pbtray]') || under.closest('[data-pbpane]') || under.closest('[data-pbday]'));
+    /* near the top or bottom of the day, the day scrolls so a far hour can be reached */
+    const left = document.querySelector('#pbd .pbd-left');
+    if(left){ const r = left.getBoundingClientRect(); if(ev.clientY < r.top + 36) left.scrollTop -= 14; else if(ev.clientY > r.bottom - 36) left.scrollTop += 14; }
+    const track = under && under.closest('[data-pbtrack]');
+    const tgt = track || (under && (under.closest('[data-pbtray]') || under.closest('[data-pbpane]') || under.closest('[data-pbday]')));
+    pbdDropClear();
+    if(!d.base) d.base = d.ghost.textContent;
+    if(track) d.ghost.textContent = `${d.base} · ${pbdDropShow(d, track, ev.clientY).split(' · ')[0]}`;
+    else d.ghost.textContent = d.base;
     if(tgt) tgt.classList.add('pbd-over');
   });
   const end = ev => {
     const d = PB && PB.drag; if(!d) return;
     PB.drag = null; try { root.releasePointerCapture(d.pointer); } catch(e){}
-    document.querySelectorAll('.pbd-over').forEach(n => n.classList.remove('pbd-over'));
+    document.querySelectorAll('.pbd-over').forEach(n => n.classList.remove('pbd-over')); pbdDropClear();
     if(d.ghost){ d.ghost.remove(); }
     if(!d.moved) return;
     if(ev.type === 'pointercancel') return pbdRender();
@@ -332,9 +402,9 @@ function pbdBindRoot(root){
     if(!under) return pbdRender();
     const track = under.closest('[data-pbtrack]'), tray = under.closest('[data-pbtray]'), pane = under.closest('[data-pbpane]'), col = under.closest('[data-pbday]');
     if(track){
-      const day = track.dataset.pbtrack, wake = +track.dataset.wake, rect = track.getBoundingClientRect();
-      const startMin = pbdRound(wake + (ev.clientY - rect.top) / PBD_PX - (d.kind === 'block' ? 0 : 0), PBD_DEFAULTS.snap);
+      const at = pbdDropInfo(d, track, ev.clientY), day = at.day, startMin = at.start;
       if(d.kind === 'task') pbdPlaceTask(d.id, day, startMin);
+      else if(d.kind === 'habit') pbdPlaceHabit(d.id, day, startMin);
       else if(d.kind === 'block') pbdMoveBlock(d.id, day, startMin);
     } else if(tray || (col && !pane)){
       const day = (tray || col).dataset.pbtray || (tray || col).dataset.pbday;
@@ -343,7 +413,7 @@ function pbdBindRoot(root){
         const b = S.timeBlocks.find(x => x.id === d.id);
         if(b && b.ref && b.ref.type !== 'habit'){ const ref = b.ref.id; spliceOut(S.timeBlocks, x => x.id === d.id); pbdPencil(ref, day); saveNow(); pbdRender(); }
         else pbdRender();
-      }
+      } else pbdRender();
     } else if(pane){
       pbdUnplace(d.kind, d.id, PB.day);
     } else pbdRender();
@@ -363,10 +433,11 @@ function pbdAddAnchor(kind){
 }
 
 /* ---------- the fast lanes ---------- */
-/* Lay the day's pencilled work into the free gaps: the top two first and in the
-   energy band if there is one, then the rest, never into an anchor, each with
-   its margin and buffer. Returns the layout without writing it. */
-function pbdLayout(d, ids, fromMin){
+/* Lay the day out into the free gaps, in this order: the habits that have no hour yet (each
+   from the earliest its part of the day allows), then the top two tasks, in the energy band if
+   there is one, then the rest of the work. Never into an anchor, each with its margin and
+   buffer. Returns the layout without writing it. */
+function pbdLayout(d, ids, fromMin, habits = []){
   const bd = pbdBounds(d), plan = dayPlan(d);
   const busy = pbdAnchors(d).map(a => [a.from, a.to]).concat(pbdBlocksOn(d).filter(b => !PBD_KINDS_ANCHOR.includes(b.kind)).map(b => [pbdMin(b.start), pbdMin(b.start) + b.durationMin + (b.bufferMin || 0)]));
   const top = new Set(pbdTopTwoTasks(plan));
@@ -378,6 +449,15 @@ function pbdLayout(d, ids, fromMin){
       if(!busy.some(([a, z]) => s < z && s + len > a)) return s;
     return null;
   };
+  habits.forEach(h => {
+    const len = habEstimateMin(h) || 15, tod = TOD.includes(h.timeOfDay) ? h.timeOfDay : 'anytime';
+    let start = free(len, Math.max(fromMin, bd.wake, PBD_HABIT_FROM[tod]));
+    if(start == null && tod !== 'anytime') start = free(len, Math.max(fromMin, bd.wake));
+    if(start == null) return;
+    busy.push([start, start + len]);
+    out.push({kind: 'habit', id: h.id, start, durationMin: len, marginMin: 0, bufferMin: 0, text: h.name,
+      why: `a habit, laid first${tod === 'anytime' ? '' : ' — ' + tod + ' habits are not placed before ' + pbdHM(PBD_HABIT_FROM[tod])}`});
+  });
   order.forEach(id => {
     const t = pbdTask(id); if(!t) return;
     const est = pbdEstOf(t) || 30, pad = pbdPadded(est, t), len = pad.durationMin + pad.bufferMin;
@@ -386,53 +466,86 @@ function pbdLayout(d, ids, fromMin){
     if(start == null){ start = free(len, fromMin); why = why || (top.has(id) ? 'a top-two task, first free hour' : 'next free hour'); }
     if(start == null) return;
     busy.push([start, start + len]);
-    out.push({id, start, durationMin: pad.durationMin, marginMin: pad.marginMin, bufferMin: pad.bufferMin, why, text: t.title || t.text || ''});
+    out.push({kind: 'task', id, start, durationMin: pad.durationMin, marginMin: pad.marginMin, bufferMin: pad.bufferMin, why, text: t.title || t.text || ''});
   });
   return out.sort((a, b) => a.start - b.start);
 }
+const pbdWriteLayout = (d, lay) => lay.forEach(x => pbdAddBlock(d, {ref: {type: x.kind === 'habit' ? 'habit' : 'task', id: x.id}, start: pbdHM(x.start), durationMin: x.durationMin, marginMin: x.marginMin, bufferMin: x.bufferMin, source: 'dragged'}));
+/* the work that could be asked about when nothing is pencilled: what is due by that day, and the day's top two */
+function pbdSuggest(d, skip){
+  const top = new Set(pbdTopTwoTasks(dayPlan(d)));
+  const q = PB.q; PB.q = '';
+  let rows = []; try { rows = pbdCandidates(); } catch(e){} finally { PB.q = q; }
+  return rows.filter(r => !skip.has(r.id) && !pbdBlocksFor(r.id).some(b => b.date === d) && (top.has(r.id) || (r.task.day && r.task.day <= d)))
+    .sort((a, b) => (top.has(b.id) ? 1 : 0) - (top.has(a.id) ? 1 : 0) || (a.task.day || '9999').localeCompare(b.task.day || '9999')).slice(0, 6)
+    .map(r => Object.assign({}, r, {why: top.has(r.id) ? 'one of the day’s top two' : `due ${fmtDate(r.task.day, 'short')}`}));
+}
+/* Plan in sixty seconds. Always opens — there is no state in which pressing it shows nothing.
+   Habits come first and are listed first; then the work pencilled for the day, or, if none is,
+   what is due by it. Nothing is written until the layout is accepted. */
 function pbdSixty(){
+  if(!PB) return;
   const d = PB.day, plan = dayPlan(d);
-  const pencil = pbdPencilOn(d, PB.extra);
-  if(!pencil.length){ toast(esc('Nothing is pencilled for this day yet — add some from the right, then plan in sixty seconds.'), 5000); return; }
-  const top = new Set(pbdTopTwoTasks(plan)); const chosen = new Set(pencil.map(r => r.id)); let tops = new Set([...top].filter(id => chosen.has(id)));
-  const m = openModal('', 'wide');
+  const from = d === today() ? Math.max(pbdBounds(d).wake, pbdNowMin()) : pbdBounds(d).wake;
+  const pencil = pbdPencilOn(d, pbdExtra(d));
+  const sugg = pbdSuggest(d, new Set(pencil.map(r => r.id)));
+  const habs = pbdHabitsToPlace(d, from);
+  const pool = pencil.concat(sugg);
+  const top = new Set(pbdTopTwoTasks(plan));
+  const chosen = new Set((pencil.length ? pencil : sugg).map(r => r.id)); const chosenH = new Set(habs.map(h => h.id));
+  let tops = new Set([...top].filter(id => chosen.has(id)));
+  document.querySelectorAll('.pbd-sixty').forEach(n => n.remove());
+  const m = openModal('', 'wide'); m.classList.add('pbd-sixty');
   const draw = () => {
-    const lay = pbdLayout(d, [...chosen], d === today() ? Math.max(pbdBounds(d).wake, new Date().getHours() * 60 + new Date().getMinutes()) : pbdBounds(d).wake);
+    const lay = pbdLayout(d, [...chosen], from, habs.filter(h => chosenH.has(h.id)));
+    const placed = new Set(lay.map(x => x.id)), left = [...chosen].filter(id => !placed.has(id));
     const mod = m.querySelector('.modal');
-    mod.innerHTML = `<button class="close">\u00d7</button><h2>Plan ${esc(pbdDayName(d))} in sixty seconds</h2>
-      <p class="muted" style="font-size:.88rem">Tick what stays, mark the top two, and accept the layout. Nothing is written until you accept.</p>
-      <div class="stack" style="gap:4px;max-height:34vh;overflow:auto">${pencil.map(r => `<div class="pick-row ${chosen.has(r.id) ? 'on' : ''}"><label><input type="checkbox" data-sx="${esc(r.id)}"${chosen.has(r.id) ? ' checked' : ''}><span><b>${esc(r.text)}</b><span class="d">${pbdEstOf(r.task) ? pbdSay(pbdEstOf(r.task)) : 'no estimate — 30m assumed'}</span></span></label>
-        <button type="button" class="chip tf-chip${tops.has(r.id) ? ' on' : ''}" data-st="${esc(r.id)}" title="one of the day’s top two">top two</button></div>`).join('')}</div>
-      <div class="pbd-lay">${lay.length ? lay.map(x => `<div class="pbd-layrow"><span class="mono">${pbdHM(x.start)}–${pbdHM(x.start + x.durationMin)}</span> <b>${esc(x.text)}</b> <span class="faint">${esc(x.why)}</span></div>`).join('') : '<div class="faint">Nothing fits in the hours left.</div>'}</div>
-      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn ghost" data-sc>Not now</button><button class="btn primary" data-sa>Accept this layout</button></div>`;
+    const row = (r, why) => `<div class="pick-row ${chosen.has(r.id) ? 'on' : ''}"><label><input type="checkbox" data-sx="${esc(r.id)}"${chosen.has(r.id) ? ' checked' : ''}><span><b>${esc(r.text)}</b><span class="d">${pbdEstOf(r.task) ? pbdSay(pbdEstOf(r.task)) : 'no estimate — 30m assumed'}${why ? ' · ' + esc(why) : ''}</span></span></label>
+        <button type="button" class="chip tf-chip${tops.has(r.id) ? ' on' : ''}" data-st="${esc(r.id)}" title="one of the day’s top two">top two</button></div>`;
+    mod.innerHTML = `<button class="close">×</button><h2>Plan ${esc(pbdDayName(d))} in sixty seconds</h2>
+      <p class="muted" style="font-size:.88rem">Habits are laid first, then the top two, then the rest. Tick what stays and accept the layout. Nothing is written until you accept.</p>
+      ${habs.length ? `<div class="pbd-sixh mono">habits first</div><div class="stack" style="gap:4px">${habs.map(h => `<div class="pick-row ${chosenH.has(h.id) ? 'on' : ''}"><label><input type="checkbox" data-sh="${esc(h.id)}"${chosenH.has(h.id) ? ' checked' : ''}><span><b>${esc(h.name)}</b><span class="d">about ${pbdSay(habEstimateMin(h))}${h.timeOfDay && h.timeOfDay !== 'anytime' ? ' · ' + esc(h.timeOfDay) : ''}</span></span></label></div>`).join('')}</div>` : ''}
+      <div class="pbd-sixh mono">${pencil.length ? 'pencilled for the day' : 'nothing is pencilled — these are due by the day'}</div>
+      <div class="stack" style="gap:4px;max-height:30vh;overflow:auto">${pool.length ? (pencil.length ? pencil : sugg).map(r => row(r, r.why || '')).join('') : '<div class="faint" style="padding:6px 2px">No work is pencilled for this day and none is due by it. Add some from the right-hand side, then plan again.</div>'}</div>
+      <div class="pbd-lay">${lay.length ? lay.map(x => `<div class="pbd-layrow"><span class="mono">${pbdHM(x.start)}–${pbdHM(x.start + x.durationMin)}</span> <b>${esc(x.text)}</b> <span class="faint">${esc(x.why)}</span></div>`).join('') : '<div class="faint">Nothing to lay out yet.</div>'}${left.length ? `<div class="faint">${left.length} did not fit in the hours left.</div>` : ''}</div>
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn ghost" data-sc>Not now</button><button class="btn primary" data-sa${lay.length ? '' : ' disabled'}>Accept this layout</button></div>`;
     mod.querySelector('.close').onclick = () => m.remove();
     m.querySelectorAll('[data-sx]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.sx) : (chosen.delete(c.dataset.sx), tops.delete(c.dataset.sx)); draw(); });
+    m.querySelectorAll('[data-sh]').forEach(c => c.onchange = () => { c.checked ? chosenH.add(c.dataset.sh) : chosenH.delete(c.dataset.sh); draw(); });
     m.querySelectorAll('[data-st]').forEach(b => b.onclick = () => { const id = b.dataset.st; if(tops.has(id)) tops.delete(id); else if(tops.size < 2){ tops.add(id); chosen.add(id); } draw(); });
     m.querySelector('[data-sc]').onclick = () => m.remove();
     m.querySelector('[data-sa]').onclick = () => {
       /* the two marked become the day's intentions, as references */
-      const names = [...tops].map(id => pbdTask(id)).filter(Boolean);
-      names.forEach((t, i) => { plan.intentions[i] = (plan.intentions[i] || '').trim() || (t.title || t.text || ''); pbdSetIntentionRef(plan, i, {type: 'task', id: [...tops][i]}); });
+      const ids = [...tops], names = ids.map(id => pbdTask(id)).filter(Boolean);
+      names.forEach((t, i) => { plan.intentions[i] = (plan.intentions[i] || '').trim() || (t.title || t.text || ''); pbdSetIntentionRef(plan, i, {type: 'task', id: ids[i]}); });
       if(names.length) plan.topTwo = [0, 1].slice(0, 2);
-      lay.forEach(x => pbdAddBlock(d, {ref: {type: 'task', id: x.id}, start: pbdHM(x.start), durationMin: x.durationMin, marginMin: x.marginMin, bufferMin: x.bufferMin, source: 'dragged'}));
+      lay.filter(x => x.kind === 'task').forEach(x => pbdPencil(x.id, d));
+      pbdWriteLayout(d, lay);
       plan.planned = true; saveNow(); m.remove(); sound('success'); pbdRender();
     };
   };
   draw();
 }
 /* Re-plan from here: the blocks still ahead are kept; what was meant for today
-   and has not been given an hour, or whose hour has gone by, is fitted into what is left. */
+   and has not been given an hour, or whose hour has gone by, is fitted into what is left.
+   Habits not yet done come first. */
 function pbdReplan(){
   const d = PB.day; if(d !== today()) return;
-  const now = new Date().getHours() * 60 + new Date().getMinutes();
-  const gone = pbdBlocksOn(d).filter(b => !PBD_KINDS_ANCHOR.includes(b.kind) && b.ref && b.ref.type !== 'habit' && (pbdMin(b.start) + b.durationMin) <= now
-    && (() => { const r = findTaskRef(b.ref.id); return r && !r.done; })());
-  const ids = [...new Set(gone.map(b => b.ref.id).concat(pbdPencilOn(d, PB.extra).map(r => r.id)))];
-  if(!ids.length){ toast(esc('Nothing to re-plan — every block still ahead stays where it is.'), 4000); return; }
-  const lay = pbdLayout(d, ids, now + 5);
+  const now = pbdNowMin();
+  const pastAndOpen = b => !PBD_KINDS_ANCHOR.includes(b.kind) && b.ref && b.ref.type !== 'habit' && (pbdMin(b.start) + b.durationMin) <= now
+    && (() => { const r = findTaskRef(b.ref.id); return r && !r.done; })();
+  const habGone = pbdBlocksOn(d).filter(b => b.kind === 'habit' && b.ref && (pbdMin(b.start) + b.durationMin) <= now
+    && (() => { const h = byId(S.habits || [], b.ref.id); let done = false; try { done = h && habitDone(h, d); } catch(e){} return h && !done; })());
+  const gone = pbdBlocksOn(d).filter(pastAndOpen).concat(habGone);
+  const ids = [...new Set(gone.filter(b => b.ref.type !== 'habit').map(b => b.ref.id).concat(pbdPencilOn(d, pbdExtra(d)).map(r => r.id)))];
+  const habs = pbdHabitsToPlace(d, now + 5).concat(habGone.map(b => byId(S.habits || [], b.ref.id)).filter(h => h && !pbdHabitsToPlace(d, now + 5).includes(h)));
+  if(!ids.length && !habs.length){ toast(esc('Nothing to re-plan — every block still ahead stays where it is.'), 4000); return; }
+  const lay = pbdLayout(d, ids, now + 5, habs);
   const removed = gone.map(b => spliceOut(S.timeBlocks, x => x.id === b.id));
-  lay.forEach(x => pbdAddBlock(d, {ref: {type: 'task', id: x.id}, start: pbdHM(x.start), durationMin: x.durationMin, marginMin: x.marginMin, bufferMin: x.bufferMin, source: 'dragged'}));
+  const before = new Set(S.timeBlocks.map(b => b.id));
+  pbdWriteLayout(d, lay);
+  const added = S.timeBlocks.filter(b => !before.has(b.id)).map(b => b.id);
   saveNow(); pbdRender();
-  toast(esc(`${lay.length} block${lay.length === 1 ? '' : 's'} fitted into the hours left; ${ids.length - lay.length} did not fit.`), 7000,
-    {label: 'undo', fn: () => { S.timeBlocks = S.timeBlocks.filter(b => !lay.some(x => b.ref && b.ref.id === x.id && b.start === pbdHM(x.start))); removed.reverse().forEach(f => f()); saveNow(); pbdRender(); }});
+  toast(esc(`${lay.length} block${lay.length === 1 ? '' : 's'} fitted into the hours left${habs.length ? ', habits first' : ''}; ${ids.length + habs.length - lay.length} did not fit.`), 7000,
+    {label: 'undo', fn: () => { S.timeBlocks = S.timeBlocks.filter(b => !added.includes(b.id)); removed.reverse().forEach(f => f()); saveNow(); pbdRender(); }});
 }

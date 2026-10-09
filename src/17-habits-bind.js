@@ -275,7 +275,9 @@ function habPanelHTML(h){
         <div class="field"><label>Best ever</label><div class="row" style="gap:6px">${ed(`${path}.personalBest.value`, {cls:'mono', ph:'—'})}
           ${ed(`${path}.personalBest.unit`, {cls:'mono', ph:'minutes'})}</div></div>
         <div class="field"><label>Target each time</label><div class="row" style="gap:6px;align-items:baseline">${ed(`${path}.durationTarget`, {cls:'mono', ph:'0'})}<span class="mono faint">min</span></div></div>
-      </div>`)}
+      </div>
+      <div class="field"><label>Usually takes</label><div class="row" style="gap:6px;align-items:baseline">${ed(`${path}.estimateMin`, {cls:'mono', ph:String(habEstimateMin(h) || 0)})}<span class="mono faint">min</span></div>
+        <div class="faint" style="font-size:.76rem">${(() => { const L = habLearnedMin(h); return `The planning board sets this time aside for it first, before any task.${L ? ` Your last ${L.n} sittings of it: about ${L.min}m (the middle one).` : ''}`; })()}</div></div>`)}
 
     ${sec('what keeps it going', `
       <div class="field"><label>What follows it</label>${ed(`${path}.reward`, {multi:true, ph:'fifteen minutes of reading'})}</div>

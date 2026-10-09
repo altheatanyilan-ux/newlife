@@ -93,7 +93,7 @@ function pbdTodayStripBars(d){
     if(!due) return;
     /* a habit with a time of day that is also a block is not drawn twice */
     if(pbdBlocksOn(d).some(b => b.ref && b.ref.type === 'habit' && b.ref.id === h.id)) return;
-    const len = (typeof habThreshold === 'function' && habThreshold(h)) || +h.durationTarget || 15;
+    const len = habEstimateMin(h) || 15;
     items.push({from: Math.round(+h.at * 60), to: Math.round(+h.at * 60) + len, kind: 'habit', label: h.name, start: pbdHM(+h.at * 60)});
   });
   return {bd, bars: items.filter(x => x.to > bd.wake && x.from < bd.bed).sort((a, b) => a.from - b.from).map(x => {
