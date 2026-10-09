@@ -75,7 +75,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   console.log('\n3. Today says which part of the week it is');
   const T = await p.evaluate(() => today());
   const want = d.indexOf(T) <= 2 ? 'the essay, before anything else' : 'the move, and rest';
-  await p.evaluate(async () => { location.hash = '#/today'; rerender(); await new Promise(r => setTimeout(r, 900));
+  await p.evaluate(async () => { S.settings.planSection = 'week'; S.settings.todayView = 'do'; location.hash = '#/today'; rerender(); await new Promise(r => setTimeout(r, 900));
     const s = document.querySelector('#t-plan'); if(s) s.open = true; });
   const card = await p.evaluate(() => ({now: document.querySelector('.wk-carry .wk-period.now')?.textContent.replace(/\s+/g, ' ').trim() || '',
     strip: [...document.querySelectorAll('.wk-carry .wk-period-strip span')].map(n => n.textContent.trim()),

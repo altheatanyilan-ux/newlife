@@ -72,7 +72,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     await p.evaluate(() => !document.querySelector('.pl-body .pt-row.done') && !document.querySelector('.pl-body .pt-done')));
   await p.evaluate(() => { planState().prefs.showCompleted = false; saveNow(); });
   yes('  grouped by the list each task lives in', await p.evaluate(() => /Garden/.test(document.querySelector('.pl-body').textContent)
-    && planGroupTasks(planSmartFilter('all'), {kind: 'smart', id: 'all'}).some(([k]) => k === 'Garden')));
+    && planGroupTasks(planSmartFilter('all'), {kind: 'smart', id: 'all'}).some(([k]) => k === planLists().find(l => l.name === 'Garden').id)));   /* groups are keyed by list id */
   await p.evaluate(() => { S._planSel = {kind: 'smart', id: 'all'}; rerender(); }); await p.waitForTimeout(400);
   yes('  and a remembered All tasks stays All tasks', await p.evaluate(() => planSel().id === 'all'
     && !!document.querySelector('.pl-side .pl-item.on[data-plsel="smart:all"]')));

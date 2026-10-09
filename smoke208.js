@@ -198,6 +198,7 @@ const step = async (p, n) => p.evaluate(async n => {
     /* finishing one of the two, the way a week goes */
     const r = findTaskRef('w-2'); r.task.done = true; r.task.doneAt = today();
     await saveNow();
+    S.settings.planSection = 'week'; S.settings.todayView = 'do';
     location.hash = '#/today';
     rerender();
     await new Promise(r => setTimeout(r, 1500));

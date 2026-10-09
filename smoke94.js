@@ -47,8 +47,8 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      as much as a thing you are reading. */
   /* Finance and the Skill Tree moved into the Identity room; the Songwriting
      Studio joined the music rooms */
-  ok('Create holds Content, Projects, the music rooms (Repertoire, Jazz, Songwriting) and the Japanese Studio',
-     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','projects','score','jazz','songwriting','japanese']),
+  ok('Create holds Content, the music rooms (Repertoire, Jazz, Songwriting) and the Japanese Studio (Projects is a view of Tasks now)',
+     nav.zones[0]?.name === 'Create' && JSON.stringify(nav.zones[0].pages) === JSON.stringify(['content','score','jazz','songwriting','japanese']),
      JSON.stringify(nav.zones[0]));
   /* the Jazz Studio is beside Score Practice rather than inside it: one is
      for pieces, the other for patterns in all twelve keys, and they are
@@ -65,8 +65,8 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      you are, not about what you produced. */
   /* Values, People, the Skill Tree and Finance are one Identity room now;
      Time is a view of Today; the Knowledge Tree joined */
-  ok('Identity holds the Identity room, the Lived Record, the Knowledge Tree and the Study Deck',
-     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['identityRoom','journals','tree','study']),
+  ok('Identity holds the Identity room, the Lived Record, the Knowledge Tree, Learning Studio and the Study Deck',
+     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['identityRoom','journals','tree','studio','study']),
      JSON.stringify(nav.zones[1]));
   ok('both zones fold', await page.evaluate(() => document.querySelectorAll('.zone [data-zoneh]').length === 2), 'no');
   ok('nothing is left loose at the bottom', nav.loose.length === 0, JSON.stringify(nav.loose));
@@ -89,8 +89,8 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
      'a duplicate icon: ' + Object.keys(icons).filter((k, i, a) => a.some((j, m) => m !== i && icons[j] === icons[k])).join(', '));
   ok('Content Studio is drawn as the pieces it holds, not as three dots',
      /rect|path/.test(icons.content || '') && !/circle/.test(icons.content || ''), icons.content);
-  ok('Projects is something part-built, not a finished village',
-     (icons.projects || '').split('<rect').length - 1 === 3, icons.projects);
+  ok('and there is no Projects room to draw: it went into the planner',
+     !icons.projects, icons.projects);
 
   console.log('\n2. Settings moved to the top right');
   ok('it has left the sidebar', !nav.settings, 'still listed');

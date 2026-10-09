@@ -85,7 +85,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('hours given before are left where they were', P.energy, {physical: 5, mental: 10});
 
   console.log('\n4. on Today');
-  await p.evaluate(() => { S.settings.todayView = 'do'; saveNow(); location.hash = '#/today'; rerender(); }); await p.waitForTimeout(700);
+  await p.evaluate(() => { S.settings.todayView = 'do'; S.settings.planSection = 'week'; saveNow(); location.hash = '#/today'; rerender(); }); await p.waitForTimeout(700);
   const card = await p.evaluate(() => { const c = document.querySelector('.wk-carry'); return c ? c.textContent.replace(/\s+/g, ' ') : ''; });
   yes('the week\'s card lists the wins with why, and the threats with the answer',
     /Two long walks/.test(card) && /Thinking happens on them/.test(card) && /Late nights/.test(card) && /Laptop shut at eleven/.test(card), card);

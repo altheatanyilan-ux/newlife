@@ -225,7 +225,7 @@ function planMatrixHTML(tasks, sel){
         loose.map(t => planCardHTML(t, peTrayGripHTML())).join('')
         || '<div class="pk-empty">Everything has been placed.</div>'}</div></details>`;
   return aside
-    ? `<div class="pe-withtray" style="--pew:${peTrayWidth()}px">${tray}${grid}</div>`
+    ? `<div class="pe-withtray" style="--pew:${peTrayWidth()}px">${tray}<div class="pe-main">${grid}</div></div>`
     : grid + tray;
 }
 

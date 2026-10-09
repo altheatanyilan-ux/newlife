@@ -130,7 +130,8 @@ const { chromium } = require('playwright');
     return {n, titles, planInside, tasks: titles.includes('What actually got done.')};
   });
   console.log('evening flow:', JSON.stringify({steps:flow.n, titles:flow.titles, planStepInside:flow.planInside, surfacesTasks:flow.tasks}));
-  if(flow.n !== 4 || flow.planInside || !flow.tasks || flow.titles.some(t => /Plan tomorrow|four dimensions/i.test(t))){
+  const stepsNoQ = flow.titles.filter(t => !/^Open questions/i.test(t)).length;   /* that step only appears while questions are open */
+  if(stepsNoQ !== 4 || flow.planInside || !flow.tasks || flow.titles.some(t => /Plan tomorrow|four dimensions/i.test(t))){
     console.log('FAIL the evening review is the four steps about today'); process.exitCode = 1; }
 
   const ret = await page.evaluate(async () => {

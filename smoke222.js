@@ -114,12 +114,15 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   const R = await p.evaluate(() => {
     const rows = [...document.querySelectorAll('[data-jzstage="2"] button.jz-sub')];
     const tiers = rows.map(r => (r.querySelector('.jz-tier') || {className: ''}).className.replace(/.*jz-tier-/, ''));
-    return {n: rows.length, badges: rows.filter(r => r.querySelector('.jz-tier')).length, tiers};
+    /* the stage is grouped into modules; the order is by tier inside each one */
+    const groups = []; rows.forEach((r, i) => { const m = r.closest('.jz-module'); const k = m ? [...document.querySelectorAll('.jz-module')].indexOf(m) : -1;
+      (groups[k + 1] = groups[k + 1] || []).push(tiers[i]); });
+    return {n: rows.length, badges: rows.filter(r => r.querySelector('.jz-tier')).length, tiers, groups: groups.filter(Boolean)};
   });
   is('every row wears its tier', R.badges, R.n);
   const rank = {'fast-track': 0, core: 1, enrichment: 2};
-  yes('  and the stage you are on lists fast-track, then core, then enrichment',
-    R.tiers.every((t, i) => i === 0 || rank[t] >= rank[R.tiers[i - 1]]), R.tiers.join(' '));
+  yes('  and the stage you are on lists fast-track, then core, then enrichment (within each module)',
+    R.groups.every(g => g.every((t, i) => i === 0 || rank[t] >= rank[g[i - 1]])), JSON.stringify(R.groups));
   await p.click('[data-jztrack="fast-track"]'); await p.waitForTimeout(1200);
   const FT = await p.evaluate(() => ({rows: document.querySelectorAll('[data-jzstage="2"] button.jz-sub').length,
     said: (document.querySelector('[data-jzstage="2"] .jz-subsbar') || {}).textContent || '',
