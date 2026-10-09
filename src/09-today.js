@@ -189,6 +189,39 @@ function bindTodayMilestones(root){
   });
   box.querySelectorAll('[data-msgo]').forEach(b => b.onclick = () => navigate(b.dataset.msgo));
 }
+/* THE ARROW ON A PENDING DUTY. It takes you to the thing: another room if the
+   duty lives in one; otherwise the spot on this page it is about. That spot is
+   often in the other half of the day — the check-in, the theatre and the sacred
+   space are in "Looking inward", and the pending list is shown in "Execution" —
+   so a scroll to something hidden did nothing at all. Now the view it is in is
+   brought up first, the folds around it are opened, and it is flashed once so
+   the eye finds it. A duty with nothing on the page to point at (the weekly and
+   monthly reviews, the morning card) goes to where that is done instead. */
+function todayDutyGo(root, id, route, anchor){
+  if(route && route !== '#/today'){ navigate(route); return; }
+  const find = () => anchor ? (document.querySelector(anchor) || null) : null;
+  const show = el => {
+    for(let n = el.parentElement; n; n = n.parentElement) if(n.tagName === 'DETAILS' && !n.open) n.open = true;
+    if(el.tagName === 'DETAILS') el.open = true;
+    el.scrollIntoView({block: 'center', behavior: typeof reduced === 'function' && reduced() ? 'auto' : 'smooth'});
+    el.classList.remove('duty-flash'); void el.offsetWidth; el.classList.add('duty-flash');
+    setTimeout(() => el.classList.remove('duty-flash'), 1800);
+  };
+  const el = find();
+  if(el){
+    const view = el.closest('.today-view[hidden]');
+    if(view){
+      /* the other half of the day: go there, then look again once it is drawn */
+      setTodayView(view.dataset.view);
+      setTimeout(() => { const again = find(); if(again){ window.scrollTo({top: 0}); show(again); } }, 350);
+      return;
+    }
+    show(el); return;
+  }
+  if(id === 'weekly_review' || id === 'monthly_review'){ navigate('#/today/review'); return; }
+  if(id === 'morning_card' && typeof openMorningCard === 'function'){ openMorningCard(); return; }
+  toast('Nothing on this page to point at yet.');
+}
 /* Tasks, Habits, Review and Time tracking: the room itself, under a short head
    — the date, anything to be reminded of, and the switch back to the day. */
 function todayRoomRender(root, view, rest){
@@ -874,18 +907,8 @@ routes.today = function(root, params = []){
     if(typeof dutyDismissToday === 'function') dutyDismissToday(btn.dataset.dutySkip, T);
     rerender();
   });
-  root.querySelectorAll('[data-duty-go]').forEach(btn => btn.onclick = () => {
-    const route  = btn.dataset.dutyRoute;
-    const anchor = btn.dataset.dutyAnchor;
-    if(route && route !== '#/today'){ navigate(route); return; }
-    if(anchor){
-      const el = root.querySelector(anchor) || document.querySelector(anchor);
-      if(el){
-        if(el.tagName === 'DETAILS' && !el.open){ el.open = true; }
-        el.scrollIntoView({block:'center', behavior: typeof reduced==='function'&&reduced()?'auto':'smooth'});
-      }
-    }
-  });
+  root.querySelectorAll('[data-duty-go]').forEach(btn => btn.onclick = () =>
+    todayDutyGo(root, btn.dataset.dutyGo, btn.dataset.dutyRoute, btn.dataset.dutyAnchor));
 
   /* letters & decisions */
   bindSealedLetters(root);

@@ -12022,6 +12022,42 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
 .dd-time{ font-family:var(--mono); font-size:.65rem; color:var(--muted); flex:none; }
 .dd-actions{ display:flex; gap:4px; flex:none; }
 .dd-btn{ padding:2px 7px !important; font-size:.7rem !important; }
+
+/* ---- Today, tighter ----
+   Everything above a view's own content — the milestones line, the date, the
+   hour you woke, the switch, the index, a nudge, the pending list — had grown
+   to more than half a screen, with the part that is different in each view
+   pushed below it. Same things, less air: a smaller date, the head's lines
+   closer, the switch and its index (still on their own lines) packed closer, the pending list in two
+   columns, and a nudge that is one slim line. */
+.today-date{font-size:1.7rem;line-height:1.15}
+.today-head{padding-bottom:6px;margin-bottom:2px}
+.today-head .moon{margin-top:0}
+.today-head .today-cycle{margin-top:0 !important}
+.today-head > .mono.faint{margin-top:4px !important}
+.today-head .day-edge{margin:6px 0 0;font-size:.95rem}
+.today-head-room{margin-bottom:2px}
+.today-ms{margin:0 0 6px}
+.today-ms.pl-ms{padding:5px 12px 3px}
+.today-ms:not([open]){padding-bottom:3px}
+.today-ms .pl-msline{margin-top:6px}
+.today-head .ph-mark{height:24px;width:auto;margin-bottom:2px}
+.today-bar{margin:0 0 8px;padding:4px 0 6px;row-gap:0}
+.today-switch button{padding:4px 13px}
+.today-jump button{padding:2px 8px}
+.today-ap{padding:0;margin-bottom:6px;gap:4px}
+.today-ap .nudge-slot{padding:5px 12px;gap:8px}
+.t-timeline{margin:0 0 6px;padding:4px 10px}
+.dd-panel{margin:4px 0 6px}
+.dd-summary{padding:4px 10px}
+.dd-body{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));padding:0}
+.dd-item{padding:3px 10px;border-top:0;border-bottom:1px solid var(--line-2)}
+.dd-btn{padding:1px 6px !important}
+/* what the arrow on a pending duty points at, for a moment after it lands */
+.duty-flash{animation:dutyFlash 1.6s var(--ease)}
+@keyframes dutyFlash{0%,35%{box-shadow:0 0 0 3px color-mix(in srgb,var(--page-accent) 55%,transparent)}
+  100%{box-shadow:0 0 0 3px transparent}}
+@media (prefers-reduced-motion:reduce){.duty-flash{animation:none;outline:2px solid var(--page-accent)}}
 </style>
 
 </head>
