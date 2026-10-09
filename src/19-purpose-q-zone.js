@@ -119,7 +119,7 @@ function canonLineHTML(kind, id, artefact){
   if(!rows.length) return '';
   const last = rows[rows.length - 1], d = (last.at || last.date || '').slice(0, 10);
   const nZone = (S.entries || []).filter(e => e.zone && e.zone.processedAt && e.zone.producedVersion && e.zone.producedVersion.kind === kind && e.zone.producedVersion.id === id && (!artefact || e.zone.producedVersion.artefact === artefact)).length;
-  const direct = rows.filter(r => r.via === 'direct').length;
+  const direct = rows.slice(1).filter(r => r.via === 'direct').length;
   return `<div class="mono faint canon-line">${d ? 'last refined ' + esc(fmtDate(d, 'short')) : ''}${nZone ? `, from ${nZone} zone item${nZone === 1 ? '' : 's'}` : ''}${direct && !nZone ? ' · edited directly' : direct ? ` · ${direct} edited directly` : ''}</div>`;
 }
 

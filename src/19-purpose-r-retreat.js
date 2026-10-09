@@ -240,8 +240,8 @@ routes.retreat = function(root, params){
       <div class="rt-act"><button class="btn${raised ? ' primary' : ''}" data-rtrun="${kind}">${kind === 'nature' ? 'I’m going' : n && !(rec && rec.finishedAt) ? 'Resume' : 'Begin'}</button>${kind === 'nature' ? '<button class="btn" data-rtback="1">I’m back</button>' : ''}</div></article>`;
   }).join('');
   const past = retreatsAll().slice().sort((a, b) => (b.startedAt || '').localeCompare(a.startedAt || '')).slice(0, 12);
-  root.innerHTML = `<div class="page narrow rt-page"><header><h1 class="serif">Retreat</h1>
-    <p class="faint">A review reads a period back; a retreat changes the instrument. These are long and optional, and none is ever owed: one is only raised when its period had something in it, and leaving partway is normal.</p></header>
+  root.innerHTML = `<div class="page narrow rt-page"><div class="page-head"><div class="mono">the instrument, rather than the period</div><h1>Retreat</h1></div>
+    <p class="faint">A review reads a period back; a retreat changes the instrument. These are long and optional, and none is ever owed: one is only raised when its period had something in it, and leaving partway is normal.</p>
     <div class="rt-list">${rows}</div>
     <p class="faint" style="font-size:.82rem">The <a href="#/purpose/zone">contemplation zone</a> (${zoneItems().length} waiting) is processed in the weekly retreat.</p>
     ${past.length ? `<section class="section"><span class="sc">What has been kept</span><div class="rt-past">${past.map(r => `<div class="row between mono faint"><span>${esc(RT_KINDS[r.kind] ? RT_KINDS[r.kind].name : r.kind)} · ${esc(r.periodKey)}</span><span>${retreatDoneCount(r.kind, r)} step${retreatDoneCount(r.kind, r) === 1 ? '' : 's'}${r.finishedAt ? '' : ' · partial'}</span></div>`).join('')}</div></section>` : ''}</div>`;
