@@ -46,11 +46,13 @@ function visionRender(body, rest){
   const open = visionOpen(), shut = (S.visions || []).filter(x => x.archived || x.status === 'completed');
   body.innerHTML = `<div class="vs-wrap">
     <p class="faint vs-lede">A vision is a long-term picture of how the purpose unfolds — where you are now, and where your life is ten years from now. Very detailed, emotionally compelling, a bit idealistic and grand. This is not the place to ask how.</p>
-    <div class="row" style="gap:8px"><button class="btn primary" id="vsNew">A new vision</button></div>
+    <div class="row" style="gap:8px"><button class="btn primary" id="vsNew">A new vision</button><button class="btn" id="vsHourNew">The guided hour</button>${open.length ? '<button class="btn ghost" id="vsLookAll">Look at them</button>' : ''}</div>
     ${open.length ? `<div class="vs-grid">${open.map(visionCardHTML).join('')}</div>`
       : '<div class="empty">No visions yet. Without one the Morning Theatre has only its practices to rotate through, and structural tension has no result to hold against the present.</div>'}
     ${shut.length ? `<details class="pp-vers"><summary class="mono">${shut.length} set down</summary><div class="vs-grid">${shut.map(visionCardHTML).join('')}</div></details>` : ''}
   </div>`;
+  body.querySelector('#vsHourNew').onclick = () => visionHour();
+  if(body.querySelector('#vsLookAll')) body.querySelector('#vsLookAll').onclick = () => visionLook();
   body.querySelector('#vsNew').onclick = () => {
     const m = openModal(`<h2>A new vision</h2><div class="field"><label>What do you want to create or become?</label>
       <input class="inp serif-lg" id="vsN" autofocus placeholder="Name it so the future you recognises it"></div>
@@ -69,6 +71,7 @@ function visionEditorRender(body, v){
   body.innerHTML = `<div class="vs-ed">
     <div class="row" style="gap:8px"><a class="btn ghost" href="#/purpose/vision">← the visions</a>
       <span class="grow"></span>
+      <button class="btn sm" id="vsHour">Guided hour</button><button class="btn sm ghost" id="vsLook">Look at it</button>
       ${v.status === 'completed' ? '<button class="btn sm ghost" id="vsReopen">reopen</button>' : '<button class="btn sm ghost" id="vsDone">it is lived — complete</button>'}
       ${v.archived ? '<button class="btn sm ghost" id="vsUnarch">bring back</button>' : '<button class="btn sm ghost" id="vsArch">set down</button>'}</div>
     <div class="field"><label class="sc">Name</label><input class="inp serif-lg" id="vsName" value="${esc(v.name)}"></div>
@@ -98,9 +101,14 @@ function visionEditorRender(body, v){
       ${purposeScreened(v) ? '' : '<div class="mono faint">Saved without it, the vision is listed under “not yet put to the sheet” — flagged, never blocked.</div>'}</div>
     ${values.length ? `<div class="field"><label class="sc">Values it lives by</label><div class="deps">${values.map(x => `<button class="chip ${v.links.values.some(l => l.id === x.id) ? 'on' : ''}" style="--c:${esc(x.color)}" data-vsval="${x.id}">${esc(x.name)}</button>`).join('')}</div></div>` : ''}
     ${(S.skills || []).length ? `<div class="field"><label class="sc">Skills it needs</label><div class="deps">${S.skills.slice(0, 60).map(x => `<button class="chip ${v.links.skills.includes(x.id) ? 'on' : ''}" data-vsskill="${x.id}">${esc(x.name)}</button>`).join('')}</div></div>` : ''}
+    <div class="field"><div class="row between" style="align-items:center"><label class="sc" style="margin:0">Pictures of it</label>${typeof imageAddHTML === 'function' ? imageAddHTML('vision', v.id) : ''}</div>
+      ${typeof imageStripHTML === 'function' ? imageStripHTML('vision', v.id) : ''}</div>
     <div class="row" style="gap:8px"><button class="btn primary" id="vsSave">Save</button></div>
   </div>`;
   const q = s => body.querySelector(s);
+  if(typeof bindRecImages === 'function') bindRecImages(body);
+  q('#vsHour').onclick = () => visionHour(v.id);
+  q('#vsLook').onclick = () => visionLook(v.id);
   const hist = (cur, next, key) => { if(cur && next && cur !== next && verIsNewWording(cur, next)) (v[key] = v[key] || []).push({date: today(), text: cur}); };
   q('#vsSave').onclick = () => {
     v.name = q('#vsName').value.trim() || v.name;

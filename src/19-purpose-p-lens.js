@@ -134,6 +134,7 @@ function alignmentHTML(){
         : `<div class="al-card dropped"><div class="al-name">Obstruction</div><div class="faint">nothing has been written in the inner-demons registers — left out rather than drawn as nothing.</div></div>`}</div>
     ${detail}
     ${alignmentIdleLine(r)}
+    ${typeof journeyCardHTML === 'function' ? journeyCardHTML() : ''}
     ${dropped.length === ALIGN_KEYS.length ? '<p class="faint">Nothing here has data yet. Write the sheet, take a values snapshot, and the readings will begin.</p>' : ''}
   </section>`;
 }
@@ -143,6 +144,7 @@ function bindAlignment(sec, redraw){
   const cl = sec.querySelector('#alClose'); if(cl) cl.onclick = () => { S._alSel = null; redraw(); };
   const k = S._alSel;
   if(k) lensOverrideBind(sec, 'al', null, patch => { st.align.overrides[k] = Object.assign({}, st.align.overrides[k], patch); }, () => { if(st.align.overrides[k]) delete st.align.overrides[k].score; }, redraw);
+  const jc = sec.querySelector('.al-journey'); if(jc && typeof bindJourneyCard === 'function') bindJourneyCard(jc, redraw);
   const lg = sec.querySelector('#alLog'); if(lg) lg.onclick = () => { alignmentSnapshot(); saveNow(); sound('success'); toast('Reading kept.'); redraw(); };
 }
 

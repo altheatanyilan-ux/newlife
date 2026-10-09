@@ -62,11 +62,11 @@ function zogTodayHTML(){
   const pct = target ? Math.min(100, Math.round(mins / target * 100)) : 0;
   return `<div class="zog-line"><span class="mono">zone of genius today, ${mins} of ${target} minutes</span>
     <span class="zog-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
-    ${st.run >= 2 ? `<span class="mono faint">${st.run} days running — forgiving: a day not yet worked is a day still going</span>` : ''}</div>`;
+    ${st.run >= 2 && !(typeof journeyState === 'function' && journeyState() === 'searching') ? `<span class="mono faint">${st.run} days running — forgiving: a day not yet worked is a day still going</span>` : ''}</div>`;
 }
 if(typeof registerDuty === 'function') registerDuty({
   id: 'zog_hour', label: 'The zone-of-genius hour', anchor: '[data-duty-id="clock_sitting"]', route: '#/today/time',
-  windowDef: {type: 'anytime'}, recurrence: {type: 'daily-conditional', check: () => zogAnyDesignated()},
+  windowDef: {type: 'anytime'}, recurrence: {type: 'daily-conditional', check: () => zogAnyDesignated() && !(typeof journeyState === 'function' && journeyState() === 'searching')},
   skipDone: true, notify: false, defaultOn: true, doneCheck: T => zogDayMet(T),
 });
 

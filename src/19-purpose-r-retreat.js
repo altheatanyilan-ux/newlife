@@ -98,6 +98,7 @@ function releaseValueSuggestion(){
 /* ---------- the steps ---------- */
 function retreatSteps(kind, rec, st){
   const A = st.act;           // mark that something was actually done in this step
+  const sheetStep = {id: 'sheet', title: 'What it is for.', hint: 'The sheet, once more, before you go.', body: () => `<p class="serif" style="font-size:1.2rem">${esc(purposeText('statement') || 'The statement is not written yet.')}</p><div class="row">${'<button class="btn sm" data-rtgo="#/purpose">open the sheet</button>'}</div>`, bind: b => goBind('sheet')(b), next: () => { st.act('sheet'); }};
   const mk = (id, title, hint, body, o = {}) => ({id, title, hint, body, bind: o.bind, next: o.next});
   const wordsStep = (id, title, hint, ph, entryTitle, rows) => mk(id, title, hint,
     () => { const prev = retreatStepGet(kind, id); return rtWords('rtW_' + id, '', ph, rows).replace('></textarea>', '>' + esc(prev ? prev.answer : '') + '</textarea>'); },
@@ -171,6 +172,7 @@ function retreatSteps(kind, rec, st){
         {bind: b => { const a = b.querySelector('#rtAway'); if(a) a.onclick = () => { museBreakDialog('three-day'); A('away'); }; }, next: () => { if(typeof breakDue === 'function' && !breakDue('three-day')) A('away'); }}),
       mk('converge', 'The convergence report.', 'Consulted, not acted on.', () => { const o = typeof convergeRetreatOffer === 'function' ? convergeRetreatOffer() : null; return o ? `<p>${esc(o.note)}</p><div class="row">${rtGoButton('open the report', o.go)}</div>` : '<p class="faint">There is not yet enough written for it to read.</p>'; }, {bind: goBind('converge')}),
       mk('lens', 'The lenses.', 'The needs, the alignment readings and the Spiral.', () => `<div class="row">${rtGoButton('open the Review', '#/journals/review')}</div>`, {bind: goBind('lens')}),
+      sheetStep,
     ];
   }
   if(kind === 'annual'){
@@ -194,6 +196,8 @@ function retreatSteps(kind, rec, st){
           <div class="field"><label>The date it begins</label><input type="date" class="inp" id="rtSolD" value="${esc(prev.date || '')}"></div>`; },
         {next: b => { const plan = b.querySelector('#rtSolP').value.trim(), date = b.querySelector('#rtSolD').value; if(plan || date){ retreatStepSet(kind, 'solitude', {answer: plan, plan, date}); A('solitude'); } }}),
       mk('converge', 'The convergence report.', 'Consulted, not acted on.', () => { const o = typeof convergeRetreatOffer === 'function' ? convergeRetreatOffer() : null; return o ? `<p>${esc(o.note)}</p><div class="row">${rtGoButton('open the report', o.go)}</div>` : '<p class="faint">There is not yet enough written for it to read.</p>'; }, {bind: goBind('converge')}),
+      ...(typeof journeyState === 'function' && journeyEffective().state === 'mastering' ? [wordsStep('finished', 'Is this still the purpose, or is it finished?', 'After a decade or so of conquering one life purpose, you move on to the next. This is asked here and nowhere else.', '…', 'Is this still the purpose?', 4)] : []),
+      sheetStep,
     ];
   }
   return [];

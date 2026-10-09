@@ -56,6 +56,8 @@ const reviewAge = key => daysSince(REVIEW_LOG()[key]);
 function flowMorning(){
   const T = today(); const c = checkin(T);
   guidedFlow('Morning practice', [
+    ...(typeof purposeAny === 'function' && purposeAny() ? [{title:'What it is for.', hint:'The sheet, before the day\u2019s noise arrives.',
+     body: () => `<div class="intention-card serif-lg">${esc(purposeText('statement') || 'The statement is not written yet; the other four are on the sheet.')}</div><div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowgo="#/purpose">open the sheet</button></div>`}] : []),
     {title:'Sit quietly. Close your eyes.', hint:'Thirty minutes, in the order Maltz taught it. Nothing here needs typing yet.',
      body: () => `<blockquote class="rehearsal-epigraph">${esc((S.rehearsal.script || '').slice(0, 400) || 'Your self-image script is not written yet. Write it on Today and this step will read it back to you.')}<cite>the self-image script</cite></blockquote>
        <div class="row" style="margin-top:10px"><button class="btn sm ghost" data-flowgo="#/today">open the Morning Theatre</button></div>`},
@@ -105,7 +107,7 @@ function flowEvening(opts = {}){
        request. Scores already given on earlier nights are kept; nothing new
        is asked for here. */
     {title:"The day's energy — one to five.", hint:`How much was in the day by the end of it: 1 drained, 5 full. (This morning\u2019s set-point is a separate reading, on the 22-rung scale${c.setpoint ? ` \u2014 you placed yourself at ${hicksName(c.setpoint).split(' / ')[0]}` : ''}.)`,
-     body: () => `<div class="energy-faces">${[1,2,3,4,5].map(n=>`<button class="ef ${r.energy===n?'on':''}" data-fwef="${n}" title="${['drained','low','level','good','full'][n-1]}">${n}</button>`).join('')}</div>`,
+     body: () => `<div class="energy-faces">${[1,2,3,4,5].map(n=>`<button class="ef ${r.energy===n?'on':''}" data-fwef="${n}" title="${['drained','low','level','good','full'][n-1]}">${n}</button>`).join('')}</div>${typeof flowClueButtonHTML === 'function' ? '<div class="row" style="margin-top:10px">' + flowClueButtonHTML() + '</div>' : ''}`,
      bind: b => b.querySelectorAll('[data-fwef]').forEach(btn => btn.onclick = () => { r.energy = +btn.dataset.fwef; saveNow(); b.querySelectorAll('[data-fwef]').forEach(x => x.classList.toggle('on', x === btn)); })},
     {title:'What actually got done.', hint:'The list you made this morning, against the day you had.',
      body: () => tasksReviewHTML(T, T)},
@@ -315,6 +317,7 @@ function flowAnnual(){
        return es.length ? es.map(e=>`<div class="card" style="margin-bottom:8px"><b class="serif">${esc(e.title||e.type)}</b><div class="quote" style="margin-top:4px">${esc((e.body||'').slice(0,220))}</div><div class="mono" style="margin-top:4px">${esc(fmtDate((e.occurredAt||e.createdAt||'').slice(0,10),'med'))}</div></div>`).join('') : '<div class="empty">Nothing written around this time last year.</div>'; }},
     {title:'The compass, January to December.',
      body: () => `<div class="row"><button class="btn sm ghost" data-flowgo="#/values">open the radar</button></div>`},
+    ...(typeof strengthsRetakeDue === 'function' && strengthsRetakeDue() ? [{title:'The strengths, a year on.', hint:'The list has not been retaken for a year. A new ranked list is appended and the old one is kept.', body: () => `<div class="row"><button class="btn sm primary" data-flowgo="#/purpose/strengths">retake the list</button></div>`}] : []),
     {title:"The year's set-point trend.", hint:'Did you climb the scale, or hold?',
      body: () => { const sps = Object.entries(S.checkins||{}).filter(([d,c]) => d.startsWith(String(year)) && c.setpoint).sort((a,b)=>a[0].localeCompare(b[0])).map(([,c])=>c.setpoint);
        return sps.length > 2 ? `${sparkline(sps, {h:44, color:'var(--gold)', min:1, max:22})}<div class="mono">from ${hicksName(sps[0]).split(' / ')[0]} to ${hicksName(sps[sps.length-1]).split(' / ')[0]} · average ${avg(sps).toFixed(1)}/22</div>` : '<div class="empty">Not enough set-point readings this year to draw a line.</div>'; }},

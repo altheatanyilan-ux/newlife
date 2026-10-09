@@ -695,7 +695,7 @@ function theatreTrackerHTML(cycleStart, cycleDay, kept, did){
       <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap">
         <button class="btn sm ${theatreDoneToday() ? '' : 'primary'}" id="markTheatre">${theatreDoneToday() ? '✓ Practised today' : "Mark today's practice"}</button>
         <button class="btn sm ghost" id="newCycle">Begin a new 21-day cycle</button>
-        <button class="btn sm ghost" id="thWheel">Feeling resistance?</button>
+        <button class="btn sm ghost" id="thWheel">Feeling resistance?</button>${typeof flowClueButtonHTML === 'function' ? ' ' + flowClueButtonHTML() : ''}
       </div>
     </div>`;
 }
