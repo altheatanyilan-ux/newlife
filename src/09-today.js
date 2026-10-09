@@ -275,39 +275,8 @@ function askClock(title, value, onSet){
 }
 /* ---------- nudge slot ---------- */
 function todayAutoPromptsHTML(box, T, c){
-  const view = todayView();
-  if(view !== 'do'){ box.innerHTML = ''; return; }
-  const q = typeof nudgeQueue === 'function' ? nudgeQueue(T) : [];
-  if(!q.length){ box.innerHTML = ''; return; }
-  const n = q[0];
-  const more = q.length - 1;
-  box.innerHTML = `<div class="nudge-slot">
-    <div class="nudge-body">
-      <span class="nudge-msg">${esc(n.msg)}</span>
-      ${n.why ? `<span class="nudge-why">${esc(n.why)}</span>` : ''}
-    </div>
-    <div class="nudge-btns">
-      ${n.action ? `<button class="btn sm ghost" data-nudgeact>${esc(n.actionLabel || 'Go')}</button>` : ''}
-      <button class="btn sm ghost" data-nudgesnooze title="Hide for 30 minutes">snooze</button>
-      <button class="btn sm ghost" data-nudgetoday title="Don’t show again today">not today</button>
-      <button class="tbtn" data-nudgedismiss title="Never show this again">×</button>
-    </div>
-    ${more > 0 ? `<span class="nudge-badge mono">${more} more</span>` : ''}
-  </div>`;
-
-  if(n.action) box.querySelector('[data-nudgeact]').onclick = () => n.action();
-  box.querySelector('[data-nudgesnooze]').onclick = () => {
-    if(typeof nudgeSnooze === 'function') nudgeSnooze(n.id);
-    box.innerHTML = '';
-  };
-  box.querySelector('[data-nudgetoday]').onclick = () => {
-    if(typeof nudgeNotToday === 'function') nudgeNotToday(n.id);
-    box.innerHTML = '';
-  };
-  box.querySelector('[data-nudgedismiss]').onclick = () => {
-    if(typeof nudgePermDismiss === 'function') nudgePermDismiss(n.id);
-    box.innerHTML = '';
-  };
+  if(todayView() !== 'do' || typeof pqHTML !== 'function'){ box.innerHTML = ''; return; }
+  box.innerHTML = pqHTML(T); pqBind(box, T);
 }
 
 routes.today = function(root, params = []){
@@ -530,7 +499,6 @@ routes.today = function(root, params = []){
       title="where today went">\u23f1 ${esc(timeTodaySay())}</button>` : ''}
 
     <section class="today-view" data-view="do"${view === 'do' ? '' : ' hidden'}>
-    ${typeof dutyQueueHTML === 'function' ? dutyQueueHTML(T) : ''}
 
     <!-- THE DAY, ONE ROOM AT A TIME
          Every section has a line to itself and stands about a screenful
@@ -558,7 +526,7 @@ routes.today = function(root, params = []){
       ${planSection === 'week'
         ? weekCarryHTML() || `<div class="empty">No week plan yet. <button class="tbtn" id="planWeekHere2">Plan the week →</button></div>`
         : `${planT.why ? `<p class="plan-why">${esc(planT.why)}</p>` : ''}
-           ${three.length ? `<ol class="today-three">${three.map(t => `<li>${esc(t)}</li>`).join('')}</ol>`
+           ${three.length ? `<ol class="today-three">${(planT.intentions || []).map((t, i) => t ? `<li class="${typeof pbdIntentionDone === 'function' && pbdIntentionDone(planT, i) ? 'done' : ''}">${typeof pbdIntentionDone === 'function' && pbdIntentionDone(planT, i) ? '\u2713 ' : ''}${esc(t)}${typeof pbdTopTwo === 'function' && pbdTopTwo(planT).includes(i) ? ' <span class="mono faint" title="one of the top two">\u2605</span>' : ''}</li>` : '').join('')}</ol>`
              : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
            ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
            ${planT.risk ? `<p class="plan-line risk"><span class="mono">in the way</span> ${esc(planT.risk)}</p>` : ''}`}
@@ -567,30 +535,7 @@ routes.today = function(root, params = []){
 
     <div class="daybox daybox-solo daybox-work">
     ${focusSectionHTML()}
-    ${(()=>{
-      const bs=(S.timeBlocks||[]).filter(b=>b.date===T);
-      if(!bs.length) return '';
-      const timeToMin=s=>{if(!s)return 0;const[h,m]=(s||'').split(':').map(Number);return(h||0)*60+(m||0);};
-      const wake=timeToMin(dayWakeOrSetting(T));
-      const slp=timeToMin(dayBedOrSetting(T));
-      const totalMin=slp-wake;
-      const nowMin=(()=>{const n=new Date();return n.getHours()*60+n.getMinutes();})();
-      const nowPct=Math.min(100,Math.max(0,(nowMin-wake)/totalMin*100));
-      const blockBars=bs.map(b=>{
-        const s=timeToMin(b.start),e=timeToMin(b.end);
-        const left=Math.max(0,(s-wake)/totalMin*100);
-        const width=Math.max(0.5,(e-s)/totalMin*100);
-        const isCurrent=s<=nowMin&&e>nowMin;
-        const cls={task:'tb-bar-task',break:'tb-bar-break',meal:'tb-bar-meal',commute:'tb-bar-commute',habit:'tb-bar-habit',label:'tb-bar-lbl'}[b.kind]||'tb-bar-lbl';
-        return `<div class="tb-bar ${cls}${isCurrent?' tb-bar-now':''}" data-s="${s}" data-e="${e}" style="left:${left.toFixed(1)}%;width:${width.toFixed(1)}%" title="${esc(b.label||b.kind)} ${esc(b.start)}–${esc(b.end)}"><span class="tb-bar-label">${esc(b.label||b.kind)}</span></div>`;
-      }).join('');
-      return `<div class="today-blocks-strip">
-        <div class="tb-strip-bar" style="position:relative" data-wake="${wake}" data-total="${totalMin}">
-          ${blockBars}
-          <div class="tb-now-line" style="left:${nowPct.toFixed(1)}%"></div>
-        </div>
-      </div>`;
-    })()}
+    ${typeof pbdTodayHTML === 'function' ? pbdTodayHTML(T) : ''}
 
     <!-- today's tasks -->
     <details class="section rv t-sec" id="t-tasks"${fold('t-tasks')}>
@@ -960,6 +905,7 @@ routes.today = function(root, params = []){
     bar.querySelectorAll('.tb-bar').forEach(b => b.classList.toggle('tb-bar-now', +b.dataset.s <= nowMin && +b.dataset.e > nowMin));
   }, 30000);
   const _apIv = setInterval(() => { if(!document.contains(_apBox)) { clearInterval(_apIv); return; } _refreshAP(); }, 60000);
+  if(typeof pbdTodayBind === 'function') pbdTodayBind(root, T);
 
   /* activation notifications: lists whose activeFrom === today */
   (function(){

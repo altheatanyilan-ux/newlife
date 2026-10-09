@@ -202,55 +202,7 @@ function dxFocusInput(){
   return true;
 }
 
-/* ---------- the flash, at the start of a sitting ----------
-   A new sitting is a focus phase with a start time not seen before, caught in
-   its first seconds — so a paused sitting resumed, or a page reloaded in the
-   middle of one, does not bring it back. */
-let _dxLastStart = null, _dxAway = null;
-function dxShouldFlash(s){
-  if(!s || s.idle || !s.running || s.phase !== 'focus' || !s.startedAt) return false;
-  /* a clock the pill or a room started is not a sitting of work to clear the decks for */
-  if(s.meta) return false;
-  if(s.startedAt === _dxLastStart) return false;
-  _dxLastStart = s.startedAt;
-  return s.elapsed <= 6 && dxFlashOn() && dxOn().length > 0;
-}
-function dxFlash(){
-  document.getElementById('dxFlash')?.remove();
-  const list = dxRanked().slice(0, 7);
-  if(!list.length) return null;
-  const soft = typeof reduced === 'function' && reduced();
-  const hold = 18000;
-  const box = el(`<div class="dx-flashcard" id="dxFlash" role="dialog" aria-label="before this sitting: clear these">
-    <div class="dx-fc-h"><span class="k mono">before this sitting</span><span class="serif dx-fc-t">Clear the decks</span></div>
-    <ul class="dx-fc-list">${list.map(x => `<li><label><input type="checkbox" data-dxclr="${esc(x.id)}">
-      <span><b>${esc(x.text)}</b>${x.fix ? ` <span class="dx-fc-fix">→ ${esc(x.fix)}</span>` : ''}</span>
-      <span class="mono faint">${dxTimes(x)}×</span></label></li>`).join('')}</ul>
-    <div class="row between dx-fc-foot"><button type="button" class="dp-lnk" data-dxfoff>stop showing this</button>
-      <button type="button" class="btn sm primary" data-dxgo>All clear — begin</button></div>
-    <i class="dx-fc-bar" style="--hold:${hold}ms"></i></div>`);
-  document.body.appendChild(box);
-  requestAnimationFrame(() => box.classList.add('in'));
-  const close = () => { clearTimeout(_dxAway); box.classList.remove('in'); box.classList.add('out');
-    setTimeout(() => box.remove(), soft ? 0 : 320); };
-  /* it leaves on its own unless it is being used */
-  const arm = (ms = hold) => { clearTimeout(_dxAway); _dxAway = setTimeout(() => { if(!box.matches(':hover') && !box.contains(document.activeElement)) close(); else arm(4000); }, ms); };
-  box.addEventListener('pointerenter', () => box.classList.add('held'));
-  /* once it has been looked at, it goes a few seconds after the pointer leaves */
-  box.addEventListener('pointerleave', () => { box.classList.remove('held'); box.classList.add('seen'); arm(5000); });
-  box.querySelectorAll('[data-dxclr]').forEach(c => c.onchange = () => {
-    const x = dxById(c.dataset.dxclr); if(!x) return;
-    x.cleared = Math.max(0, (x.cleared || 0) + (c.checked ? 1 : -1)); saveNow();
-    c.closest('li').classList.toggle('on', c.checked);
-    if(typeof sound === 'function') sound('click');
-    if([...box.querySelectorAll('[data-dxclr]')].every(k => k.checked)) setTimeout(close, 500);
-  });
-  box.querySelector('[data-dxgo]').onclick = close;
-  box.querySelector('[data-dxfoff]').onclick = () => { planState().dxFlash = false; saveNow(); close();
-    toast('It will not show before sittings. The box in the Focus section turns it back on.', 5000); dxRepaint(); };
-  arm();
-  return box;
-}
+/* The flash that used to be here is the card before a sitting now (09-preflight.js): the cheat sheet is its "clear first". */
 function dxWatchTimer(){
   if(typeof FocusTimer === 'undefined' || dxWatchTimer.on) return;
   dxWatchTimer.on = true;

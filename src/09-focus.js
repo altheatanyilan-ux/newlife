@@ -197,12 +197,15 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
      under way is stopped first — pressing an estimate is an unambiguous
      request to sit down with that thing for that long */
   const left = focusLeftOn(id, minutes, subId);
+  if(typeof fzArm === 'function') fzArm();
   if(minutes){
     if(FocusTimer.state().running) FocusTimer.stop();
     FocusTimer.reset();
     /* the estimate is of the job, so a sitting that follows earlier ones
-       counts down what is still owed rather than the whole figure again */
-    if(left >= 1){ FocusTimer.setMode('countdown'); FocusTimer.setLength(left); }
+       counts down what is still owed rather than the whole figure again —
+       with a margin on top, since estimates run short */
+    if(left >= 1){ const mg = Math.round(left * (typeof fzMarginPct === 'function' ? fzMarginPct() : 0) / 100);
+      FocusTimer.setMode('countdown'); FocusTimer.setLength(left + mg, mg); }
     else FocusTimer.setMode('stopwatch');
   }
   FocusTimer.setTask(id, subId || null);
@@ -269,6 +272,9 @@ const FP_R = 52;
    past it counts the overrun up, in the rose colour, so it is read at a
    glance rather than discovered. */
 function focusBreakDial(s){
+  /* a sitting past the time it was given: overtime, counted up, in the same warning colour */
+  if(s.overtime > 0 && s.phase === 'focus' && !s.onBreak)
+    return {text: '+' + fmtClock(s.overtime), secs: s.overtime, frac: 1, col: 'var(--rose)', over: true, overtime: true};
   if(!s.onBreak || !s.breakPlanned || s.breakLeft == null) return null;
   const over = s.breakLeft < 0;
   return {text: (over ? '+' : '') + fmtClock(Math.abs(s.breakLeft)), secs: Math.abs(s.breakLeft),
@@ -293,7 +299,7 @@ function focusClockHTML(face, frac, col, s, stop){
       x1="${(60 + Math.sin(a) * r1).toFixed(2)}" y1="${(60 - Math.cos(a) * r1).toFixed(2)}"
       x2="${(60 + Math.sin(a) * r2).toFixed(2)}" y2="${(60 - Math.cos(a) * r2).toFixed(2)}"/>`;
   }).join('');
-  const phase = s.phase === 'focus' ? (s.onBreak ? (bd ? (bd.over ? 'over by' : 'of a break') : 'on a break') : (stop ? 'counting up' : 'focus'))
+  const phase = s.phase === 'focus' ? (s.onBreak ? (bd ? (bd.over ? 'over by' : 'of a break') : 'on a break') : (bd && bd.overtime ? 'overtime' : stop ? 'counting up' : 'focus'))
     : s.phase === 'long' ? 'long break' : 'break';
   return `<div class="fp-ring${s.running ? ' ticking' : ''}${s.onBreak ? ' resting' : ''}">
     <svg viewBox="0 0 120 120" aria-hidden="true">
@@ -346,7 +352,7 @@ function focusSectionHTML(){
       <span class="mono faint">${s.idle
         ? (todayMins ? `${fmtHM(todayMins)} worked today` : 'nothing timed yet today')
         : `<b class="tf-clock">${fmtClock(face)}</b> ${s.onBreak ? 'on a break' : s.running ? 'running' : 'held'}${
-            todayMins ? ` · ${fmtHM(todayMins)} today` : ''}`}</span>
+            todayMins ? ` · ${fmtHM(todayMins)} today` : ''}${s.margin && !s.overtime ? ` · ${fmtEst(Math.max(1, Math.round(s.planned / 60) - s.margin))} + ${s.margin}m margin` : ''}`}</span>
     </div>
     <!-- a card you work in — notes, parked thoughts, the cheat sheet — holds
          still under the pointer (see the tilts in 05-micro.js) -->
@@ -378,7 +384,7 @@ function focusSectionHTML(){
             : 'Drag a task here to time it — or start the clock at the foot of the sidebar without one.'}</div>`}
       </div>
 
-      ${s.meta && s.meta.goal && !s.idle ? `<div class="tf-goal"><span class="k mono">the minimum</span> ${esc(s.meta.goal)}</div>` : ''}
+      ${s.goal && !s.idle ? `<div class="tf-goal"><span class="k mono">the minimum</span> ${esc(s.goal)}</div>` : ''}
       <!-- Two notes, and they answer different questions. One is what the work
            actually was; the other is what the time that was not work went on.
            Both are written while they are happening, because neither is

@@ -95,6 +95,7 @@ function planDetailHTML(t){
               esc(m.name)}${m.date ? ' · ' + esc(fmtDate(m.date, 'short')) : ''}${from ? ' (' + esc(from) + ')' : ''}</option>`).join(''); })()}
       </select></label>
     </div>
+    <div class="pbd-fits" id="pdFits">${t.day && !t.doDay && typeof pbdFitsText === 'function' ? esc(pbdFitsText(t, t.day)) : ''}</div>
 
     <div class="pd-sec"><div class="k mono">how long</div><div class="chip-row">
       ${PLAN_DURATIONS.map(([v, n]) => `<button class="chip click${t.duration === v ? ' on' : ''}" data-pddur="${v}">${n}</button>`).join('')}
@@ -190,7 +191,10 @@ function bindPlanDetail(p, t){
     touch(); pulse(); echo(pdT.value); pdT.blur(); } };
   p.querySelector('#pdDone').onclick = () => { planSetDone(t, !t.done); sound(t.done ? 'success' : 'click'); redraw(); };
   p.querySelectorAll('[data-pdprio]').forEach(b => b.onclick = () => { t.priority = +b.dataset.pdprio; touch(); redraw(); });
-  p.querySelector('#pdDay').onchange = function(){ t.day = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
+  p.querySelector('#pdDay').onchange = function(){ t.day = this.value; planSyncReminders(t); touch();
+    /* the instant look at where it would fit (16-planboard-data.js) */
+    const fits = p.querySelector('#pdFits'); if(fits) fits.textContent = t.day && !t.doDay && typeof pbdFitsText === 'function' ? pbdFitsText(t, t.day) : '';
+    rerenderPlanBody(); };
   p.querySelector('#pdTime').onchange = function(){ t.dueTime = this.value; planSyncReminders(t); touch(); rerenderPlanBody(); };
   p.querySelector('#pdDoDay').onchange = function(){ taskSetDoRange(t, this.value, t.doEnd); touch(); rerenderPlanBody(); };
   p.querySelector('#pdDoEnd').onchange = function(){ taskSetDoRange(t, t.doDay, this.value);

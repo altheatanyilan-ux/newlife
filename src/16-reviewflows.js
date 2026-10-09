@@ -116,28 +116,23 @@ function flowEvening(opts = {}){
       const fmtDur = m => m<60?`${m}m`:`${Math.floor(m/60)}h${m%60?` ${m%60}m`:''}`;
       return [{title:'Planned vs actual.', hint:'What you blocked out, against what time tracking shows.',
         body: () => {
-          const trackedToday = (S.timeEntries||[]).filter(e => e.day === T && e.dur > 0);
-          const rows = planned.map(b => {
-            const planned_dur = timeToMin(b.end) - timeToMin(b.start);
-            /* rough match: find time entries that started within this block's window */
-            const inBlock = trackedToday.filter(e => {
-              if(!e.startedAt) return false;
-              const em = new Date(e.startedAt); const eMin = em.getHours()*60+em.getMinutes();
-              return eMin >= timeToMin(b.start)-15 && eMin < timeToMin(b.end)+15;
-            });
-            const actual_dur = inBlock.reduce((s,e) => s + (e.dur||0), 0);
-            const diff = actual_dur - planned_dur;
-            const diffLabel = actual_dur===0 ? '' : diff>=0 ? `+${fmtDur(diff)}` : `−${fmtDur(-diff)}`;
-            const cls = actual_dur===0 ? 'pva-miss' : Math.abs(diff)<=15 ? 'pva-ok' : 'pva-off';
+          /* the same drawing as the Time view: the blocks in outline, what was tracked filled in and shaded by how it was read */
+          const rows = planned.filter(b => b.ref && b.kind !== 'protect').map(b => {
+            const a = timeToMin(b.start), z = a + (b.durationMin || (timeToMin(b.end) - a));
+            const got = typeof pbdTrackedOn === 'function' ? pbdTrackedOn(b.ref, a, z, T) : [];
+            const actual = Math.round(sum(got.map(e => timeMinutes(e))));
+            const diff = actual - (z - a);
+            const diffLabel = !actual ? '' : diff >= 0 ? `+${fmtDur(diff)}` : `\u2212${fmtDur(-diff)}`;
+            const cls = !actual ? 'pva-miss' : Math.abs(diff) <= 15 ? 'pva-ok' : 'pva-off';
             return `<div class="pva-row">
               <span class="pva-time mono">${esc(b.start)}</span>
-              <span class="pva-label">${esc(b.label||b.kind)}</span>
-              <span class="pva-planned mono faint">${fmtDur(planned_dur)}</span>
-              <span class="pva-actual mono ${cls}">${actual_dur?fmtDur(actual_dur):'—'}${diffLabel?' <span class=\"pva-diff\">'+esc(diffLabel)+'</span>':''}</span>
+              <span class="pva-label">${esc(typeof pbdBlockLabel === 'function' ? pbdBlockLabel(b) : (b.label || b.kind))}</span>
+              <span class="pva-planned mono faint">${fmtDur(z - a)}</span>
+              <span class="pva-actual mono ${cls}">${actual ? fmtDur(actual) : '\u2014'}${diffLabel ? ' <span class="pva-diff">' + esc(diffLabel) + '</span>' : ''}</span>
             </div>`;
           }).join('');
-          return `<div class="pva-list">${rows}</div>
-            <p class="muted" style="font-size:.8rem;margin-top:8px">Planned time is from the blocks you set. Actual time is from time tracking entries that started within each block's window.</p>`;
+          return `${typeof pbdPlanVsActualHTML === 'function' ? pbdPlanVsActualHTML(T) : ''}<div class="pva-list">${rows}</div>
+            <p class="muted" style="font-size:.8rem;margin-top:8px">Planned time is from the blocks you set; tracked time is the time on that task (or habit) around each block.</p>`;
         }
       }];
     })(),

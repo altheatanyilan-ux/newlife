@@ -39,6 +39,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   await p.clock.install();
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
+  /* an estimate counts down with a margin on top (Phase 5); these claims are about the estimate itself */
+  await p.evaluate(() => { (planState().prefs = planState().prefs || {}).focusMargin = 0; });
   const go = async h => { await p.evaluate(x => { if(location.hash === x) rerender(); else location.hash = x; }, h);
     await p.waitForTimeout(1400); };
   const face = () => p.evaluate(() => document.querySelector('#focusDock .fp-time')?.textContent);

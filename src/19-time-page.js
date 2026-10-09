@@ -62,6 +62,7 @@ function timeDayHTML(){
       <button class="btn sm primary" id="tmAdd">+ a sitting</button>
     </div>
     ${timeStripHTML(timeOnCalendarDay(day), day)}
+    ${typeof pbdPlanVsActualHTML === 'function' ? pbdPlanVsActualHTML(day) : ''}
     ${rows.length ? `<div class="tm-list">${rows.map(timeRowHTML).join('')}</div>`
       : `<div class="empty">Nothing tracked on this day. Start the clock in the corner, or write
         down a sitting you did not time.</div>`}

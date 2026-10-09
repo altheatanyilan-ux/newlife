@@ -44,6 +44,9 @@ routes.settings = function(root){
             `<option value="${v}" ${c.defaultVerdict === v ? 'selected' : ''}>usually: ${esc(TIME_VERDICT_WORDS[v])}</option>`).join('')}</select>
           <button class="pl-mini" data-bdel="${esc(c.id)}" title="take it out">\u00d7</button></div>`).join('')}
           <button class="btn sm ghost" id="sBreakAdd" style="margin-top:8px">+ a chip</button></div></div>
+      ${typeof pqSettingsHTML === 'function' ? pqSettingsHTML() : ''}
+      ${typeof fzSettingsHTML === 'function' ? fzSettingsHTML() : ''}
+      ${typeof pbdSettingsHTML === 'function' ? pbdSettingsHTML() : ''}
       <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
       <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
       <!-- there used to be a place here to add your own beside the shipped
@@ -209,6 +212,9 @@ routes.settings = function(root){
     timeSettings().defaultCategory = this.value || null; saveNow(); });
   $('#sTimeRound') && ($('#sTimeRound').onchange = function(){
     timeSettings().round = +this.value || 1; saveNow(); });
+  if(typeof pqSettingsBind === 'function') pqSettingsBind(document);
+  if(typeof fzSettingsBind === 'function') fzSettingsBind(document);
+  if(typeof pbdSettingsBind === 'function') pbdSettingsBind(document);
   $('#sBreakMin') && ($('#sBreakMin').onchange = function(){
     timeSettings().breakMin = Math.min(120, Math.max(1, Math.round(+this.value || 5))); this.value = timeSettings().breakMin; saveNow(); });
   document.querySelectorAll('#sBreakChips [data-bchip]').forEach(row => {

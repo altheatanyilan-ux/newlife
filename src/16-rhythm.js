@@ -555,9 +555,6 @@ function planMyDay(d = today()){
   const fmtHrs = h => h<=0?'0m':h<1?`${Math.round(h*60)}m`:h%1===0?`${h}h`:`${Math.floor(h)}h ${Math.round((h%1)*60)}m`;
   const timeToMin = s => { if(!s) return 0; const [hh,mm]=(s||'').split(':').map(Number); return (hh||0)*60+(mm||0); };
   const minToTimeStr = mn => `${String(Math.floor(mn/60)).padStart(2,'0')}:${String(mn%60).padStart(2,'0')}`;
-  const TB_PX_MIN = 50/60; /* 50px per hour */
-  const TB_SNAP = 15;
-  const tbBlocks = []; /* {id, kind, taskId?, habitId?, label, start, end} in minutes since midnight */
   const updateCapBar = () => {
     const bar = m.querySelector('#pmCapBar'); if(!bar) return;
     const avail = +(S.settings&&S.settings.availableHoursPerDay)||8;
@@ -590,7 +587,9 @@ function planMyDay(d = today()){
            <p class="faint" style="font-size:.78rem">These already carry yesterday's date, so they follow you into ${dayWord} on their own — the next step is only for work that has no day yet.</p>` : ''}
        </div>` : ''}`,
       `<h2>What are ${dayPoss} three?</h2><p class="muted" style="font-size:.88rem">Not a task list — the three things that would make ${dayWord} count. One is allowed to be empty.</p>
-       <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}"></div>`).join('')}</div>`,
+       <div class="stack" style="gap:8px">${[0,1,2].map(i=>`<div class="row" style="gap:8px;flex-wrap:wrap"><span class="in-n">${i+1}</span><input class="inp serif-lg" data-int="${i}" value="${esc(p.intentions[i]||'')}" placeholder="${['the one that matters most','the one you keep postponing','the small one'][i]}" style="flex:1 1 220px">
+         ${typeof pbdIntentionOptionsHTML === 'function' ? pbdIntentionOptionsHTML(p, i, d) : ''}</div>`).join('')}</div>
+       <div class="faint" style="font-size:.76rem;margin-top:4px">Point an intention at a task or a week goal and ticking that ticks it. Two of the three are the top two \u2014 they are pinned first on the planning board.</div>`,
       `${fromWeek ? `<h2>What from the week is ${dayPoss}?</h2><p class="muted" style="font-size:.88rem">${
           stage ? 'The stage this day is in, and the work you gave it when you planned the week' : 'The work you chose when you planned the week'}. Tick what belongs to ${dayWord}.</p>
         ${weekPickHTML()}` : '<h2>Anything waiting?</h2>'}${milestonesHTML()}${inFocusHTML()}<p class="muted" style="font-size:.88rem">${
@@ -602,56 +601,21 @@ function planMyDay(d = today()){
          ${g.key.startsWith('list:') ? `<div class="wp-tadd" style="margin-top:6px"><input class="inp" data-pickadd="${esc(g.key.slice(5))}" placeholder="Write a new task for ${esc(g.label)} and press Enter \u2014 ~15m sets a duration"></div>` : ''}
        </div>`).join('') : '<div class="empty">Nothing without a day on it. Everything you have written down is already placed.</div>'}</div>`,
       (() => {
-        /* sync tbBlocks with current chosen set */
-        for(let i=tbBlocks.length-1;i>=0;i--){
-          if(tbBlocks[i].kind==='task' && !chosen.has(tbBlocks[i].taskId)) tbBlocks.splice(i,1);
-        }
-        const [sh,sm]=((S.settings&&S.settings.dayStartTime)||'09:00').split(':').map(Number);
-        const existingTaskIds=new Set(tbBlocks.filter(b=>b.kind==='task').map(b=>b.taskId));
-        let lastEnd=tbBlocks.length?Math.max(...tbBlocks.map(b=>b.end)):sh*60+(sm||0);
-        [...chosen].forEach(id=>{
-          if(existingTaskIds.has(id)) return;
-          const r=findTaskRef(id); if(!r) return;
-          const dur=Math.max(15,taskEstOf(r.task)||30);
-          tbBlocks.push({id:uid(),kind:'task',taskId:id,label:r.text,start:lastEnd,end:lastEnd+dur});
-          lastEnd+=dur;
-        });
-        const wake=timeToMin(dayWakeOrSetting(d));
-        const slp=timeToMin(dayBedOrSetting(d));
-        const totalMin=slp-wake;
-        const H=totalMin*TB_PX_MIN;
-        const ticks=[];
-        for(let hm=Math.ceil(wake/60)*60;hm<=slp;hm+=60)
-          ticks.push(`<div class="tb-tick" style="top:${((hm-wake)*TB_PX_MIN).toFixed(1)}px"><span class="mono">${fmtHour(hm/60)}</span></div>`);
-        const eH=timeToMin(p.energyHigh||''), eL=timeToMin(p.energyLow||'');
-        const energyBand=(eH>0&&eL>eH)?`<div class="tb-energy" style="top:${((eH-wake)*TB_PX_MIN).toFixed(1)}px;height:${((eL-eH)*TB_PX_MIN).toFixed(1)}px"></div>`:'';
-        const blkHTML=tbBlocks.map((b,i)=>{
-          const top=(b.start-wake)*TB_PX_MIN;
-          const ht=Math.max(24,(b.end-b.start)*TB_PX_MIN);
-          const cls={task:'tb-task',break:'tb-break',meal:'tb-meal',commute:'tb-commute',habit:'tb-habit',label:'tb-lbl'}[b.kind]||'tb-lbl';
-          return `<div class="tb-block ${cls}" data-tbi="${i}" style="top:${top.toFixed(1)}px;height:${ht.toFixed(1)}px">
-            <span class="tb-blabel">${esc(b.label)}</span>
-            <span class="tb-btime mono">${minToTimeStr(b.start)}</span>
-            <div class="tb-resize" data-tbresize="${i}" title="resize"></div>
-          </div>`;
-        }).join('');
-        const totalH=tbBlocks.reduce((s,b)=>s+(b.end-b.start),0)/60;
-        const avail=+(S.settings&&S.settings.availableHoursPerDay)||8;
-        const warn=totalH>avail?`<div class="tb-warn">Total ${fmtHrs(totalH)} — over your ${fmtHrs(avail)} available</div>`:'';
-        return `<h2>Shape ${dayWord}</h2>
-          <p class="muted" style="font-size:.88rem">Tasks are placed from ${esc((S.settings&&S.settings.dayStartTime)||'09:00')}. Drag a block to move; drag the bottom edge to resize. Add breaks or meals below.</p>
-          ${warn}
-          <div class="tb-outer">
-            <div class="tb-wrap">
-              <div class="tb-axis">${ticks.join('')}</div>
-              <div class="tb-track" id="tbTrack" style="height:${H.toFixed(1)}px">${energyBand}${blkHTML}</div>
-            </div>
+        /* The hours are the planning board's now (16-planboard-ui.js): the
+           same board that plans the week, opened on this day, with what was
+           ticked in the last step waiting in its tray. What it writes it
+           writes as it goes, so there is nothing here to commit. */
+        const cap = pbdCapacity(d, [...chosen]);
+        const blocks = pbdBlocksOn(d).filter(b => b.ref && b.ref.type !== 'habit').length;
+        return `<h2>Give ${dayWord} its hours</h2>
+          <p class="muted" style="font-size:.88rem">The board lays ${esc(dayWord)} out from waking to bed \u2014 what is fixed first, then your work, each with its margin. Drag a task to an hour for ink, or to the tray for the day only.</p>
+          <div class="pbd-flowsum">
+            <div><b>${[...chosen].length}</b> ticked for ${esc(dayWord)} \u00b7 <b>${blocks}</b> with an hour</div>
+            <div class="pbd-gauge${cap.over ? ' over' : ''}" title="${esc(cap.rule)}"><i style="width:${Math.min(100, cap.pct)}%"></i><span>${esc(cap.text)}</span></div>
+            <div class="faint" style="font-size:.76rem">${esc(cap.rule)}</div>
           </div>
-          <div class="tb-add-row">
-            <span class="mono faint" style="font-size:.78rem">Add:</span>
-            ${['break','meal','commute'].map(k=>`<button class="chip sm" data-tbadd="${k}">${k}</button>`).join('')}
-            <button class="chip sm" data-tbadd="label">label…</button>
-          </div>`;
+          <div class="row" style="gap:8px;margin-top:12px"><button class="btn primary" id="pbOpen">Open the planning board</button>
+            <button class="btn ghost" id="pbSixty" title="confirm, mark the top two, accept a layout">Plan in 60 seconds</button></div>`;
       })(),
       `<h2>And the habits?</h2><p class="muted" style="font-size:.88rem">The ones due ${dayWord}. Give one a time if it helps you keep it.</p>
        ${schedPreviewHTML()}
@@ -674,6 +638,7 @@ function planMyDay(d = today()){
       <span class="row">${step?'<button class="btn sm ghost" id="pmBack">back</button>':''}<button class="btn primary" id="pmNext">${step===STEPS-1?(ahead?'Ready for '+dayWord:'Start the day'):'Next'}</button></span></div>`;
     m.querySelector('.close').onclick = () => m.remove();
     m.querySelectorAll('[data-int]').forEach(i => i.onchange = () => p.intentions[+i.dataset.int] = i.value.trim());
+    if(typeof pbdIntentionBind === 'function') pbdIntentionBind(m, p);
     m.querySelectorAll('[data-pick2]').forEach(c => c.onchange = () => { c.checked ? chosen.add(c.dataset.pick2) : chosen.delete(c.dataset.pick2); c.closest('.pick-row').classList.toggle('on', c.checked); updateCapBar(); });
     m.querySelectorAll('[data-estchip]').forEach(b => b.onclick = () => {
       const r = findTaskRef(b.dataset.estchip); if(r) r.task.duration = +b.dataset.estval;
@@ -745,54 +710,10 @@ function planMyDay(d = today()){
       m.remove(); navigate('#/planning'); });
     if(step === 2) updateCapBar();
     if(step === 3){
-      /* timeline drag and add */
-      const track = m.querySelector('#tbTrack');
-      if(track){
-        let drag = null;
-        const wake = timeToMin(dayWakeOrSetting(d));
-        const slp  = timeToMin(dayBedOrSetting(d));
-        const snapMin = mn => Math.round(mn/TB_SNAP)*TB_SNAP;
-        track.addEventListener('pointerdown', e => {
-          const blockEl = e.target.closest('[data-tbi]'); if(!blockEl) return;
-          const i = +blockEl.dataset.tbi;
-          const isResize = !!e.target.closest('[data-tbresize]');
-          e.preventDefault();
-          track.setPointerCapture(e.pointerId);
-          const rect = track.getBoundingClientRect();
-          drag = {i, isResize, startY: e.clientY, origStart: tbBlocks[i].start, origEnd: tbBlocks[i].end};
-        });
-        track.addEventListener('pointermove', e => {
-          if(!drag) return;
-          const dMin = snapMin((e.clientY - drag.startY) / TB_PX_MIN) - snapMin(0);
-          const b = tbBlocks[drag.i];
-          if(drag.isResize){
-            b.end = Math.max(b.start+TB_SNAP, Math.min(slp, snapMin(drag.origEnd+dMin)));
-          } else {
-            const dur = drag.origEnd - drag.origStart;
-            b.start = Math.max(wake, Math.min(slp-dur, snapMin(drag.origStart+dMin)));
-            b.end = b.start+dur;
-          }
-          const el = track.querySelector(`[data-tbi="${drag.i}"]`);
-          if(el){
-            el.style.top = ((b.start-wake)*TB_PX_MIN).toFixed(1)+'px';
-            el.style.height = Math.max(24,(b.end-b.start)*TB_PX_MIN).toFixed(1)+'px';
-            const te = el.querySelector('.tb-btime'); if(te) te.textContent = minToTimeStr(b.start);
-          }
-        });
-        track.addEventListener('pointerup', () => { drag = null; });
-        track.addEventListener('pointercancel', () => { drag = null; });
-      }
-      m.querySelectorAll('[data-tbadd]').forEach(btn => btn.onclick = () => {
-        const kind = btn.dataset.tbadd;
-        const label = kind === 'label' ? (prompt('Label:')||'').trim() : kind;
-        if(!label) return;
-        const wake = timeToMin(dayWakeOrSetting(d));
-        const slp = timeToMin(dayBedOrSetting(d));
-        const lastEnd = tbBlocks.length ? Math.max(...tbBlocks.map(b=>b.end)) : timeToMin((S.settings&&S.settings.dayStartTime)||'09:00');
-        const start = Math.min(lastEnd, slp-30);
-        tbBlocks.push({id:uid(),kind,label,start,end:start+30});
-        draw();
-      });
+      const open = m.querySelector('#pbOpen');
+      if(open) open.onclick = () => pbdOpen(d, {extra: [...chosen], onClose: () => draw()});
+      const sx = m.querySelector('#pbSixty');
+      if(sx) sx.onclick = () => { pbdOpen(d, {extra: [...chosen], onClose: () => draw()}); setTimeout(() => pbdSixty(), 60); };
     }
     if(m.querySelector('#pmBack')) m.querySelector('#pmBack').onclick = () => { step--; draw(); };
     m.querySelector('#pmNext').onclick = () => {
@@ -806,12 +727,6 @@ function planMyDay(d = today()){
       p.planned = true;
       const first = p.intentions.filter(Boolean)[0];
       if(first && typeof checkin === 'function' && !checkin(d).intention) checkin(d).intention = first;
-      /* commit time blocks */
-      S.timeBlocks = (S.timeBlocks||[]).filter(b => b.date !== d);
-      tbBlocks.forEach(b => {
-        S.timeBlocks.push({id:b.id,date:d,start:minToTimeStr(b.start),end:minToTimeStr(b.end),
-          kind:b.kind,taskId:b.taskId||null,habitId:b.habitId||null,label:b.label||'',catId:null,notes:''});
-      });
       saveNow(); m.remove(); sound('success');
       toast(`${p.intentions.filter(Boolean).length ? 'Three named. ' : ''}${chosen.size} task${chosen.size===1?'':'s'} on ${ahead?dayWord:'the day'}.`);
       rerender();
@@ -1227,6 +1142,7 @@ function weekPlan(wk){
   p.focus = Array.isArray(p.focus) ? p.focus : [];
   p.win = p.win || '';
   p.guard = p.guard || '';
+  p.stake = typeof p.stake === 'string' ? p.stake : '';
   /* A win and a threat are lists now, each with its reason beside it: a win
      with why it matters, a threat with how you would head it off. A plan
      written before, as one sentence each, keeps that sentence as its first
@@ -1625,7 +1541,8 @@ function openWeeklyPlan(d = today()){
       `<h2>And the shape of it</h2>
        <div class="field"><label>A phrase that names the week</label>
          <input class="inp serif-lg" id="wpTheme" value="${esc(p.theme)}" placeholder="One phrase that names what this week is for"></div>
-       ${recapHTML()}`,
+       ${recapHTML()}
+       <div class="row" style="margin-top:12px"><button class="btn" id="wpBoard" title="seven days, with their load, and the week's work to drag onto them">Lay the week out on the board</button></div>`,
     ][step];
     /* a redraw rebuilds the step, so where it was scrolled to — the dialog,
        and each goal's list of work — is put back afterwards */
@@ -1812,6 +1729,7 @@ function openWeeklyPlan(d = today()){
     m.querySelectorAll('[data-wpplist]').forEach(el => { const k = 'p:' + el.dataset.wpplist; if(keep.lists[k]) el.scrollTop = keep.lists[k]; });
     const back = m.querySelector('#wpBack');
     if(back) back.onclick = () => { read(); step--; draw(); };
+    const wb = m.querySelector('#wpBoard'); if(wb) wb.onclick = () => { read(); saveNow(); pbdOpen(wk, {mode: 'week', scale: 'days', tab: 'goals', onClose: () => draw()}); };
     m.querySelector('#wpNext').onclick = () => {
       read();
       if(step < STEPS - 1){ step++; saveNow(); draw(); return; }

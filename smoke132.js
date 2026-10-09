@@ -16,6 +16,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   p.on('console', m => { if(m.type()==='error' && !/ERR_CONNECTION_RESET|Failed to load resource|ERR_CERT_AUTHORITY_INVALID/.test(m.text())) errs.push('console: ' + m.text()); });
   await p.goto(FILE); await p.waitForTimeout(900);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
+  /* an estimate counts down with a margin on top (Phase 5); these claims are about the estimate itself */
+  await p.evaluate(() => { (planState().prefs = planState().prefs || {}).focusMargin = 0; });
 
   console.log('\n1. a length reads as a length, and adds up from the steps');
   is('forty-five minutes reads as 45m', await p.evaluate(() => fmtEst(45)), '45m');

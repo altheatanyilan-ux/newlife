@@ -187,7 +187,7 @@ function focusDockTyping(){
 function focusDockSig(s){
   return [focusDockShut() ? 'shut' : 'open', s.idle ? 'idle' : s.running ? 'run' : 'held',
     s.onBreak ? 'break' : '', s.phase, s.taskId || '', s.subId || '',
-    s.breakChip || '', s.breakPlanned || '', s.overrunAsked ? 'over' : '', s.overrunState || '', s.curKind || '',
+    s.breakChip || '', s.breakPlanned || '', s.overrunAsked ? 'over' : '', s.overrunState || '', s.goal || '', s.curKind || '',
     (FocusTimer.unread ? FocusTimer.unread().map(x => x.id).join(',') : '')].join('|');
 }
 /* The words about the sitting are on Today, and Today is a rendered page
@@ -279,6 +279,7 @@ function bindFocusDock(dock){
   if(fold) fold.onclick = () => { S._fdPeek = false; sound('click'); paintFocusDock(true); };
 
   const go = dock.querySelector('#fpGo');
+  if(go) go.addEventListener('click', () => { if(FocusTimer.state().idle && typeof fzArm === 'function') fzArm(); }, true);
   if(go) go.onclick = () => {
     const s = FocusTimer.state();
     /* pausing is a moment you want the figure at: it is usually why you paused */
@@ -431,6 +432,7 @@ function mountFocusDock(){
     else if(was === 'runaway') setTimeout(() => toast('A focus sitting had been left running. It was closed at six hours.', 6000), 800);
   } catch(e){ console.warn('the sitting could not be carried over', e); }
   try { if(typeof habWatchSittings === 'function') habWatchSittings(); } catch(e){}
+  try { if(typeof fzWatch === 'function') fzWatch(); } catch(e){}
   if(document.getElementById('focusDock')) return;
   const dock = el('<div id="focusDock" class="fdock" aria-live="polite"></div>');
   document.body.appendChild(dock);

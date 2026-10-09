@@ -14,6 +14,8 @@ const FocusTimer = (() => {
   const listeners = new Set();
   const cfg = () => planState().timer;
   let pendingSub = null;
+  /* the margin (minutes) a countdown has been given on top of what is left of the estimate */
+  let pendingMargin = 0;
   const notify = () => listeners.forEach(f => { try { f(state()); } catch(e){} });
   /* Every reading of the clock goes through here, so that a sitting can be
      closed as of a moment other than now — a countdown that ran out while the
@@ -74,7 +76,11 @@ const FocusTimer = (() => {
       breakPlanned: planned, breakLeft: cur && planned ? planned * 60 - brkSecs : null,
       breakOver: cur && planned && brkSecs > planned * 60 ? Math.max(1, Math.floor((brkSecs - planned * 60) / 60)) : 0,
       overrunAsked: !!(cur && cur.overrunAt && !cur.overrunAnswered), overrunReason: cur ? cur.overrunReason || '' : '', overrunState: cur ? cur.overrunState || '' : '',
-      curKind: (st.cur && st.cur.kind) || 'work'};
+      curKind: (st.cur && st.cur.kind) || 'work',
+      /* a countdown that ran out carries on as overtime, counted against the estimate */
+      margin: st.margin || 0, planned: st.planned || 0,
+      overtime: st.up && st.overAt ? Math.max(0, elapsedSecs() - (st.planned || 0)) : 0,
+      goal: st.goal || (st.meta && st.meta.goal) || '', preflight: st.preflight || null};
   }
   function phaseLen(phase){
     const c = cfg();
@@ -89,7 +95,8 @@ const FocusTimer = (() => {
        focus figures stay the figures of work sat down to. */
     const myMeta = meta !== undefined ? meta : (st ? st.meta || null : null);
     /* a break is always counted down, whatever the focus sitting is doing */
-    const up = (timerMode() === 'stopwatch' || !!myMeta) && p === 'focus';
+    /* a sitting that is already counting up (a stopwatch, or a countdown that ran into overtime) carries on counting up */
+    const up = !!(st && st.phase === p && st.up) || ((timerMode() === 'stopwatch' || !!myMeta) && p === 'focus');
     const secs = st && st.phase === p && !st.running && st.remaining > 0 ? st.remaining : phaseLen(p);
     const carried = st ? st.breaks : null;
     st = {phase:p, running:true, up,
@@ -106,11 +113,20 @@ const FocusTimer = (() => {
          written down stay written down and go on the same row */
       sessionId: st && st.phase === p ? st.sessionId : null,
       logged: st && st.phase === p ? (st.logged || 0) : 0,
+      /* what was planned, the margin on it, the minimum that was named, what
+         was ticked off before starting — all of them belong to the sitting */
+      planned: st && st.phase === p && st.planned ? st.planned : (up ? 0 : secs),
+      margin: st && st.phase === p ? (st.margin || 0) : (!up && p === 'focus' ? pendingMargin : 0),
+      overAt: st && st.phase === p ? (st.overAt || null) : null,
+      chimed: st && st.phase === p ? (st.chimed || 0) : 0,
+      goal: st && st.phase === p ? (st.goal || '') : '',
+      preflight: st && st.phase === p ? (st.preflight || null) : null,
       /* and its stretches, and where the current one began */
       segments: st && st.phase === p ? (st.segments || []) : [],
       segMark: st && st.phase === p ? (st.segMark || null) : null,
       breaks: carried || []};
     closeBreak();                       // resuming ends whatever break was open
+    if(!carried || !carried.length) pendingMargin = 0;
     persist();
     tick(); notify();
   }
@@ -308,13 +324,17 @@ const FocusTimer = (() => {
     if(rec){
       rec.taskId = st.taskId || null; rec.subId = st.subId || null;
       rec.duration = Math.max(+rec.duration || 0, mins); rec.endedAt = nowISO();
-      rec.completed = !!completed; rec.note = st.notes || ''; rec.breaks = breaks; rec.segments = segments; rec.cur = Object.assign({}, st.cur || newCur());
+      rec.completed = !!completed || !!st.overAt; rec.note = st.notes || ''; rec.breaks = breaks; rec.segments = segments; rec.cur = Object.assign({}, st.cur || newCur());
+      if(st.preflight) rec.preflight = st.preflight; if(st.goal) rec.goal = st.goal;
+      if(st.planned){ rec.planned = Math.round(st.planned / 60); rec.margin = st.margin || 0; if(st.overAt) rec.mode = 'countdown'; }
     } else {
       rec = {id:uid(), taskId:st.taskId || null, subId:st.subId || null, startedAt:st.startedAt,
-        endedAt:nowISO(), duration:mins, type: st.meta ? 'clock' : 'focus', completed:!!completed,
+        endedAt:nowISO(), duration:mins, type: st.meta ? 'clock' : 'focus', completed:!!completed || !!st.overAt,
         mode: st.up ? 'stopwatch' : 'countdown', note: st.notes || '', breaks, segments};
       if(st.meta) rec.meta = Object.assign({}, st.meta);
       rec.cur = Object.assign({}, st.cur || newCur());
+      if(st.preflight) rec.preflight = st.preflight; if(st.goal) rec.goal = st.goal;
+      if(st.planned){ rec.planned = Math.round(st.planned / 60); rec.margin = st.margin || 0; if(st.overAt) rec.mode = 'countdown'; }
       sessions.push(rec); st.sessionId = rec.id;
     }
     if(delta < 1){ saveNow(); if(!quiet) syncTime(rec); return; }
@@ -346,6 +366,18 @@ const FocusTimer = (() => {
     if(!skipped) toast(nextPhase === 'focus' ? 'Break over.' : `Interval done${taskId ? '' : ''} — take ${nextPhase === 'long' ? 'the long' : 'a short'} break.`, 6000);
     if(endInfo) ended(endInfo);
   }
+  /* The countdown reached its end: it becomes a stopwatch that already holds
+     what was planned, so a pause and a resume carry on from there. */
+  function toOvertime(){
+    if(!st || st.phase !== 'focus' || st.up) return;
+    const planned = st.planned || phaseLen('focus');
+    st.up = true; st.acc = planned; st.since = Math.min(nowMs(), st.endsAt || nowMs()); st.remaining = 0;
+    st.overAt = new Date(st.since).toISOString(); st.planned = planned;
+    /* the time it was given is done, and that is written down now: it counts as a finished interval */
+    try { logSession(false); } catch(e){}
+    persist();
+    if(clockAt == null){ try { if(typeof focusOvertimeBegan === 'function') focusOvertimeBegan(); } catch(e){} }
+  }
   let timer = null;
   function tick(){
     clearTimeout(timer);
@@ -363,7 +395,16 @@ const FocusTimer = (() => {
     /* a stopwatch has nowhere to arrive, so it only ever keeps counting */
     if(!st.up){
       const left = Math.max(0, st.endsAt - nowMs());
-      if(left <= 0){ finish(false); return; }
+      if(left <= 0){
+        /* a sitting that reaches the time it was given does not stop: it carries
+           on, counted as overtime, until you say it is over. (A rest still ends.) */
+        if(st.phase === 'focus') toOvertime();
+        else { finish(false); return; }
+      }
+    }
+    if(st.running && st.up && st.phase === 'focus' && typeof focusChimeOn === 'function' && focusChimeOn()){
+      const k = Math.floor(elapsedSecs() / 1800);
+      if(k >= 1 && k > (st.chimed || 0)){ st.chimed = k; persist(); try { if(clockAt == null) focusSoftChime(k); } catch(e){} }
     }
     /* the record is kept current as the sitting goes — every minute, not only
        when it pauses or stops — so nothing is lost if the page goes away */
@@ -530,8 +571,13 @@ const FocusTimer = (() => {
     restore, partStart,
     mode: timerMode,
     setMode(m){ if(st) return false; cfg().mode = m === 'stopwatch' ? 'stopwatch' : 'countdown'; saveNow(); notify(); return true; },
-    setLength(mins){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);
-      cfg().focusDuration = n; saveNow(); notify(); return true; },
+    /* `mins` is the whole length; `margin` is how much of it is margin, so the
+       dial can say "36m + 9m margin" rather than a bare 45 */
+    setLength(mins, margin = 0){ if(st) return false; const n = clamp(Math.round(+mins || 0), 1, 240);
+      cfg().focusDuration = n; pendingMargin = clamp(Math.round(+margin || 0), 0, n - 1); saveNow(); notify(); return true; },
+    /* the minimum that was named at the start of a sitting, and what was done before it */
+    setGoal(text){ if(!st) return false; st.goal = String(text || '').trim().slice(0, 240); persist(); notify(); return true; },
+    setPreflight(obj){ if(!st) return false; st.preflight = obj ? JSON.parse(JSON.stringify(obj)) : null; persist(); notify(); return true; },
     noteBreak, noteWork, markStretch, editStretch, stretches, stretchSince,
     setBreakChip, answerOverrun, noteOverrun, setVerdict, switchTo, unread, skipVerdict, breakStanding, setOverrunState,
     onEnd(f){ enders.add(f); return () => enders.delete(f); },

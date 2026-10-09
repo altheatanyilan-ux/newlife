@@ -42,9 +42,12 @@ const HAB_NAME_GUESS = [
 
 /* ---------- the link ---------- */
 function habCountsAs(h){
-  return h && h.countsAs && h.countsAs.type && h.countsAs.id ? h.countsAs : null;
+  if(h && h.countsAs && h.countsAs.type && h.countsAs.id) return h.countsAs;
+  /* a habit not yet read through habDefaults still carries the older pair, which is a link already made */
+  if(h && h.timeCat && +h.timeMins > 0) return {type: 'category', id: h.timeCat};
+  return null;
 }
-const habThreshold = h => (h && +h.thresholdMin > 0) ? +h.thresholdMin : 0;
+const habThreshold = h => (h && +h.thresholdMin > 0) ? +h.thresholdMin : (h && h.timeCat && +h.timeMins > 0 ? +h.timeMins : 0);
 function habCountsName(link){
   if(!link) return '';
   try {
