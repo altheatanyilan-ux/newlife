@@ -328,6 +328,13 @@ function timeProcessWins(){
   if(q.distract && usual != null && usual > 0 && q.distract.value <= usual * 0.75) put('distract', 'Fewer pulls away from the work', `${q.distract.value.toFixed(1)} distractions an hour, against ${usual.toFixed(1)} in your own previous weeks (the rule: a quarter fewer, over at least two hours of sitting)`, q.distract.value, usual);
   const inv = timeMetrics(wk.from, wk.to), invU = timeUsual(wk, null, m => m.investShare);
   if(inv.investShare != null && invU && inv.tracked >= 600 && inv.investShare - invU.avg >= 0.05) put('invest', 'More of the week went to what you build', `${Math.round(inv.investShare * 100)}% of the tracked time was investing, against ${Math.round(invU.avg * 100)}% in your previous weeks (the rule: five points up, over ten tracked hours)`, inv.investShare, invU.avg);
+  /* restful breaks up three weeks running; and the most focused week there has been */
+  const wks = [0, 1, 2, 3].map(i => timeRangeShift(wk, -i)).reverse(), rf = wks.map(w => timeFocusQuality(w.from, w.to).restful);
+  if(rf.every(Boolean) && rf[0].value < rf[1].value && rf[1].value < rf[2].value && rf[2].value < rf[3].value)
+    put('restful', 'Breaks that were restful, up three weeks running', `${rf.map(x => Math.round(x.value * 100) + '%').join(' \u2192 ')} of breaks answered \u201cmeant it\u201d (the rule: each of the last three weeks higher than the one before, with at least three breaks read in each)`, rf[3].value, rf[0].value);
+  const fm = w => sum(timeMetrics(w.from, w.to).rows.filter(e => e.focusSit && e.kind !== 'break').map(timeMinutes)), cur = fm(wk);
+  const earlier = [1, 2, 3, 4, 5, 6, 7, 8].map(i => fm(timeRangeShift(wk, -i))).filter(x => x > 0);
+  if(cur >= 300 && earlier.length >= 4 && cur > Math.max(...earlier)) put('bestfocus', 'The most time in focus there has been in a week', `${timeSaid(cur)} inside focus sittings, more than any of your previous ${earlier.length} weeks with any (the highest was ${timeSaid(Math.max(...earlier))})`, cur, Math.max(...earlier));
   if(made.length) saveNow();
   return made;
 }

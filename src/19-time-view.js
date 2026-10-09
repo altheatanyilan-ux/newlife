@@ -143,7 +143,7 @@ function timeOverviewHTML(){
         <span class="mono tmv-label">${esc(timeRangeLabel(r))}</span>
         <button class="tbtn" data-tmshift="1" ${nextFuture ? 'disabled' : ''} title="the one after">›</button></span>
       ${timeRangeIsCurrent(r) ? '' : `<button class="tbtn" data-tmthis>back to ${esc(timeRangeWord(timeRange(r.unit)).replace('this ', 'this '))}</button>`}
-      <span class="grow"></span><button class="btn sm primary" id="tmAdd">+ a sitting</button></div>
+      <span class="grow"></span>${r.unit === 'week' ? '<button class="tbtn" data-tmprint title="the week on one sheet">print the week</button>' : ''}<button class="btn sm primary" id="tmAdd">+ a sitting</button></div>
     ${n ? `<div class="tmv-narrow"><span class="chip on">narrowed to ${esc(n.label)}</span> <button class="tbtn" data-tmclear>show everything</button>
       <span class="faint mono">every figure below is for this alone</span></div>` : ''}
     ${future ? '<div class="empty">That period has not begun.</div>' : `
@@ -174,5 +174,7 @@ function bindTimeOverview(root){
   const cl = root.querySelector('[data-tmclear]'); if(cl) cl.onclick = () => { u.narrow = null; rerender(); };
   $$('[data-tmgoto]', root).forEach(b => b.onclick = () => { u.day = b.dataset.tmgoto > today() ? today() : b.dataset.tmgoto; rerender(); });
   const more = root.querySelector('#tmMore'); if(more) more.onclick = () => { u.more = true; rerender(); };
+  const pr = root.querySelector('[data-tmprint]'); if(pr) pr.onclick = () => printWeek(timeViewRange().from);
+  $$('[data-tmgoals]', root).forEach(b => b.onclick = () => navigate('#/time/goals'));
   const att = root.querySelector('.tmv-attn'); if(att && typeof pqBind === 'function') pqBind(att, today(), timeAttentionItems().slice(0, 3));
 }

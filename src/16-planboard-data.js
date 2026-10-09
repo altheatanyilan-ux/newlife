@@ -86,10 +86,12 @@ function pbdBlockLabel(b){
 /* ---------- estimates, padded ---------- */
 const pbdEstOf = t => { try { return Math.round(taskEstOf(t)) || 0; } catch(e){ return 0; } };
 /* what a block for this estimate is: the estimate and a margin on it, then a buffer after */
-function pbdPadded(est){
-  const m = Math.round(est * pbdMarginFrac());
+function pbdPadded(est, task){
+  /* a task whose list or category has ten sittings behind it uses what they say */
+  const L = task && typeof learnedMargin === 'function' ? learnedMargin(task) : null;
+  const m = Math.round(est * (L ? L.frac : pbdMarginFrac()));
   const dur = pbdRound(est + m);
-  return {est, marginMin: dur - est, durationMin: dur, bufferMin: pbdPrefs().bufferMin, total: dur + pbdPrefs().bufferMin};
+  return {est, marginMin: dur - est, durationMin: dur, bufferMin: pbdPrefs().bufferMin, total: dur + pbdPrefs().bufferMin, learned: L};
 }
 
 /* ---------- the day's shape ---------- */
@@ -141,7 +143,7 @@ function pbdCapacity(d, extraIds = []){
   const free = Math.max(30, bd.awake - anchors - pf.reserveMin);
   let planned = 0, unestimated = 0;
   pbdBlocksOn(d).forEach(b => { if(b.ref && b.ref.type !== 'habit') planned += b.durationMin + (b.bufferMin || 0); });
-  pbdPencilOn(d, extraIds).forEach(r => { const e = pbdEstOf(r.task); if(e) planned += pbdPadded(e).total; else unestimated++; });
+  pbdPencilOn(d, extraIds).forEach(r => { const e = pbdEstOf(r.task); if(e) planned += pbdPadded(e, r.task).total; else unestimated++; });
   const pct = Math.round(planned / free * 100);
   const over = pct > pf.capPct;
   const text = over ? `Planned ${pct}% — past the ${pf.capPct}% cap`
@@ -165,7 +167,7 @@ function pbdPlacement(t, id){
    moved off any day that is over capacity. The reason travels with it. */
 function pbdGhost(t, id){
   if(!t || t.doDay || !t.day) return null;
-  const est = pbdEstOf(t); const need = est ? pbdPadded(est).total : pbdPadded(30).total;
+  const est = pbdEstOf(t); const need = est ? pbdPadded(est, t).total : pbdPadded(30).total;
   const T = today(); if(t.day < T) return {day: T, reason: 'It is overdue, so today is the earliest it can go.', overdue: true};
   const days = []; for(let d = T; d <= t.day && days.length < 60; d = addDays(d, 1)) days.push(d);
   const fits = d => pbdCapacity(d).room >= need;
@@ -186,7 +188,7 @@ function pbdGhost(t, id){
 /* "Fits Wed or Thu; Fri is nearly full" — the instant preview when a due date is set */
 function pbdFitsText(t, due){
   if(!due) return '';
-  const est = pbdEstOf(t); const need = est ? pbdPadded(est).total : pbdPadded(30).total;
+  const est = pbdEstOf(t); const need = est ? pbdPadded(est, t).total : pbdPadded(30).total;
   const T = today(); const days = []; for(let d = T; d <= due && days.length < 14; d = addDays(d, 1)) days.push(d);
   if(!days.length) return 'That date has passed.';
   const wd = d => DOW[parseDay(d).getDay()].slice(0, 3);

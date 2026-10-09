@@ -97,6 +97,9 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
      ARRAY_STORES since they were added but never given a table, so the first
      block ever written made every save in the app fail. */
   timeBlocks:     'id, date',
+  /* what the person means to give their time (at least this much, at most that much, a day or a week of it) and the goals about how they work — never about hours */
+  timeIntentions: 'id, active',
+  perfGoals:      'id, level, status',
   /* The Knowledge Tree (19-tree-*.js). Ordinary state stores, saved with
      the rest. Slugs and aliases are unique in code, not by index (the
      fallback database cannot open a '&' index). Positions and predictions
@@ -163,8 +166,8 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -252,7 +255,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(22).stores(DB_SCHEMA);   // v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(23).stores(DB_SCHEMA);   // v23 timeIntentions + perfGoals (new stores only), v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){

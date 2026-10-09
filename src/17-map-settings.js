@@ -46,6 +46,7 @@ routes.settings = function(root){
           <button class="btn sm ghost" id="sBreakAdd" style="margin-top:8px">+ a chip</button></div></div>
       ${typeof pqSettingsHTML === 'function' ? pqSettingsHTML() : ''}
       ${typeof fzSettingsHTML === 'function' ? fzSettingsHTML() : ''}
+      ${typeof learnedSettingsHTML === 'function' ? learnedSettingsHTML() : ''}
       ${typeof pbdSettingsHTML === 'function' ? pbdSettingsHTML() : ''}
       <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
       <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
@@ -107,6 +108,7 @@ routes.settings = function(root){
       <div class="opt"><div><b id="tutState"></b><div class="d" id="tutHint"></div></div>
         <span class="row" style="gap:8px"><button class="btn" id="sTutAdd">Add them</button><button class="btn ghost danger" id="sTutDel">Take them out</button></span></div>
     </div>
+    ${typeof exportSettingsHTML === 'function' ? exportSettingsHTML() : ''}
     <div class="card rv"><h3>Data &amp; backups</h3><p class="muted" style="font-size:.85rem" id="storageLine">Everything lives in this browser, in an IndexedDB database. Measuring…</p><div class="bar" style="--c:var(--sage);margin-bottom:12px"><i id="storageBar" style="width:0%"></i></div>
       <div class="row"><button class="btn primary" id="sExport">💾 Export backup</button><button class="btn" id="sImport">Import backup</button><input type="file" id="sFile" accept=".json,application/json" hidden><button class="btn ghost" id="sRestoreInfo" title="${esc(RECOVERY_TEXT)}">ⓘ How to restore</button></div>
       <p class="muted" style="font-size:.85rem;margin-top:12px" id="lastBackupLine"></p>
@@ -214,6 +216,8 @@ routes.settings = function(root){
     timeSettings().round = +this.value || 1; saveNow(); });
   if(typeof pqSettingsBind === 'function') pqSettingsBind(document);
   if(typeof fzSettingsBind === 'function') fzSettingsBind(document);
+  if(typeof learnedSettingsBind === 'function') learnedSettingsBind(document);
+  if(typeof exportSettingsBind === 'function') exportSettingsBind(document);
   if(typeof pbdSettingsBind === 'function') pbdSettingsBind(document);
   $('#sBreakMin') && ($('#sBreakMin').onchange = function(){
     timeSettings().breakMin = Math.min(120, Math.max(1, Math.round(+this.value || 5))); this.value = timeSettings().breakMin; saveNow(); });

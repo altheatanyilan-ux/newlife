@@ -217,6 +217,7 @@ function timeReviewLines(from, to){
   const top = (S.values || []).slice(0, 3).map(v => (v.name || '').toLowerCase());
   const thin = by.filter(b => b.minutes / mins < 0.05)
     .find(b => top.some(n => n && b.cat.name.toLowerCase().includes(n)));
+  if(typeof learnedAccuracyLine === 'function'){ const l = learnedAccuracyLine(from, to); if(l) out.push(l); }
   if(thin) out.push(`${thin.cat.name} is near the top of your values and under a twentieth of your tracked time.`);
   return out;
 }

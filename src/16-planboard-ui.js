@@ -213,7 +213,7 @@ function pbdPlaceTask(id, d, startMin, source = 'dragged'){
   const go = est => {
     pbdPencil(id, d);
     const bd = pbdBounds(d);
-    const place = (len, at, over) => { const pad = pbdPadded(len);
+    const place = (len, at, over) => { const pad = pbdPadded(len, t);
       const b = pbdAddBlock(d, {ref: {type: 'task', id}, start: pbdHM(Math.min(bd.bed - 15, Math.max(bd.wake, at))), durationMin: over ? len : pad.durationMin,
         marginMin: over ? 0 : pad.marginMin, bufferMin: pad.bufferMin, source});
       return b; };
@@ -380,7 +380,7 @@ function pbdLayout(d, ids, fromMin){
   };
   order.forEach(id => {
     const t = pbdTask(id); if(!t) return;
-    const est = pbdEstOf(t) || 30, pad = pbdPadded(est), len = pad.durationMin + pad.bufferMin;
+    const est = pbdEstOf(t) || 30, pad = pbdPadded(est, t), len = pad.durationMin + pad.bufferMin;
     let start = null, why = '';
     if(top.has(id) && eH != null && eL != null && eL > eH){ start = free(len, Math.max(fromMin, eH)); if(start != null && start + len > eL) start = null; if(start != null) why = 'a top-two task, in the high-energy window'; }
     if(start == null){ start = free(len, fromMin); why = why || (top.has(id) ? 'a top-two task, first free hour' : 'next free hour'); }

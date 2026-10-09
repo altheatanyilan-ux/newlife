@@ -204,7 +204,8 @@ function focusOnTask(id, minutes = 0, what = '', subId = null){
     /* the estimate is of the job, so a sitting that follows earlier ones
        counts down what is still owed rather than the whole figure again —
        with a margin on top, since estimates run short */
-    if(left >= 1){ const mg = Math.round(left * (typeof fzMarginPct === 'function' ? fzMarginPct() : 0) / 100);
+    if(left >= 1){ const L = typeof learnedMargin === 'function' ? learnedMargin(t) : null; S._marginNote = L ? {taskId: id, text: L.label} : null;
+      const mg = Math.round(left * (L ? L.frac * 100 : (typeof fzMarginPct === 'function' ? fzMarginPct() : 0)) / 100);
       FocusTimer.setMode('countdown'); FocusTimer.setLength(left + mg, mg); }
     else FocusTimer.setMode('stopwatch');
   }
@@ -352,7 +353,7 @@ function focusSectionHTML(){
       <span class="mono faint">${s.idle
         ? (todayMins ? `${fmtHM(todayMins)} worked today` : 'nothing timed yet today')
         : `<b class="tf-clock">${fmtClock(face)}</b> ${s.onBreak ? 'on a break' : s.running ? 'running' : 'held'}${
-            todayMins ? ` · ${fmtHM(todayMins)} today` : ''}${s.margin && !s.overtime ? ` · ${fmtEst(Math.max(1, Math.round(s.planned / 60) - s.margin))} + ${s.margin}m margin` : ''}`}</span>
+            todayMins ? ` · ${fmtHM(todayMins)} today` : ''}${s.margin && !s.overtime ? ` · ${fmtEst(Math.max(1, Math.round(s.planned / 60) - s.margin))} + ${s.margin}m margin${S._marginNote && S._marginNote.taskId === s.taskId ? ` <span title="${esc('learned: ' + S._marginNote.text)}">(learned)</span>` : ''}` : ''}`}</span>
     </div>
     <!-- a card you work in — notes, parked thoughts, the cheat sheet — holds
          still under the pointer (see the tilts in 05-micro.js) -->

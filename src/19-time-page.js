@@ -26,8 +26,9 @@ routes.time = function(root, params){
   if(['day', 'week'].includes(want)){ u.view = 'overview'; u.unit = want; u.narrow = null; }
   else if(want === 'reports'){ u.view = 'overview'; u.unit = 'month'; }
   else if(want === 'categories') u.view = 'categories';
+  else if(want === 'goals') u.view = 'goals';
   else if(want === 'overview') u.view = 'overview';
-  if(!['overview', 'categories'].includes(u.view)) u.view = 'overview';
+  if(!['overview', 'categories', 'goals'].includes(u.view)) u.view = 'overview';
   registerPageEntry({pageName:'Time tracking', addLabel:'Log a sitting', defaultEntryType:'time',
     prefilledFields:{}, options:[
       {icon:'⏱', label:'Start the clock', desc:'Now, for whatever you are about to do.',
@@ -39,13 +40,14 @@ routes.time = function(root, params){
     <div class="tm-head">
       <h1 class="serif">Time tracking</h1>
       <span class="grow"></span>
-      <span class="tabs sm">${[['overview','Overview'],['categories','Categories']].map(([k, n]) =>
+      <span class="tabs sm">${[['overview','Overview'],['goals','Intentions & goals'],['categories','Categories']].map(([k, n]) =>
         `<button class="tab${u.view === k ? ' on' : ''}" data-tmview="${k}">${n}</button>`).join('')}</span>
     </div>
-    ${u.view === 'categories' ? timeCategoriesHTML() : timeOverviewHTML()}
+    ${u.view === 'categories' ? timeCategoriesHTML() : u.view === 'goals' ? timeGoalsHTML() : timeOverviewHTML()}
   </div>`;
   bindTimePage(root);
   if(u.view === 'overview') bindTimeOverview(root);
+  if(u.view === 'goals') bindTimeGoals(root);
 };
 
 /* ---------- the day ---------- */

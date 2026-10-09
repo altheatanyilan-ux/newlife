@@ -488,7 +488,8 @@ function theatrePanelHTML(key){
 
   if(key === 'script') return `<details class="th-sec" data-th="script" open>${head('Self-image script', 'Maltz')}
     <div class="th-body">${quote('Close your eyes for thirty minutes. See yourself acting, feeling and being as you want to be. The nervous system cannot tell a real experience from one vividly imagined.')}
-      ${ed('rehearsal.script', {multi:true, mdr:true, cls:'prose serif-lg', ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}</div></details>`;
+      ${ed('rehearsal.script', {multi:true, mdr:true, cls:'prose serif-lg', ph:'First person, present tense. Who you are becoming — vivid, sensory, felt as already real.'})}
+      ${typeof perfPersonaOfferHTML === 'function' ? perfPersonaOfferHTML() : ''}</div></details>`;
 
   if(key === 'winning') return `<details class="th-sec" data-th="winning">${head('The winning feeling', 'Maltz')}
     <div class="th-body"><div class="faint" style="font-size:.8rem;margin-bottom:6px">Recall a moment when you felt self-confident and successful. Capture that feeling, then weld it to your vision of the future.</div>

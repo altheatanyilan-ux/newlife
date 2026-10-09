@@ -10211,6 +10211,27 @@ html.sc-reading .tdock{display:none}
 .tmv-fqs{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .tmv-dayhead{margin:12px 0 4px}
 @media (max-width:700px){.tmv-bar{grid-template-columns:1fr 3.6rem 2.2rem}.tmv-track{grid-column:1/-1;order:5}.tmv-bd{display:none}.tmv-label{min-width:0}}
+/* intentions, goals, rings */
+.tmv-rings{display:flex;gap:10px;flex-wrap:wrap;grid-column:1/-1}
+.tmv-ring{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 6px;color:inherit;font:inherit;cursor:pointer}
+.tmv-ring svg{width:34px;height:34px;flex:none}.tmv-ringn{font-size:.82rem}
+.tmg-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--line)}.tmg-row.off{opacity:.55}
+.tmg-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.tmg-sub{font-size:.74rem}.tmg-risk{color:var(--rose)}
+.tmg-sug{margin-top:14px}
+.tmg-level{margin:10px 0 16px}
+.tmg-goal{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface-2);padding:10px 14px;margin:6px 0}
+.tmg-persona{font-size:1rem;color:var(--muted);margin:2px 0 6px}
+.tmg-sig{display:grid;grid-template-columns:1.4fr 1.3fr 1.3fr;gap:8px;font-size:.82rem;padding:2px 0}
+.tmg-dir.better{color:var(--sage)}.tmg-dir.worse{color:var(--rose)}.tmg-dir{color:var(--muted)}
+@media (max-width:700px){.tmg-sig{grid-template-columns:1fr}}
+/* the week on a sheet */
+#printWeek{position:fixed;inset:0;z-index:9999;background:#fff;color:#111;overflow:auto;padding:24px 28px;font-size:12px}
+#printWeek .pw-bar{display:flex;gap:8px;margin-bottom:12px}
+#printWeek h1{font-size:20px;margin:0 0 4px}.pw-theme{font-style:italic;margin-bottom:4px}.pw-goals{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.pw-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.pw-day{border:1px solid #bbb;border-radius:4px;padding:6px;min-height:240px}.pw-dh{border-bottom:1px solid #ccc;margin-bottom:4px}
+.pw-b,.pw-t,.pw-h,.pw-int{margin:2px 0;line-height:1.3}.pw-h{color:#555}.pw-int{font-style:italic}
+@media print{body.pw-on > *:not(#printWeek){display:none !important}#printWeek{position:static;padding:0}#printWeek .pw-bar{display:none}@page{size:landscape;margin:10mm}}
 .tm-catrows{display:flex;flex-direction:column;gap:2px;margin-top:10px}
 .tm-cathead,.tm-catrow{display:grid;
   grid-template-columns:3.4rem minmax(0,1fr) 2.6rem 6.5rem 3.6rem 5.4rem 1.6rem;

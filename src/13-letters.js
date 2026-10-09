@@ -89,6 +89,7 @@ function openDecisionModal(){
     <div class="stack">
       <input class="inp serif-lg" id="dTitle" placeholder="The decision, in a few words" autofocus>
       ${DECISION_FIELDS.map(([k,l,h])=>`<div class="field"><label>${l}</label>${h?`<div class="faint" style="font-size:.78rem;margin-bottom:4px">${h}</div>`:''}<textarea class="ta" data-df="${k}" style="min-height:${k==='chosen'?60:84}px"></textarea></div>`).join('')}
+      ${typeof decisionRiskHTML === 'function' ? decisionRiskHTML() : ''}
       <div class="grid c2" style="gap:10px">
         <div class="field"><label>How sure am I?</label><select class="sel" id="dConf">${['a coin flip','leaning','fairly sure','confident','certain'].map(c=>`<option ${c==='leaning'?'selected':''}>${c}</option>`).join('')}</select></div>
         <div class="field"><label>Come back to it on</label><input class="inp" type="date" id="dReview" value="${addDays(today(),180)}"></div>
@@ -100,6 +101,7 @@ function openDecisionModal(){
     const title = m.querySelector('#dTitle').value.trim(); if(!title){ toast('Name the decision first.'); return; }
     const extra = {reviewOn:m.querySelector('#dReview').value, reviewedAt:'', confidence:m.querySelector('#dConf').value};
     m.querySelectorAll('[data-df]').forEach(t => extra[t.dataset.df] = t.value.trim());
+    const risk = typeof decisionRiskRead === 'function' ? decisionRiskRead(m) : null; if(risk) extra.risk = risk;
     const e = {id:uid(), type:'decision', title, body:extra.reasoning || '', occurredAt:today(), createdAt:new Date().toISOString(), media:[],
       links:{stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, people:[], places:[], emotions:[], tags:[], confidence:'', extra};
     S.entries.push(e); saveNow(); m.remove(); sound('success'); toast(`Logged. It comes back to you on ${fmtDate(extra.reviewOn,'med')}.`); rerender();
@@ -113,6 +115,7 @@ function openDecisionPanel(id){
     <h2>${ed(`entries.#${e.id}.title`)}</h2>
     <div class="dec-then"><div class="sc">What you thought at the time</div>
       ${DECISION_FIELDS.map(([k,l]) => x[k] ? `<div class="dec-field"><div class="k">${l}</div><div class="prose">${md(x[k])}</div></div>` : '').join('') || '<div class="empty">Nothing was written down.</div>'}</div>
+    ${typeof decisionRiskShow === 'function' ? decisionRiskShow(x) : ''}
     <div class="vp-sec"><div class="row between"><span class="sc">Looking back</span><span class="mono">${settled ? `reviewed ${fmtDate(x.reviewedAt,'med')}` : x.reviewOn ? `due ${fmtDate(x.reviewOn,'med')}` : ''}</span></div>
       <p class="faint" style="font-size:.8rem">Do not reread the reasoning above and then write what you wish you had thought. Answer honestly; the value is in the gap.</p>
       ${DECISION_OUTCOME.map(([k,l,h]) => `<div class="field" style="margin-top:10px"><label>${l}</label>${h?`<div class="faint" style="font-size:.76rem;margin-bottom:4px">${h}</div>`:''}${ed(`entries.#${e.id}.extra.${k}`, {multi:true, mdr:true, cls:'prose', ph:'…'})}</div>`).join('')}

@@ -173,6 +173,14 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   });
   const w1 = await p.evaluate(() => timeProcessWins().map(w => w.signal).sort());
   yes('a week of blocks begun within five minutes, and of estimates that held, earns two', w1.includes('start') && w1.includes('estimates'), w1);
+  await p.evaluate(() => {
+    const wk = timeRangeShift(timeRange('week'), -1);
+    for(let i = 0; i < 4; i++){ const w = timeRangeShift(wk, -(3 - i)), d = addDays(w.from, 2), st = window.__at(d, '16:00');
+      const br = []; for(let k = 0; k < 4; k++){ const a = new Date(st.getTime() + (5 + k * 7) * 60000), z = new Date(a.getTime() + 4 * 60000); br.push({from: a.toISOString(), to: z.toISOString(), plannedMin: 5, origin: 'pause', verdict: k <= i ? 'meant' : 'drifted'}); }
+      planState().focusSessions.push({id: 'rf' + i, taskId: null, startedAt: st.toISOString(), endedAt: new Date(st.getTime() + 40 * 60000).toISOString(), duration: 40, type: 'focus', completed: true, breaks: br, segments: []}); }
+  });
+  const w1b = await p.evaluate(() => timeProcessWins().map(w => w.signal));
+  yes('restful breaks up three weeks running is a win, with the four figures in its rule', w1b.includes('restful') && await p.evaluate(() => /25% \u2192 50% \u2192 75% \u2192 100%/.test(S.wins.find(x => x.signal === 'restful').rule)), w1b);
   const w2 = await p.evaluate(() => timeProcessWins().length);
   is('and the same week earns nothing twice', w2, 0);
   const win = await p.evaluate(() => { const w = S.wins.find(x => x.signal === 'start'); return {kind: w.kind, rule: /at least four blocks/.test(w.rule), period: w.period.unit, card: /Started when the block said/.test(winCardHTML(w))}; });

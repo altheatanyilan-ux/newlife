@@ -232,10 +232,19 @@ function pqFlags(T){
   return out.map(x => pqItem(Object.assign({source: 'flag', category: 'flag', rank: PQ_RANK.flag}, x)));
 }
 
+/* the system review, every two to three weeks */
+function pqSystem(T){
+  if(typeof sysReviewDue !== 'function') return [];
+  const d = sysReviewDue(T); if(!d) return [];
+  return [pqItem({id: 'sysreview:' + (sysState().last || 'first'), source: 'review', category: 'review', rank: PQ_RANK.review + 5, period: 'week', msg: 'The system review is due.',
+    rule: d.first ? `there are ${d.days} days of sittings behind you and you have not yet looked at how the way you work is going` : `the last was ${d.days} days ago; one is raised every ${SYS_DUE_DAYS} days${d.late ? ' and is overdue after ' + SYS_LATE_DAYS : ''}`,
+    go: ['begin', () => openSystemReview()]})];
+}
+
 /* ---------- the queue ---------- */
 function promptQueue(T = today()){
   let all = [];
-  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews].forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
+  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews, pqSystem].forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
   all = all.filter(it => !pqSuppressed(it));
   const seen = new Set(); all = all.filter(it => seen.has(it.id) ? false : (seen.add(it.id), true));
   return all.sort((a, b) => a.rank - b.rank || String(a.id).localeCompare(String(b.id)));
@@ -307,7 +316,7 @@ setInterval(pqHabitNotify, 60000);
 /* ---------- Settings: what can be turned off ---------- */
 const PQ_KINDS = [['unlabelled', 'Unlabelled time'], ['commit', 'A list behind its pace'], ['skill-idle', 'An in-focus skill with no time'], ['list-idle', 'A list with no time for a fortnight'],
   ['drift', 'Estimates running well over'], ['overruns', 'Break overruns rising'], ['top-two-missed', 'The top two missed three days'], ['protect-used', 'Protected time used for something else'],
-  ['ms', 'A milestone overdue or slipping'], ['hab-mile', 'A habit near a milestone'], ['tomorrow-unplanned', 'Tomorrow not planned'], ['person', 'A person named in a time label'], ['kolb', 'A reflection put off']];
+  ['ms', 'A milestone overdue or slipping'], ['hab-mile', 'A habit near a milestone'], ['tomorrow-unplanned', 'Tomorrow not planned'], ['person', 'A person named in a time label'], ['kolb', 'A reflection put off'], ['intent', 'A time intention slipping or over'], ['sysreview', 'The system review']];
 function pqSettingsHTML(){
   const st = pqState();
   return `<div class="card rv"><h3>Prompts</h3>
