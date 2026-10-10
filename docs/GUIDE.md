@@ -6,7 +6,7 @@ For the inward half in depth — journals, the Morning Theatre, stillness and di
 
 The two music rooms in depth — the Jazz Studio's curriculum, twelve-key flashcards, daily plan, tune library, band and piano input, and the Songwriting Studio's Path, thirteen tools and rule engines, and how the two rooms connect (the studio bar, hand-offs, "In the other room" cards, the Seedbank as a shared shelf) — are in [**STUDIOS.md**](STUDIOS.md).
 
-The Knowledge Tree — pages, positions, grafts, tending, proof — has its own long explanation in [**KNOWLEDGE-TREE.md**](KNOWLEDGE-TREE.md).
+The Knowledge Tree — pages, positions, grafts, tending, proof — has its own long explanation in [**KNOWLEDGE-TREE.md**](KNOWLEDGE-TREE.md); a first-time walkthrough of the Tree and the Learning Studio canvas — including what they cannot do — is [**KNOWLEDGE-TREE-GUIDE.md**](KNOWLEDGE-TREE-GUIDE.md).
 
 The Content Studio (the pipeline from a thought to a published thing) and Brand Strategy (the view inside it for public accounts) are explained separately and in depth in [**BRAND.md**](BRAND.md).
 
