@@ -317,6 +317,8 @@ document.addEventListener('keydown', ev => {
   if(document.querySelector('#modals .overlay, #panel')) return;
   const here = parseHash().name;
   if(['writing', 'content', 'score', 'jazz', 'songwriting', 'japanese'].includes(here)) return;
+  /* where a parked-thoughts box is showing, P belongs to it (the focus desk, the pocket) */
+  if(ev.code === 'KeyP' && document.querySelector('#pkPocket, #main .pk, #main .pk-shut')) return;
   if(ev.code === 'KeyP'){ ev.preventDefault(); const p = purposeState(); p.mode = 'read'; navigate('#/purpose'); }
   else if(ev.code === 'KeyR' && here === 'purpose'){ ev.preventDefault(); purposeReview(); }
 });

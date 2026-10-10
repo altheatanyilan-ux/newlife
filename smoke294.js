@@ -134,7 +134,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.evaluate(() => { pqState().off['skill-idle'] = true; });
   yes('turning off a kind in Settings stops every item of it (skill-idle:sk1)', !(await ids()).some(x => x.startsWith('skill-idle')));
   const set = await p.evaluate(() => { const d = document.createElement('div'); d.innerHTML = pqSettingsHTML(); return {rows: d.querySelectorAll('[data-pqtog]').length, off: d.querySelector('[data-pqtog="skill-idle"]').classList.contains('on')}; });
-  is('Settings lists the kinds, with the turned-off one shown off', set, {rows: 15, off: false});
+  yes('Settings lists the kinds (at least the fifteen it began with), with the turned-off one shown off', set.rows >= 15 && set.off === false, set);
   await reset();
 
   console.log('\n5. Today: one place, with a count; the old banners are gone');

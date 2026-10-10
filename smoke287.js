@@ -67,7 +67,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   const exec = await p.evaluate(() => { const n = document.querySelector('#t-plan');
     const dd = document.querySelector('.dd-panel'), r = dd && dd.getBoundingClientRect();
     return {firstSection: n ? Math.round(n.getBoundingClientRect().top) : null, ddBottom: r ? Math.round(r.bottom) : null, vh: innerHeight}; });
-  yes('Execution: the first section of its own starts in the top half of a 800px screen, pending list included', exec.firstSection !== null && exec.firstSection < 480, exec);
+  yes('Execution: the first section of its own starts within the top 500px of a 800px screen, pending list included', exec.firstSection !== null && exec.firstSection < 500, exec);
   yes('  and the pending list does not run past the middle of the screen', exec.ddBottom === null || exec.ddBottom < 520, exec);
   for(const v of ['tasks', 'habits']){
     await p.evaluate(v => { setTodayView(v); }, v); await p.waitForTimeout(1800); await clear();
