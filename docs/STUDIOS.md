@@ -10,7 +10,7 @@ Both rooms follow the same house rules, which are worth knowing first:
 - **Everything stays on this device.** Both rooms work offline. The microphone is analysed as it arrives and dropped; recordings are Blobs in their own IndexedDB stores, never in the JSON state, so a backup (text) does not carry them.
 - **One clock.** Practice minutes are real minutes from the house's one stopwatch (Time tracking); the studios add *what the minutes were spent on*, which no stopwatch knows.
 
-Contents: **Part I — Jazz Studio** · **Part II — Songwriting Studio** · **Part III — how they connect to the rest of the house** · **Part IV — things worth knowing** · **Part V — where to find things**.
+Contents: **Part I — Jazz Studio** · **Part II — Songwriting Studio** · **Part III — shared pieces and cross-room links** · **Part IV — things worth knowing** · **Part V — where to find things**.
 
 ---
 
@@ -449,23 +449,94 @@ Anything a tool makes can be kept: types **line, image, title, progression, groo
 
 # Part III — Shared pieces and cross-room links
 
+The two rooms stay two rooms: separate engines, separate state, separate looks. What joins them is one module, `src/19-studio-shared.js`, which loads after both, wraps their routes (`routes.jazz`, `routes.songwriting`) and draws over what they drew. Every rule below says what it does and where its edge is. The test that holds them all is `smoke-studio.js`.
+
+## III.1 What was always shared
+
 - **The Chord-Scale Map** is written once (`19-sng-c-theory.js`) and read by both rooms: the Songwriting Studio shows it and the melody generator draws from it; the Jazz Studio's soloist (`jzsSets`) calls it for scale choice and "inside to outside".
-- **The groove engine** (songwriting) and the **backing band** (jazz) are *separate* engines: songwriting plays 55 styles from step-data patterns; jazz generates walking bass/ride/comping by rule for Siskind exercises and charts. Both are lookahead-scheduled on the Web Audio clock.
-- **The engraver** (OSMD, lazy-loaded) draws the jazz exercises, the editor, Play-to-compose and the Repertoire; the Songwriting Studio does not engrave (its notation is a piano-roll and chord names).
-- **Hearing the piano** (`19-listen-*`) is Jazz-Studio-housed but serves the whole house ("Everything downstream listens to this and never asks where a note came from").
+- **The groove engine** (songwriting) and the **backing band** (jazz) are *separate* engines: songwriting plays 55 styles from step-data patterns; jazz generates walking bass/ride/comping by rule for Siskind exercises and charts. Both are lookahead-scheduled on the Web Audio clock. The studio module does not merge them; it only *chooses band settings* for a progression handed across (III.5).
+- **The engraver** (OSMD, lazy-loaded) draws the jazz exercises, the editor, Play-to-compose and the Repertoire. The Songwriting Studio's own view of a melody stays the piano-roll; "Show as notation" (III.8) opens a read-only engraving in a window and is the only place it uses the engraver.
+- **Hearing the piano** (`19-listen-*`) is Jazz-Studio-housed but serves the whole house ("Everything downstream listens to this and never asks where a note came from"). "Check me on the piano" on a melody (III.8) is that same strip.
+- **Tune Library vs Repertoire; the 42-day ring vs habits; jazz decks out of the Study Deck.** These separations are deliberate and unchanged. A tune handed across is a *synthetic* tune that lives for the page (ids `studio-lab`, `studio-song-<id>`, `studio-seed-<id>`) and is never written to the tune library.
+
+## III.2 The one small row: `S.studio`
+
+One meta row (`META_KEYS` includes `'studio'`), versioned and additive: `{v: 1, bar: {collapsed}, bridgesDismissed: {key: true}, practiceToWriting: false, vocalRangeNoticeSeen: false}`. It holds **no user content**. A backup without the row restores and means the defaults; the row is written the next time anything saves. `studioState()` is the only reader. Seed `source` (III.8) is the only other field that changed shape, and it is additive too (below).
+
+## III.3 The studio bar, minutes, and one vocal range
+
+- **The bar** sits above each room's own header: the two rooms as tabs; *today's minutes in each* (and the week in the tooltip), read from the Time-tracking clock — entries whose `feature` is the room; and "Continue in the other room: …" (from Jazz: the Songwriting morning page or the next Path exercise; from Songwriting: *Today's plan — N of M done*, read by peeking at the stored plan, never by generating one). It folds to one word (`bar.collapsed`). It changes nothing in either room.
+- **Minutes.** The Songwriting Studio used not to touch the clock. Its *work* pages (an exercise, a tool, a song, the Capstone) now ask the clock to start the way Jazz exercise pages always did — only when automatic tracking is on and nothing else is running; Today, the Path and the Seedbank start nothing. Leaving the room stops its own entry (`timeAutoStop`).
+- **One vocal range.** The Jazz Studio keeps `S.jazz.settings.vocalRange {lowMidi, highMidi}`; the Songwriting profile keeps `lowNote`/`highNote`. `studioSetVocalRange()` writes both; everything that warns about range (the Melody Sketcher and Generator, the Jazz "sing it" panel, the Song Desk) reads `studioVocalRange()`. The Songwriting first-visit card is prefilled from the Jazz range. If old data holds two *different* ranges, a one-time notice asks which both should use (or "Keep both"), and `vocalRangeNoticeSeen` stops it asking again. Nothing is changed without that choice.
+
+## III.4 Hand-offs: `?from=&ref=`
+
+- **The address.** `studioLink(target, ref, from)` adds a query suffix: `#/jazz/playalong?from=songwriting&ref=lab`, `…?ref=song:<id>`, `…?ref=seed:<id>`, `#/songwriting/tool/chord-lab?from=jazz&ref=tune:<id>:<startBar>-<endBar>` or `…ref=exercise:<id>:<key>`. The router's `parseHash()` now returns `{name, params, query}` and every route ignores the query, so a refresh and Back work.
+- **Resolution.** `studioReadHandoff()` parses and validates; `studioResolveRef()` looks the reference up in persisted data (the Chord Lab's last settings, `songs[]`, `seeds[]`, the tune database, the exercise catalogue). If it no longer resolves (a deleted song), the page shows a calm notice and opens as usual.
+- **Nothing is written by a hand-off.** The target decides what to load; user data changes only when the person presses Keep/Save in the target room. The one exception is the Chord Lab's *working progression*, which is scratch by nature (and applied once per address, stamped in `S._studioApplied`, so a redraw does not re-apply it).
+
+## III.5 Progressions across the door
+
+- **Two converters** (`studioRomanToSymbols`, `studioSymbolsToRoman`) carry a progression between the Chord Lab's Roman numerals (with a key and a colour) and the Jazz Studio's chord symbols, on theory both rooms already have (`sngParseRoman`, `jazzParseChord`). They never throw — a token they cannot read comes back as the text it was. Symbols come back **ASCII-flat** (`Eb`, `Bb7`); `studioPretty` prints ♭/♯.
+- **Edges.** The Chord Lab holds eight bars, one chord to a bar: a longer selection is cut to the first eight, and a bar with two chords gives its first — and the page says so.
+- **Into the play-along.** From the Chord Lab, a Song Desk song or a seed, "Play along in the Jazz Studio" opens the play-along on a synthetic tune. The band follows the groove you chose where the table `STUDIO_GROOVE_TO_BAND` says so (the Jazz-family grooves: Charleston, reverse Charleston, two-feel, walking, swing, ballad, bossa); any other groove is read by its *name* the way the band's own defaults read an exercise's name (bossa/latin → bossa, ballad → ballad, otherwise swing) and the page says "plays its own defaults for this groove". Band settings live in memory (`S._studioPlay`), not in the tune's saved settings.
+- **From Jazz into the Chord Lab.** A tune (and the bars you are looping), or an exercise that *is* a progression (a ii–V–I, the minor ii–V–i, the blues, rhythm changes — in the key shown), gets "Open in Chord Lab" / "Write with this" / "Keep progression in Seedbank". An exercise that is not a progression shows no button.
+
+## III.6 One analysis, two vocabularies
+
+`studioFindPatterns` / `studioAnalyseSymbols` hold the Jazz Studio's pattern finder (ii–V–I, minor ii–V–i, tritone substitution, turnaround, blues and rhythm-changes spans), moved out of `jazzTuneAnalysis` so both rooms read the same rules. **The Jazz output is exactly what it was** — `smoke-studio.js` compares the spans bar-for-bar on So What, Blues for Alice, Anthropology, Oleo and Autumn Leaves, and the whole 76-tune analysed set was compared before and after. The colours are one table (`STUDIO_PATTERN_COLOURS`, which fills `JAZZ_TUNE_PATTERNS`). In the Chord Lab and on a Song Desk section, the progression is coloured with the same patterns, each with its reason on hover and, where one exists, "Practise this pattern in all twelve keys" linking to the matching Jazz exercise (`STUDIO_PATTERN_EXERCISE`).
+
+**The Listening Room from a Real Book tune.** "Start from a Real Book tune" searches the 917 entries and *prefills* sections and bar counts, key, and the chords as Roman numerals (by the converter); the Jazz tune page has "Analyse as a songwriter". Nothing is kept until "Keep as a listening note", and then only the tune's **id** and the person's own fields are stored: what the Jazz Studio found is read live from the tune each time. The database has no lyrics, and none are added. An entry the Jazz Studio has not analysed (most of the 917) brings its title only.
+
+## III.7 "In the other room": curriculum bridges
+
+`STUDIO_BRIDGES` is a short, static, editable list (15 entries) of where one room's lessons meet the other's — a stage, exercises, a tool, a tab or a page on each side, one sentence of *why*, and a `direction`. Each is checked against the real catalogues by the smoke test (every id resolves; every exercise is in the stage it is filed under). A small collapsible card **"In the other room"** shows the bridged items with their reason and a direct link on: each open Jazz stage on the roadmap; a Jazz exercise page (the entries naming that exercise, else its stage's) and the Mindset page; a Songwriting stage, exercise, tool, Listening and Capstone page. **It is advice only**: it never affects readiness, the daily plan, stage lighting or a badge. "Hide for this stage" is remembered per place in `bridgesDismissed` and leaves a "show" link.
+
+*Names that differ from the brief:* in the catalogue, "Singing While You Play" is stage `DT`; the voice stages `V1`–`V6` are scat syllables … writing for voices. The bridge uses `DT` for singing-while-playing and `V6` for writing for voices.
+
+## III.8 The Seedbank as the shared shelf
+
+- **Source can say where it came from.** A seed's `source` was always a string (the tool). It may now also be `{room: 'jazz', kind: 'tune' | 'exercise' | 'recording' | 'compose' | 'page', id, bars?}`. Both forms are read everywhere (`studioSeedSource`); old strings are never rewritten. A seed from Jazz shows a small 🎷 and "Open where it came from".
+- **Jazz "+".** Every Jazz page's contextual "+" offers **A seed (Songwriting Seedbank)**: a small form prefilled from where you are (the tune and the bars you loop, or the exercise in the key shown) with a source that points home. Nothing is kept until "Keep it". The Songwriting room's own quick-add entries are unchanged.
+- **Melodies as seeds.** A melody seed carries `data.melody = {notes: [{midi, t, d}], keyPc, colour, bpm, beats, prog}` (times in beats) — what the Melody Sketcher keeps. So it re-sounds ("▶ hear it"), opens in the Melody Sketcher (a *copy* is made when you press it, not before), is shown as notation, and is checked on the piano. **Play to compose** gains "Send to Seedbank as a melody" (the top note at each onset, each as long as it sounds); "Save to Repertoire" is exactly as it was. The Sketcher's own "Keep in the Seedbank" now carries its notes too.
+- **Check me on the piano / Show as notation** are on a Seedbank melody and on a Song Desk section's melody. *Show as notation* writes MusicXML from the notes (`studioMelodyXml`: one treble staff, a sixteenth grid, notes tied over bar lines) and draws it with the existing lazy engraver in a window — read-only, no editor, no new dependency. *Check me on the piano* opens the existing Play-it strip on the same engraving.
+- **Recorded takes are never copied into JSON.** "Keep as a voice-memo seed" on a Jazz take stores a **reference** to the Jazz recording (`audioRef: {store: 'jazzAudio', id}`) and plays it from there; the Blob never enters the seed. If the take is deleted in the Jazz Studio, the memo says "that take is no longer on this device" instead of failing. *Choice:* reference, not Blob-to-Blob copy, because it keeps a single copy of the sound and one place to delete it.
+
+## III.9 The opt-in practice-to-writing loop
+
+One setting, off by default — **"Let my practice suggest writing prompts (and vice versa)"** (`practiceToWriting`; the switch sits at the foot of Songwriting Today and of the Jazz plan page). When on:
+
+- **Songwriting Today** shows **From your jazz practice**, built by rule from the Jazz Studio's *current module* (the first module of the stage you are on whose exercises are not all mastered) and the keys you own on its exercises (`S.jazz.progress[id].keys`), e.g. "Your current module is Shells & one-handed voicings. Write a four-bar progression that lands a ii–V–I under the title line, in a key you already own (E♭, A♭)", with a link into the Chord Lab (prefilled when one of the module's exercises is a progression). **No jazz progress, no card.** The sentence comes from a small table (`STUDIO_MODULE_PROMPTS`) keyed on the module.
+- **The Jazz plan page** shows **Optional: today's songwriting warm-up** (the Kachulis warm-up, rotated by day of the month) as a link. It is drawn *outside* the generated plan and its minutes; `generateDailyPlan` is not read differently and its output for a fixed state and date is unchanged (the smoke test holds three plans to a recorded signature).
+
+Independently of the setting, the Chord Lab's **key picker marks keys where you already own the related Jazz pattern** with a small ● (ii–V–I for major, the minor ii–V–i for minor, the 12-bar blues for blues), with the tooltip "You own ii–V–I in this key (Jazz Studio)". Information only.
+
+## III.10 One vocabulary for the shared pieces
+
+Presentation only; each room's logic is its own.
+
+- `studioSeedControl` — "Seed 48213 · Same again · New" for the Jazz generated soloist and the Melody Generator (same seed, same output, as before).
+- `studioExplainPanel` — the per-note rules behind "show the solo" and "Explain this melody": one layout, headed *what it measured*.
+- `studioProgress` — the bar for advice, not locks: the Path's stage cards and the Jazz readiness count use the same colour ramp (`--studio-ramp-*`) and the tooltip "Advice, not a lock."
+- `studioSourceChip` — a citation as one chip (book · unit/chapter · page): Jazz references and golden tips, Songwriting exercise sources and stage books.
+- `studioHonestyBadge` — one badge for "written from a sentence", approximate/unverified notes, "heuristic" (the Songwriting checks) and "simplified standard version" (the grooves).
+- `studioDeviceLocalNote` — the same words wherever a recording is made or kept: "Kept on this device only. Not in your backup — export notes, MIDI or MusicXML to take it elsewhere."
+- `studioCardDeck` — a shared frame for the Jazz flashcards, the lead-sheet cards and the Writer's-Block Deck (what is on a card, how it is dealt and how it is graded stay in each room). *Not done:* the golden tips keep their own list layout.
+- `studioTapTempo` — one tap-tempo function: the Chord Lab and Metronome use it, and the Jazz band's tempo boxes gained a tap button. *Not done:* the two click engines stay separate.
+- **Habit fixture** — `habFixturesForRoom` renders the same component on `#/jazz/plan` and on Songwriting Today.
 
 ---
 
 # Part IV — Things worth knowing
 
-1. **Both rooms are guided but never gating.** Readiness (jazz) and stage-lighting (songwriting) are advice. The only gate is the optional Jazz setting "one stage at a time" (`settings.gate`, off).
+1. **Both rooms are guided but never gating.** Readiness (jazz) and stage-lighting (songwriting) are advice. The only gate is the optional Jazz setting "one stage at a time" (`settings.gate`, off). The cross-room cards (III.7, III.9) are advice in the same way and never move it.
 2. **Key ownership is earned by evidence in the Jazz Studio.** The cards' three-nailed rule and the Play-it strip's three-passes rule are the two "automatic" routes; the grid can be hand-marked too, but then it is your word against the cold ask.
 3. **Jazz exercise IDs are permanent.** Everything you practised follows the ID across the v3 re-homing; a record whose exercise left the book is kept.
 4. **Where the v3 document and the books disagree, both are shown** (`#/jazz/about`), not silently merged.
 5. **Some notation is "from a sentence."** Document entries that only *describe* a score are written out in `19-jazz-o-v3build.js` and carry an accuracy mark saying so; the book-checked ones have their own accuracy marks. `noteAccuracy` warnings appear where notes aren't verified against the printed page.
 6. **The Songwriting checks are heuristics.** Syllable counting, stress marking, POV/tense and "abstract" word lists are simple rules (and say they are). They are there to point, not to judge: "Every check is a rule that can be read here. None of them knows what a line means; each says what it measured, and the writer decides."
 7. **The melody generator and the soloist are not AI.** Same seed, same output. Both show their rules per note.
-8. **Recordings never go in the backup.** Jazz recordings (`jazzAudio`), takes and Play-to-compose sound, and songwriting voice memos (`sngAudio`) are device-local; export the notes/MusicXML/MIDI if you want them elsewhere.
+8. **Recordings never go in the backup.** Jazz recordings (`jazzAudio`), takes and Play-to-compose sound, and songwriting voice memos (`sngAudio`) are device-local; export the notes/MusicXML/MIDI if you want them elsewhere. A seed that points at a Jazz take holds only the pointer (III.8); both rooms say the same sentence about it.
 9. **Synthesised sound is a sketch.** The room says its drum and bass patterns are "simplified standard versions" and the synthesised voices are not a production tool; the *grand piano* is the exception (real samples).
 10. **The microphone is optional.** MIDI keyboard, on-screen keys and "tell me how it went" all work for the jazz cards and Play-it features; the mic is what makes an acoustic piano count.
 11. **Not every module of the Jazz Studio has full per-exercise enrichment.** Stages P0–12 carry full per-exercise data; the newer stages (6A, 13, 15, V1–V4 in the catalogue) carry stage-level data and fall back to it (`jazzMergeEnrichment`) for exercises without their own.
@@ -491,6 +562,10 @@ Anything a tool makes can be kept: types **line, image, title, progression, groo
 | Songwriting curriculum data | `19-sng-a-data.js` |
 | Songwriting styles / theory / audio | `19-sng-b-styles.js`, `-c-theory.js`, `-d-audio.js` |
 | Songwriting state, page, tools | `19-sng-e-state.js`, `-f-page.js`, `-g-tools.js`, `-h-lyric.js`, `-i-melody.js`, `-j-songs.js` |
-| Tests | `smoke*.js` (the songwriting and jazz smokes; `tools/listen-harness.js` for piano-input accuracy) |
+| The studio module: bar, one vocal range, hand-offs, converters, shared analysis, bridges, Seedbank shelf, the practice-to-writing loop, shared pieces | `src/19-studio-shared.js` (its CSS block is marked `studio synergy` in `src/02-css-sections.html`) |
+| The router's query suffix | `parseHash()` in `src/04-core.js` (`{name, params, query}`) |
+| The `S.studio` row and the backup | `META_KEYS` in `src/06-db.js`; `studioState()` |
+| Where each room calls the shared module | Jazz: `19-jazz-page.js` (Write with this, references), `-q-tunes.js` (analysis), `-r-tunesui.js` (tune buttons), `-t-tools.js` (play-along, recorder takes), `-y-backing.js` / `-z-band.js` (band, tap tempo, seed control), `-zz-solo.js` (explain panel); Songwriting: `19-sng-f-page.js` (first visit, Seedbank), `-g-tools.js` (Chord Lab), `-i-melody.js` (Sketcher, Generator), `-j-songs.js` (Song Desk, Listening Room); Play to compose: `19-listen-h-composeui.js` |
+| Tests | `smoke*.js` (the songwriting and jazz smokes; `smoke-studio.js` for everything in Part III; `tools/listen-harness.js` for piano-input accuracy) |
 
 *Companion docs:* `docs/GUIDE.md` (every area of the site), `docs/INNER-LIFE.md` (the inward-facing rooms), `docs/PURPOSE.md` (the Purpose layer).

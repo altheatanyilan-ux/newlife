@@ -4,7 +4,7 @@ This is the user's guide. The [README](../README.md) is for building and maintai
 
 For the inward half in depth — journals, the Morning Theatre, stillness and divination, values, the Skill Tree, people, the Knowledge Tree, the reviews, and the quiet mechanisms behind them — see the companion [**INNER-LIFE.md**](INNER-LIFE.md), which is written from the code and says which parts of this guide are out of date.
 
-The two music rooms in depth — the Jazz Studio's curriculum, twelve-key flashcards, daily plan, tune library, band and piano input, and the Songwriting Studio's Path, thirteen tools and rule engines — are in [**STUDIOS.md**](STUDIOS.md).
+The two music rooms in depth — the Jazz Studio's curriculum, twelve-key flashcards, daily plan, tune library, band and piano input, and the Songwriting Studio's Path, thirteen tools and rule engines, and how the two rooms connect (the studio bar, hand-offs, "In the other room" cards, the Seedbank as a shared shelf) — are in [**STUDIOS.md**](STUDIOS.md).
 
 The Knowledge Tree — pages, positions, grafts, tending, proof — has its own long explanation in [**KNOWLEDGE-TREE.md**](KNOWLEDGE-TREE.md).
 
