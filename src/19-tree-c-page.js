@@ -23,6 +23,7 @@ routes.tree = function(root, params){
   registerPageEntry && registerPageEntry({pageName: 'Knowledge Tree', addLabel: 'New page', defaultEntryType: 'tree', prefilledFields: {},
     options: [{label: 'New page', run: () => treeNewPageDialog({})}, {label: 'Quick capture (Alt+K)', run: () => treeQuickCapture()}]});
   if(v === 'p' && a){ const n = treeResolve(decodeURIComponent(a)); if(n && n.slug !== decodeURIComponent(a)){ navigate(treeUrl(n)); return; } return treePageRoute(root, n, decodeURIComponent(a)); }
+  if(typeof icsRoute === 'function'){ const r = icsRoute(v, root, a); if(r !== undefined) return r; }
   if(v === 'outline') return treeOutlineRoute(root);
   if(v === 'inbox') return treeInboxRoute(root);
   if(v === 'search') return treeSearchRoute(root);
@@ -72,6 +73,7 @@ function treePageRoute(root, n, wanted){
         : `<p class="faint">No position yet. What do you currently hold about this, and how sure are you?</p>`}
       <button class="btn sm" id="trRevise">${cur ? 'Revise position' : 'State a position'}</button>
     </section>
+    ${typeof icsMasteryHTML === 'function' ? icsMasteryHTML(n) : ''}
     ${typeof icsWhyHTML === 'function' ? icsWhyHTML(n) : ''}
     ${typeof icsBodyHTML === 'function' ? icsBodyHTML(n) : `<article class="tr-body prose">${(n.body || '').trim() ? treeRender(n.body) : '<p class="faint">Nothing written here yet.</p>'}</article>`}
     ${typeof icsPageAfterTextHTML === 'function' ? icsPageAfterTextHTML(n) : ''}
@@ -86,6 +88,7 @@ function treePageRoute(root, n, wanted){
         return `<li class="tr-leaf ${l.room}"><span class="tr-room">${{library: 'Library', journal: 'Journal', writing: 'Writing'}[l.room]}</span>${e ? treeEntryLinkHTML(e) : '<span class="faint">(the entry is gone from its room)</span>'}${l.note ? `<span class="faint"> — ${esc(l.note)}</span>` : ''}<button class="tbtn sm" data-trunleaf="${l.id}" aria-label="Detach">×</button></li>`; }).join('')}</ul>`
         : (n.kind === 'point' ? '<p class="tr-warn soft">Citation needed: nothing in the Library, Journal or Writing is attached yet.</p>' : '')}</section>
     ${treeGraftsHTML(n)}
+    ${typeof icsMistakesHTML === 'function' ? icsMistakesHTML(n) : ''}
     ${treeProofOnPageHTML(n)}
     <section class="tr-sec"><div class="tr-sechead"><h2>What links here</h2><span class="faint">${back.length || 'nothing yet'}</span></div>
       ${back.length ? `<ul class="tr-back">${back.map(b => `<li>${treeKindMark(b)}<a href="${treeUrl(b)}">${esc(b.title)}</a></li>`).join('')}</ul>` : ''}</section>
@@ -103,6 +106,7 @@ function treePageRoute(root, n, wanted){
     ['Seal a prediction', () => treePredictDialog(n, () => treePageRoute(root, n))],
     ['Record an experiment', () => treeExperimentDialog(n, () => treePageRoute(root, n))],
     ['Review it now', () => treeReviewDialog(n, () => treePageRoute(root, n))],
+    ['Log a mistake', () => icsMistakeDialog(n, {}, () => treePageRoute(root, n))],
     ...(typeof icsIsSplit === 'function' ? [[icsIsSplit(n) ? 'Put Collected and Processed back together' : 'Split into Collected and Processed', () => { const b = root.querySelector('[data-act="split-toggle"]'); if(b) b.click(); }]] : []),
     ...(typeof icsCanOpenInStudio === 'function' && icsCanOpenInStudio(n) ? [['Open in Studio', () => icsOpenInStudio(n.id)]] : []),
     ...Object.keys(TREE_STATUS).filter(s => s !== n.status).map(s => [`Mark ${TREE_STATUS[s].toLowerCase()}`, () => { treeSetStatus(n.id, s); treePageRoute(root, n); }])

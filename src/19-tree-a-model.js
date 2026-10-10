@@ -263,19 +263,21 @@ const TREE_REVIEW_DAYS = [3, 14, 61, 183, 365];
 function treeAddDays(iso, d){ const x = new Date(iso + 'T12:00:00'); x.setDate(x.getDate() + d); return x.toISOString().slice(0, 10); }
 function treeScheduleReview(nodeId){
   if(S.treeReviews.some(r => r.nodeId === nodeId)) return;
-  S.treeReviews.push({id: uid(), nodeId, step: 0, dueAt: treeAddDays(treeToday(), TREE_REVIEW_DAYS[0]), history: []});
+  const i = typeof icsInitialRung === 'function' ? icsInitialRung() : 0, d = typeof icsLadder === 'function' ? icsLadder()[i] : TREE_REVIEW_DAYS[0];
+  S.treeReviews.push({id: uid(), nodeId, step: i, dueAt: treeAddDays(treeToday(), d), history: []});
 }
+/* An answer given outside the review flow (no recall behind it). Holding moves a page out a rung, doubt brings it
+   back to the start, and revising now moves it out too: rethinking a position is the most effortful answer there is. */
 function treeReviewAnswer(nodeId, verdict){
   treeScheduleReview(nodeId);
-  const r = S.treeReviews.find(x => x.nodeId === nodeId);
+  const r = S.treeReviews.find(x => x.nodeId === nodeId), l = icsLadder();
   r.history.push({date: treeNow(), verdict});
-  /* holding moves it out along the ladder; doubting brings it back to the start; revising keeps its place */
-  r.step = verdict === 'hold' ? Math.min(TREE_REVIEW_DAYS.length - 1, r.step + 1) : verdict === 'doubt' ? 0 : r.step;
-  r.dueAt = treeAddDays(treeToday(), TREE_REVIEW_DAYS[r.step]);
+  r.step = verdict === 'doubt' ? 0 : Math.min(l.length - 1, r.step + 1);
+  r.dueAt = treeAddDays(treeToday(), l[r.step]); r.lastReviewedAt = treeNow();
   treeTouch(nodeId); save();
   return r;
 }
-function treeDueReviews(){ const t = treeToday(); return S.treeReviews.filter(r => r.dueAt <= t && treeNode(r.nodeId) && treeNode(r.nodeId).status !== 'pruned').sort((a, b) => a.dueAt < b.dueAt ? -1 : 1); }
+function treeDueReviews(){ return S.treeReviews.filter(r => icsIsDue(r)).sort((a, b) => a.dueAt < b.dueAt ? -1 : 1); }
 
 /* ---------- export and import of the Tree alone ---------- */
 function treeExport(){

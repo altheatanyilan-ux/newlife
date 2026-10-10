@@ -204,6 +204,7 @@ function treeProofRoute(root){
     ${done.length ? `<details class="tr-earlier"><summary>Resolved (${done.length})</summary>${done.map(treePredictionHTML).join('')}</details>` : ''}
     <section class="tr-sec"><div class="tr-sechead"><h2>Experiments</h2><span class="faint">${ex.length ? `${ex.length} · ${tot.k} hits in ${tot.n} trials in all` : 'none recorded'}</span></div>
       ${ex.map(x => { const n = treeNode(x.nodeId); return `<div class="tr-predwrap"><a class="faint" href="${n ? treeUrl(n) : '#'}">${esc(n ? n.title : '')}</a>${treeExperimentHTML(x)}</div>`; }).join('')}</section>
+    ${typeof icsProofExtraHTML === 'function' ? icsProofExtraHTML() : ''}
   </div>`;
   treeBindNav(root); treeBindProof(root, null);
 }

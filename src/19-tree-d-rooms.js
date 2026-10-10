@@ -35,12 +35,15 @@ function treeHomeRoute(root){
         <a class="tr-tile" href="#/tree/gaps" title="${esc(treeGapTitle())}"><b>${treeGaps().total}</b><span>gaps</span></a>
         <a class="tr-tile" href="#/tree/proof"><b>${S.treePredictions.filter(p => !p.resolvedAt).length}</b><span>sealed predictions</span></a>
         <div class="tr-tile quiet"><b>${due}</b><span>due to resurface</span></div>
+        ${typeof icsHomeTilesHTML === 'function' ? icsHomeTilesHTML() : ''}
+        ${typeof icsLadderSettingsHTML === 'function' ? icsLadderSettingsHTML() : ''}
         <div class="tr-keys faint"><kbd>Alt</kbd>+<kbd>K</kbd> quick capture, from any room</div>
         <div class="row" style="gap:6px;flex-wrap:wrap"><button class="tbtn" id="trExp2">Export</button><label class="tbtn" style="cursor:pointer">Import<input type="file" accept=".json,application/json" id="trImp" hidden></label></div>
       </aside>
     </div>
   </div>`;
   treeBindNav(root);
+  if(typeof icsBindLadder === 'function') icsBindLadder(root);
   treeBindTend(root);
   root.querySelectorAll('[data-trtw]').forEach(b => b.onclick = () => { const id = b.dataset.trtw; S.treePrefs.outlineOpen[id] = S.treePrefs.outlineOpen[id] === false; save(); treeHomeRoute(root); });
   const first = root.querySelector('#trFirst'); if(first) first.onclick = () => treeNewPageDialog({kind: 'root'});

@@ -43,7 +43,7 @@ function icsImportanceMarkHTML(n){
   return n.importance ? `<span class="tr-importance" data-v="${n.importance}" title="${ICS_IMPORTANCE[n.importance]}">${ICS_IMPORTANCE_MARK[n.importance]}</span>`
     : `<span class="tr-importance undecided" title="Importance not decided">···</span>`;
 }
-function icsTitleMarksHTML(n){ return `${icsImportanceMarkHTML(n)}${n.backbone ? '<span class="tr-backbone" title="Part of the trunk">▲</span>' : ''}`; }
+function icsTitleMarksHTML(n){ return `${icsImportanceMarkHTML(n)}${typeof icsMasteryPillHTML === 'function' ? icsMasteryPillHTML(n) : ''}${n.backbone ? '<span class="tr-backbone" title="Part of the trunk">▲</span>' : ''}`; }
 function icsKidMarksHTML(k){
   const ch = icsChunksOf(k.id).map(c => c.title);
   return `${icsImportanceMarkHTML(k)}${k.backbone ? '<span class="tr-backbone" title="Part of the trunk">▲</span>' : ''}${ch.length ? `<span class="tr-chunktags faint" title="in a chunk">${esc(ch.join(' · '))}</span>` : ''}`;
@@ -101,6 +101,9 @@ function icsSaveQuestion(input){
   if(!ICS_QUESTION_KINDS[input.kind]) throw new Error('bad kind: ' + input.kind);
   if(!Array.isArray(S.treeQuestions)) S.treeQuestions = [];
   const old = input.id ? S.treeQuestions.find(x => x.id === input.id) : null;
+  /* a sealed challenge question takes no answer before its date, whoever calls */
+  if(old && old.kind === 'challenge' && input.answer && typeof icsIsLocked === 'function' && icsIsLocked(old)) throw new Error('this question is sealed until ' + old.answerNotBefore);
+  if(!old && input.kind === 'challenge' && input.answer && input.answerNotBefore && input.answerNotBefore > treeToday()) throw new Error('this question is sealed until ' + input.answerNotBefore);
   const q = Object.assign({id: uid(), createdAt: treeNow(), answeredAt: null, answerNotBefore: null, selfMade: true, retiredAt: null}, old || {}, {
     pageId: input.pageId || (old && old.pageId), kind: input.kind, text, answer: String(input.answer != null ? input.answer : (old ? old.answer : '') || '')});
   if(input.answerNotBefore !== undefined) q.answerNotBefore = input.answerNotBefore;
@@ -139,7 +142,7 @@ function icsLinkSource(n){
   return [n.body, n.openQuestion, n.whyImportant, n.collected, n.processed, qs].map(x => x || '').join('\n');
 }
 function icsInquiryHTML(n){
-  const qs = icsQuestionsFor(n.id), L = icsTrafficLights(n.id);
+  const qs = icsQuestionsFor(n.id).filter(q => q.kind !== 'challenge'), L = icsTrafficLights(n.id);
   return `<section class="tr-question tr-inquiry"><span class="tr-lbl">What would change my mind?</span>${(n.openQuestion || '').trim() ? `<div>${treeRender(n.openQuestion)}</div>` : '<p class="faint">Not yet asked.</p>'}
     <div class="tr-qhead"><span class="tr-lbl">Questions</span><span class="tr-lights" aria-label="${L.red} red, ${L.amber} amber, ${L.green} green"><i class="light red">${L.red}</i><i class="light amber">${L.amber}</i><i class="light green">${L.green}</i></span></div>
     ${qs.length ? `<ul class="tr-questions">${qs.map(q => `<li data-status="${q.status}" data-q="${q.id}"><span class="light ${q.status}" title="${{red: 'Unanswered', amber: 'Answered, not yet connected', green: 'Answered and integrated'}[q.status]}"></span>
@@ -148,7 +151,8 @@ function icsInquiryHTML(n){
       ${q.answer ? `<details><summary>Answer</summary><div class="prose">${treeRender(q.answer)}</div></details>` : ''}
       <span class="tr-qbtns"><button type="button" class="tbtn sm" data-act="q-answer" data-q="${q.id}">${q.answer ? 'Revise answer' : 'Answer'}</button><button type="button" class="tbtn sm" data-act="q-edit" data-q="${q.id}">Edit</button><button type="button" class="tbtn sm" data-act="q-drop" data-q="${q.id}">Let it go</button></span></li>`).join('')}</ul>` : '<p class="faint">No questions yet.</p>'}
     <div class="tr-q-add">${['what', 'why', 'how', 'personal'].map(k => `<button type="button" class="tbtn sm" data-act="q-new" data-kind="${k}">+ ${ICS_QUESTION_KINDS[k].short}</button>`).join('')}<button type="button" class="tbtn sm" data-act="q-scaffold">Suggest four questions</button></div>
-    <p class="faint tr-hint">Green means answered <em>and</em> connected to another page. Don’t ask questions you already know the answer to.</p></section>`;
+    <p class="faint tr-hint">Green means answered <em>and</em> connected to another page. Don’t ask questions you already know the answer to.</p>
+    ${typeof icsChallengesHTML === 'function' ? icsChallengesHTML(n) : ''}</section>`;
 }
 function icsQuestionDialog(n, o, after){
   o = o || {};
@@ -324,4 +328,5 @@ icsRegisterGapRule({type: 'chunk-no-reason', label: 'A chunk with no reason',
 /* ---------- the page binds all of it ---------- */
 function icsBindPageMore(root, n){
   icsBindWhy(root, n); icsBindInquiry(root, n); icsBindSplit(root, n); icsBindChunks(root, n);
+  if(typeof icsBindPageRetrieve === 'function') icsBindPageRetrieve(root, n);
 }

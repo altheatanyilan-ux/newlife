@@ -258,6 +258,192 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('chunks travel in the export, and import adds nothing twice', await E(() => { const blob = JSON.parse(JSON.stringify({kind: 'life-instrument-knowledge-tree', version: 1, data: Object.fromEntries(TREE_STORES.map(k => [k, S[k]]))})); return blob.data.treeChunks.length >= 3 && treeImport(blob).added.treeChunks === 0; }));
   yes('no page errors in Phase 2', errs.length === 0, errs);
 
+  console.log('\nA-10. the ladder');
+  const ld = await E(() => {
+    const o = {};
+    o.valid = [icsValidateLadder([0, 1, 3, 7]), icsValidateLadder([3, 3]) !== null, icsValidateLadder([5]) !== null, icsValidateLadder([1, 2.5]) !== null, icsValidateLadder([-1, 2]) !== null];
+    o.keep = (() => { const before = icsLadder().slice(); const e = icsSetLadder([5, 2]); return [e !== null, JSON.stringify(icsLadder()) === JSON.stringify(before)]; })();
+    const p = mk({title: 'Ladder page'}); const id = p.id;
+    o.initial = icsGetRung(id);
+    icsSetRung(id, 2); icsScheduleOutcome(id, 1); o.had = icsGetRung(id);
+    icsScheduleOutcome(id, 0.5); o.patchy = icsGetRung(id);
+    icsScheduleOutcome(id, 0); o.missed = icsGetRung(id);
+    icsSetRung(id, 2); icsApplyBeliefAnswer(id, 'revise', {score: 1}); o.revise = icsGetRung(id);
+    icsApplyBeliefAnswer(id, 'doubt', {score: 1}); o.doubt = icsGetRung(id);
+    icsSetRung(id, 2); icsApplyBeliefAnswer(id, 'hold', {score: 1}); o.hold = icsGetRung(id);
+    icsSetRung(id, 2); icsApplyBeliefAnswer(id, 'revise', {score: 0}); o.reviseBad = icsGetRung(id);
+    /* same-day rung waits four hours */
+    icsSetRung(id, 0); const r = S.treeReviews.find(x => x.nodeId === id); r.dueAt = treeToday(); r.lastReviewedAt = treeNow(); o.sameDayWait = icsIsDue(r); r.lastReviewedAt = new Date(Date.now() - 5 * 36e5).toISOString(); o.sameDayLater = icsIsDue(r);
+    treeSetStatus(id, 'pruned'); r.dueAt = '2020-01-01'; o.pruned = icsIsDue(r); treeSetStatus(id, 'active');
+    /* a legacy page keeps its date and maps to the nearest rung */
+    const lg = mk({title: 'Legacy page'}); const lr = S.treeReviews.find(x => x.nodeId === lg.id); lr.step = 2; lr.dueAt = '2026-12-01'; S.treePrefs.ladderMigrated = false;
+    icsMigrateLadder(); o.legacy = [lr.step, lr.dueAt]; icsMigrateLadder(); o.legacy2 = lr.step;
+    o.line = icsRungLine(id).slice(0, 4);
+    return o; });
+  is('a valid ladder passes; a bad one is named', ld.valid, [null, true, true, true, true]);
+  is('a rejected ladder leaves the old one in place', ld.keep, [true, true]);
+  is('a new page is first asked at about three days, as before', ld.initial, 2);
+  is('Had it moves out a rung; Patchy holds it; Missed it resets it', [ld.had, ld.patchy, ld.missed], [3, 3, 0]);
+  is('revise moves out when the recall was at least patchy; doubt resets; hold does not double-advance', [ld.revise, ld.doubt, ld.hold, ld.reviseBad], [3, 0, 2, 2]);
+  is('a same-day rung waits a few hours; pruned pages are never due', [ld.sameDayWait, ld.sameDayLater, ld.pruned], [false, true, false]);
+  is('the migration keeps the date and maps 61 days to the 50-day rung, once', [ld.legacy, ld.legacy2], [[5, '2026-12-01'], 5]);
+  yes('Tree Home lets the ladder be edited', await E(() => { location.hash = '#/tree'; return true; }) && (await p.waitForTimeout(500), await E(() => !!document.querySelector('#trLadder #trLadIn'))));
+
+  console.log('\nA-11. mastery');
+  const ms = await E(() => {
+    const pg = mk({title: 'Hadley v Baxendale'}); const o = {start: pg.mastery};
+    const bad = f => { try { f(); return false; } catch(e){ return true; } };
+    o.noEv = bad(() => icsSetMastery(pg.id, 3, '')); o.range = bad(() => icsSetMastery(pg.id, 6, 'x'));
+    icsSetMastery(pg.id, 2, 'explained it to myself without notes'); icsSetMastery(pg.id, 3, 'compared it with Remoteness in writing');
+    const m = treeNode(pg.id).mastery; o.m = [m.level, m.history.length, m.history[0].level];
+    try { m.history[0].level = 5; m.history.push({}); } catch(e){} o.append = treeNode(pg.id).mastery.history.length;
+    treeAddPosition(pg.id, 'Held', 95); o.indep = treeNode(pg.id).mastery.level;
+    const d = icsMasteryDistribution(); o.dist = [d[3] >= 1, typeof d.unassessed];
+    const share = icsShareAtAim(); o.share = share >= 0 && share <= 1;
+    const old = mk({title: 'Old low page'}); treeSavePage({id: old.id, mastery: {level: 1, history: [{date: '2026-01-01', level: 1, evidence: 'flashcards'}]}}); o.stalled = icsIsStalled(treeNode(old.id)) && icsHasGap(old.id, 'mastery-stalled');
+    o.revs = icsRevisionsFor(pg.id).length >= 2;
+    const before = treeNode(pg.id).mastery.history.length; const rv = icsRevisionsFor(pg.id).slice(-1)[0]; icsRestoreRevision(rv.id); o.notRewound = treeNode(pg.id).mastery.history.length === before;
+    o.id = pg.id; o.slug = pg.slug; o.suggest = icsEvidenceSuggestions(pg.id).length; return o; });
+  is('unassessed is null; evidence and the range are required', [ms.start, ms.noEv, ms.range], [null, true, true]);
+  is('two assessments are kept in order, and the history cannot be added to or edited by hand', [ms.m, ms.append], [[3, 2, 2], 2]);
+  is('confidence and mastery are independent', ms.indep, 3);
+  is('the distribution separates unassessed from level one', ms.dist, [true, 'number']);
+  is('a month at a low level is a gap; each change is a version; restoring never rewinds the history', [ms.stalled, ms.revs, ms.notRewound], [true, true, true]);
+  await E(a => { location.hash = '#/tree/p/' + a.slug; }, ms); await p.waitForTimeout(500);
+  yes('the page shows the pill, the ladder and the form', await E(() => !!document.querySelector('.tr-head .tr-mastery[data-level="3"]') && document.querySelectorAll('#trMastery .tr-mastery-ladder li').length === 5 && !!document.querySelector('#trMastery [data-act="mastery-save"]')));
+  await p.fill('#trMastery [name=evidence]', 'taught it aloud'); await p.selectOption('#trMastery [name=level]', '4'); await p.click('#trMastery [data-act="mastery-save"]'); await p.waitForTimeout(400);
+  is('recorded through the form', await E(a => treeNode(a.id).mastery.level, ms), 4);
+  yes('the Home tile and the mastery page show the share', await E(() => { location.hash = '#/tree/mastery'; return true; }) && (await p.waitForTimeout(500), await E(() => /Level 4/.test(document.body.innerText))));
+
+  console.log('\nA-09. recall first');
+  const rc = await E(() => {
+    const pg = mk({title: 'Wagon Mound rule', body: 'Foreseeable kind, not extent.'}); const id = pg.id; const o = {};
+    treeAddPosition(id, 'Loss must be of a foreseeable kind. Unique-phrase-zeta.', 72);
+    const s = icsMakeReviewSession(id);
+    o.prime = !JSON.stringify(s.primeView()).includes('Foreseeable');
+    try { s.revealView(); o.early = false; } catch(e){ o.early = true; }
+    s.begin(); o.short = s.submitRecall('too short').ok;
+    o.ok = s.submitRecall('Loss must be of a foreseeable kind; the extent does not matter.').ok;
+    o.reveal = /Foreseeable/.test(s.revealView().page.body); o.none = icsRetrievalsFor(id).length;
+    const rec = s.grade(0.5); o.one = icsRetrievalsFor(id).length; o.rec = [rec.score, rec.levelTested >= 1, /foreseeable/.test(rec.recallText), rec.rungBefore, rec.rungAfter];
+    o.frozen = Object.isFrozen(rec); o.step = s.step;
+    const s2 = icsMakeReviewSession(id); s2.begin(); s2.submitRecall('something remembered here today'); o.abandoned = icsRetrievalsFor(id).length;
+    const m1 = icsChooseMethod(treeNode(id)); icsRecordRetrieval({pageId: id, method: m1.key, recallText: 'aaa bbb ccc ddd eee', score: 1}); o.rotates = icsChooseMethod(treeNode(id)).key !== m1.key;
+    const s3 = icsMakeReviewSession(id); s3.begin(); o.blank = s3.submitRecall('', true).ok; o.blankScore = s3.grade(0).score;
+    icsSetMastery(id, 4, 'taught it to a study group'); o.lvl4 = icsChooseMethod(treeNode(id)).level >= 4;
+    const bare = mk({title: 'Positionless page'}); const sb = icsMakeReviewSession(bare.id); sb.begin(); sb.submitRecall('a few words here now'); sb.grade(1); o.noBelief = [sb.step, icsRetrievalsFor(bare.id).length];
+    o.id = id; o.slug = pg.slug; return o; });
+  is('nothing leaks in the prime step, and reveal before recall throws', [rc.prime, rc.early], [true, true]);
+  is('a recall under five words is turned back; a real one goes on', [rc.short, rc.ok], [false, true]);
+  is('nothing is written before the grade; the grade writes one frozen record', [rc.none, rc.one, rc.frozen], [0, 1, true]);
+  is('the record carries score, level, recall and the rung before and after', rc.rec[0] === 0.5 && rc.rec[1] && rc.rec[2] && rc.rec[3] === rc.rec[4], true);
+  is('abandoning writes nothing', rc.abandoned, 1);
+  is('the method changes from one review to the next', rc.rotates, true);
+  is('"I remember nothing" proceeds and scores zero', [rc.blank, rc.blankScore], [true, 0]);
+  is('a level-four page is tested by a level-four method', rc.lvl4, true);
+  is('a page with no position skips the belief question and still records', rc.noBelief, ['done', 1]);
+  await E(a => { location.hash = '#/tree/p/' + a.slug; }, rc); await p.waitForTimeout(500);
+  await p.click('#trMore'); await p.click('.tr-menu button:has-text("Review it now")'); await p.waitForTimeout(400);
+  const dom0 = await E(() => document.querySelector('.tr-review').innerHTML);
+  yes('in the prime step the page text, position and questions are not in the document', !/Foreseeable|zeta/.test(dom0) && /Start/.test(dom0));
+  await p.click('[data-act="review-begin"]'); await p.waitForTimeout(200);
+  yes('and not in the recall step either', await E(() => !/Foreseeable|zeta/.test(document.querySelector('.tr-review').innerHTML) && !!document.querySelector('[data-field="recall"]')));
+  const nb = await E(a => icsRetrievalsFor(a.id).length, rc);
+  await p.click('[data-act="review-submit"]'); await p.waitForTimeout(150);
+  yes('a too-short recall is turned back with a prompt', await E(() => /little more/.test(document.querySelector('[data-field="err"]').textContent)));
+  await p.fill('[data-field="recall"]', 'Loss must be of a foreseeable kind and extent is irrelevant.'); await p.click('[data-act="review-submit"]'); await p.waitForTimeout(200);
+  yes('after a recall the page is shown beside what was written', await E(() => /Foreseeable/.test(document.querySelector('.tr-review-cols').innerText) && /foreseeable kind and extent/.test(document.querySelector('.tr-recalled').textContent)));
+  await p.click('[data-act="grade"][data-v="1"]'); await p.waitForTimeout(200);
+  yes('then the belief question, with its three answers', await E(() => document.querySelectorAll('[data-act="belief"]').length === 3 && /still hold/i.test(document.querySelector('.tr-review').innerText)));
+  await p.click('[data-act="belief"][data-v="hold"]'); await p.waitForTimeout(200);
+  is('one record was written by the flow', await E(a => icsRetrievalsFor(a.id).length, rc), nb + 1);
+  await p.click('[data-act="review-close"]'); await p.waitForTimeout(200);
+
+  console.log('\nA-12. today\'s tending');
+  const td = await E(() => {
+    const keys = ['treeNodes', 'treeReviews', 'treeInbox', 'treeQuestions', 'treeMistakes', 'treeChunks', 'treeLinks', 'treeAliases', 'treeGrafts', 'treePositions', 'treeRetrievals'], keep = {};
+    keys.forEach(k => { keep[k] = S[k]; S[k] = []; }); treeDirty();
+    const o = {};
+    try {
+      const r0 = mk({title: 'Only root', kind: 'root'}); const b = mk({title: 'Bare branch', kind: 'branch', parentId: r0.id});
+      treeSetStatus(r0.id, 'dormant'); o.bare = icsTodaysTending().rule;
+      const rd = S.treeReviews.find(x => x.nodeId === b.id); rd.dueAt = '2026-10-01'; rd.step = 2; o.due = icsTodaysTending().rule;
+      S.treeReviews.length = 0; S.treeInbox.push({id: 'i1', createdAt: treeNow(), text: 'a thought'});
+      const ch = icsSaveQuestion({pageId: b.id, kind: 'what', text: 'placeholder q'}); ch.createdAt = new Date(Date.now() - 20 * 864e5).toISOString();
+      o.inbox = icsTodaysTending().rule;
+      const c1 = icsCreateChallenge({pageId: b.id, text: 'Hard one?', answerNotBefore: treeAddDays(treeToday(), 1)}); c1.answerNotBefore = '2026-09-01'; o.challenge = icsTodaysTending().rule;
+      icsRetireQuestion(c1.id); S.treeInbox.length = 0; o.redq = icsTodaysTending().rule;
+      icsRetireQuestion(ch.id);
+      const pt = mk({title: 'Old point', parentId: b.id}); pt.lastTendedAt = '2020-01-01T00:00:00.000Z'; b.lastTendedAt = treeNow(); S.treeReviews.length = 0;
+      o.left = [icsTodaysTending().rule, icsTodaysTending().node.id === pt.id];
+      treeSetStatus(pt.id, 'dormant'); o.dormant = icsTodaysTending().node.id !== pt.id;
+      icsRegisterTendingRule({key: 'boom', priority: 1, find(){ throw new Error('x'); }}); o.survives = icsTodaysTending() !== undefined; ICS_TEND_RULES.splice(ICS_TEND_RULES.findIndex(x => x.key === 'boom'), 1);
+      o.one = !Array.isArray(icsTodaysTending());
+      o.pressure = typeof icsTendingPressure()['left-longest'];
+    } finally { keys.forEach(k => { S[k] = keep[k]; }); treeDirty(); }
+    return o; });
+  is('a bare branch is the prompt to prime it', td.bare, 'unprimed-branch');
+  is('a page due for review outranks everything', td.due, 'due-to-resurface');
+  is('the inbox comes before the questions', td.inbox, 'oldest-inbox');
+  is('a challenge question whose date has come outranks the inbox', td.challenge, 'challenge-due');
+  is('a red question over a fortnight old is offered once those are done', td.redq, 'red-question');
+  is('points are eligible for left longest, and dormant ones are skipped', [td.left, td.dormant], [['left-longest', true], true]);
+  is('a rule that throws is skipped; only one card is shown', [td.survives, td.one], [true, true]);
+
+  console.log('\nN-03. challenge questions');
+  const cq = await E(() => {
+    const pg = mk({title: 'Remoteness challenge'}); if(!treeResolve('Remoteness')) mk({title: 'Remoteness'}); const o = {};
+    const bad = f => { try { f(); return false; } catch(e){ return e.message; } };
+    o.sameDay = !!bad(() => icsCreateChallenge({pageId: pg.id, text: 'Hard?', answerNotBefore: treeToday()})); o.n0 = (S.treeQuestions.filter(q => q.pageId === pg.id && q.kind === 'challenge')).length;
+    const q = icsCreateChallenge({pageId: pg.id, text: 'Which limb of Hadley matters more, and when?'}); o.state = [q.status, icsIsLocked(q), q.selfMade];
+    o.sealed = /sealed/.test(bad(() => icsAnswerChallenge(q.id, 'an answer')) || '');
+    o.sealed2 = /sealed/.test(bad(() => icsSaveQuestion({id: q.id, pageId: pg.id, kind: 'challenge', text: q.text, answer: 'sneaky'})) || '');
+    q.answerNotBefore = treeAddDays(treeToday(), -1); o.unlocked = icsIsLocked(q) === false;
+    o.due = icsDueChallenges().some(x => x.id === q.id);
+    const a = icsAnswerChallenge(q.id, 'The second limb, because it turns on communicated knowledge, unlike [[Remoteness]] in tort, where the question is only whether the kind of loss was foreseeable.');
+    o.ans = [a.status, !!a.answeredAt]; o.notDue = !icsDueChallenges().some(x => x.id === q.id);
+    const q2 = icsCreateChallenge({pageId: pg.id, text: 'Another?', answerNotBefore: treeAddDays(treeToday(), 2), selfMade: false}); o.premade = q2.selfMade === false;
+    o.counts = icsChallengeCounts(); o.id = pg.id; o.slug = pg.slug; return o; });
+  is('the same day is refused and nothing is written', [cq.sameDay, cq.n0], [true, 0]);
+  is('a new challenge is red, sealed, and marked as mine', cq.state, ['red', true, true]);
+  is('the seal holds in the model, whichever way the answer arrives', [cq.sealed, cq.sealed2], [true, true]);
+  is('after its date it is due, answering it derives the status and the time, and it stops being due', [cq.unlocked, cq.due, cq.ans, cq.notDue], [true, true, ['green', true], true]);
+  is('a premade question is distinguishable; Proof counts sealed, ready and answered', [cq.premade, cq.counts.sealed >= 1, cq.counts.answered >= 1], [true, true, true]);
+  await E(a => { location.hash = '#/tree/p/' + a.slug; }, cq); await p.waitForTimeout(500);
+  yes('on the page a sealed one has a disabled box and says until when', await E(() => { const el = document.querySelector('.tr-challenge[data-locked="true"]'); return !!el && el.querySelector('textarea').disabled && /Sealed until/.test(el.textContent); }));
+  await E(() => { location.hash = '#/tree/proof'; }); await p.waitForTimeout(500);
+  yes('Proof lists the counts and the pages ripe for a question', await E(() => /sealed/.test(document.querySelector('#trChallenges').textContent) && !!document.querySelector('#trChallenges details')));
+
+  console.log('\nN-04. the mistake log');
+  const mk4 = await E(() => {
+    const pg = mk({title: 'Pure economic loss'}); icsSetMastery(pg.id, 3, 'compared it with Hedley Byrne'); const o = {};
+    const bad = f => { try { f(); return false; } catch(e){ return true; } };
+    o.noPrev = bad(() => icsLogMistake({pageId: pg.id, question: 'Why?', type: 'fundamental', prevention: ''})); o.badType = bad(() => icsLogMistake({pageId: pg.id, question: 'Why?', type: 'typo', prevention: 'x'}));
+    o.noQ = bad(() => icsLogMistake({pageId: pg.id, question: ' ', type: 'working', prevention: 'x'}));
+    const m = icsLogMistake({pageId: pg.id, question: 'Why is pure economic loss irrecoverable?', type: 'fundamental', why: 'I recited the rule without the reason', prevention: 'Map it against Hedley Byrne and say why they differ', methodUsed: 'free-recall'});
+    o.open = icsOpenMistakes(pg.id).length; o.retest = icsDaysBetween(treeToday(), m.retestDue);
+    const nm = icsMethodForRetest(m); o.method = [nm.key !== 'free-recall', nm.level >= 3];
+    icsRecordRetrieval({pageId: pg.id, method: 'mindmap-dump', recallText: 'one two three four five', score: 0.5}); o.notLast = icsMethodForRetest(m).key !== 'mindmap-dump';
+    let r = icsResolveByRetest(m.id, {score: 0.5}); o.patchy = [r.resolved, icsOpenMistakes(pg.id).length, icsDaysBetween(treeToday(), m.retestDue)];
+    r = icsResolveByRetest(m.id, {score: 1}); o.clean = [r.resolved, icsOpenMistakes(pg.id).length, S.treeMistakes.some(x => x.id === m.id)];
+    icsLogMistake({pageId: pg.id, question: 'Again?', type: 'fundamental', prevention: 'teach it'}); icsLogMistake({pageId: pg.id, question: 'And again?', type: 'fundamental', prevention: 'map it'});
+    o.rep = icsRepeatedPatterns().some(x => x.pageId === pg.id && x.count >= 2);
+    o.type = icsLogMistake({pageId: pg.id, question: 'Got it the long way', type: 'method', prevention: 'use the two-limb test first'}).type;
+    /* due retests reach the tending card */
+    S.treeMistakes.forEach(x => { x.retestDue = '2026-01-01'; }); o.card = icsDueRetests().length >= 1;
+    o.id = pg.id; o.slug = pg.slug; return o; });
+  is('a question, a prevention and a real type are all required', [mk4.noPrev, mk4.badType, mk4.noQ], [true, true, true]);
+  is('logging schedules a re-test three days out', [mk4.open, mk4.retest], [1, 3]);
+  is('the re-test comes from another angle than the mistake and the last recall', [mk4.method, mk4.notLast], [[true, true], true]);
+  is('patchy leaves it open and pushes it out; a clean recall resolves it but keeps it', [mk4.patchy, mk4.clean], [[false, 1, 3], [true, 0, true]]);
+  is('the same kind of mistake twice is a pattern; the method type is first-class', [mk4.rep, mk4.type], [true, 'method']);
+  await E(a => { location.hash = '#/tree/p/' + a.slug; }, mk4); await p.waitForTimeout(500);
+  yes('the page lists its mistakes, resolved ones marked', await E(() => !!document.querySelector('.tr-mistakes li.resolved') && !!document.querySelector('.tr-mistakes li.open')));
+  await E(() => { location.hash = '#/tree/proof'; }); await p.waitForTimeout(500);
+  yes('the log is reachable from Proof and says nothing is deleted', await E(() => /Nothing here is deleted/.test(document.querySelector('#trMistakeLog').textContent)));
+  yes('retrievals and mistakes travel in the export', await E(() => { const blob = JSON.parse(JSON.stringify({kind: 'life-instrument-knowledge-tree', version: 1, data: Object.fromEntries(TREE_STORES.map(k => [k, S[k]]))})); const r = treeImport(blob); return blob.data.treeRetrievals.length > 0 && blob.data.treeMistakes.length > 0 && r.added.treeRetrievals === 0 && r.added.treeMistakes === 0 && r.added.treeQuestions === 0; }));
+  yes('no page errors in Phase 3', errs.length === 0, errs);
+
   /* the sections of later amendments are added below, in the order they are built */
   yes('no page errors', errs.length === 0, errs);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

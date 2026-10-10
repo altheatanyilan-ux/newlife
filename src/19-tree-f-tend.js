@@ -5,76 +5,21 @@
    hold this?"), else the oldest capture in the inbox, else the branch left
    untended longest. Doing the thing marks it tended.
 
-   Resurfacing: 3 days, 2 weeks, 2 months, 6 months, a year. "Still hold"
-   moves a page out along that ladder; "doubt" brings it back to the start;
-   "revise" opens a new position and keeps its place.
+   Resurfacing is recall first (19-tree-j-ics-retrieve.js): write what you can
+   remember, then see the page, grade it, then "do you still hold this?". The
+   ladder is set in Tree Home (0, 1, 3, 7, 16, 50, 120, 365 days by default).
 
    Now and then, beside what you hold now: what you held a year ago. And on
    every page, how sure you have been over time, drawn as a line.
    ============================================================ */
 
-function treeTendItem(){
-  const due = treeDueReviews()[0];
-  if(due){ const n = treeNode(due.nodeId); if(n) return {kind: 'review', node: n, review: due}; }
-  const inbox = S.treeInbox.slice().sort((a, b) => a.createdAt < b.createdAt ? -1 : 1)[0];
-  if(inbox) return {kind: 'inbox', item: inbox};
-  const branches = S.treeNodes.filter(n => n.kind !== 'point' && n.status !== 'pruned' && n.status !== 'dormant')
-    .sort((a, b) => String(a.lastTendedAt || '').localeCompare(String(b.lastTendedAt || '')) || String(a.createdAt).localeCompare(String(b.createdAt)));
-  if(branches[0]) return {kind: 'branch', node: branches[0]};
-  return null;
-}
-function treeTendCardHTML(){
-  const t = treeTendItem();
-  if(!t) return `<div class="tr-tendcard quiet"><span class="tr-lbl">Today's tending</span><p>${S.treeNodes.length ? 'Nothing is asking for you today. The tree can rest.' : 'Plant a root, and the tree will start asking for a little each day.'}</p></div>`;
-  if(t.kind === 'review'){ const p = treeCurrentPosition(t.node.id);
-    return `<div class="tr-tendcard" data-trtend="review" data-n="${t.node.id}"><span class="tr-lbl">Resurfacing · ${esc(TREE_KINDS[t.node.kind])}</span>
-      <h2 class="serif"><a href="${treeUrl(t.node)}">${esc(t.node.title)}</a></h2>
-      ${p ? `<p class="tr-stmt">${esc(p.statement)} <span class="faint">(${p.confidence}%)</span></p><p>Do you still hold this?</p>` : `<p>You have not stated a position here yet. Do you hold one now?</p>`}
-      <div class="row tr-tendbtns">${p ? `<button class="btn sm primary" data-tv="hold">Still hold</button>` : ''}<button class="btn sm" data-tv="revise">${p ? 'Revise' : 'State one'}</button><button class="btn sm ghost" data-tv="doubt">Doubt</button></div></div>`; }
-  if(t.kind === 'inbox') return `<div class="tr-tendcard" data-trtend="inbox" data-i="${t.item.id}"><span class="tr-lbl">From the inbox</span>
-      <p class="tr-stmt">${esc(t.item.text)}</p><p>Give it a home.</p>
-      <div class="row tr-tendbtns"><button class="btn sm primary" data-tv="page">Make it a page</button><button class="btn sm" data-tv="attach">Add to a page</button><button class="btn sm ghost" data-tv="drop">Let it go</button></div></div>`;
-  const n = t.node, days = n.lastTendedAt ? Math.floor((Date.now() - Date.parse(n.lastTendedAt)) / 864e5) : null;
-  return `<div class="tr-tendcard" data-trtend="branch" data-n="${n.id}"><span class="tr-lbl">Left longest · ${days == null ? 'never tended' : `${days} days`}</span>
-    <h2 class="serif"><a href="${treeUrl(n)}">${esc(n.title)}</a></h2><p>One small thing for it: a line, a leaf, or where you stand.</p>
-    <div class="row tr-tendbtns"><button class="btn sm primary" data-tv="line">Write a line</button><button class="btn sm" data-tv="leaf">Attach a leaf</button><button class="btn sm" data-tv="position">${treeCurrentPosition(n.id) ? 'Revise position' : 'State a position'}</button></div></div>`;
-}
-function treeBindTend(root){
-  const card = root.querySelector('[data-trtend]'); if(!card) return;
-  const kind = card.dataset.trtend, again = () => { const box = root.querySelector('#trTend'); if(box){ box.innerHTML = treeTendCardHTML(); treeBindTend(root); } else rerender(); };
-  const done = msg => { toast(msg || 'Tended.'); again(); };
-  card.querySelectorAll('[data-tv]').forEach(b => b.onclick = async () => {
-    const v = b.dataset.tv;
-    if(kind === 'review'){ const n = treeNode(card.dataset.n);
-      if(v === 'revise') return treeReviseDialog(n, () => { treeReviewAnswer(n.id, 'revise'); done('A new position, on the record.'); });
-      treeReviewAnswer(n.id, v); return done(v === 'hold' ? `Still held. It will come back in ${TREE_REVIEW_DAYS[S.treeReviews.find(r => r.nodeId === n.id).step]} days.` : 'Doubt noted; it will come back soon.'); }
-    if(kind === 'inbox'){ const x = S.treeInbox.find(i => i.id === card.dataset.i); if(!x) return again();
-      if(v === 'drop'){ treeInboxDone(x.id); return done('Let go.'); }
-      if(v === 'page') return treeNewPageDialog({title: x.text.length <= 80 ? x.text : '', kind: 'point', after: n => { if(x.text.length > 80) treeSavePage({id: n.id, body: x.text}); treeInboxDone(x.id); treeTouch(n.id); done('A new page.'); }});
-      const id = await treePickPage('Which page does this belong to?'); if(!id) return;
-      const n = treeNode(id); treeSavePage(Object.assign(treeAppendDraft(n, x.text), {lastTendedAt: treeNow()})); treeInboxDone(x.id); return done(`Added to ${n.title}.`); }
-    const n = treeNode(card.dataset.n);
-    if(v === 'line'){ const t = await treeAsk(`A line for ${n.title}`, ''); if(!t) return; treeSavePage(Object.assign(treeAppendDraft(n, t), {lastTendedAt: treeNow()})); return done(); }
-    if(v === 'leaf') return treeLeafDialog(n, () => { treeTouch(n.id); done(); });
-    return treeReviseDialog(n, () => done());
-  });
-}
-/* the compact card for Today */
-function treeTodayHTML(){
-  if(!Array.isArray(S.treeNodes) || !S.treeNodes.length) return '';
-  const t = treeTendItem(); if(!t) return '';
-  const what = t.kind === 'review' ? `resurfacing: <b>${esc(t.node.title)}</b>` : t.kind === 'inbox' ? `from the inbox: ${esc(t.item.text.slice(0, 70))}${t.item.text.length > 70 ? '…' : ''}` : `left longest: <b>${esc(t.node.title)}</b>`;
-  return `<div class="tr-today" data-duty-id="knowledge_tree_tend"><span class="tr-lbl">Knowledge Tree</span><span class="tr-todayw">${what}</span><a class="btn sm ghost" href="#/tree">tend it</a></div>`;
-}
+/* The card, its rules and its binding now live in 19-tree-j-ics-retrieve.js (A-12): a registry of
+   prioritised rules, still one card at a time. */
 
 /* ---------- resurfacing, asked for on a page ---------- */
 function treeReviewDialog(n, after){
-  const p = treeCurrentPosition(n.id);
-  const m = openModal(`<h2 class="serif">${esc(n.title)}</h2>${p ? `<blockquote class="tr-was">${esc(p.statement)} <span class="faint">(${p.confidence}%)</span></blockquote><p>Do you still hold this?</p>` : '<p>No position yet.</p>'}
-    <div class="row" style="gap:8px;justify-content:flex-end">${p ? '<button class="btn primary" data-v="hold">Still hold</button>' : ''}<button class="btn" data-v="revise">Revise</button><button class="btn ghost" data-v="doubt">Doubt</button></div>`, 'narrow');
-  m.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { m.remove();
-    if(b.dataset.v === 'revise') return treeReviseDialog(n, () => { treeReviewAnswer(n.id, 'revise'); after && after(); });
-    treeReviewAnswer(n.id, b.dataset.v); after && after(); });
+  /* the same four steps as the card: prime, recall with the page out of sight, reveal and grade, then the belief question */
+  return icsReviewDialog(n, after);
 }
 
 /* ---------- a year ago ---------- */

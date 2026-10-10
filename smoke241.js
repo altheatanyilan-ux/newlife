@@ -238,7 +238,7 @@ const snapshot = () => (async () => {
   yes('gaps: a position with no open question', gaps.noQ.includes('Remote viewing'));
   yes('gaps: a one-sided branch — only supports, no contradicts, under it', !gaps.one.includes('Mind') || true);
   await p.evaluate(() => { location.hash = '#/tree/gaps'; }); await p.waitForTimeout(500);
-  is('the gaps page has its five sections', await p.evaluate(() => document.querySelectorAll('.tr-page .tr-sec').length), 5);
+  is('the gaps page has its five sections (and, now, a sixth for how well things are encoded, when there is anything to say)', await p.evaluate(() => document.querySelectorAll('.tr-page .tr-sec:not(.tr-encgaps)').length), 5);
 
   console.log('\n4. what paper cannot do');
   const tend = await p.evaluate(async () => {
@@ -256,7 +256,7 @@ const snapshot = () => (async () => {
   yes('  doing the small thing marks it tended', await p.evaluate(id => !!treeNode(id).lastTendedAt && /A line, today\./.test(treeNode(id).body), tend.id));
   const rv = await p.evaluate(() => { const n = treeResolve('Remote viewing'); const r1 = treeReviewAnswer(n.id, 'hold'); const d1 = r1.dueAt; const step1 = r1.step;
     const r2 = treeReviewAnswer(n.id, 'doubt'); const days = s => Math.round((Date.parse(s + 'T12:00:00') - Date.parse(treeToday() + 'T12:00:00')) / 864e5); return [step1, days(d1), r2.step, days(r2.dueAt)]; });
-  is('still hold moves it to two weeks; doubt brings it back to three days', rv, [1, 14, 0, 3]);
+  is('still hold moves it a rung out (3 days to a week on the new ladder); doubt brings it back to the first rung (same day)', rv, [3, 7, 0, 0]);
   const ya = await p.evaluate(async () => { const n = treeResolve('Remote viewing');
     S.treePositions.push(Object.freeze({id: 'old1', nodeId: n.id, date: new Date(Date.now() - 400 * 864e5).toISOString(), statement: 'Nonsense, all of it', confidence: 10}));
     S.treePrefs.alwaysYearAgo = true; location.hash = '#/tree/p/remote-viewing'; rerender(); await new Promise(r => setTimeout(r, 400));

@@ -26,13 +26,17 @@ const ICS_SCHEMA_VERSION = 2;
 const ICS_PAGE_DEFAULTS = {importance: null, whyImportant: '', backbone: false, mastery: null, collected: null, processed: null};
 const ICS_IMPORTANCE = {core: 'Core', supporting: 'Supporting', peripheral: 'Peripheral'};
 /* what a revision keeps: the text the user wrote and the encoding fields */
-const ICS_WATCHED = ['title', 'body', 'openQuestion', 'importance', 'whyImportant', 'backbone', 'collected', 'processed'];
+const ICS_WATCHED = ['title', 'body', 'openQuestion', 'importance', 'whyImportant', 'backbone', 'collected', 'processed', 'mastery'];
 const ICS_DEFAULT_LADDER = [0, 1, 3, 7, 16, 50, 120, 365];
 
 function icsToday(){ return treeToday(); }
 function icsDaysBetween(a, b){ return Math.round((Date.parse(b.slice(0, 10) + 'T12:00:00') - Date.parse(a.slice(0, 10) + 'T12:00:00')) / 864e5); }
 function icsDaysAgo(iso){ return iso ? Math.floor((Date.now() - Date.parse(iso)) / 864e5) : null; }
 function icsWords(s){ return String(s || '').trim().split(/\s+/).filter(Boolean).length; }
+
+/* the extra pages the Tree answers to (#/tree/mastery, #/tree/map, …); each later file adds its own */
+const ICS_ROUTES = {};
+function icsRoute(v, root, a){ const f = v && ICS_ROUTES[v]; if(!f) return undefined; f(root, a); return true; }
 
 /* ---------- the migration: additive, idempotent, never touches prose ---------- */
 function icsEnsure(){
@@ -48,9 +52,11 @@ function icsEnsure(){
     });
     if(!Array.isArray(P.ladder)) P.ladder = ICS_DEFAULT_LADDER.slice();
     P.icsSchema = ICS_SCHEMA_VERSION;
+    if(typeof icsMigrateLadder === 'function') icsMigrateLadder();
     return {migrated: true, from, to: ICS_SCHEMA_VERSION, pagesTouched: touched};
   }
   if(!Array.isArray(P.ladder)) P.ladder = ICS_DEFAULT_LADDER.slice();
+  if(typeof icsMigrateLadder === 'function') icsMigrateLadder();
   return {migrated: false, from};
 }
 
@@ -98,7 +104,8 @@ function icsRestoreRevision(revId){
   const rev = (S.treePageRevisions || []).find(r => r.id === revId); if(!rev) return {error: 'That version is not there.'};
   const n = treeNode(rev.pageId); if(!n) return {error: 'The page is gone.'};
   const draft = {id: n.id, body: rev.text};
-  Object.keys(rev.fields).forEach(k => { if(k !== 'title') draft[k] = rev.fields[k]; });
+  /* the title goes through rename (which keeps the old name working); the mastery history is add-only and is never rewound */
+  Object.keys(rev.fields).forEach(k => { if(k !== 'title' && k !== 'mastery') draft[k] = rev.fields[k]; });
   return treeSavePage(draft);
 }
 /* a word-level diff, worked out when it is shown and never stored */
