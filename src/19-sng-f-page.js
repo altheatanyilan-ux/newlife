@@ -82,11 +82,16 @@ function sngRingHTML(days){
 /* ---------- first visit ---------- */
 function sngOnboard(root){
   const st = sngState();
+  /* one range for the whole studio: if the Jazz Studio already has one, start from it */
+  const jzR = typeof studioVocalRanges === 'function' ? studioVocalRanges().jz : null;
+  const fromJazz = !!(jzR && !st.profile.onboarded);
+  if(fromJazz){ st.profile.lowNote = studioNoteName(jzR.lowMidi); st.profile.highNote = studioNoteName(jzR.highMidi); }
   root.innerHTML = `<div class="page sng-page"><h1 class="serif">Songwriting Studio</h1>
     <div class="card sng-onboard">
       <h2 class="serif">Before the first song</h2>
       <p class="muted">Two things the tools will use, both changeable later.</p>
       <h3>1. Your vocal range</h3>
+      ${fromJazz ? '<p class="faint studio-from">From your Jazz Studio settings — change them here and both studios follow.</p>' : ''}
       <p class="muted">At the piano, from middle C sing down until the tone goes, then up until you strain. The melody tools keep inside these, and warn you when a line goes outside.</p>
       <div class="sng-row"><label>Lowest comfortable note <input class="inp mono" id="sngLow" value="${esc(st.profile.lowNote)}" placeholder="C3"></label>
         <label>Highest <input class="inp mono" id="sngHigh" value="${esc(st.profile.highNote)}" placeholder="C5"></label>
@@ -106,6 +111,7 @@ function sngOnboard(root){
     if(sngMidiOf(lo) == null || sngMidiOf(hi) == null || sngMidiOf(lo) >= sngMidiOf(hi)){ toast('The lowest note has to be a note (like C3), and below the highest.'); return; }
     const when = (root.querySelector('input[name="sngWhen"]:checked') || {}).value || 'morning';
     Object.assign(st.profile, {lowNote: lo, highNote: hi, dailyTime: when, onboarded: true});
+    if(typeof studioSetVocalRange === 'function') studioSetVocalRange(lo, hi);
     saveNow(); sound('success'); rerender();
   };
 }

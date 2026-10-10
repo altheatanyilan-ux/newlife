@@ -695,19 +695,22 @@ function jzbPhrase(id){
 const jzvVocal = id => /^V\d/.test(id) || /vocal|scat|sing/i.test((jazzExercise(id) || {}).name || '');
 const JZV_NOTES = [...Array(49)].map((_, i) => 36 + i);           /* C2 – C6 */
 const jzvName = m => `${['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][m % 12]}${Math.floor(m / 12) - 1}`;
-function jzvRange(){ const r = jazzState().settings.vocalRange; return r && r.lowMidi && r.highMidi ? r : null; }
+function jzvRange(){ const r = typeof studioVocalRange === 'function' ? studioVocalRange() : null; return r ? {lowMidi: r.lowMidi, highMidi: r.highMidi} : null; }
 function jzvRangeHTML(){
   const r = jzvRange() || {lowMidi: 0, highMidi: 0};
   const sel = (idv, v) => `<select class="sel sm" id="${idv}"><option value="">—</option>${JZV_NOTES.map(m =>
     `<option value="${m}" ${m === v ? 'selected' : ''}>${jzvName(m)}</option>`).join('')}</select>`;
-  return `<label class="mono jzb-f" title="the lowest and highest notes you sing comfortably — kept for every exercise">your range ${sel('jzvLo', r.lowMidi)} to ${sel('jzvHi', r.highMidi)}</label>`;
+  const from = typeof studioVocalRange === 'function' ? studioVocalRange() : null;
+  return `<label class="mono jzb-f" title="the lowest and highest notes you sing comfortably — kept for every exercise, and shared with the Songwriting Studio">your range ${sel('jzvLo', r.lowMidi)} to ${sel('jzvHi', r.highMidi)}${from && from.source === 'songwriting' ? ' <small class="faint">from your Songwriting profile</small>' : ''}</label>`;
 }
 function bindJzvRange(box, root, id){
   const lo = box.querySelector('#jzvLo'), hi = box.querySelector('#jzvHi');
   if(!lo || !hi) return;
   const save = () => { const a = +lo.value, z = +hi.value;
-    jazzState().settings.vocalRange = a && z ? {lowMidi: Math.min(a, z), highMidi: Math.max(a, z)} : null;
-    saveNow(); jzvPaintKeys(root, id); };
+    /* one range for the whole studio: setting it here sets it for the Songwriting Studio too */
+    if(a && z && a !== z && typeof studioSetVocalRange === 'function') studioSetVocalRange(Math.min(a, z), Math.max(a, z));
+    else { jazzState().settings.vocalRange = a && z ? {lowMidi: Math.min(a, z), highMidi: Math.max(a, z)} : null; saveNow(); }
+    jzvPaintKeys(root, id); };
   lo.onchange = save; hi.onchange = save;
 }
 /* where the pattern goes in a key: its lowest and highest note, as sung */

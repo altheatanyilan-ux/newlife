@@ -24,7 +24,7 @@ function sngSketch(){
 }
 const sngDegMidi = (m, deg, oct) => { const sc = SNG_KEY_COLOURS[m.colour] ? SNG_KEY_COLOURS[m.colour].scale : SNG_PITCH_SOURCES.major; const d = ((deg - 1) % sc.length + sc.length) % sc.length;
   return 60 + (oct || 0) * 12 + m.keyPc + sc[d] + Math.floor((deg - 1) / sc.length) * 12; };
-function sngMelodyRange(){ const p = sngState().profile; return [sngMidiOf(p.lowNote) || 48, sngMidiOf(p.highNote) || 72]; }
+function sngMelodyRange(){ const r = typeof studioVocalRange === 'function' ? studioVocalRange() : null; if(r) return [r.lowMidi, r.highMidi]; const p = sngState().profile; return [sngMidiOf(p.lowNote) || 48, sngMidiOf(p.highNote) || 72]; }
 SNG_TOOL_VIEWS['melody-sketcher'] = {
   html(){
     const st = sngState(), m = sngSketch(), u = sngUi(), [lo, hi] = sngMelodyRange();

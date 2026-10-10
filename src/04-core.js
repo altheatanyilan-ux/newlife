@@ -417,7 +417,18 @@ function navigate(hash){ keepScroll(); location.hash = hash; }
 function consumeHashParam(bare){
   try { history.replaceState(history.state, '', location.pathname + location.search + bare); } catch(e){}
 }
-function parseHash(){ const h = (location.hash||'').replace(/^#\/?/,''); const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent)}; }
+/* A hash may carry a query suffix — #/jazz/playalong?from=songwriting&ref=lab — which is
+   read into query{} and kept out of the path, so a room's own params are what they always were. */
+function parseHash(){
+  let h = (location.hash||'').replace(/^#\/?/,''); const query = {};
+  const qi = h.indexOf('?');
+  if(qi >= 0){
+    h.slice(qi + 1).split('&').forEach(p => { if(!p) return; const e = p.indexOf('='); const k = e < 0 ? p : p.slice(0, e), v = e < 0 ? '' : p.slice(e + 1);
+      try { query[decodeURIComponent(k)] = decodeURIComponent(v); } catch(err){ query[k] = v; } });
+    h = h.slice(0, qi);
+  }
+  const [name, ...rest] = h.split('/'); return {name: name || homeRoute(), params: rest.map(decodeURIComponent), query};
+}
 /* rooms that no longer exist, pointed at where their work went */
 /* rooms that no longer exist, pointed at where their work went */
 const ROUTE_ALIASES = {home:'today', rhythm:'today', lifetape:'today', calendar:'today', plan:'today',
