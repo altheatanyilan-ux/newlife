@@ -253,6 +253,40 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await go('#/songwriting/listening?from=jazz&ref=tune%3Aautumn-leaves');
   yes('"Analyse as a songwriter" arrives with a draft, not a record', await ev(() => !!document.querySelector('#lrDraftKeep') && sngState().listening.length === 1));
 
+  console.log('\n19. "In the other room": the bridges');
+  const br = await ev(() => STUDIO_BRIDGES.map(b => {
+    const bad = [];
+    const j = b.jazz, w = b.songwriting;
+    if(j.stage != null){ if(!jazzStage(j.stage)) bad.push('jazz stage ' + j.stage); }
+    (j.exerciseIds || []).forEach(id => { const at = jazzSubOf(id); if(!jazzExercise(id)) bad.push('jazz ex ' + id); else if(j.stage != null && (!at || String(at.stage.id) !== String(j.stage))) bad.push(id + ' is not in stage ' + j.stage); });
+    if(j.page && !['mindset'].includes(j.page)) bad.push('jazz page ' + j.page);
+    if(w.stage != null && !SNG_STAGES.find(x => x.id === w.stage)) bad.push('sng stage ' + w.stage);
+    (w.exerciseIds || []).forEach(id => { if(!sngExercise(id)) bad.push('sng ex ' + id); });
+    if(w.tool && !SNG_TOOLS.find(t => t.id === w.tool)) bad.push('sng tool ' + w.tool);
+    if(w.tab && !SNG_TABS.find(t => t[0] === w.tab)) bad.push('sng tab ' + w.tab);
+    if(!b.why || b.why.split('. ').length > 2) bad.push('why is not one sentence');
+    if(!['both', 'jazz→sng', 'sng→jazz'].includes(b.direction)) bad.push('direction');
+    return [b.id, bad];
+  }));
+  is('every id in STUDIO_BRIDGES resolves to a stage, exercise, tool or page — and each exercise is in the stage it is filed under', br.filter(x => x[1].length), []);
+  yes('the list is sixteen or fewer short entries with unique ids', br.length >= 12 && new Set(br.map(x => x[0])).size === br.length);
+  await ev(() => { studioState().bridgesDismissed = {}; });
+  await go('#/jazz');
+  yes('the Jazz roadmap shows the card in an open stage', await ev(() => !!document.querySelector('.jz-stage:not(.shut):not(.collapsed) .studio-bridge')));
+  await go('#/jazz/2.1');
+  const jx = await ev(() => { const c = document.querySelector('.studio-bridge'); return c ? [...c.querySelectorAll('a')].map(a => a.getAttribute('href')) : null; });
+  yes('on a jazz exercise page the card names its songwriting counterparts, with links', jx && jx.includes('#/songwriting/ex/2.6'), jx);
+  await go('#/songwriting/stage/10');
+  const sx = await ev(() => { const c = document.querySelector('.studio-bridge'); return c ? [...c.querySelectorAll('a,button')].map(a => a.getAttribute('href') || a.dataset.studioJzstage || '') : null; });
+  yes('a songwriting stage page shows the Jazz Studio stages it meets', sx && sx.includes('3') && sx.includes('10'), sx);
+  await go('#/songwriting/ex/0.4');
+  yes('and a songwriting exercise page its own', await ev(() => !!document.querySelector('.studio-bridge a[href="#/jazz/mindset"]')));
+  await ev(() => document.querySelector('[data-studio-bridge-hide]').click()); await p.waitForTimeout(300);
+  is('"Hide" is remembered in the studio row, per stage, and leaves a way back', await ev(() => [Object.keys(studioState().bridgesDismissed), !!document.querySelector('[data-studio-bridge-show]'), !document.querySelector('.studio-bridge')]), [['songwriting:stage0'], true, true]);
+  await ev(() => document.querySelector('[data-studio-bridge-show]').click()); await p.waitForTimeout(300);
+  yes('"show" brings it back', await ev(() => !!document.querySelector('.studio-bridge') && Object.keys(studioState().bridgesDismissed).length === 0));
+  yes('a card never changes anything it advises on (no ready/lit/plan state read or written here)', await ev(() => !/jazzStageReached|jazzDayPlan|generateDailyPlan|lit/.test(studioBridgeCardHTML.toString() + studioMountBridges.toString())));
+
   console.log('\n99. nothing threw');
   is('no page errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

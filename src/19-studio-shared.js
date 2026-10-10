@@ -256,6 +256,7 @@ function studioMountBar(root, room){
     const g = function(root, params){
       const out = f.apply(this, arguments);
       try { studioMountBar(root, room); } catch(e){ console.warn('the studio bar did not mount', e); }
+      try { studioMountBridges(root, room, params); } catch(e){ console.warn('the bridges did not mount', e); }
       try { if(room === 'songwriting') studioSongwritingClock(params); } catch(e){}
       return out;
     };
@@ -810,4 +811,140 @@ function studioBindListening(root){
     const x = {id: uid(), song: d.song, fields: f, tuneId: d.tuneId, createdAt: new Date().toISOString()};
     st.listening.unshift(x); u.listenId = x.id; u.lrDraft = null; sngLogSession('listening'); saveNow(); sound('success'); rerender(); };
   const drop = root.querySelector('#lrDraftDrop'); if(drop) drop.onclick = () => { u.lrDraft = null; rerender(); };
+}
+
+/* ============================================================
+   IN THE OTHER ROOM
+
+   A small, editable list of where one room's lessons meet the other's.
+   Advice only: it never touches readiness, the daily plan, stage lighting or
+   a badge. Each entry names a place on each side (a stage, exercises, a
+   tool, a tab or a page), and one sentence on why they belong together.
+   `direction` says where the card appears: 'both' rooms, or only on the
+   page of the room the arrow leaves ('jazz→sng' shows on the Jazz side).
+   ============================================================ */
+const STUDIO_BRIDGES = [
+  {id: 'intervals-melody', jazz: {stage: 'P0', exerciseIds: ['P0.2', 'P0.4']}, songwriting: {stage: 6, exerciseIds: ['6.2', '6.4', '6.5']},
+   why: 'The distances you hear and play in the Jazz Studio are the steps and leaps a melody is made of; Melody II shows what each one does inside a tune.', direction: 'both'},
+  {id: 'chords-home-base', jazz: {stage: '1', exerciseIds: ['1.1', '1.2', '1.3']}, songwriting: {stage: 2, exerciseIds: ['2.3', '2.6']},
+   why: 'The chord shapes you learn at the keyboard are the chord colours and functions that Home Base teaches you to hear.', direction: 'both'},
+  {id: 'two-five-one-cadences', jazz: {stage: '2', exerciseIds: ['2.1', '2.5']}, songwriting: {stage: 2, exerciseIds: ['2.6']},
+   why: 'A ii–V–I is a cadence: the same pull towards home that Chord Functions & Cadences names, played with jazz voicings.', direction: 'both'},
+  {id: 'two-five-one-extension', jazz: {stage: '2', exerciseIds: ['2.1']}, songwriting: {stage: 8, exerciseIds: ['8.13']},
+   why: 'Jazz Extension asks you to bring those ii–V–I chords into a song of your own.', direction: 'both'},
+  {id: 'blues', jazz: {stage: '3', exerciseIds: ['5.1', '5.2']}, songwriting: {stage: 10, exerciseIds: ['10.2'], tool: 'chord-lab'},
+   why: 'The same twelve bars, from the other side: the Chord Lab’s Blues colour lets you hear and write the form you are learning to improvise over.', direction: 'both'},
+  {id: 'modes-colours', jazz: {stage: '4', exerciseIds: ['6A.1', '6A.2']}, songwriting: {stage: 10, exerciseIds: ['10.4', '10.5', '10.9'], tool: 'chord-scale'},
+   why: 'Modes you play over a chord are the colours a melody can borrow; the Chord-Scale Map is “improvise, then write”.', direction: 'both'},
+  {id: 'modal-pentatonics', jazz: {stage: '10', exerciseIds: ['8.1', 'v3-8.5']}, songwriting: {stage: 10, exerciseIds: ['10.1', '10.4', '10.5'], tool: 'chord-scale'},
+   why: 'Modal jazz and pentatonics are the same scales Melody III writes with — one room plays them, the other makes a tune of them.', direction: 'both'},
+  {id: 'records-listening', jazz: {stage: '6', exerciseIds: ['v3-7A.916']}, songwriting: {tab: 'listening'},
+   why: 'Learning from records is the Listening Room’s habit too: take a song apart by ear, then keep what you found.', direction: 'both'},
+  {id: 'form', jazz: {stage: '8', exerciseIds: ['v3-7C.902']}, songwriting: {stage: 7, exerciseIds: ['7.7', '7.8']},
+   why: 'Rhythm changes is a form of sections that contrast and return; Structure & Motion is how a song’s sections do the same.', direction: 'both'},
+  {id: 'ballads', jazz: {stage: '9', exerciseIds: ['v3-7D.902']}, songwriting: {tool: 'song-desk', exerciseIds: ['8.14']},
+   why: 'A ballad is slow enough to hear every chord: try the Song Desk’s pop-ballad groove and its rehearsal, then Groove Swap.', direction: 'both'},
+  {id: 'reharmonise', jazz: {stage: '11', exerciseIds: ['v3-9.1', '9.4']}, songwriting: {stage: 8, exerciseIds: ['8.9', '10.8'], tool: 'color-word'},
+   why: 'Reharmonising and modulating are the same craft: new chords under a melody that stays. Colour a Word lets you hear it note by note.', direction: 'both'},
+  {id: 'composition', jazz: {stage: '12'}, songwriting: {tool: 'song-desk', capstone: true},
+   why: 'Writing your own tune is what the Song Desk and the Capstone are for.', direction: 'both'},
+  {id: 'voice-melody', jazz: {stage: 'DT', exerciseIds: ['DT.2', 'DT.3']}, songwriting: {stage: 6, exerciseIds: ['6.16'], tool: 'melody-sketcher'},
+   why: 'Singing while you play is easier on melodies that sit in your range; the melody tools warn you when one goes out of it.', direction: 'both'},
+  {id: 'voice-writing', jazz: {stage: 'V6', exerciseIds: ['V6.1']}, songwriting: {tool: 'song-desk'},
+   why: 'Writing for voices is writing: the Song Desk keeps the sections you are arranging.', direction: 'both'},
+  {id: 'play-time', jazz: {page: 'mindset'}, songwriting: {exerciseIds: ['0.4'], tool: 'object-writing'},
+   why: '“Play time” — fearless, unedited, no consequences — is what A Song in an Hour, Badly and the Object Writing Desk are made of.', direction: 'both'}];
+
+/* every place a side of a bridge points at, with the words and the address for it */
+function studioBridgeItems(entry, side){
+  const o = entry[side] || {}, out = [];
+  if(side === 'songwriting'){
+    if(o.stage != null){ const s = typeof SNG_STAGES !== 'undefined' ? SNG_STAGES.find(x => x.id === o.stage) : null;
+      out.push({label: `Stage ${o.stage}${s ? ` — ${s.name}` : ''}`, href: `#/songwriting/stage/${o.stage}`}); }
+    (o.exerciseIds || []).forEach(id => { const e = typeof sngExercise === 'function' ? sngExercise(id) : null;
+      out.push({label: `${id}${e ? ` ${e.title}` : ''}`, href: `#/songwriting/ex/${id}`, ok: !!e}); });
+    if(o.tool) out.push({label: typeof sngToolName === 'function' ? sngToolName(o.tool) : o.tool, href: `#/songwriting/tool/${o.tool}`});
+    if(o.tab) out.push({label: o.tab === 'listening' ? 'The Listening Room' : o.tab, href: `#/songwriting/${o.tab}`});
+    if(o.capstone) out.push({label: 'The Capstone', href: '#/songwriting/capstone'});
+  } else {
+    if(o.stage != null){ const s = typeof jazzStage === 'function' ? jazzStage(o.stage) : null;
+      out.push({label: `Stage ${o.stage}${s ? ` — ${s.name}` : ''}`, jzstage: String(o.stage)}); }
+    (o.exerciseIds || []).forEach(id => { const e = typeof jazzExercise === 'function' ? jazzExercise(id) : null;
+      out.push({label: e ? e.name : id, href: `#/jazz/${id}`, ok: !!e}); });
+    if(o.page) out.push({label: o.page === 'mindset' ? 'The Jazz Mindset page' : o.page, href: `#/jazz/${o.page}`});
+  }
+  return out;
+}
+/* the entries that belong on a page: `ctx` is {stage, exId, page, tool, tab, capstone} for the room being looked at */
+function studioBridgesFor(room, ctx){
+  const other = room === 'jazz' ? 'songwriting' : 'jazz';
+  const mine = STUDIO_BRIDGES.filter(b => b.direction === 'both' || b.direction === (room === 'jazz' ? 'jazz→sng' : 'sng→jazz'));
+  const here = b => {
+    const o = b[room] || {};
+    if(ctx.exId && (o.exerciseIds || []).includes(ctx.exId)) return 2;
+    if(ctx.stage != null && o.stage != null && String(o.stage) === String(ctx.stage)) return 1;
+    if(ctx.page && o.page === ctx.page) return 1;
+    if(ctx.tool && o.tool === ctx.tool) return 1;
+    if(ctx.tab && o.tab === ctx.tab) return 1;
+    if(ctx.capstone && o.capstone) return 1;
+    return 0;
+  };
+  let hit = mine.map(b => [b, here(b)]).filter(x => x[1]);
+  /* on an exercise page: the entries that name it, or else the stage's */
+  if(ctx.exId && hit.some(x => x[1] === 2)) hit = hit.filter(x => x[1] === 2);
+  return {other, entries: hit.map(x => x[0])};
+}
+function studioBridgeKey(room, ctx){
+  return `${room}:${ctx.stage != null ? 'stage' + ctx.stage : ctx.page ? 'page' + ctx.page : ctx.tool ? 'tool' + ctx.tool : ctx.tab ? 'tab' + ctx.tab : ctx.capstone ? 'capstone' : 'x'}`;
+}
+function studioBridgeCardHTML(room, ctx){
+  const {other, entries} = studioBridgesFor(room, ctx);
+  if(!entries.length) return '';
+  const key = studioBridgeKey(room, ctx), st = studioState();
+  if(st.bridgesDismissed[key]) return `<div class="studio-bridge-off" data-studio-bridge-key="${esc(key)}"><button class="tbtn" data-studio-bridge-show>In the other room — show</button></div>`;
+  const where = STUDIO_ROOMS[other].name;
+  return `<details class="studio-card studio-bridge" open data-studio-bridge-key="${esc(key)}">
+    <summary>In the other room <span class="faint">· ${esc(where)}</span></summary>
+    ${entries.map(b => `<div class="studio-bridge-row"><p>${esc(b.why)}</p>
+      <div class="studio-bridge-links">${studioBridgeItems(b, other).map(i => i.jzstage
+        ? `<button class="tbtn" data-studio-jzstage="${esc(i.jzstage)}">${esc(i.label)}</button>`
+        : `<a class="tbtn" href="${esc(i.href)}">${esc(i.label)}</a>`).join('')}</div></div>`).join('')}
+    <p class="faint studio-bridge-foot">Advice, not a lock — it changes nothing about what is open, ready or planned.
+      <button class="tbtn" data-studio-bridge-hide>Hide for this stage</button></p></details>`;
+}
+/* where the card goes: the Jazz roadmap's open stages and its exercise pages; the Songwriting stage, exercise, tool and listening pages */
+function studioMountBridges(root, room, params){
+  if(!root || !root.querySelector) return;
+  root.querySelectorAll('.studio-bridge, .studio-bridge-off').forEach(n => n.remove());
+  const a = (params || [])[0], b = (params || [])[1];
+  const jobs = [];   /* [ctx, parent, how] */
+  const page = root.querySelector('.page');
+  if(room === 'jazz'){
+    if(!a){ root.querySelectorAll('.jz-stage:not(.shut):not(.collapsed)[data-jzstage]').forEach(el => jobs.push([{stage: el.dataset.jzstage}, el, 'stage'])); }
+    else if(a === 'mindset') jobs.push([{page: 'mindset'}, page, 'end']);
+    else if(typeof jazzExercise === 'function' && jazzExercise(a)){
+      const at = typeof jazzSubOf === 'function' ? jazzSubOf(a) : null;
+      jobs.push([{stage: at ? at.stage.id : null, exId: a}, page, 'end']); }
+  } else {
+    if(a === 'stage' && b != null) jobs.push([{stage: +b}, page, 'end']);
+    else if(a === 'ex' && b){ const e = typeof sngExercise === 'function' ? sngExercise(b) : null;
+      jobs.push([{stage: e ? e.stage : null, exId: b}, page, 'end']); }
+    else if(a === 'tool' && b) jobs.push([{tool: b}, page, 'end']);
+    else if(a === 'listening') jobs.push([{tab: 'listening'}, page, 'end']);
+    else if(a === 'capstone') jobs.push([{capstone: true}, page, 'end']);
+  }
+  jobs.forEach(([ctx, parent, how]) => {
+    if(!parent) return;
+    const html = studioBridgeCardHTML(room, ctx); if(!html) return;
+    if(how === 'stage'){ const bar = parent.querySelector('.jz-sbar'); (bar || parent.firstElementChild).insertAdjacentHTML('afterend', html); }
+    else parent.insertAdjacentHTML('beforeend', html);
+  });
+  const redo = () => studioMountBridges(root, room, params);
+  root.querySelectorAll('[data-studio-bridge-hide]').forEach(btn => btn.onclick = e => { e.stopPropagation();
+    const key = btn.closest('[data-studio-bridge-key]').dataset.studioBridgeKey; studioState().bridgesDismissed[key] = true; saveNow(); redo(); });
+  root.querySelectorAll('[data-studio-bridge-show]').forEach(btn => btn.onclick = e => { e.stopPropagation();
+    const key = btn.closest('[data-studio-bridge-key]').dataset.studioBridgeKey; delete studioState().bridgesDismissed[key]; saveNow(); redo(); });
+  root.querySelectorAll('[data-studio-jzstage]').forEach(btn => btn.onclick = e => { e.stopPropagation();
+    try { jazzUi().scrollTo = btn.dataset.studioJzstage; } catch(x){}
+    if(location.hash === '#/jazz' && typeof rerender === 'function') rerender(); else location.hash = '#/jazz'; });
 }
