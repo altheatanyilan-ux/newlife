@@ -8,6 +8,8 @@ The two music rooms in depth — the Jazz Studio's curriculum, twelve-key flashc
 
 The Knowledge Tree — pages, positions, grafts, tending, proof — has its own long explanation in [**KNOWLEDGE-TREE.md**](KNOWLEDGE-TREE.md).
 
+The Content Studio (the pipeline from a thought to a published thing) and Brand Strategy (the view inside it for public accounts) are explained separately and in depth in [**BRAND.md**](BRAND.md).
+
 The purpose layer — the sheet, the zone-of-genius workbench, convergence, values and strengths work, the inner-demons registers, the guided vision hour, retreats and the lenses — is described in [**PURPOSE.md**](PURPOSE.md).
 
 It is long because the house is large. You do not need to read it in order. Start with **Part I**, then read the chapter for whichever room you are about to use. **Part VI** has suggested daily, weekly and yearly rhythms, a map of how the rooms connect, a keyboard reference, a glossary and answers to common questions.

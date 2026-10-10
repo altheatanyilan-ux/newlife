@@ -225,7 +225,7 @@ function reviewGather(from, to){
     const media = (S.entries || []).filter(e => e.type === 'media' && inRange(e.occurredAt));
     const quotes = (S.entries || []).filter(e => e.type === 'quote' && inRange(e.occurredAt));
     const pieces = typeof contentPieces === 'function'
-      ? contentPieces().filter(e => inRange((e.extra?.content?.publishedAt || '').slice(0, 10))) : [];
+      ? contentPieces().filter(e => inRange((e.extra?.content?.publishedOn || '').slice(0, 10))) : [];
     if(media.length || quotes.length || pieces.length)
       st.reading = {media: media.length, quotes: quotes.length, published: pieces.length,
         titles: media.slice(0, 5).map(e => e.title).filter(Boolean)};
