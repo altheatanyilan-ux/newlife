@@ -90,6 +90,7 @@ function treeSlugFree(slug, forId){
 function treeValidate(n){
   if(!String(n.title || '').trim()) return 'A page needs a title.';
   if(n.kind !== 'root' && !n.parentId) return 'A ' + (n.kind === 'point' ? 'point' : 'branch') + ' needs a home — choose its parent.';
+  if(n.importance != null && !(typeof ICS_IMPORTANCE !== 'undefined' && ICS_IMPORTANCE[n.importance])) return 'Importance is core, supporting or peripheral — or not yet decided.';
   if(n.parentId && n.parentId === n.id) return 'A page cannot be its own parent.';
   if(n.parentId){ let x = treeNode(n.parentId), guard = 0; while(x && guard++ < 60){ if(x.id === n.id) return 'That parent sits under this page; the tree would loop.'; x = x.parentId ? treeNode(x.parentId) : null; } }
   if(n.parentId && !treeNode(n.parentId)) return 'That parent is not in the tree.';
@@ -133,6 +134,12 @@ function treeAddAlias(nodeId, title){
 /* pruning is a status, not a deletion: the page and everything that points at it keep */
 function treeSetStatus(id, status){ const n = treeNode(id); if(!n || !TREE_STATUS[status]) return; n.status = status; n.updatedAt = treeNow(); if(status === 'pruned') n.prunedAt = treeNow(); treeDirty(); save(); }
 function treeTouch(id){ const n = treeNode(id); if(!n) return; n.lastTendedAt = treeNow(); save(); }
+
+/* text added to a page goes to the end of its body, or to its Collected side when the page is split */
+function treeAppendDraft(n, text){
+  const f = (n.collected != null || n.processed != null) ? 'collected' : 'body';
+  return {id: n.id, [f]: String(n[f] || '').trimEnd() + '\n\n' + text};
+}
 
 /* ---------- positions: ADD-ONLY ---------- */
 function treePositionsOf(id){ return S.treePositions.filter(p => p.nodeId === id).sort((a, b) => a.date < b.date ? -1 : 1); }
@@ -196,7 +203,7 @@ function treeParseLinks(text){
 function treeRebuildLinks(n){
   S.treeLinks = S.treeLinks.filter(l => l.fromId !== n.id);
   const seen = new Set();
-  treeParseLinks((n.body || '') + '\n' + (n.openQuestion || '')).forEach(l => {
+  treeParseLinks(typeof icsLinkSource === 'function' ? icsLinkSource(n) : (n.body || '') + '\n' + (n.openQuestion || '')).forEach(l => {
     const toSlug = l.room === 'tree' ? treeSlug(l.target) : l.target.toLowerCase();
     const k = l.room + ':' + toSlug; if(seen.has(k)) return; seen.add(k);
     S.treeLinks.push({id: uid(), fromId: n.id, toSlug, toRoom: l.room, text: l.target});

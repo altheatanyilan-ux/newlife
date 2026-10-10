@@ -58,7 +58,7 @@ function treePageRoute(root, n, wanted){
     <div class="tr-crumbs">${path.map(p => `<a href="${treeUrl(p)}">${esc(p.title)}</a>`).join('<span>›</span>')}</div>
     ${editing ? treeEditFormHTML(n) : `
     <header class="tr-head">
-      <h1 class="serif">${treeKindMark(n)}${esc(n.title)}</h1>
+      <h1 class="serif">${treeKindMark(n)}${esc(n.title)}${typeof icsTitleMarksHTML === 'function' ? icsTitleMarksHTML(n) : ''}</h1>
       <div class="tr-headrow">${treeBadge(n)}<span class="faint">${TREE_KINDS[n.kind]}${aliases.length ? ` · also known as ${aliases.map(a => esc(a.title || a.alias)).join(', ')}` : ''}</span>
         <span class="tr-grow"></span>
         ${typeof icsOpenBtnHTML === 'function' ? icsOpenBtnHTML(n) : ''}<button class="tbtn" id="trEdit">Edit</button><button class="tbtn" id="trMore" aria-label="More">⋯</button></div>
@@ -72,12 +72,15 @@ function treePageRoute(root, n, wanted){
         : `<p class="faint">No position yet. What do you currently hold about this, and how sure are you?</p>`}
       <button class="btn sm" id="trRevise">${cur ? 'Revise position' : 'State a position'}</button>
     </section>
-    <article class="tr-body prose">${(n.body || '').trim() ? treeRender(n.body) : '<p class="faint">Nothing written here yet.</p>'}</article>
+    ${typeof icsWhyHTML === 'function' ? icsWhyHTML(n) : ''}
+    ${typeof icsBodyHTML === 'function' ? icsBodyHTML(n) : `<article class="tr-body prose">${(n.body || '').trim() ? treeRender(n.body) : '<p class="faint">Nothing written here yet.</p>'}</article>`}
     ${typeof icsPageAfterTextHTML === 'function' ? icsPageAfterTextHTML(n) : ''}
-    <section class="tr-question"><span class="tr-lbl">What would change my mind?</span>${(n.openQuestion || '').trim() ? `<div>${treeRender(n.openQuestion)}</div>` : '<p class="faint">Not yet asked.</p>'}</section>`}
+    ${typeof icsInquiryHTML === 'function' ? icsInquiryHTML(n) : `<section class="tr-question"><span class="tr-lbl">What would change my mind?</span>${(n.openQuestion || '').trim() ? `<div>${treeRender(n.openQuestion)}</div>` : '<p class="faint">Not yet asked.</p>'}</section>`}`}
+    ${editing ? '' : (typeof icsChunksHTML === 'function' ? icsChunksHTML(n, kids) : '')}
     <section class="tr-sec"><div class="tr-sechead"><h2>Beneath it</h2><span class="faint">${kids.length || 'nothing yet'}</span><span class="tr-grow"></span><button class="tbtn" id="trChild">＋ ${n.kind === 'root' ? 'Branch' : 'Point'} here</button></div>
       ${points > 15 ? `<p class="tr-warn">${points} points under one page. Some may belong on a branch of their own.</p>` : ''}
-      ${kids.length ? `<ul class="tr-kids">${kids.map(k => { const c = treeCurrentPosition(k.id); return `<li>${treeKindMark(k)}<a href="${treeUrl(k)}">${esc(k.title)}</a>${treeBadge(k)}${c ? `<span class="faint">${c.confidence}%</span>` : ''}</li>`; }).join('')}</ul>` : ''}</section>
+      ${kids.length ? `<ul class="tr-kids">${kids.map(k => { const c = treeCurrentPosition(k.id); return `<li>${treeKindMark(k)}<a href="${treeUrl(k)}">${esc(k.title)}</a>${treeBadge(k)}${c ? `<span class="faint">${c.confidence}%</span>` : ''}${typeof icsKidMarksHTML === 'function' ? icsKidMarksHTML(k) : ''}</li>`; }).join('')}</ul>` : ''}
+      ${n.kind === 'root' && typeof icsBackboneSignal === 'function' && kids.length && icsDescendants(n.id).length >= 5 ? (() => { const sg = icsBackboneSignal(n.id); return sg ? `<p class="tr-hint tr-warn soft">${esc(sg.text)}</p>` : ''; })() : ''}</section>
     <section class="tr-sec"><div class="tr-sechead"><h2>Leaves</h2><span class="faint">what this rests on, from the other rooms</span><span class="tr-grow"></span><button class="tbtn" id="trLeaf">＋ Attach</button></div>
       ${leaves.length ? `<ul class="tr-leaves">${leaves.map(l => { const e = byId(S.entries, l.entryId);
         return `<li class="tr-leaf ${l.room}"><span class="tr-room">${{library: 'Library', journal: 'Journal', writing: 'Writing'}[l.room]}</span>${e ? treeEntryLinkHTML(e) : '<span class="faint">(the entry is gone from its room)</span>'}${l.note ? `<span class="faint"> — ${esc(l.note)}</span>` : ''}<button class="tbtn sm" data-trunleaf="${l.id}" aria-label="Detach">×</button></li>`; }).join('')}</ul>`
@@ -100,6 +103,7 @@ function treePageRoute(root, n, wanted){
     ['Seal a prediction', () => treePredictDialog(n, () => treePageRoute(root, n))],
     ['Record an experiment', () => treeExperimentDialog(n, () => treePageRoute(root, n))],
     ['Review it now', () => treeReviewDialog(n, () => treePageRoute(root, n))],
+    ...(typeof icsIsSplit === 'function' ? [[icsIsSplit(n) ? 'Put Collected and Processed back together' : 'Split into Collected and Processed', () => { const b = root.querySelector('[data-act="split-toggle"]'); if(b) b.click(); }]] : []),
     ...(typeof icsCanOpenInStudio === 'function' && icsCanOpenInStudio(n) ? [['Open in Studio', () => icsOpenInStudio(n.id)]] : []),
     ...Object.keys(TREE_STATUS).filter(s => s !== n.status).map(s => [`Mark ${TREE_STATUS[s].toLowerCase()}`, () => { treeSetStatus(n.id, s); treePageRoute(root, n); }])
   ]);
@@ -130,7 +134,7 @@ function treeEditFormHTML(n){
     <div class="tr-frow"><label class="tr-f"><span>Kind</span><select class="sel" id="teKind">${Object.entries(TREE_KINDS).map(([k, v]) => `<option value="${k}"${n.kind === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label>
       <label class="tr-f grow"><span>Home in the tree</span><select class="sel" id="teParent"><option value="">(none — a root)</option>${treeParentOptions(n, n.kind).map(([id, l]) => `<option value="${id}"${n.parentId === id ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select></label>
       <label class="tr-f"><span>Status</span><select class="sel" id="teStatus">${Object.entries(TREE_STATUS).map(([k, v]) => `<option value="${k}"${n.status === k ? ' selected' : ''}>${v}</option>`).join('')}</select></label></div>
-    <label class="tr-f"><span>Text <small>markdown; [[Page]], [[Page|shown as]], [[library:Title]], [[journal:2025-03-01]], [[writing:Title]]</small></span><textarea class="inp tr-ta" id="teBody" rows="14">${esc(n.body || '')}</textarea></label>
+    ${typeof icsEditTextHTML === 'function' ? icsEditTextHTML(n) : `<label class="tr-f"><span>Text <small>markdown; [[Page]], [[Page|shown as]], [[library:Title]], [[journal:2025-03-01]], [[writing:Title]]</small></span><textarea class="inp tr-ta" id="teBody" rows="14">${esc(n.body || '')}</textarea></label>`}
     <label class="tr-f"><span>What would change my mind?</span><textarea class="inp" id="teQ" rows="3">${esc(n.openQuestion || '')}</textarea></label>
     <p class="tr-err" id="teErr" role="alert"></p>
     <div class="row" style="gap:8px"><button class="btn primary" id="teSave">Save</button><button class="btn ghost" id="teCancel">Cancel</button></div>
@@ -138,13 +142,13 @@ function treeEditFormHTML(n){
 }
 function treeBindEditForm(root, n){
   const $e = id => root.querySelector(id);
-  treeAutocomplete($e('#teBody')); treeAutocomplete($e('#teQ'));
+  if(typeof icsBindEditText === 'function') icsBindEditText(root, n); else treeAutocomplete($e('#teBody')); treeAutocomplete($e('#teQ'));
   $e('#teKind').onchange = () => { const k = $e('#teKind').value, cur = $e('#teParent').value;
     $e('#teParent').innerHTML = `<option value="">(none — a root)</option>` + treeParentOptions(n, k).map(([id, l]) => `<option value="${id}"${cur === id ? ' selected' : ''}>${esc(l)}</option>`).join(''); };
   $e('#teCancel').onclick = () => { S._tree.editing = null; treePageRoute(root, n); };
   $e('#teSave').onclick = () => {
     const kind = $e('#teKind').value, parentId = $e('#teParent').value || null;
-    const r = treeSavePage({id: n.id, title: $e('#teTitle').value, kind: parentId ? kind : (kind === 'root' ? 'root' : kind), parentId, status: $e('#teStatus').value, body: $e('#teBody').value, openQuestion: $e('#teQ').value, lastTendedAt: treeNow()});
+    const r = treeSavePage({id: n.id, title: $e('#teTitle').value, kind: parentId ? kind : (kind === 'root' ? 'root' : kind), parentId, status: $e('#teStatus').value, ...(typeof icsEditDraft === 'function' ? icsEditDraft(root, n) : {body: $e('#teBody').value}), openQuestion: $e('#teQ').value, lastTendedAt: treeNow()});
     if(r.error){ $e('#teErr').textContent = r.error; return; }
     if(r.warn) toast(r.warn, 5000);
     S._tree.editing = null;

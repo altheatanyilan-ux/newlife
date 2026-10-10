@@ -92,7 +92,7 @@ function treeInboxRoute(root){
       /* add to an existing page: the text goes to the end of its body */
       const pick = await treePickPage('Which page does this belong to?');
       if(!pick) return;
-      const n = treeNode(pick); treeSavePage({id: n.id, body: (n.body || '').trimEnd() + '\n\n' + x.text, lastTendedAt: treeNow()}); treeInboxDone(x.id); toast(`Added to ${n.title}.`); treeInboxRoute(root);
+      const n = treeNode(pick); treeSavePage(Object.assign(treeAppendDraft(n, x.text), {lastTendedAt: treeNow()})); treeInboxDone(x.id); toast(`Added to ${n.title}.`); treeInboxRoute(root);
     }); });
 }
 function treePickPage(title){
@@ -121,7 +121,7 @@ function treeLibraryPrompt(entry){
   m.querySelector('#tlpSkip').onclick = () => m.remove();
   m.querySelector('#tlpOk').onclick = () => {
     const t = m.querySelector('#tlpT').value.trim();
-    if(page){ treeAttachLeaf(page, entry.id, t); if(t){ const n = treeNode(page); treeSavePage({id: n.id, body: (n.body || '').trimEnd() + `\n\n${t} — [[library:${entry.title}]]`}); } toast('Attached to ' + treeNode(page).title + '.'); }
+    if(page){ treeAttachLeaf(page, entry.id, t); if(t){ const n = treeNode(page); treeSavePage(treeAppendDraft(n, `${t} — [[library:${entry.title}]]`)); } toast('Attached to ' + treeNode(page).title + '.'); }
     else if(t) { treeCapture(`${t} — from [[library:${entry.title}]]`); toast('In the Tree\'s inbox.'); }
     m.remove();
   };
@@ -165,8 +165,8 @@ function treeSearch(f){
   if(!f.room || f.room === 'tree') S.treeNodes.forEach(n => {
     if(f.status && n.status !== f.status) return; if(!treeUnder(n, f.branch)) return; if(!inDate(String(n.updatedAt || n.createdAt || ''))) return;
     const pos = treeCurrentPosition(n.id);
-    const text = (n.title + ' ' + (n.body || '') + ' ' + (n.openQuestion || '') + ' ' + (pos ? pos.statement : '') + ' ' + S.treeAliases.filter(a => a.nodeId === n.id).map(a => a.title).join(' ')).toLowerCase();
-    if(!q || hit(text)) out.push({room: 'tree', title: n.title, date: String(n.updatedAt || '').slice(0, 10), href: treeUrl(n), snippet: treeSnippet(n.body || (pos && pos.statement) || '', words), node: n});
+    const text = (n.title + ' ' + (n.body || '') + ' ' + (n.collected || '') + ' ' + (n.processed || '') + ' ' + (n.whyImportant || '') + ' ' + (n.openQuestion || '') + ' ' + (pos ? pos.statement : '') + ' ' + S.treeAliases.filter(a => a.nodeId === n.id).map(a => a.title).join(' ')).toLowerCase();
+    if(!q || hit(text)) out.push({room: 'tree', title: n.title, date: String(n.updatedAt || '').slice(0, 10), href: treeUrl(n), snippet: treeSnippet(n.body || n.processed || n.collected || (pos && pos.statement) || '', words), node: n});
   });
   if(f.room !== 'tree') (S.entries || []).forEach(e => {
     const room = treeRoomOf(e); if(!room || (f.room && f.room !== room)) return;

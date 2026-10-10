@@ -52,9 +52,9 @@ function treeBindTend(root){
       if(v === 'drop'){ treeInboxDone(x.id); return done('Let go.'); }
       if(v === 'page') return treeNewPageDialog({title: x.text.length <= 80 ? x.text : '', kind: 'point', after: n => { if(x.text.length > 80) treeSavePage({id: n.id, body: x.text}); treeInboxDone(x.id); treeTouch(n.id); done('A new page.'); }});
       const id = await treePickPage('Which page does this belong to?'); if(!id) return;
-      const n = treeNode(id); treeSavePage({id, body: (n.body || '').trimEnd() + '\n\n' + x.text, lastTendedAt: treeNow()}); treeInboxDone(x.id); return done(`Added to ${n.title}.`); }
+      const n = treeNode(id); treeSavePage(Object.assign(treeAppendDraft(n, x.text), {lastTendedAt: treeNow()})); treeInboxDone(x.id); return done(`Added to ${n.title}.`); }
     const n = treeNode(card.dataset.n);
-    if(v === 'line'){ const t = await treeAsk(`A line for ${n.title}`, ''); if(!t) return; treeSavePage({id: n.id, body: (n.body || '').trimEnd() + '\n\n' + t, lastTendedAt: treeNow()}); return done(); }
+    if(v === 'line'){ const t = await treeAsk(`A line for ${n.title}`, ''); if(!t) return; treeSavePage(Object.assign(treeAppendDraft(n, t), {lastTendedAt: treeNow()})); return done(); }
     if(v === 'leaf') return treeLeafDialog(n, () => { treeTouch(n.id); done(); });
     return treeReviseDialog(n, () => done());
   });

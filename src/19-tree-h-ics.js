@@ -274,7 +274,7 @@ icsRegisterGapRule({type: 'unchunked-children', label: 'Too many loose children'
   test(n){
     if(n.kind === 'point') return false;
     const kids = treeChildren(n.id).filter(k => k.status !== 'pruned'); if(kids.length <= ICS_MAX_UNCHUNKED) return false;
-    const chunked = new Set((S.treeChunks || []).flatMap(c => c.memberIds || []));
+    const chunked = new Set((S.treeChunks || []).filter(c => !c.retiredAt).flatMap(c => c.memberIds || []));
     return kids.filter(k => !chunked.has(k.id)).length > ICS_MAX_UNCHUNKED;
   }});
 icsRegisterGapRule({type: 'no-backbone', label: 'Root with no backbone',
@@ -282,7 +282,7 @@ icsRegisterGapRule({type: 'no-backbone', label: 'Root with no backbone',
   test(n){ if(n.kind !== 'root' || n.status === 'pruned') return false; const d = icsDescendants(n.id); if(d.length < 5) return false; return !d.some(x => x.backbone === true); }});
 icsRegisterGapRule({type: 'stale-question', label: 'Question left red',
   hint: 'A question has been red for over a fortnight. Answer it or let it go.',
-  test(n){ return (S.treeQuestions || []).some(q => q.pageId === n.id && q.status === 'red' && icsDaysAgo(q.createdAt) > ICS_QUESTION_STALE_DAYS); }});
+  test(n){ return (S.treeQuestions || []).some(q => q.pageId === n.id && !q.retiredAt && q.status === 'red' && icsDaysAgo(q.createdAt) > ICS_QUESTION_STALE_DAYS); }});
 icsRegisterGapRule({type: 'mastery-stalled', label: 'Stuck at a low level',
   hint: 'A month at level 1 or 2 means isolated knowledge. Ask how it relates to two other things.',
   test(n){ const m = n.mastery; if(!m || !m.level || m.level > 2) return false; const last = (m.history || [])[(m.history || []).length - 1]; return !!last && icsDaysAgo(last.date) > 30; }});
