@@ -839,6 +839,7 @@ function bindCanvas(root, boardId, opts){
         const p = S.lsPlacements.find(x => x.id === pid);
         if(p) openChipEditor(p.x, p.y, chipId);
       }});
+      if(typeof lsBridgePromoteDialog === 'function') items.push({label: 'Send to the Tree…', action: () => lsBridgePromoteDialog(boardId, chipId, () => repaint())});
       items.push({label: 'Move to tray', action: () => {
         lsChipUpdate(chipId, {inTray: true}); repaint(); trayEl && (trayEl.innerHTML = lsTrayHTML(boardId));
       }});
@@ -858,6 +859,9 @@ function bindCanvas(root, boardId, opts){
       if(it) btn.onclick = () => { it.action(); menu.remove(); };
     });
   });
+
+  /* anything that moves cards from outside the canvas (Shuffle, the bridge) asks for a repaint this way */
+  root.addEventListener('ls-repaint', () => repaint());
 
   /* initial render */
   repaint();

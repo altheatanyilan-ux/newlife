@@ -121,7 +121,9 @@ function bindAskPanel(panelEl, boardId, canvasApi){
 function lsShootPanelHTML(boardId, cardId, cardType){
   if(!cardId) return `<div class="ls-panel-empty muted">Select a chip to answer its questions.</div>`;
   lsEnsure();
-  const questions = S.lsQuestions.filter(q => q.cardId === cardId && q.cardType === cardType && !q.answeredAt);
+  /* a skipped question goes to the back of the line */
+  const questions = S.lsQuestions.filter(q => q.cardId === cardId && q.cardType === cardType && !q.answeredAt)
+    .sort((a, b) => String(a.skippedAt || '').localeCompare(String(b.skippedAt || '')));
   const chip = cardType === 'chip' ? lsChipById(cardId) : (S.treeNodes||[]).find(n => n.id === cardId);
   const label = chip ? (chip.text || chip.title || '') : cardId;
   const source = chip?.sourceRef?.passage ? chip.sourceRef.passage : null;
@@ -171,9 +173,9 @@ function bindShootPanel(panelEl, boardId, canvasApi){
     };
 
     if(skipBtn) skipBtn.onclick = () => {
-      /* rotate to next question */
-      const questions = S.lsQuestions.filter(q => q.cardId === cardId && q.cardType === cardType && !q.answeredAt && q.id !== qid);
-      if(questions.length) refresh(cardId, cardType);
+      /* rotate to the next question: this one goes to the back */
+      lsQuestionUpdate(qid, {skippedAt: new Date().toISOString()});
+      refresh(cardId, cardType);
     };
   }
 
@@ -258,18 +260,11 @@ function lsRelateConfirmPopover(fromId, fromType, toId, toType, onConfirm, onCan
   };
 }
 
+/* A connection is drawn on the board and stays there. It becomes a Tree graft only when you say so, from the
+   Check panel (19-ls-f-bridge.js), and only when both ends are pages in the Tree. */
 function lsCreateGraft(fromId, fromType, toId, toType, graftType, why){
-  /* if both are promoted tree nodes → write to treeGrafts */
-  const fromNodeId = fromType === 'node' ? fromId : lsChipById(fromId)?.promotedToNodeId;
-  const toNodeId   = toType   === 'node' ? toId   : lsChipById(toId)?.promotedToNodeId;
-
-  if(fromNodeId && toNodeId && typeof treeAddGraft === 'function'){
-    treeAddGraft(fromNodeId, toNodeId, graftType, why);
-    return {kind:'tree'};
-  }
-  /* otherwise → lsGrafts (temporary, migrated on promotion) */
   const g = lsGraftNew(fromId, toId, graftType, why);
-  return {kind:'ls', graft: g};
+  return {kind: 'ls', graft: g};
 }
 
 /* ---------- Check mode ---------- */
@@ -310,6 +305,7 @@ function lsCheckPanelHTML(boardId){
             : `<span class="faint" style="font-size:.72rem">${c.promotedToNodeId ? 'in Tree' : ''}</span>`}
         </div>`).join('')}
     </div>
+    ${typeof lsBridgeSectionHTML === 'function' ? lsBridgeSectionHTML(boardId) : ''}
   </div>`;
 }
 
@@ -341,6 +337,7 @@ function bindCheckPanel(panelEl, boardId){
       toast('Layout snapshot saved.');
     });
 
+    if(typeof lsBridgeBind === 'function') lsBridgeBind(panelEl, boardId, refresh);
     panelEl.querySelectorAll('.ls-check-deck-one').forEach(btn => {
       btn.onclick = () => {
         const chip = lsChipById(btn.dataset.cid); if(!chip) return;
@@ -384,6 +381,8 @@ function lsMountModePanel(panelEl, boardId, mode, canvasApi){
     }
   } else if(mode === 'chunk'){
     api = bindChunkPanel(panelEl, boardId, canvasApi);
+  } else if(mode === 'sort' && typeof bindSortPanel === 'function'){
+    api = bindSortPanel(panelEl, boardId, canvasApi);
   } else {
     panelEl.innerHTML = '';
   }
@@ -393,6 +392,7 @@ function lsMountModePanel(panelEl, boardId, mode, canvasApi){
 
 /* ---------- selection → panel update ---------- */
 function lsOnSelectionChange(panelEl, boardId, mode, placementIds, canvasApi, panelApi){
+  if(mode === 'sort'){ panelApi && panelApi.refresh && panelApi.refresh(); return; }
   if(!placementIds.length){
     if(mode === 'ask')  { panelEl.innerHTML = lsAskPanelHTML(boardId, null, null); bindAskPanel(panelEl, boardId, canvasApi); }
     if(mode === 'shoot'){ panelEl.innerHTML = lsShootPanelHTML(boardId, null, null); bindShootPanel(panelEl, boardId, canvasApi); }

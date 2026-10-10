@@ -50,6 +50,7 @@ function lsHeaderHTML(board){
   return `<div class="ls-header">
     <span class="ls-header-title">${esc(branchTitle)}</span>
     <div class="ls-header-actions">
+      ${board && board.branchId ? '<button class="btn sm ghost" data-ls-action="import-branch" title="Bring in this branch\'s points as chips, with your say-so">Bring in the branch\'s points</button>' : ''}
       <button class="btn sm ghost" data-ls-action="scaffold-level" title="Scaffold level: ${esc(scaffoldLabel)} — click to cycle">◈ ${esc(scaffoldLabel)}</button>
       <button class="btn sm ghost" data-ls-action="snapshot" title="Save layout snapshot">Snapshot</button>
       <button class="btn sm ghost" data-ls-action="fit"      title="Fit all cards (0)">Fit</button>
@@ -143,6 +144,7 @@ routes.studio = function(root, params){
 
   function switchMode(modeId){
     lsBoardSetMode(board.id, modeId);
+    if(typeof lsBridgeMode === 'function') lsBridgeMode(board.id, modeId);
     board = lsBoardById(board.id);
     const bar = root.querySelector('[data-modebar]');
     if(bar){ bar.outerHTML = lsModeBarHTML(board.id, modeId); rebindModebar(); }
@@ -221,20 +223,26 @@ routes.studio = function(root, params){
   }
   document.addEventListener('keydown', onPageKey);
 
-  /* start session timer */
-  if(S.lsPrefs.timerAutoStart && typeof startRoomTimer === 'function'){
+  /* the clock: a room asking for it goes through timeAutoStart, which starts it only if nothing else is running */
+  if(S.lsPrefs.timerAutoStart && typeof timeAutoStart === 'function'){
     const branchTitle = board.branchId
       ? (S.treeNodes||[]).find(n => n.id === board.branchId)?.title || 'Studio'
       : 'Studio';
-    startRoomTimer({what: 'Studio: ' + branchTitle, linkedType: 'learningStudio', linkedId: board.id});
+    try { timeAutoStart({categoryId: 'study', feature: 'learningStudio', what: 'Studio: ' + branchTitle}); } catch(e){}
   }
+  /* a session is recorded, and the board's bridge to the Tree is wired */
+  const bridge = typeof lsBridgeOnEnter === 'function' ? lsBridgeOnEnter(root, board, canvasApi, () => switchMode(board.mode)) : null;
 
   /* cleanup on navigate away */
   root._lsCleanup = () => {
     document.removeEventListener('keydown', onPageKey);
+    if(bridge && bridge.leave) bridge.leave();
+    try { if(typeof timeAutoStop === 'function') timeAutoStop('learningStudio'); } catch(e){}
     destroyRelate();
     canvasApi.destroy();
   };
+  /* the page-level hook is on the element the renderer looks for, as well as on the root */
+  const pageEl = root.querySelector('[data-ls-page]'); if(pageEl) pageEl._lsCleanup = root._lsCleanup;
 };
 
 /* store old renderRoute so we can call cleanup before navigation */

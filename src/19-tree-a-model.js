@@ -282,7 +282,9 @@ function treeDueReviews(){ return S.treeReviews.filter(r => icsIsDue(r)).sort((a
 /* ---------- export and import of the Tree alone ---------- */
 function treeExport(){
   const data = {}; TREE_STORES.forEach(k => data[k] = S[k]);
-  const payload = {kind: 'life-instrument-knowledge-tree', version: 1, exportedAt: treeNow(), data};
+  const payload = {kind: 'life-instrument-knowledge-tree', version: 1, icsSchemaVersion: typeof ICS_SCHEMA_VERSION !== 'undefined' ? ICS_SCHEMA_VERSION : undefined, exportedAt: treeNow(), data};
+  /* the Studio's boards go out too, under a key of their own, so an older Tree-only file still imports */
+  if(typeof lsBridgeExport === 'function') payload.studio = lsBridgeExport();
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `knowledge-tree-${treeToday()}.json`; document.body.appendChild(a); a.click(); a.remove();
   S.treePrefs.lastExportAt = treeNow(); save();
@@ -303,6 +305,8 @@ function treeImport(obj){
       S[k].push(TREE_ADD_ONLY.includes(k) ? Object.freeze(Object.assign({}, r)) : r); added[k]++;
     });
   });
+  /* the Studio's records, if the file carries them; add-only like the rest */
+  if(obj.studio && typeof lsBridgeImportStudio === 'function') added.studio = Object.values(lsBridgeImportStudio(obj.studio)).reduce((a, b) => a + b, 0);
   treeDirty(); save();
   return {added, kept};
 }

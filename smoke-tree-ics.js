@@ -444,6 +444,128 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('retrievals and mistakes travel in the export', await E(() => { const blob = JSON.parse(JSON.stringify({kind: 'life-instrument-knowledge-tree', version: 1, data: Object.fromEntries(TREE_STORES.map(k => [k, S[k]]))})); const r = treeImport(blob); return blob.data.treeRetrievals.length > 0 && blob.data.treeMistakes.length > 0 && r.added.treeRetrievals === 0 && r.added.treeMistakes === 0 && r.added.treeQuestions === 0; }));
   yes('no page errors in Phase 3', errs.length === 0, errs);
 
+  console.log('\nA-13. trunk before leaves');
+  const tk = await E(() => {
+    const root = mk({title: 'What does tort protect', kind: 'root'});
+    const mid = mk({title: 'Mid peripheral', kind: 'branch', parentId: root.id, importance: 'peripheral'});
+    const leaf = mk({title: 'Trunk leaf', parentId: mid.id, backbone: true});
+    for(let i = 0; i < 6; i++) mk({title: 'tkl' + i, parentId: mid.id});
+    const gone = mk({title: 'Gone bone', parentId: mid.id, backbone: true}); treeSetStatus(gone.id, 'pruned');
+    const v = icsTrunkViewOrPrompt(root.id), o = {empty: v.empty};
+    const m = v.tree.children[0]; o.mid = [m.page.id === mid.id, m.connector, m.children.length, m.children[0].page.id === leaf.id, m.hiddenCount];
+    o.pruned = !JSON.stringify(v.tree, (k, val) => k === 'page' || k === 'hidden' ? (val && val.id) : val).includes(gone.id);
+    const bare = mk({title: 'Bare root', kind: 'root'}); mk({title: 'bare child', parentId: bare.id}); o.bare = icsTrunkViewOrPrompt(bare.id).empty;
+    o.root = root.id; o.slug = root.slug; o.mid_id = mid.id; return o; });
+  is('with something marked, the trunk shows and a path to it is kept as a connector', [tk.empty, tk.mid], [false, [true, true, 1, true, 6]]);
+  is('pruned pages stay hidden; with nothing marked there is a prompt, not an empty list', [tk.pruned, tk.bare], [true, true]);
+  await E(() => { icsUi().outlineMode = 'all'; location.hash = '#/tree/outline'; }); await p.waitForTimeout(500);
+  await p.click('[data-act="mode"]'); await p.waitForTimeout(400);
+  yes('the outline has a Trunk only toggle that holds', await E(() => document.querySelector('[data-mode="trunk"]') && document.querySelector('[data-act="mode"]').getAttribute('aria-pressed') === 'true'));
+  yes('a connector is drawn lighter and carries a count of what it hides', await E(() => !!document.querySelector('li.is-connector') && /\+6 more/.test(document.body.innerText)));
+  await E(() => { location.hash = '#/tree'; }); await p.waitForTimeout(300); await E(() => { location.hash = '#/tree/outline'; }); await p.waitForTimeout(400);
+  yes('and it persists across navigation in the session', await E(() => icsUi().outlineMode === 'trunk' && !!document.querySelector('[data-mode="trunk"]')));
+  await p.click('[data-act="unfold"]'); await p.waitForTimeout(300);
+  yes('clicking the count opens the rest in place, still in trunk mode', await E(() => icsUi().outlineMode === 'trunk' && document.querySelectorAll('li.tr-olrow, .tr-ol li').length > 8 && /fold the rest/.test(document.body.innerText)));
+  await E(() => { icsUi().unfold = {}; icsUi().outlineMode = 'all'; });
+
+  console.log('\nN-01. the chunk map');
+  const mp = await E(() => {
+    const root = mk({title: 'Tort map', kind: 'root'});
+    const b1 = mk({title: 'Map branch', kind: 'branch', parentId: root.id, backbone: true});
+    const p1 = mk({title: 'Map A', parentId: b1.id}), p2 = mk({title: 'Map B', parentId: b1.id}), lone = mk({title: 'Map Lonely', parentId: root.id});
+    const gone = mk({title: 'Map gone', parentId: root.id}); treeSetStatus(gone.id, 'pruned');
+    treeAddGraft(p1.id, p2.id, 'contradicts', 'they cannot both be right');
+    const g = icsBuildGraph(root.id), o = {};
+    o.n = g.nodes.length; o.noPruned = !g.nodes.some(n => n.id === gone.id);
+    o.island = [g.nodes.find(n => n.id === lone.id).island, g.nodes.find(n => n.id === p1.id).island, g.nodes.find(n => n.id === b1.id).island];
+    o.tension = g.edges.some(e => e.type === 'graft' && e.tension === true); o.parents = g.edges.filter(e => e.type === 'parent').length;
+    o.det = JSON.stringify(icsBuildGraph(root.id).nodes) === JSON.stringify(icsBuildGraph(root.id).nodes);
+    o.trunk = icsBuildGraph(root.id, {trunkOnly: true}).nodes.length;
+    const ch = icsCreateChunk({title: 'Pair', reason: 'both turn on reliance', memberIds: [p1.id, p2.id]});
+    const boxes = icsChunkBoxes(icsBuildGraph(root.id)); o.box = [boxes.length, boxes[0] && boxes[0].chunkId === ch.id];
+    const d = icsMapDiagnostics(icsBuildGraph(root.id)); o.diag = [d.islands.length, d.backbone, ['too few', 'about right', 'too many'].includes(d.relational)];
+    o.link = (() => { mk({title: 'Map Linked', parentId: root.id}); const t = mk({title: 'Map link source', body: 'see [[Map Linked]]', parentId: root.id}); const gg = icsBuildGraph(root.id); return gg.edges.some(e => e.type === 'link' && e.fromId === t.id); })();
+    const big = mk({title: 'Big root', kind: 'root'}); const bb = mk({title: 'bb', kind: 'branch', parentId: big.id}); for(let i = 0; i < 252; i++) treeSavePage({title: 'bigp' + i, kind: 'point', parentId: bb.id, status: 'active'});
+    o.gate = icsMapSuggestedOpts(big.id).trunkOnly;
+    o.rid = root.id; o.rslug = root.slug; return o; });
+  is('pruned pages never appear; the lonely page is an island and the connected ones are not', [mp.noPruned, mp.island], [true, [true, false, false]]);
+  is('an unresolved contradiction is a tension edge; every parent link is drawn', [mp.tension, mp.parents], [true, 4]);
+  is('the layout is deterministic, and trunk-only keeps the root and the backbone', [mp.det, mp.trunk], [true, 2]);
+  is('a chunk is a box behind its members; the diagnostics count islands and backbone', [mp.box, mp.diag], [[1, true], [1, 1, true]]);
+  is('a bare [[link]] is drawn as the weakest tie', mp.link, true);
+  is('past 250 pages the map opens on the trunk', mp.gate, true);
+  await E(a => { location.hash = '#/tree/p/' + a.rslug; }, mp); await p.waitForTimeout(500);
+  yes('a root offers the chunk map', await E(() => !!document.querySelector('[data-act="see-map"]')));
+  await E(a => { location.hash = '#/tree/map/' + a.rid; }, mp); await p.waitForTimeout(700);
+  const svg = await E(() => ({edges: ['.e-parent', '.e-link', '.e-graft'].map(c => document.querySelectorAll('.tr-mapsvg ' + c).length), arrow: !!document.querySelector('.e-graft[marker-end]'), tension: !!document.querySelector('.e-graft[data-tension="true"]'), chunk: document.querySelectorAll('.map-chunks g').length, backbone: !!document.querySelector('.n[data-backbone="true"]'), island: !!document.querySelector('.n[data-island="true"]'), diag: document.querySelector('#trMapDiag').textContent, draggable: !!document.querySelector('.tr-mapsvg [draggable],.tr-mapsvg [data-drag]')}));
+  yes('the SVG draws parent, link and graft edges distinctly, with arrowheads', svg.edges[0] >= 4 && svg.edges[1] >= 1 && svg.edges[2] >= 1 && svg.arrow);
+  yes('tension, chunk, backbone and island are all drawn, and nothing is draggable', svg.tension && svg.chunk === 1 && svg.backbone && svg.island && !svg.draggable);
+  yes('the diagnostics line reports pages, grafts, density and verdict', /pages · \d+ grafts · density .*\(.*\)/.test(svg.diag), svg.diag);
+  const colours = await E(() => { const r = {}; ['mastery', 'importance', 'status'].forEach(c => { const m = icsUi().map[document.querySelector('.tr-map').dataset.root]; m.colour = c; icsMapRoute(document.getElementById('main') || document.querySelector('.tr-map').parentNode, m && document.querySelector('.tr-map').dataset.root); r[c] = document.querySelector('.tr-mapsvg').dataset.colour; }); return r; });
+  is('colouring by mastery, importance and status is selectable', colours, {mastery: 'mastery', importance: 'importance', status: 'status'});
+  const writes = await E(() => { const before = JSON.stringify([S.treeNodes.length, S.treeChunks.length, S.treeGrafts.length]); document.querySelectorAll('.n').forEach(n => n.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}))); return before === JSON.stringify([S.treeNodes.length, S.treeChunks.length, S.treeGrafts.length]); });
+  yes('no pointer interaction writes anything', writes);
+
+  console.log('\nN-06. prime a branch');
+  const pr = await E(() => {
+    const root = mk({title: 'Torts prime', kind: 'root'});
+    const branch = mk({title: 'Vicarious liability', kind: 'branch', parentId: root.id}); mk({title: 'Close connection test', parentId: branch.id});
+    const ks = icsParseKeywords('- Course of employment\n1. Close connection test\ncourse of employment\n\nIndependent contractors'); const o = {n: ks.length};
+    const an = icsAnnotateExisting(ks); o.existing = an.find(k => k.text === 'Close connection test').existingPageId !== null;
+    const plan = icsEmptyPlan(branch.id); plan.keywords = an; plan.groups = [{label: 'Tests', reason: 'both ask whether the act was closely connected to the employment', keywordTexts: ['Course of employment', 'Close connection test']}];
+    const pagesBefore = S.treeNodes.length; const res = icsCommitPlan(plan);
+    o.res = [res.created.length, res.created.every(p => p.status === 'stub'), res.reused.length, res.chunks.length, res.questions.length, res.questions.every(q => q.status === 'red' && q.answer === '')];
+    o.added = S.treeNodes.length - pagesBefore;
+    const plan2 = icsEmptyPlan(branch.id); plan2.keywords = icsParseKeywords('Alpha prime\nBeta prime'); plan2.groups = [{label: 'Nameless', reason: '', keywordTexts: ['Alpha prime', 'Beta prime']}];
+    const r2 = icsCommitPlan(plan2); o.skipped = [r2.chunks.length, r2.skippedGroups.length];
+    const pt = mk({title: 'A point'}); try { icsCommitPlan(Object.assign(icsEmptyPlan(pt.id), {keywords: []})); o.wrong = false; } catch(e){ o.wrong = true; }
+    const big = icsEmptyPlan(branch.id); big.keywords = Array.from({length: 45}, (_, i) => ({text: 'k' + i, words: 1})); o.big = icsPlanSignals(big).some(s => /a lot for one branch/.test(s.text));
+    o.long = icsPlanSignals(Object.assign(icsEmptyPlan(branch.id), {keywords: [{text: 'This reads like a whole claim, not a keyword at all friend', words: 11}]})).length;
+    o.bid = branch.id; o.bslug = branch.slug; o.noWhy = res.created.some(p => icsHasGap(p.id, 'no-why-important'));
+    return o; });
+  is('keywords are cleaned and de-duplicated; one existing page is flagged', [pr.n, pr.existing], [3, true]);
+  is('committing makes only new stubs, one chunk, four red unanswered questions each, and reuses the existing page', [pr.res, pr.added], [[2, true, 1, 1, 8, true], 2]);
+  is('a group with no reason is skipped and reported; a point is refused; a long list and a claim are signalled', [pr.skipped, pr.wrong, pr.big, pr.long], [[0, 1], true, true, 1]);
+  is('stubs are not nagged about why they matter', pr.noWhy, false);
+  await E(a => { location.hash = '#/tree/prime/' + a.bid; }, pr); await p.waitForTimeout(600);
+  await p.click('[data-act="prime-next"]'); await p.waitForTimeout(200);
+  await p.fill('[data-field="keywords"]', 'Wizard one\nWizard two\nWizard three'); await p.click('[data-act="prime-next"]'); await p.waitForTimeout(300);
+  const nodes0 = await E(() => S.treeNodes.length);
+  yes('the wizard walks Resources, Keywords, Organise and writes nothing until the end', await E(n0 => document.querySelectorAll('.tr-prime-keywords li').length === 3 && S.treeNodes.length === n0, nodes0));
+  await p.click('[data-act="prime-next"]'); await p.waitForTimeout(300);
+  yes('the last stage states the counts before anything is made', await E(() => /3 new Stub points/.test(document.querySelector('.tr-prime-commit').innerText) && /12 red questions/.test(document.querySelector('.tr-prime-commit').innerText)));
+  await p.click('[data-act="prime-cancel"]'); await p.waitForTimeout(400);
+  is('cancelling leaves nothing behind', await E(n0 => S.treeNodes.length, nodes0), nodes0);
+  await E(a => { location.hash = '#/tree/prime/' + a.bid; }, pr); await p.waitForTimeout(500); await p.click('[data-act="prime-next"]'); await p.fill('[data-field="keywords"]', 'Wizard one\nWizard two'); await p.click('[data-act="prime-next"]'); await p.click('[data-act="prime-next"]'); await p.waitForTimeout(300);
+  await p.click('[data-act="prime-commit"]'); await p.waitForTimeout(600);
+  is('confirming makes it all at once', await E(n0 => [S.treeNodes.length - n0, S.treeNodes.filter(n => /^Wizard /.test(n.title)).every(n => n.status === 'stub')], nodes0), [2, true]);
+  yes('the wizard refuses a root or a point', await E(() => { location.hash = '#/tree/prime/' + R.id; return true; }) && (await p.waitForTimeout(400), await E(() => /Priming works on a branch/.test(document.body.innerText))));
+
+  console.log('\nN-07. whole, part, whole');
+  const th = await E(() => {
+    const root = mk({title: 'Torts teach', kind: 'root'}); const br = mk({title: 'Teach branch', kind: 'branch', parentId: root.id});
+    const a = mk({title: 'Teach A', parentId: br.id}), b = mk({title: 'Teach B', parentId: br.id}), c = mk({title: 'Teach C', parentId: br.id}), d = mk({title: 'Teach D', parentId: br.id});
+    icsCreateChunk({title: 'Tests', reason: 'both ask about connection', memberIds: [a.id, b.id]}); icsCreateChunk({title: 'Limits', reason: 'both mark the outer edge', memberIds: [c.id, d.id]});
+    const plan = icsBuildTeachPlan(br.id), o = {parts: [plan.parts.length, plan.parts[0].kind], why: /why does this matter/i.test(plan.whole.prompt)};
+    try { icsBuildTeachPlan(a.id); o.point = false; } catch(e){ o.point = true; }
+    const s = icsMakeTeachSession(br.id, 0), long = 'word '.repeat(25); o.total = s.total; o.short = s.submit('too short').ok;
+    s.submit(long); s.submit(long); s.skip(); const r = s.submit(long); o.done = r.done; o.before = icsRetrievalsFor(br.id).length;
+    const out = s.finish(1); o.after = icsRetrievalsFor(br.id).length; o.rec = [out.retrieval.method, out.retrieval.levelTested, out.covered, out.skipped, /TEACH|WHOLE/i.test(out.retrieval.recallText)];
+    const o0 = icsOrderParts(plan.parts, 0).map(p => p.id).join(','), o1 = icsOrderParts(plan.parts, 1).map(p => p.id).join(','); o.order = [o0 !== o1, icsOrderParts(plan.parts, 5).length === plan.parts.length, icsOrderParts(plan.parts, 1).map(p => p.id).join(',') === o1];
+    const bare = mk({title: 'Teach bare', kind: 'branch', parentId: root.id}); mk({title: 'tb1', parentId: bare.id}); mk({title: 'tb2', parentId: bare.id}); o.fallback = icsBuildTeachPlan(bare.id).parts.every(p => p.kind === 'page');
+    const sk = icsMakeTeachSession(bare.id, 0); while(sk.index < sk.total) sk.skip(); const oo = sk.finish(0.7); o.blank = [oo.retrieval.score, oo.retrieval.recallText];
+    const ab = icsMakeTeachSession(bare.id, 1); ab.submit('word '.repeat(25)); o.abandon = icsRetrievalsFor(bare.id).length;
+    o.bid = br.id; o.bslug = br.slug; return o; });
+  is('the parts are the chunks, then the whole asks why it matters first; a point is refused', [th.parts, th.why, th.point], [[2, 'chunk'], true, true]);
+  is('whole + two parts + close; a short step is turned back', [th.total, th.short], [4, false]);
+  is('nothing is recorded until the end; then one level-four teach retrieval holds what was taught', [th.before, th.after, th.rec], [0, 1, ['teach', 4, 3, 1, true]]);
+  is('the order differs between sessions, is complete, and is repeatable', th.order, [true, true, true]);
+  is('without chunks the parts are the pages; a session of only skips is a blank, scored zero; leaving writes nothing', [th.fallback, th.blank, th.abandon], [true, [0, ''], 1]);
+  await E(a => { navigate('#/tree/teach/' + a.bid); }, th); await p.waitForTimeout(600);
+  yes('the screen shows the prompt and no page text', await E(() => /why does this matter/i.test(document.querySelector('.tr-prompt').textContent) && !!document.querySelector('[data-field="teaching"]')));
+  await p.click('[data-act="teach-quit"]'); await p.waitForTimeout(300);
+  yes('no page errors in Phase 4 (Tree side)', errs.length === 0, errs);
+
   /* the sections of later amendments are added below, in the order they are built */
   yes('no page errors', errs.length === 0, errs);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

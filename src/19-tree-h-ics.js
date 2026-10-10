@@ -274,8 +274,8 @@ icsRegisterGapRule({type: 'no-why-important', label: 'No reason why it matters',
   hint: 'Ask: why is this important? The answer is what lets you chunk it.',
   test(n){ if(!('whyImportant' in n)) return false; if(n.status === 'pruned' || n.status === 'stub') return false; return !String(n.whyImportant || '').trim(); }});
 icsRegisterGapRule({type: 'island', label: 'Island — nothing connects to it',
-  hint: 'A page with no grafts and no links in or out is an isolated island. Ask how it relates to something you already hold.',
-  test(n){ if(n.status === 'pruned' || n.status === 'stub') return false; return icsGraftsOf(n.id).length === 0 && icsLinksOut(n).length === 0 && treeBacklinks(n).length === 0; }});
+  hint: 'A page with no grafts, no links in or out and nothing beneath it is an isolated island. Ask how it relates to something you already hold.',
+  test(n){ if(n.status === 'pruned' || n.status === 'stub') return false; return icsGraftsOf(n.id).length === 0 && icsLinksOut(n).length === 0 && treeBacklinks(n).length === 0 && treeChildren(n.id).length === 0; }});
 icsRegisterGapRule({type: 'unchunked-children', label: 'Too many loose children',
   hint: 'More than four loose children. Group them two to four at a time, and say why each group belongs together.',
   test(n){

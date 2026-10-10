@@ -54,6 +54,78 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('/ is the board\'s quick-add, not the house search', await p.evaluate(() => [S.lsChips.length, !!document.querySelector('#palQ')]), [n0 + 1, false]);
   await p.keyboard.press('Alt+k'); await p.waitForTimeout(300);
   yes('Alt+K puts a capture in the tray, and the tray shows it at once', await p.evaluate(() => /typed/.test(document.querySelector('[data-tray]').innerText)));
+
+  console.log('\n4. the bridge to the Tree (N-05)');
+  const br = await p.evaluate(() => {
+    const root = treeResolve('How memory works'); const branch = treeSavePage({title: 'Remoteness bridge', kind: 'branch', parentId: root.id, status: 'active'}).node;
+    const a = treeSavePage({title: 'Kind not extent', kind: 'point', parentId: branch.id, status: 'active', importance: 'core'}).node;
+    const b = treeSavePage({title: 'Egg-shell skull', kind: 'point', parentId: branch.id, status: 'active'}).node;
+    const old = treeSavePage({title: 'Old bridge point', kind: 'point', parentId: branch.id, status: 'active'}).node; treeSetStatus(old.id, 'pruned');
+    const board = lsBoardFor(branch.id); const o = {empty: S.lsChips.filter(c => c.boardId === board.id).length};
+    o.preview = lsBridgePreviewImport(board.id, branch.id).length;
+    const made = lsBridgeImport(board.id, branch.id, [a.id]);
+    o.imported = [made.length, made[0].sourcePageId === a.id, made[0].tls, lsBoardPlacements(board.id).length];
+    o.noDup = lsBridgePreviewImport(board.id, branch.id).length;
+    const chip = lsChipNew(board.id, 'Volenti'); lsPlaceCard(board.id, chip.id, 'chip', 500, 300);
+    const prop = lsBridgeProposePromotion(board.id, chip.id); o.prop = [prop.already, prop.proposed.kind];
+    const page = lsBridgeConfirmPromotion(board.id, chip.id, {title: 'Volenti', kind: 'point', homeId: branch.id}); const again = lsBridgeConfirmPromotion(board.id, chip.id, {title: 'Volenti', kind: 'point', homeId: branch.id});
+    o.page = [page.status, again.id === page.id, S.treeNodes.filter(n => n.title === 'Volenti').length];
+    o.imp = lsBridgeProposePromotion(board.id, made[0].id).already;
+    const bare = lsChipNew(board.id, 'Nobody home'); lsPlaceCard(board.id, bare.id, 'chip', 600, 300);
+    const conn = lsCreateGraft(made[0].id, 'chip', chip.id, 'chip', 'contradicts', 'one is about kind, the other about consent').graft;
+    o.autoCross = S.treeGrafts.length;
+    const g1 = lsBridgeConfirmGraft(board.id, conn.id); o.graft = [!!g1.graft, g1.graft && g1.graft.why.includes('consent'), g1.graft && g1.graft.type];
+    o.graft2 = [lsBridgeConfirmGraft(board.id, conn.id).already, S.treeGrafts.filter(g => g.why.includes('consent')).length];
+    const noWhy = lsGraftNew(made[0].id, chip.id, 'extends', ''); o.noReason = lsBridgeProposeGraft(board.id, noWhy.id).blocked;
+    const half = lsGraftNew(made[0].id, bare.id, 'extends', 'why'); o.half = lsBridgeProposeGraft(board.id, half.id).blocked;
+    const before = treeNode(a.id).title; lsChipUpdate(made[0].id, {text: 'changed on the board'}); o.editSafe = treeNode(a.id).title === before;
+    o.q = (() => { const q = lsQuestionNew(chip.id, 'chip', 'how', 'How does it relate to [[Kind not extent]] and [[Egg-shell skull]] and [[Kind not extent]]?'); return q.linkedCardIds.length; })();
+    o.board = board.id; o.branch = branch.id; o.chip = chip.id; o.a = a.id; o.bId = b.id; o.root = root.id; o.madeId = made[0].id; return o; });
+  is('the board starts empty, and the preview leaves out the pruned', [br.empty, br.preview], [0, 2]);
+  is('importing what is ticked makes chips that remember their page, tagged by importance and placed', br.imported, [1, true, 'green', 1]);
+  is('a page already on the board is not offered again', br.noDup, 1);
+  is('promoting a chip makes a stub, once', [br.prop, br.page], [[false, 'point'], ['stub', true, 1]]);
+  is('an imported chip is not promotable (it came from the Tree)', br.imp, true);
+  is('an arrow stays on the board until it is made a graft by hand', br.autoCross, 0);
+  is('then it carries its kind and reason verbatim, once', [br.graft, br.graft2], [[true, true, 'contradicts'], [true, 1]]);
+  is('a reasonless arrow, or one with an end not in the Tree, is blocked', [br.noReason, br.half], [true, true]);
+  is('editing a chip never touches its page', br.editSafe, true);
+  is('the Ask panel\'s links counter counts distinct pages a question reaches', br.q, 2);
+  /* Sort mode: groups with a reason, then a chunk */
+  await p.evaluate(b => { location.hash = '#/studio/' + b; }, br.board); await p.waitForTimeout(900);
+  await p.keyboard.press('2'); await p.waitForTimeout(300);
+  yes('Sort mode has a panel', await p.evaluate(() => !!document.querySelector('.ls-sort-panel')));
+  await p.keyboard.press('Control+a'); await p.waitForTimeout(200);
+  await p.click('[data-sort-make]'); await p.waitForTimeout(150);
+  yes('a group needs a name and a reason', await p.evaluate(() => /name|reason/i.test(document.querySelector('[data-sort-err]').textContent)));
+  await p.fill('[data-sort-label]', 'Consent'); await p.fill('[data-sort-reason]', 'both turn on what the claimant agreed to'); await p.click('[data-sort-make]'); await p.waitForTimeout(400);
+  const grp = await p.evaluate(b => { const g = S.lsGroups.filter(x => x.boardId === b)[0]; return g && [g.label, g.reason.length > 0, g.memberIds.length >= 2, !!document.querySelector('.ls-group-frame')]; }, br.board);
+  is('Select all, name it, give the reason: a group with a frame on the board', grp, ['Consent', true, true, true]);
+  await p.keyboard.press('8'); await p.waitForTimeout(300);
+  yes('the Check panel offers each crossing, and says nothing crosses by itself', await p.evaluate(() => /Nothing crosses by itself/.test(document.querySelector('.ls-bridge').textContent) && !!document.querySelector('[data-act="promote-chunk"]')));
+  const ck = await p.evaluate(b => { const g = S.lsGroups.filter(x => x.boardId === b)[0]; const r = lsBridgeConfirmChunk(b, g.id); const again = lsBridgeConfirmChunk(b, g.id); return [!!r.chunk && r.chunk.reason === g.reason && r.chunk.title === 'Consent', again.already]; }, br.board);
+  is('a group of two Tree pages becomes a chunk with its reason, once (a chip still only on the board is left out)', ck, [true, true]);
+  /* the rest of the seam */
+  const seam = await p.evaluate(b => {
+    const o = {}; const c1 = lsChipNew(b, 'skip one'), c2 = lsChipNew(b, 'unused'); const q1 = lsQuestionNew(c1.id, 'chip', 'what', 'first?'), q2 = lsQuestionNew(c1.id, 'chip', 'what', 'second?');
+    lsQuestionUpdate(q1.id, {skippedAt: new Date().toISOString()}); const order = S.lsQuestions.filter(q => q.cardId === c1.id && !q.answeredAt).sort((a, b2) => String(a.skippedAt || '').localeCompare(String(b2.skippedAt || ''))).map(q => q.text); o.skip = order;
+    const exp = lsBridgeExport(); o.exp = Object.keys(exp).includes('lsBoards') && exp.lsBoards.length >= 1;
+    const payload = {kind: 'life-instrument-knowledge-tree', version: 1, data: Object.fromEntries(TREE_STORES.map(k => [k, S[k]])), studio: JSON.parse(JSON.stringify(exp))};
+    const r = treeImport(payload); o.again = r.added.studio; const old = treeImport({kind: 'life-instrument-knowledge-tree', version: 1, data: {}}); o.old = !old.error;
+    const fresh = JSON.parse(JSON.stringify(exp)); fresh.lsChips.push({id: 'newchip1', boardId: b, text: 'from a file', branchId: null, inTray: false, createdAt: new Date().toISOString()}); const r2 = treeImport({kind: 'life-instrument-knowledge-tree', version: 1, data: {}, studio: fresh}); o.added = [r2.added.studio, S.lsChips.some(c => c.id === 'newchip1')];
+    return o; }, br.board);
+  is('a skipped question goes to the back of the line', seam.skip, ['second?', 'first?']);
+  is('the Studio travels with the Tree export, under its own key; import adds only what is missing; an older file still imports', [seam.exp, seam.again, seam.old, seam.added], [true, 0, true, [1, true]]);
+  /* Shuffle really moves the cards, and Restore puts them back */
+  await p.keyboard.press('7'); await p.waitForTimeout(300);
+  const sh = await p.evaluate(b => { const before = S.lsPlacements.filter(x => x.boardId === b).map(x => [x.id, Math.round(x.x), Math.round(x.y)]);
+    const panel = document.querySelector('[data-mode-panel]'); const canvasRoot = document.querySelector('.ls-canvas-root'); lsSnapshotCommit(b);
+    const api = bindShuffleMode(panel, b, {onDone(){}}); const moved = S.lsPlacements.filter(x => x.boardId === b).map(x => [x.id, Math.round(x.x), Math.round(x.y)]);
+    const changed = moved.some((m, i) => m[1] !== before[i][1] || m[2] !== before[i][2]); api.destroy(); const back = S.lsPlacements.filter(x => x.boardId === b).map(x => [x.id, Math.round(x.x), Math.round(x.y)]);
+    return [changed, JSON.stringify(back) === JSON.stringify(before)]; }, br.board);
+  is('Shuffle scatters the cards and Restore puts them back', sh, [true, true]);
+  await p.evaluate(() => { location.hash = '#/tree'; }); await p.waitForTimeout(700);
+  yes('a visit with work in it is recorded as a session, with its modes', await p.evaluate(b => { const s = S.lsSessions.filter(x => x.boardId === b); return s.length >= 1 && s.every(x => x.endedAt) && s[0].modeTimeline.length >= 1; }, br.board));
   yes('no page errors', errs.length === 0, errs);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
   await b.close(); process.exit(bad ? 1 : 0);

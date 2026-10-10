@@ -135,6 +135,7 @@ function _lsFogResultHTML(result){
   const m = result.matched.length, mi = result.missed.length, ex = result.extra.length;
   return `<div class="ls-recall-panel">
     <div class="ls-panel-card-label">Recall result</div>
+    <p class="muted" style="font-size:.74rem;margin:0 0 6px">Matched by spelling, not by meaning. It does not judge whether you understood.</p>
     <div class="ls-recall-counts">
       <span class="ls-recall-matched-ct">✓ ${m} matched</span>
       <span class="ls-recall-missed-ct">✗ ${mi} missed</span>
@@ -506,7 +507,7 @@ function bindShuffleMode(panelEl, boardId, opts){
   placements.forEach(p => {
     const nx = (Math.random() - 0.5) * 2400;
     const ny = (Math.random() - 0.5) * 1600;
-    lsMoveCard(boardId, p.id, nx, ny);
+    lsMoveCard(p.id, nx, ny);
   });
 
   /* clear group memberships temporarily */
@@ -533,7 +534,7 @@ function bindShuffleMode(panelEl, boardId, opts){
 
   function restore(){
     Object.entries(origPositions).forEach(([pid, pos]) => {
-      lsMoveCard(boardId, pid, pos.x, pos.y);
+      lsMoveCard(pid, pos.x, pos.y);
     });
     origGroups.forEach(g => {
       const live = lsBoardGroups(boardId).find(x => x.id === g.id);

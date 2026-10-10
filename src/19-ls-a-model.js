@@ -92,18 +92,11 @@ function lsChipDelete(id){
   return restore;
 }
 
+/* A chip's link to its page. Nothing crosses by itself: the arrows that touch it stay on the board until
+   each is made a graft, by hand (19-ls-f-bridge.js), with its reason. */
 function lsChipPromote(chipId, nodeId){
   const c = lsChipById(chipId); if(!c) return;
   c.promotedToNodeId = nodeId;
-  /* migrate any lsGrafts that reference this chip to treeGrafts */
-  (S.lsGrafts || []).filter(g => g.fromId === chipId || g.toId === chipId).forEach(g => {
-    const fromNode = g.fromId === chipId ? nodeId : (lsChipById(g.fromId)?.promotedToNodeId || null);
-    const toNode   = g.toId   === chipId ? nodeId : (lsChipById(g.toId)?.promotedToNodeId   || null);
-    if(fromNode && toNode && typeof treeAddGraft === 'function'){
-      treeAddGraft(fromNode, toNode, g.type || 'extends', g.why || '');
-      spliceOut(S.lsGrafts, x => x.id === g.id);
-    }
-  });
   save();
 }
 
@@ -214,6 +207,7 @@ function lsQuestionNew(cardId, cardType, kind, text){
     tls: null, answer: '', answeredAt: null,
     linkedCardIds: [], lockedUntil: null,
     createdAt: new Date().toISOString() };
+  if(typeof lsQuestionReach === 'function') q.linkedCardIds = lsQuestionReach(q);
   S.lsQuestions.push(q);
   save(); return q;
 }
@@ -221,7 +215,9 @@ function lsQuestionNew(cardId, cardType, kind, text){
 function lsQuestionUpdate(id, fields){
   lsEnsure();
   const q = S.lsQuestions.find(x => x.id === id); if(!q) return;
-  Object.assign(q, fields); save();
+  Object.assign(q, fields);
+  if(typeof lsQuestionReach === 'function') q.linkedCardIds = lsQuestionReach(q);
+  save();
 }
 
 /* ---------- snapshots (add-only, frozen) ---------- */

@@ -34,7 +34,7 @@ routes.tree = function(root, params){
 };
 function treeNav(on){
   const inbox = S.treeInbox.length;
-  const l = [['', 'Home'], ['outline', 'Outline'], ['inbox', 'Inbox' + (inbox ? ` <i>${inbox}</i>` : '')], ['search', 'Search'], ['tensions', 'Tensions'], ['gaps', 'Gaps'], ['proof', 'Proof']];
+  const l = [['', 'Home'], ['outline', 'Outline'], ['inbox', 'Inbox' + (inbox ? ` <i>${inbox}</i>` : '')], ['search', 'Search'], ['tensions', 'Tensions'], ['gaps', 'Gaps'], ['proof', 'Proof'], ...(S.treeNodes.length ? [['map', 'Map']] : [])];
   return `<nav class="tr-nav" aria-label="Knowledge Tree">${l.map(([k, n]) => `<a href="#/tree${k ? '/' + k : ''}" class="${on === k ? 'on' : ''}">${n}</a>`).join('')}
     <button class="tbtn tr-newbtn" id="trNew">＋ New page</button></nav>`;
 }
@@ -62,7 +62,7 @@ function treePageRoute(root, n, wanted){
       <h1 class="serif">${treeKindMark(n)}${esc(n.title)}${typeof icsTitleMarksHTML === 'function' ? icsTitleMarksHTML(n) : ''}</h1>
       <div class="tr-headrow">${treeBadge(n)}<span class="faint">${TREE_KINDS[n.kind]}${aliases.length ? ` · also known as ${aliases.map(a => esc(a.title || a.alias)).join(', ')}` : ''}</span>
         <span class="tr-grow"></span>
-        ${typeof icsOpenBtnHTML === 'function' ? icsOpenBtnHTML(n) : ''}<button class="tbtn" id="trEdit">Edit</button><button class="tbtn" id="trMore" aria-label="More">⋯</button></div>
+        ${typeof icsPageActionsHTML === 'function' ? icsPageActionsHTML(n) : ''}${typeof icsOpenBtnHTML === 'function' ? icsOpenBtnHTML(n) : ''}<button class="tbtn" id="trEdit">Edit</button><button class="tbtn" id="trMore" aria-label="More">⋯</button></div>
     </header>
     <section class="tr-position">
       ${cur ? `<div class="tr-pos-now"><div class="tr-conf" style="--c:${cur.confidence}"><b>${cur.confidence}</b><span>%</span></div>
@@ -79,9 +79,9 @@ function treePageRoute(root, n, wanted){
     ${typeof icsPageAfterTextHTML === 'function' ? icsPageAfterTextHTML(n) : ''}
     ${typeof icsInquiryHTML === 'function' ? icsInquiryHTML(n) : `<section class="tr-question"><span class="tr-lbl">What would change my mind?</span>${(n.openQuestion || '').trim() ? `<div>${treeRender(n.openQuestion)}</div>` : '<p class="faint">Not yet asked.</p>'}</section>`}`}
     ${editing ? '' : (typeof icsChunksHTML === 'function' ? icsChunksHTML(n, kids) : '')}
-    <section class="tr-sec"><div class="tr-sechead"><h2>Beneath it</h2><span class="faint">${kids.length || 'nothing yet'}</span><span class="tr-grow"></span><button class="tbtn" id="trChild">＋ ${n.kind === 'root' ? 'Branch' : 'Point'} here</button></div>
+    <section class="tr-sec"><div class="tr-sechead"><h2>Beneath it</h2><span class="faint">${kids.length || 'nothing yet'}</span><span class="tr-grow"></span>${kids.length > 1 && typeof icsUi === 'function' ? `<button class="tbtn" data-act="mode" data-v="trunk" aria-pressed="${icsUi().outlineMode === 'trunk'}">Trunk only</button>` : ''}${n.kind === 'branch' && !kids.length && typeof icsPrimeWizard === 'function' ? '<button class="tbtn" data-act="prime-this">Prime this branch</button>' : ''}<button class="tbtn" id="trChild">＋ ${n.kind === 'root' ? 'Branch' : 'Point'} here</button></div>
       ${points > 15 ? `<p class="tr-warn">${points} points under one page. Some may belong on a branch of their own.</p>` : ''}
-      ${kids.length ? `<ul class="tr-kids">${kids.map(k => { const c = treeCurrentPosition(k.id); return `<li>${treeKindMark(k)}<a href="${treeUrl(k)}">${esc(k.title)}</a>${treeBadge(k)}${c ? `<span class="faint">${c.confidence}%</span>` : ''}${typeof icsKidMarksHTML === 'function' ? icsKidMarksHTML(k) : ''}</li>`; }).join('')}</ul>` : ''}
+      ${kids.length ? `<ul class="tr-kids">${(typeof icsKidsView === 'function' ? icsKidsView(n, kids).kids : kids).map(k => { const c = treeCurrentPosition(k.id); return `<li>${treeKindMark(k)}<a href="${treeUrl(k)}">${esc(k.title)}</a>${treeBadge(k)}${c ? `<span class="faint">${c.confidence}%</span>` : ''}${typeof icsKidMarksHTML === 'function' ? icsKidMarksHTML(k) : ''}</li>`; }).join('')}</ul>${typeof icsKidsView === 'function' && icsKidsView(n, kids).hidden ? `<button class="tbtn sm" data-act="unfold" data-page="${n.id}">+${icsKidsView(n, kids).hidden} more</button>` : ''}` : ''}
       ${n.kind === 'root' && typeof icsBackboneSignal === 'function' && kids.length && icsDescendants(n.id).length >= 5 ? (() => { const sg = icsBackboneSignal(n.id); return sg ? `<p class="tr-hint tr-warn soft">${esc(sg.text)}</p>` : ''; })() : ''}</section>
     <section class="tr-sec"><div class="tr-sechead"><h2>Leaves</h2><span class="faint">what this rests on, from the other rooms</span><span class="tr-grow"></span><button class="tbtn" id="trLeaf">＋ Attach</button></div>
       ${leaves.length ? `<ul class="tr-leaves">${leaves.map(l => { const e = byId(S.entries, l.entryId);
@@ -106,6 +106,9 @@ function treePageRoute(root, n, wanted){
     ['Seal a prediction', () => treePredictDialog(n, () => treePageRoute(root, n))],
     ['Record an experiment', () => treeExperimentDialog(n, () => treePageRoute(root, n))],
     ['Review it now', () => treeReviewDialog(n, () => treePageRoute(root, n))],
+    ...(n.kind !== 'point' && typeof icsTeachRoute === 'function' ? [['Teach it (whole, parts, whole)', () => navigate('#/tree/teach/' + n.id)]] : []),
+    ...(n.kind === 'branch' && typeof icsPrimeWizard === 'function' ? [['Prime this branch', () => icsPrimeWizard(n.id)]] : []),
+    ...(n.kind === 'root' ? [['See the chunk map', () => navigate('#/tree/map/' + n.id)]] : []),
     ['Log a mistake', () => icsMistakeDialog(n, {}, () => treePageRoute(root, n))],
     ...(typeof icsIsSplit === 'function' ? [[icsIsSplit(n) ? 'Put Collected and Processed back together' : 'Split into Collected and Processed', () => { const b = root.querySelector('[data-act="split-toggle"]'); if(b) b.click(); }]] : []),
     ...(typeof icsCanOpenInStudio === 'function' && icsCanOpenInStudio(n) ? [['Open in Studio', () => icsOpenInStudio(n.id)]] : []),
@@ -114,6 +117,8 @@ function treePageRoute(root, n, wanted){
   treeBindGrafts(root, n);
   treeBindProof(root, n);
   if(typeof icsBindPage === 'function') icsBindPage(root, n);
+  if(typeof icsBindOutlineMode === 'function') icsBindOutlineMode(root, () => treePageRoute(root, treeNode(n.id)));
+  const pr = root.querySelector('[data-act="prime-this"]'); if(pr) pr.onclick = () => icsPrimeWizard(n.id);
   treeTouchView(n);
 }
 function treeTouchView(n){ /* opening a page is not tending it; only an action is */ S._tree.lastOpened = n.id; }
@@ -250,13 +255,14 @@ function treeOutlineRoute(root){
   const roots = treeRoots();
   root.innerHTML = `<div class="page tr-page">${treeNav('outline')}
     <header class="tr-head"><h1 class="serif">Outline</h1><div class="tr-headrow"><span class="faint">${S.treeNodes.length} pages · ${roots.length} roots</span><span class="tr-grow"></span>
-      <button class="tbtn" id="trAllOpen">Open all</button><button class="tbtn" id="trAllShut">Fold all</button>
+      <button class="tbtn" id="trAllOpen">Open all</button><button class="tbtn" id="trAllShut">Fold all</button>${typeof icsUi === 'function' ? `<button class="tbtn" data-act="mode" data-v="trunk" aria-pressed="${icsUi().outlineMode === 'trunk'}">Trunk only</button>` : ''}
       <label class="tr-chk"><input type="checkbox" id="trPruned"${S.treePrefs.showPruned ? ' checked' : ''}> show pruned</label></div></header>
-    ${roots.length ? treeOutlineHTML(roots, 0) : '<p class="faint">The tree has no roots yet. A root is one of the great questions — how does the world really work? what is mind? — and everything else grows under one.</p>'}
+    ${roots.length && typeof icsUi === 'function' && icsUi().outlineMode === 'trunk' ? icsTrunkOutlineHTML(roots) : roots.length ? treeOutlineHTML(roots, 0) : '<p class="faint">The tree has no roots yet. A root is one of the great questions — how does the world really work? what is mind? — and everything else grows under one.</p>'}
   </div>`;
   treeBindNav(root);
   root.querySelectorAll('[data-trtw]').forEach(b => b.onclick = () => { const id = b.dataset.trtw; S.treePrefs.outlineOpen[id] = S.treePrefs.outlineOpen[id] === false; save(); treeOutlineRoute(root); });
   root.querySelector('#trAllOpen').onclick = () => { S.treePrefs.outlineOpen = {}; save(); treeOutlineRoute(root); };
   root.querySelector('#trAllShut').onclick = () => { S.treeNodes.forEach(n => S.treePrefs.outlineOpen[n.id] = false); save(); treeOutlineRoute(root); };
   root.querySelector('#trPruned').onchange = e => { S.treePrefs.showPruned = e.target.checked; save(); treeOutlineRoute(root); };
+  if(typeof icsBindOutlineMode === 'function') icsBindOutlineMode(root, () => treeOutlineRoute(root));
 }
