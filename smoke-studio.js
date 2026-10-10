@@ -348,6 +348,50 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await go('#/songwriting');
   yes('the Songwriting Studio\'s own quick-add entries are as they were', await ev(() => { const o = PageEntryConfig.current; return !!o && o.pageName === 'Songwriting Studio' && o.options.map(x => x.label).join('|') === 'Object writing|A seed|A new song'; }));
 
+  console.log('\n21. the practice-to-writing loop (opt in) and the key dots');
+  await ev(() => { studioState().practiceToWriting = false; jazzState().progress = {}; saveNow(); });
+  await ev(() => { sngUi().tab = 'today'; }); await go('#/songwriting');
+  is('off by default: no "From your jazz practice" card, only the switch', await ev(() => [!!document.querySelector('.studio-fromjazz'), !!document.querySelector('[data-studio-p2w]'), document.querySelector('[data-studio-p2w]').checked]), [false, true, false]);
+  await go('#/jazz/plan');
+  is('and the Jazz plan has no warm-up card, only the same switch', await ev(() => [!!document.querySelector('.studio-warmup'), !!document.querySelector('[data-studio-p2w]')]), [false, true]);
+  /* the daily plan, for fixed state and date, exactly as before the studios were joined */
+  const plans = await ev(() => { const out = [];
+    for(const [sid, track] of [['2', 'full'], ['3', 'fast-track'], ['6', 'full']]){
+      const st = jazzStage(sid), prog = {};
+      st.subs.slice(0, 9).forEach((id, i) => { prog[id] = {completedKeys: i * 2, totalKeys: jazzExUnits(id), lastPracticed: '2026-03-0' + (1 + i % 8), comfortLevel: (i % 5) + 1, keys: [], timesPractised: i}; });
+      out.push(JSON.stringify(generateDailyPlan({currentStageId: sid, trackMode: track, dailyMinutesTarget: 90, exerciseProgress: prog, practiceHistory: [{date: '2026-03-09', exerciseIds: st.subs.slice(0, 3)}]}, {date: '2026-03-10'}))); }
+    return out; });
+  const crypto = require('crypto');
+  const planSig = plans.map(x => crypto.createHash('sha1').update(x).digest('hex').slice(0, 12) + ':' + x.length);
+  is('generateDailyPlan gives the same plan for a fixed state and date as before the studios were joined', planSig, ['e09010c021f0:2378', '640c8db4070b:2405', '93b1abec9e09:2330']);
+  /* progress: a few keys marked */
+  await ev(() => { ['P0.1', 'P0.2', '2.1'].forEach(id => { const r = jazzRecord(id, true); r.keys.Eb = true; r.keys.Ab = true; }); saveNow(); });
+  await go('#/songwriting');
+  yes('even with progress, the card is not shown while the switch is off', await ev(() => !document.querySelector('.studio-fromjazz')));
+  await ev(() => document.querySelector('[data-studio-p2w]').click()); await p.waitForTimeout(700);
+  is('switched on: the setting is kept in the studio row', await ev(() => studioState().practiceToWriting), true);
+  const card = await ev(() => { const c = document.querySelector('.studio-fromjazz'); return c ? {text: c.textContent, href: c.querySelector('a.btn').getAttribute('href')} : null; });
+  yes('Songwriting Today shows "From your jazz practice" with the current module and the keys you own', card && /Your current module is/.test(card.text) && /E♭/.test(card.text) && /A♭/.test(card.text), card || await ev(() => { const c = studioCurrentJazzModule(); return JSON.stringify({prog: studioJazzHasProgress(), stage: (jazzActiveStage() || {}).id, cur: c && c.module.id, len: studioFromJazzCard().length, hash: location.hash, on: studioState().practiceToWriting}); }));
+  yes('and it links to the Chord Lab', card && /^#\/songwriting\/tool\/chord-lab/.test(card.href), card);
+  is('a module in the ii–V–I stage asks for a ii–V–I under the title line, in your keys', await ev(() => STUDIO_MODULE_PROMPTS.find(r => r[0].test('2-sh'))[1]('E♭, A♭')), 'Write a four-bar progression that lands a ii–V–I under the title line, in a key you already own (E♭, A♭).');
+  await ev(() => { jazzState().progress = {}; saveNow(); });
+  await go('#/songwriting');
+  yes('no jazz progress: nothing shown, even with the switch on', await ev(() => !document.querySelector('.studio-fromjazz') && !!document.querySelector('[data-studio-p2w]')));
+  await go('#/jazz/plan');
+  const wu = await ev(() => { const w = document.querySelector('.studio-warmup'); return w ? {inPlan: !!w.closest('.jz-plan, .jzd-plan'), href: w.querySelector('a').getAttribute('href'), words: w.textContent.length} : null; });
+  yes('the Jazz plan page offers "today\'s songwriting warm-up" as a link, outside the generated plan', wu && !wu.inPlan && wu.href === '#/songwriting' && /warm-up/.test(await ev(() => document.querySelector('.studio-warmup').textContent)), wu);
+  await ev(() => document.querySelector('[data-studio-p2w]').click()); await p.waitForTimeout(600);
+  is('switched off again: the card goes', await ev(() => [studioState().practiceToWriting, !!document.querySelector('.studio-warmup')]), [false, false]);
+  /* the Chord Lab's key picker */
+  await ev(() => { const r = jazzRecord('2.1', true); r.keys.Eb = true; sngLabState().colour = 'major'; saveNow(); });
+  await go('#/songwriting/tool/chord-lab');
+  const dots = await ev(() => [...document.querySelectorAll('#labKey option')].filter(o => /●/.test(o.textContent)).map(o => [o.textContent.trim(), o.title]));
+  yes('the key picker marks E♭ (D♯ in its list) where you own the ii–V–I, with its tooltip — and only there', dots.length === 1 && /^(D♯|E♭|D#|Eb)/.test(dots[0][0]) && dots[0][1] === 'You own ii–V–I in this key (Jazz Studio)', dots);
+  yes('and a one-line legend says what it means (information only)', await ev(() => /you own ii–V–I in this key/.test(document.querySelector('.studio-dotlegend').textContent)));
+  await ev(() => { sngLabState().colour = 'minor'; saveNow(); }); await go('#/songwriting/tool/chord-lab');
+  is('a colour with no related jazz pattern owned shows no dots', await ev(() => [...document.querySelectorAll('#labKey option')].filter(o => /●/.test(o.textContent)).length), 0);
+  await ev(() => { jazzState().progress = {}; sngLabState().colour = 'major'; saveNow(); });
+
   console.log('\n99. nothing threw');
   is('no page errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

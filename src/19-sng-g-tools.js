@@ -112,7 +112,8 @@ SNG_TOOL_VIEWS['chord-lab'] = {
     return `<p class="muted sng-note">The sounds are synthesized and the patterns are simplified standard versions — adjust by ear.</p>
     <div class="sng-lab">
       <section class="card sng-lab-key">
-        <div class="sng-row"><label class="mono faint">key <select class="inp" id="labKey">${SNG_NOTE_NAMES.map((n, i) => `<option value="${i}" ${L.keyPc === i ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
+        <div class="sng-row"><label class="mono faint">key <select class="inp" id="labKey">${SNG_NOTE_NAMES.map((n, i) => { const dot = typeof studioKeyDot === 'function' ? studioKeyDot(i, L.colour) : {mark: '', title: ''};
+            return `<option value="${i}" ${L.keyPc === i ? 'selected' : ''}${dot.title ? ` title="${esc(dot.title)}"` : ''}>${n}${dot.mark}</option>`; }).join('')}</select></label>${typeof studioKeyDotLegend === 'function' ? studioKeyDotLegend(L.colour) : ''}
           <span class="mono faint">colour</span>${Object.entries(SNG_KEY_COLOURS).map(([k, c]) => `<button class="tbtn${L.colour === k ? ' on' : ''}" data-labcolour="${k}" title="${esc(c.mood)}">${c.name}</button>`).join('')}</div>
         <div class="sng-palette">${pal.map(c => `<button class="sng-chip fn-${(c.fn || 'T').toLowerCase()}" data-labadd="${esc(c.roman)}" title="${esc(sngChordName(c, L.keyPc))} — ${c.fn === 'T' ? 'tonic (home)' : c.fn === 'PD' ? 'predominant (away)' : 'dominant (pulls home)'}"><b>${esc(c.roman)}</b><span>${esc(sngChordName(c, L.keyPc))}</span></button>`).join('')}</div>
         <details class="sng-outside"><summary class="mono faint">colours outside the key</summary><div class="sng-palette">${out.map(c => `<button class="sng-chip outside" data-labadd="${esc(c.roman)}" title="${esc(c.why)}"><b>${esc(c.roman)}</b><span>${esc(sngChordName(c, L.keyPc))}</span></button>`).join('')}</div></details>

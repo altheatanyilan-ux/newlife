@@ -257,6 +257,7 @@ function studioMountBar(root, room){
       const out = f.apply(this, arguments);
       try { studioMountBar(root, room); } catch(e){ console.warn('the studio bar did not mount', e); }
       try { studioMountBridges(root, room, params); } catch(e){ console.warn('the bridges did not mount', e); }
+      try { studioMountLoop(root, room, params); } catch(e){ console.warn('the practice-to-writing loop did not mount', e); }
       try { if(room === 'songwriting') studioSongwritingClock(params); } catch(e){}
       return out;
     };
@@ -1167,3 +1168,114 @@ function studioJazzSeedForm(){
   };
   g._studio = f._studio; g._studioAdd = true; routes.jazz = g;
 })();
+
+/* ============================================================
+   THE PRACTICE-TO-WRITING LOOP (opt in)
+
+   One setting, off by default: "Let my practice suggest writing prompts (and vice
+   versa)". Switched on:
+     · Songwriting Today shows a card "From your jazz practice", built by rule from the
+       Jazz Studio's current module (the first module of the stage you are on whose
+       exercises are not all mastered), in keys you already own. No jazz progress: no card.
+     · the Jazz plan page shows "Optional: today's songwriting warm-up" as a link.
+       It sits outside the generated plan, its minutes and its totals; the daily plan is
+       not read differently or changed in any way.
+   Whatever the setting, the Chord Lab's key picker marks the keys where you own the
+   related jazz pattern. The dots are information only.
+   ============================================================ */
+function studioJazzHasProgress(){
+  try { const p = jazzState().progress || {}; return Object.keys(p).some(id => p[id] && p[id].keys && Object.values(p[id].keys).some(Boolean)); }
+  catch(e){ return false; }
+}
+/* the keys marked on any of these exercises, in the Jazz Studio's own order */
+function studioOwnedKeyNames(ids){
+  const own = new Set();
+  (ids || []).forEach(id => { try { const r = jazzRecord(id); Object.keys(r.keys || {}).forEach(k => { if(r.keys[k]) own.add(k); }); } catch(e){} });
+  return JAZZ_KEY_NAMES.filter(k => own.has(k));
+}
+const studioPrettyKey = k => String(k).replace('b', '♭').replace('#', '♯');
+/* the first module of the stage you are on that is not all mastered; null when there is none to speak of */
+function studioCurrentJazzModule(){
+  try {
+    const stage = jazzActiveStage(); if(!stage) return null;
+    const mods = (typeof JAZZ_MODULES !== 'undefined' && JAZZ_MODULES[String(stage.id)]) || [];
+    for(const m of mods){
+      const ids = m.exerciseIds.filter(id => stage.subs.includes(id));
+      if(ids.length && !ids.every(id => jazzMastered(id))) return {stage, module: m, ids};
+    }
+  } catch(e){}
+  return null;
+}
+/* what to write, by module: a sentence each, with the keys you own put in */
+const STUDIO_MODULE_PROMPTS = [
+  [/^2-/, k => `Write a four-bar progression that lands a ii–V–I under the title line, in a key you already own (${k}).`],
+  [/^3-/, k => `Write a twelve-bar verse over a blues, in a key you already own (${k}), and put the title line where the chord moves to IV.`],
+  [/^(4-mod|10-mod)/, k => `Pick one mode from this module and write an eight-bar vamp on a single chord in it (${k}); then sing a melody over it that leans on the mode’s colour note.`],
+  [/^(4-alt|10-out)/, k => `Write a two-bar turnaround that ends on an altered dominant and resolves home (${k}); keep the melody on the title.`],
+  [/^7-/, k => `Write a four-bar minor progression that ends on a minor ii–V–i (${k}).`],
+  [/^8-rc/, k => `Write an eight-bar section on the rhythm-changes pattern (${k}) and give it a new title and a melody of its own.`],
+  [/^9-bal/, k => `Write a slow verse in a ballad groove (${k}) and let every chord last two bars.`],
+  [/^11-/, k => `Take a progression you have already written and reharmonise one bar with a substitute dominant (${k}).`]];
+function studioFromJazzCard(){
+  if(!studioJazzHasProgress()) return '';
+  const cur = studioCurrentJazzModule(); if(!cur) return '';
+  const keys = studioOwnedKeyNames(cur.ids);
+  const keyText = keys.length ? keys.map(studioPrettyKey).slice(0, 4).join(', ') : 'any key you like';
+  const rule = STUDIO_MODULE_PROMPTS.find(r => r[0].test(cur.module.id));
+  const prompt = rule ? rule[1](keyText) : `Write a four-bar progression or a two-bar melody that uses what you practised today, in a key you already own (${keyText}).`;
+  const anchor = cur.ids.find(id => studioExerciseProgression(id, keys[0] || 'C'));
+  const href = anchor ? studioLink('#/songwriting/tool/chord-lab', `exercise:${anchor}:${keys[0] || 'C'}`, 'jazz') : '#/songwriting/tool/chord-lab';
+  return `<div class="card studio-p2w studio-fromjazz"><div class="sng-card-h"><span class="serif sng-big">From your jazz practice</span><span class="mono faint">optional</span></div>
+    <p>Your current module is <b>${esc(cur.module.name)}</b>. ${esc(prompt)}</p>
+    <div class="sng-row"><a class="btn" href="${esc(href)}">Open the Chord Lab${anchor ? ' with it' : ''} →</a></div>
+    <p class="faint">A suggestion from the Jazz Studio’s module and the keys you have marked; it changes nothing in either room.</p></div>`;
+}
+function studioJazzWarmupCard(){
+  if(typeof SNG_WARMUPS === 'undefined') return '';
+  const w = SNG_WARMUPS.warmups[(new Date().getDate()) % SNG_WARMUPS.warmups.length];
+  return `<div class="jz-note studio-p2w studio-warmup"><span class="sc">Optional: today’s songwriting warm-up</span>
+    <p>${esc(w)}</p><p class="faint">Outside today’s plan and its minutes. <a href="#/songwriting">Open the Songwriting Studio →</a></p></div>`;
+}
+function studioP2wToggleHTML(){
+  return `<label class="studio-p2w studio-p2w-toggle faint"><input type="checkbox" data-studio-p2w ${studioState().practiceToWriting ? 'checked' : ''}>
+    Let my practice suggest writing prompts (and vice versa)</label>`;
+}
+function studioMountLoop(root, room, params){
+  if(!root || !root.querySelector) return;
+  root.querySelectorAll('.studio-p2w').forEach(n => n.remove());
+  const page = root.querySelector('.page'); if(!page) return;
+  const on = studioState().practiceToWriting;
+  const a = (params || [])[0];
+  if(room === 'songwriting' && page.querySelector('.sng-today')){
+    const morning = page.querySelector('.sng-morning');
+    if(on && morning){ const c = studioFromJazzCard(); if(c) morning.insertAdjacentHTML('afterend', c); }
+    page.insertAdjacentHTML('beforeend', studioP2wToggleHTML());
+  } else if(room === 'jazz' && a === 'plan'){
+    if(on){ const c = studioJazzWarmupCard(); if(c) page.insertAdjacentHTML('beforeend', c); }
+    page.insertAdjacentHTML('beforeend', studioP2wToggleHTML());
+  }
+}
+document.addEventListener('change', ev => {
+  const t = ev.target; if(!t || !t.matches || !t.matches('[data-studio-p2w]')) return;
+  studioState().practiceToWriting = !!t.checked; saveNow();
+  if(typeof rerender === 'function') rerender();
+});
+
+/* ---------- the Chord Lab's key picker: where you already own the related jazz pattern ---------- */
+const STUDIO_OWN_PATTERN = {
+  major: {ids: ['2.1', '2.1b', '2.1c', 'v3-2.1b', 'v3-2.1c'], said: 'ii–V–I'},
+  minor: {ids: ['2.5', 'v3-2.5'], said: 'the minor ii–V–i'},
+  blues: {ids: ['5.1', 'v3-5.1', '5.1b', 'v3-5.1b'], said: 'the 12-bar blues'}};
+function studioOwnedKeyPcs(colour){
+  const o = STUDIO_OWN_PATTERN[colour]; if(!o) return {pcs: new Set(), said: ''};
+  try { return {pcs: new Set(studioOwnedKeyNames(o.ids).map(k => studioKeyPc(k))), said: o.said}; }
+  catch(e){ return {pcs: new Set(), said: o.said}; }
+}
+function studioKeyDot(pc, colour){
+  const o = studioOwnedKeyPcs(colour);
+  return o.pcs.has(pc) ? {mark: ' ●', title: `You own ${o.said} in this key (Jazz Studio)`} : {mark: '', title: ''};
+}
+function studioKeyDotLegend(colour){
+  const o = studioOwnedKeyPcs(colour);
+  return o.pcs.size ? `<span class="mono faint studio-dotlegend" title="Information only">● you own ${esc(o.said)} in this key (Jazz Studio)</span>` : '';
+}
