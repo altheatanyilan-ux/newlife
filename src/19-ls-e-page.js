@@ -292,6 +292,7 @@ function lsOpenInStudioBtn(nodeId){
         const text = prompt('Capture to Studio tray:'); if(!text) return;
         const chip = lsChipNew(boardId, text.trim()); if(!chip) return;
         chip.inTray = true; save();
+        const tray = document.querySelector('[data-tray]'); if(tray) tray.innerHTML = lsTrayHTML(boardId);
         toast('Added to Studio tray.');
         return;
       }

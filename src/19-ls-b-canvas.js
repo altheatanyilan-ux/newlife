@@ -56,9 +56,8 @@ const LS_CARD_H = 80;
 function lsCanvasHTML(boardId){
   return `
 <div class="ls-canvas-root" data-board="${esc(boardId)}">
-  <div class="ls-canvas-inner" data-canvas-inner>
-    <svg class="ls-arrows-svg" data-arrows></svg>
-  </div>
+  <svg class="ls-arrows-svg" data-arrows></svg>
+  <div class="ls-canvas-inner" data-canvas-inner></div>
   <div class="ls-tray-dock" data-tray></div>
 </div>`;
 }
@@ -428,13 +427,21 @@ function bindCanvas(root, boardId, opts){
     });
   }
 
+  /* the selection, shown without redrawing: a redraw replaces every card, and a card that
+     is replaced while the pointer is on it can no longer be dragged */
+  function paintSelection(){
+    root.querySelectorAll('.ls-card').forEach(el => el.classList.toggle('ls-card--sel', selectedIds.has(el.dataset.pid)));
+  }
+
   function onCardPointerDown(e){
     if(e.button && e.button !== 0) return;
     e.stopPropagation();
     const card = e.currentTarget;
     const pid = card.dataset.pid;
-    if(!e.shiftKey && !selectedIds.has(pid)) select(pid, false);
-    else if(e.shiftKey) { selectedIds.add(pid); repaint(); }
+    if(e.shiftKey){ selectedIds.add(pid); }
+    else if(!selectedIds.has(pid)){ selectedIds.clear(); selectedIds.add(pid); }
+    paintSelection();
+    if(opts.onSelectionChange) opts.onSelectionChange([...selectedIds]);
 
     const dragging = [...selectedIds];
     const startX = e.clientX, startY = e.clientY;
@@ -445,33 +452,34 @@ function bindCanvas(root, boardId, opts){
     });
 
     let moved = false;
-    card.setPointerCapture(e.pointerId);
 
+    /* the pointer is followed on the document, so the drag survives whatever happens to the card under it */
     function onMove(ev){
       const dx = (ev.clientX - startX) / viewport.zoom;
       const dy = (ev.clientY - startY) / viewport.zoom;
       if(!moved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) moved = true;
+      if(!moved) return;
       dragging.forEach(id => {
-        const p = S.lsPlacements.find(x => x.id === id); if(!p) return;
-        p.x = (startPositions[id]?.x || 0) + dx;
-        p.y = (startPositions[id]?.y || 0) + dy;
+        const p = S.lsPlacements.find(x => x.id === id); if(!p || !startPositions[id]) return;
+        p.x = startPositions[id].x + dx;
+        p.y = startPositions[id].y + dy;
+        const el = root.querySelector(`.ls-card[data-pid="${id}"]`);
+        if(el){ el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; }
       });
-      /* live repaint while dragging */
-      lsRenderCards(root, boardId, viewport, selectedIds);
+      lsDrawArrows(root, boardId, viewport);
     }
 
-    function onUp(){
-      card.removeEventListener('pointermove', onMove);
-      card.removeEventListener('pointerup', onUp);
-      card.removeEventListener('pointercancel', onUp);
+    function end(){
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', end);
+      document.removeEventListener('pointercancel', end);
       if(!moved) return;
-      /* push undo */
-      const snapBefore = {};
-      const snapAfter  = {};
+      const snapBefore = {}, snapAfter = {};
       dragging.forEach(id => {
-        const p = S.lsPlacements.find(x => x.id === id); if(!p) return;
+        const p = S.lsPlacements.find(x => x.id === id); if(!p || !startPositions[id]) return;
         snapBefore[id] = {...startPositions[id]};
         snapAfter[id]  = {x: p.x, y: p.y};
+        p.updatedAt = new Date().toISOString();
       });
       lsUndoPush(boardId,
         () => { dragging.forEach(id => { const p = S.lsPlacements.find(x => x.id === id); if(p && snapBefore[id]) Object.assign(p, snapBefore[id]); }); save(); repaint(); },
@@ -481,12 +489,18 @@ function bindCanvas(root, boardId, opts){
       repaint();
     }
 
-    card.addEventListener('pointermove', onMove);
-    card.addEventListener('pointerup',   onUp);
-    card.addEventListener('pointercancel', onUp);
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', end);
+    document.addEventListener('pointercancel', end);
   }
 
   /* ---- canvas pan + lasso ---- */
+  /* Space is not a modifier key, so it is tracked by hand */
+  let spaceHeld = false;
+  const onSpaceDown = e => { if(e.code === 'Space' && !isTyping()){ spaceHeld = true; root.classList.add('ls-pan-ready'); e.preventDefault(); } };
+  const onSpaceUp   = e => { if(e.code === 'Space'){ spaceHeld = false; root.classList.remove('ls-pan-ready'); } };
+  document.addEventListener('keydown', onSpaceDown);
+  document.addEventListener('keyup', onSpaceUp);
   let panning = false;
   let lasso = null;
   let panStart = null;
@@ -494,7 +508,7 @@ function bindCanvas(root, boardId, opts){
 
   root.addEventListener('pointerdown', e => {
     if(e.target.closest('.ls-card') || e.target.closest('.ls-group-frame') || e.target.closest('.ls-chip-editor')) return;
-    if(e.button === 1 || e.getModifierState('Space')){ /* middle button or Space: pan */
+    if(e.button === 1 || spaceHeld){ /* middle button or Space: pan */
       panning = true;
       panStart = {x: e.clientX, y: e.clientY};
       vpStart  = {x: viewport.x, y: viewport.y};
@@ -611,7 +625,9 @@ function bindCanvas(root, boardId, opts){
     root.appendChild(bar);
     const inp = bar.querySelector('.ls-qa-input');
     inp.focus();
+    let closed = false;   /* removing the bar blurs its input, which asks to close it again */
     function placeAndClose(){
+      if(closed) return; closed = true;
       const text = inp.value.trim();
       if(text){
         const rect = root.getBoundingClientRect();
@@ -624,10 +640,10 @@ function bindCanvas(root, boardId, opts){
     }
     inp.addEventListener('keydown', e => {
       if(e.key === 'Enter'){ e.preventDefault(); placeAndClose(); }
-      if(e.key === 'Escape'){ e.preventDefault(); bar.remove(); }
+      if(e.key === 'Escape'){ e.preventDefault(); if(!closed){ closed = true; bar.remove(); } }
       e.stopPropagation();
     });
-    inp.addEventListener('blur', () => { bar.remove(); });
+    inp.addEventListener('blur', () => { if(!closed){ closed = true; bar.remove(); } });
   }
 
   /* ---- keyboard shortcuts ---- */
@@ -674,7 +690,7 @@ function bindCanvas(root, boardId, opts){
     }
     /* new chip at viewport center */
     if((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey){
-      e.preventDefault();
+      e.preventDefault(); e.stopPropagation();   /* the house's own N (the add menu) is not wanted here */
       const rect = root.getBoundingClientRect();
       const w = lsCanvasToWorld(viewport, rect.width / 2, rect.height / 2);
       openChipEditor(w.x - LS_CARD_W / 2, w.y - LS_CARD_H / 2);
@@ -682,7 +698,7 @@ function bindCanvas(root, boardId, opts){
     }
     /* quick-add bar */
     if(e.key === '/'){
-      e.preventDefault();
+      e.preventDefault(); e.stopPropagation();   /* nor its / (search) */
       openQuickAdd();
       return;
     }
@@ -748,7 +764,7 @@ function bindCanvas(root, boardId, opts){
       repaint();
     }
   }
-  document.addEventListener('keydown', onKey);
+  document.addEventListener('keydown', onKey, true);   /* before the house's own keys, so N and / are the board's here */
 
   /* ---- canvas-level paste: multiline text → offer to create N chips ---- */
   function onPaste(e){
@@ -853,6 +869,6 @@ function bindCanvas(root, boardId, opts){
     getSelected: () => [...selectedIds],
     selectAll,
     clearSelection: () => { selectedIds.clear(); repaint(); },
-    destroy: () => { document.removeEventListener('keydown', onKey); document.removeEventListener('paste', onPaste); lsUndoClear(boardId); }
+    destroy: () => { document.removeEventListener('keydown', onSpaceDown); document.removeEventListener('keyup', onSpaceUp); document.removeEventListener('keydown', onKey, true); document.removeEventListener('paste', onPaste); lsUndoClear(boardId); }
   };
 }
