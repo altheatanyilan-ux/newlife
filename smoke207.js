@@ -122,7 +122,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('the form no longer asks what to hang the sitting on',
     !form.fields.some(f => /Link|Hang|Which/i.test(f)), JSON.stringify(form.fields));
   yes('  it asks only for the thing, the day, the clock, the category and tags',
-    form.fields.join(',') === 'teWhat,teDay,teFrom,teTo,teMins,teCat,teTags',
+    form.fields.join(',') === 'teWhat,teDay,teFrom,teTo,teMins,teCat,teKind,teFelt,teZog,teOut,teTags',
     form.fields.join(','));
   is('  editing one still changes what you edited', form.what, 'a section, slower');
   /* the careless line: taking the fields out and taking the data with them */

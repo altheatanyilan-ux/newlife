@@ -45,7 +45,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
 
   console.log('\n1. the room holds nine practices, in an order you set');
   const secs = await p.$$eval('#thSecs [data-th]', n => n.map(x => x.dataset.th));
-  is('all nine are there', secs.length, 9);
+  /* nine when this was written; Visualise, Contemplate and Affirm joined them */
+  is('all twelve are there', secs.length, 12);
   yes('  the three old ones are kept, not replaced',
       ['script','winning','aim'].every(k => secs.includes(k)), secs.join(','));
   yes('  and the six new ones are with them',

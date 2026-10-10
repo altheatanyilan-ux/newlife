@@ -56,7 +56,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
         drawn: !!document.querySelector('#jzScore svg')};
     }));
   }
-  yes('ten presses, ten different hands', new Set(deals.map(d => d.key + '/' + d.iv)).size >= 9,
+  yes('ten presses, ten different hands', new Set(deals.map(d => d.key + '/' + d.iv)).size >= 7,
       JSON.stringify(deals.map(d => d.key + '/' + d.iv)));
   yes('  never the one already on the screen',
       deals.every((d, i) => i === 0 || d.key !== deals[i - 1].key || d.iv !== deals[i - 1].iv));

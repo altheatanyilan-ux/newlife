@@ -320,7 +320,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('the section is on Today, under the theatre', await p.evaluate(() => {
     const ids = [...document.querySelectorAll('#main .page [id^="t-"]')].map(n => n.id);
     return ids.indexOf('t-sacred') > ids.indexOf('t-theatre'); }));
-  is('  four ways in', await p.$$eval('[data-stkind]', n => n.length), 4);
+  /* four when this was written; Finitude is the fifth */
+  is('  five ways in', await p.$$eval('[data-stkind]', n => n.length), 5);
   /* Drawn is not the same as wired. The whole section once rendered perfectly
      with every button dead, because the line that binds it was never added —
      so press them rather than merely finding them. */

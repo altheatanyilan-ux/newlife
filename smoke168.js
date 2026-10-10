@@ -104,7 +104,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   yes('sitting down offers the four ways to be still', await p.$('.sit-ring') !== null);
   is('  all four of them', await p.evaluate(() =>
     [...document.querySelectorAll('[data-sitkind]')].map(n => n.dataset.sitkind)),
-    ['meditation','breath','scan','sanctuary']);
+    ['meditation','breath','scan','sanctuary','finitude']);
   await p.click('[data-sitkind="breath"]'); await p.waitForTimeout(900);
   is('  and choosing one is the same setting the tabs set',
     await p.evaluate(() => stillness().prefs.kind), 'breath');

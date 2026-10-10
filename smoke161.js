@@ -57,7 +57,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   /* a value nothing is built toward is drawn broken */
   const served = await p.evaluate(() => {
     const id = S.valueOrder[0];
+    /* the orbit is only drawn once there is a vision to measure against, so give it an unrelated one first */
+    S.visions.push({id: 'vx-other', title: 'y', links: {values: []}, valueIds: []});
     const before = valueServed(id);
+    S.visions.pop();
     S.visions.push({id: 'vx-smoke', title: 'x', links: {values: [{id}]}, valueIds: []});
     const after = valueServed(id);
     S.visions.pop();
@@ -151,9 +154,16 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
      resume from where it WOULD have got to, so it jumped forward by however
      long you had lingered. */
   console.log('\n6. a planet that was held starts again from where it stopped');
+  await p.evaluate(() => document.querySelector('#solarCv').scrollIntoView({block: 'center'})); await p.waitForTimeout(200);
   ps = await spots();
   const held = ps[0];
-  await p.mouse.move(held.x, held.y); await p.waitForTimeout(150);
+  /* the planet is moving while we aim at it, so aim again at where it is now until the hover takes */
+  let aimed = held;
+  for(let k = 0; k < 6; k++){
+    await p.mouse.move(aimed.x, aimed.y); await p.waitForTimeout(150);
+    if(await p.evaluate(() => !!_solar.hover)) break;
+    aimed = (await spots())[0];
+  }
   yes('the pointer stops it', await p.evaluate(() => !!_solar.hover));
   const frozen = await p.evaluate(() => _solar.hover.ang);
   await p.waitForTimeout(1200);

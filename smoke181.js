@@ -128,7 +128,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   is('  right before the board, not at the end',
      saved.indexOf('board') - saved.indexOf('pins'), 1);
   is('  and the order they had chosen is otherwise untouched',
-     saved.filter(k => k !== 'pins'), ['board','script','winning','scene','scripting','tension','thanks','aim']);
+     saved.filter(k => ['board','script','winning','scene','scripting','tension','thanks','aim'].includes(k)), ['board','script','winning','scene','scripting','tension','thanks','aim']);
 
   console.log('\n5. the board\'s own button and the pin are tellable apart');
   await p.evaluate(() => { location.hash = '#/journals/quote'; }); await p.waitForTimeout(1500);
