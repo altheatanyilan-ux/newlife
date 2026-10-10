@@ -528,6 +528,7 @@ function jazzExerciseHTML(id){
             r.keys[key] ? `✓ ${esc(jazzPretty(key))} is yours — take it back` : `Mark ${esc(jazzPretty(key))} as yours`}</button>`}
           <button class="btn sm ghost" id="jzLog">+ Log a sitting</button>
           ${draws ? `<button class="btn sm ghost" id="jzCard">\u{1f3af} Put this in the cards</button>` : ''}
+          ${typeof studioWriteWithHTML === 'function' ? studioWriteWithHTML(id, key) : ''}
         </div>
         <div class="jz-count mono">${single ? (r.done ? `done ${esc(relDays(daysSince(r.done)))}` : 'not yet done')
           : `${got} of 12 keys`}${r.lastAt ? ` · last practised ${esc(relDays(daysSince(r.lastAt)))}` : ''}</div>
@@ -707,6 +708,7 @@ function bindJazzExercise(root, id){
   });
   const log = root.querySelector('#jzLog');
   if(log) log.onclick = () => openJazzLog(id);
+  if(typeof studioBindWriteWith === 'function') studioBindWriteWith(root, id);
   const card = root.querySelector('#jzCard');
   if(card) card.onclick = () => {
     const st = jazzState().settings;

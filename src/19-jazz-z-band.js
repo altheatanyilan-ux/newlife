@@ -280,7 +280,11 @@ function bindJazzBandCard(root){
 const JZBT_CHORUSES = [1, 2, 3, 4, 6, 8];
 function jazzTunePlaySettings(t){
   const st = jazzTunesState();
-  const all = st.tuneUi.play = st.tuneUi.play && typeof st.tuneUi.play === 'object' ? st.tuneUi.play : {};
+  /* a progression handed over from the Songwriting Studio is not in the library: its settings
+     live for the visit only, and nothing is written to the tune library for it */
+  if(t && t.studio && typeof studioApplyBand === 'function') studioApplyBand(t);
+  const all = t && t.studio ? (S._studioPlay = S._studioPlay || {})
+    : (st.tuneUi.play = st.tuneUi.play && typeof st.tuneUi.play === 'object' ? st.tuneUi.play : {});
   const style = typeof jzxStyleOf === 'function' ? jzxStyleOf(t) : 'swing';
   const ballad = /ballad/i.test(t.tempo || '');
   const d = {bpm: typeof jazzTempoOf === 'function' ? jazzTempoOf(t) : 120, choruses: 2, trading: false,

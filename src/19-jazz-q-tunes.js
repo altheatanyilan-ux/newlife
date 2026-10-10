@@ -292,36 +292,7 @@ function jazzTuneAnalysis(t){
     if(c.repeat && ev.length && ev[ev.length - 1].text === c.text) return;
     ev.push({bar: b.n, text: c.text, ...c.chord}); }));
   const tonic = jazzTuneTonic(t);
-  const spans = [];
-  const up4 = (a, b) => a != null && b != null && ((b - a + 12) % 12) === 5;
-  for(let i = 0; i < ev.length; i++){
-    const a = ev[i], b = ev[i + 1], c = ev[i + 2];
-    /* ii-V-I and ii-V-i */
-    if(b && c && up4(a.pc, b.pc) && up4(b.pc, c.pc) && b.quality === 'dom'){
-      if(a.quality === 'min' && (c.quality === 'maj' || c.quality === 'dom')){
-        const home = c.pc === tonic.pc;
-        spans.push({kind: home ? 'iivi' : 'tonicization', from: a.bar, to: c.bar, at: [i, i + 2],
-          label: `ii-V-I to ${c.root}`, target: c.root});
-      } else if((a.quality === 'hd' || a.quality === 'min') && c.quality === 'min'){
-        spans.push({kind: 'minor', from: a.bar, to: c.bar, at: [i, i + 2], label: `minor ii-V-i to ${c.root}m`, target: c.root});
-      }
-    }
-    /* a dominant a fifth above a chord that is not the tonic: a tonicisation, when no ii-V-I already said so */
-    if(b && a.quality === 'dom' && up4(a.pc, b.pc) && b.pc !== tonic.pc && (b.quality === 'maj' || b.quality === 'min')
-       && !spans.some(s => s.at[1] === i + 1 && s.at[0] === i - 1)){
-      spans.push({kind: 'tonicization', from: a.bar, to: b.bar, at: [i, i + 1], label: `V7 of ${b.root}`, target: b.root});
-    }
-    /* a dominant resolving down a half step: a tritone substitution */
-    if(b && a.quality === 'dom' && a.pc != null && b.pc != null && ((a.pc - b.pc + 12) % 12) === 1){
-      spans.push({kind: 'tritone', from: a.bar, to: b.bar, at: [i, i + 1], label: `${a.root}7 for ${JAZZ_TUNE_FLAT[(a.pc + 6) % 12]}7, into ${b.root}`, target: b.root});
-    }
-    /* a diminished chord between two chords a half step either side: passing */
-    if(b && a.quality === 'dim' && a.pc != null && b.pc != null && (((b.pc - a.pc + 12) % 12) === 1)){
-      const before = ev[i - 1];
-      spans.push({kind: 'dim', from: before && ((a.pc - before.pc + 12) % 12) === 1 ? before.bar : a.bar, to: b.bar,
-        at: [i, i + 1], label: `${a.root}° walking up to ${b.root}`, target: b.root});
-    }
-  }
+  const spans = studioFindPatterns(ev, tonic);
   const counts = {};
   spans.forEach(s => counts[s.kind] = (counts[s.kind] || 0) + 1);
   const iiViKeys = [...new Set(spans.filter(s => s.kind === 'iivi' || s.kind === 'tonicization')
@@ -342,13 +313,8 @@ function jazzTuneBarMarks(t){
    step (02-css-sections.html). Validated for colour-blind separation across
    every pair, in both themes; the minor ii-V-i shares the ii-V-I's blue and
    is told apart by a dashed edge, and every mark carries its name as text. */
-const JAZZ_TUNE_PATTERNS = {
-  iivi:         {color: 'var(--jzp-iivi)', said: 'ii-V-I'},
-  minor:        {color: 'var(--jzp-iivi)', said: 'minor ii-V-i', dashed: true},
-  tonicization: {color: 'var(--jzp-ton)', said: 'tonicisation'},
-  tritone:      {color: 'var(--jzp-tri)', said: 'tritone substitution'},
-  dim:          {color: 'var(--jzp-dim)', said: 'diminished walk-up / passing'}
-};
+/* filled from the studio's shared module (STUDIO_PATTERN_COLOURS), which the Songwriting Studio's strips read too */
+const JAZZ_TUNE_PATTERNS = {};
 
 /* ---------- Module 2: the repertoire ---------- */
 const JAZZ_REP_STATUS = [['want', 'Want to learn'], ['learning', 'Learning'], ['learned', 'Learned']];

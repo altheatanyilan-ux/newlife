@@ -102,6 +102,7 @@ function sngLabOpts(L, extra){
 }
 SNG_TOOL_VIEWS['chord-lab'] = {
   html(){
+    if(typeof studioLabApplyHandoff === 'function') studioLabApplyHandoff();
     const L = sngLabState(), u = sngUi(), style = sngLabStyle(L);
     const pal = sngPalette(L.colour), out = sngOutsidePalette(), chords = sngLabChords(L);
     const playing = _sngLab && _sngLab.running;
@@ -123,6 +124,7 @@ SNG_TOOL_VIEWS['chord-lab'] = {
           <span class="sng-bar-x"><button class="tbtn" data-lableft="${i}" aria-label="move left">‹</button><button class="del-x inline" data-labdel="${i}" aria-label="remove">×</button></span></div>`).join('') || '<span class="muted">Press chords above to build it.</span>'}</div>
         <div class="sng-lane" title="the Chord-Scale Map's scale for each chord, in this progression">${chords.map((c, i) => { const r = sngScalesFor(c, {keyPc: L.keyPc, colour: L.colour, next: chords[(i + 1) % chords.length]});
           return `<span class="sng-lane-c" title="${esc(r.why)}">${esc(sngNoteName(L.keyPc + c.root))} ${esc(r.scales[0].name)}</span>`; }).join('')}</div>
+        ${typeof studioJazzStripHTML === 'function' ? studioJazzStripHTML(L.prog, L.keyPc) : ''}
         <div class="sng-row sng-transport">
           <button class="btn primary" id="labPlay">${playing ? '■ Stop' : '▶ Play'}</button>
           <label class="mono faint">♩ <input class="inp mono sng-bpm" id="labBpm" type="number" min="30" max="260" value="${Math.round(L.bpm)}"></label>
@@ -159,6 +161,7 @@ SNG_TOOL_VIEWS['chord-lab'] = {
         <button class="tbtn" id="labSaveGroove">Save as my groove</button>
         <button class="tbtn" id="labSeed">Keep the progression</button>
         <button class="tbtn" id="labMidi">Export MIDI</button>
+        ${typeof studioLabButtonsHTML === 'function' ? studioLabButtonsHTML() : ''}
       </section>
       ${u.sixOpen ? sngSixHTML(L) : ''}
       <section class="card sng-piano-wrap"><div class="sng-card-h"><span class="serif">At the piano</span><span class="mono faint">the chord now sounding</span></div>${sngKeysHTML(chords.length ? sngVoice(chords[u.labBar || 0] || chords[0], L.keyPc, L.voicing || style.voicingDefault || 'triad') : [], null)}</section>
@@ -224,6 +227,7 @@ SNG_TOOL_VIEWS['chord-lab'] = {
       st.grooves.unshift(g); saveNow(); sound('success'); toast('Saved to the Groove Maker.'); u.grooveId = g.id; navigate('#/songwriting/tool/groove-maker'); };
     q('#labMidi').onclick = () => { if(!L.prog.length) return; const o = sngLabOpts(L); const bytes = sngMidiFile(o, Math.max(4, L.prog.length * 2));
       sngDownload(bytes, `progression-${L.prog.join('-').replace(/[^\w-]+/g, '')}.mid`); };
+    if(typeof studioBindLab === 'function') studioBindLab(host);
     if(u.sixOpen) bindSngSix(host, L);
   }
 };

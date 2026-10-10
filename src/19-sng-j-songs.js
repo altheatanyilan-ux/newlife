@@ -23,7 +23,7 @@ SNG_TOOL_VIEWS['song-desk'] = {
     const lines = song.sections.flatMap(s => s.lines.map(l => l.text || '')).filter(Boolean);
     const checks = sngRewriteChecks(song);
     return `<div class="sng-row"><a class="tbtn" href="#/songwriting/tool/song-desk" data-sdback>← all songs</a><span class="grow"></span>
-      <button class="tbtn" id="sdPrint">print</button><button class="tbtn" id="sdSheet">open in the Lyric Sheet</button>
+      <button class="tbtn" id="sdPrint">print</button><button class="tbtn" id="sdSheet">open in the Lyric Sheet</button>${typeof studioSongButtonsHTML === 'function' ? studioSongButtonsHTML(song) : ''}
       <select class="inp" id="sdStatus">${[['draft', 'draft'], ['finished', 'finished — in the Songbook']].map(([k, n]) => `<option value="${k}" ${song.status === k ? 'selected' : ''}>${n}</option>`).join('')}</select>
       <button class="del-x inline" id="sdDel" aria-label="throw the song away">×</button></div>
     <div class="card"><input class="inp serif sng-songtitle" id="sdT" value="${esc(song.title)}">
@@ -41,7 +41,7 @@ SNG_TOOL_VIEWS['song-desk'] = {
       ${song.sections.map((sec, i) => `<div class="sng-sdsec"><div class="sng-row"><select class="inp" data-sdsectype="${i}">${SNG_SECTION_TYPES.map(t => `<option ${sec.type === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
           <span class="mono faint">${sec.prog ? esc(sec.prog.join('–')) : 'no chords yet'}</span><button class="tbtn" data-sdprog="${i}">use the Chord Lab's</button>
           ${sec.prog ? `<button class="tbtn" data-sdplay="${i}">▶</button>` : ''}<span class="grow"></span><button class="del-x inline" data-sdsecdel="${i}">×</button></div>
-        <textarea class="inp sng-ta serif" rows="${Math.max(3, sec.lines.length)}" data-sdlines="${i}">${esc(sec.lines.map(l => l.text || '').join('\n'))}</textarea></div>`).join('') || '<p class="muted">No sections yet.</p>'}</div>
+        <textarea class="inp sng-ta serif" rows="${Math.max(3, sec.lines.length)}" data-sdlines="${i}">${esc(sec.lines.map(l => l.text || '').join('\n'))}</textarea>${typeof studioSectionExtrasHTML === 'function' ? studioSectionExtrasHTML(sec, i) : ''}</div>`).join('') || '<p class="muted">No sections yet.</p>'}</div>
     <div class="card sng-rewrite"><div class="sng-card-h"><b>Rewrite Room</b><span class="mono faint">the checklist, with what the room can measure measured</span>
       <span class="grow"></span><button class="tbtn" id="sdSnap">keep this version</button></div>
       <ul>${SNG_CAPSTONE.rewriteChecklist.map((item, i) => { const auto = checks[i];
@@ -81,6 +81,7 @@ SNG_TOOL_VIEWS['song-desk'] = {
       sngPlaySeed({chords: sec.prog.map(r => sngParseRoman(r)).filter(Boolean), keyPc: sec.keyPc || 0, colour: sec.colour, styleId: sec.styleId, bpm: sec.bpm}); });
     $$('[data-sdrw]', host).forEach(x => x.onchange = () => { song.rewrite[+x.dataset.sdrw] = x.checked; touch(); });
     q('#sdSnap').onclick = () => { song.versions = song.versions || []; song.versions.push({at: new Date().toISOString(), text: sngSongText(song)}); if(song.versions.length > 30) song.versions.shift(); touch(); toast('This version is kept.'); rerender(); };
+    if(typeof studioBindSong === 'function') studioBindSong(host, song);
     if(song.capstone) bindSngTenStep(host, song);
   }
 };
@@ -152,16 +153,20 @@ function sngPrint(songs){
 /* ---------- the Listening Room ---------- */
 function sngListeningHTML(){
   const st = sngState(), u = sngUi();
+  if(typeof studioListeningApplyHandoff === 'function') studioListeningApplyHandoff();
   const cur = u.listenId ? st.listening.find(x => x.id === u.listenId) : null;
   return `<p class="muted">Analyse songs you love: the sections and their lengths, the chords as Roman numerals, where the title falls, the power positions, what to borrow. No lyrics are copied here — note what the song does.</p>
     <div class="sng-row"><input class="inp" id="lrNew" placeholder="song — artist"><button class="btn primary" id="lrAdd">Analyse</button></div>
+    ${typeof studioListeningStartHTML === 'function' ? studioListeningStartHTML() : ''}
     ${cur ? `<div class="card"><div class="sng-card-h"><b class="serif">${esc(cur.song)}</b><span class="grow"></span><button class="del-x inline" id="lrDel">×</button></div>
       ${SNG_LISTEN_FIELDS.map(([k, lab, ph]) => `<label class="sng-field"><span>${esc(lab)}</span><textarea class="inp sng-ta" rows="2" data-lrf="${k}" placeholder="${esc(ph)}">${esc((cur.fields || {})[k] || '')}</textarea></label>`).join('')}
-      <button class="tbtn" id="lrSeed">Keep “what to borrow” in the Seedbank</button></div>` : ''}
+      <button class="tbtn" id="lrSeed">Keep “what to borrow” in the Seedbank</button>
+      ${typeof studioListeningTuneHTML === 'function' ? studioListeningTuneHTML(cur) : ''}</div>` : ''}
     ${st.listening.length ? `<div class="sng-exlist">${st.listening.map(x => `<button class="sng-ex${x.id === u.listenId ? ' on' : ''}" data-lr="${esc(x.id)}"><span class="mono">🎧</span><span class="sng-ex-t"><b>${esc(x.song)}</b><span class="muted">${esc(((x.fields || {}).borrow || '').slice(0, 90))}</span></span><span class="mono faint">${esc((x.createdAt || '').slice(0, 10))}</span></button>`).join('')}</div>` : ''}`;
 }
 function bindSngMore(root){
   const st = sngState(), u = sngUi(), q = s => root.querySelector(s);
+  if(typeof studioBindListening === 'function') studioBindListening(root);
   const add = q('#lrAdd'); if(add) add.onclick = () => { const v = q('#lrNew').value.trim(); if(!v) return; const x = {id: uid(), song: v, fields: {}, createdAt: new Date().toISOString()};
     st.listening.unshift(x); u.listenId = x.id; sngLogSession('listening'); saveNow(); rerender(); };
   $$('[data-lr]', root).forEach(b => b.onclick = () => { u.listenId = b.dataset.lr; rerender(); });

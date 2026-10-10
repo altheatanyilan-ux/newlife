@@ -157,7 +157,8 @@ function jazzTuneHTML(id){
         <p class="mono faint jt-help">Tap a chord for its scales and voicings. While it plays (or after “set a loop”), tap a start bar and an end bar to loop them;
           tap a pattern’s coloured bar to loop that pattern. A chord with (n) after it fills n bars; % repeats the bar before; chords in brackets are optional.</p>
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:10px">
-          <button class="btn sm ghost" id="jtCopy">copy the changes</button></div>
+          <button class="btn sm ghost" id="jtCopy">copy the changes</button>
+          ${typeof studioTuneButtonsHTML === 'function' ? studioTuneButtonsHTML(t) : ''}</div>
         ${a.spans.length ? `<div class="jz-note" style="margin-top:14px"><span class="sc">What the analysis found</span>
           <ul class="jt-spans">${a.spans.map(s => `<li><i class="${JAZZ_TUNE_PATTERNS[s.kind].dashed ? 'dash' : ''}" style="--c:${JAZZ_TUNE_PATTERNS[s.kind].color}"></i>
             <span class="mono">bars ${s.from}${s.to !== s.from ? '–' + s.to : ''}</span> ${esc(s.label)}
@@ -205,6 +206,7 @@ function bindJazzTune(root, id){
   const t0 = jazzTune(id);
   if(t0){ bindJazzPracticePanel(root, t0);
     try { if(typeof bindJazzTunePlay === 'function') bindJazzTunePlay(root, t0); } catch(e){ console.warn('the tune panel did not bind', e); }
+    if(typeof studioBindTune === 'function') studioBindTune(root, t0);
     const side = root.querySelector('#jzjSide');
     if(side) bindJazzTakeRows(side, () => rerender()); }
   const ov = root.querySelector('#jtOverlay');

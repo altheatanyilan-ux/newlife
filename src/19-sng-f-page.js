@@ -236,7 +236,7 @@ function sngSeedsHTML(){
       <select class="inp" id="sngSeedType"><option value="">every kind</option>${SNG_SEED_TYPES.map(([k, n]) => `<option value="${k}" ${u.seedType === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
     <p class="muted">Lines, images, titles, progressions, melodies, memos — anything worth keeping, from any tool. Voice memos stay on this device.</p>
     ${list.length ? `<div class="sng-seeds">${list.map(s => `<div class="card sng-seed" data-sngseed="${esc(s.id)}">
-      <div class="sng-card-h"><span class="chip">${esc((SNG_SEED_TYPES.find(t => t[0] === s.type) || ['', s.type])[1])}</span><span class="mono faint">${esc((s.createdAt || '').slice(0, 10))}${s.source ? ` · ${esc(s.source)}` : ''}</span>
+      <div class="sng-card-h"><span class="chip">${esc((SNG_SEED_TYPES.find(t => t[0] === s.type) || ['', s.type])[1])}</span><span class="mono faint">${esc((s.createdAt || '').slice(0, 10))}${s.source ? ` · ${typeof studioSeedSourceHTML === 'function' ? studioSeedSourceHTML(s.source) : esc(s.source)}` : ''}</span>
         <button class="del-x inline" data-sngseeddel="${esc(s.id)}" aria-label="throw it away">×</button></div>
       ${s.content ? `<div class="sng-seed-c">${esc(s.content)}</div>` : ''}
       ${s.type === 'memo' && s.audioId ? `<button class="tbtn" data-sngmemo="${esc(s.audioId)}">▶ play</button>` : ''}

@@ -112,7 +112,148 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('Songwriting\'s first-visit card starts from the Jazz range and says so', await ev(() => document.querySelector('#sngLow') && document.querySelector('#sngLow').value === 'E3' && /From your Jazz Studio settings/.test(document.body.textContent)));
   await ev(() => { sngState().profile.onboarded = true; saveNow(); });
 
-  console.log('\n8. nothing threw');
+  console.log('\n9. a progression, across the door and back');
+  const rt = await ev(() => {
+    const cases = [
+      ['ii–V–I in E♭', ['ii7', 'V7', 'Imaj7'], 'Eb'],
+      ['minor ii–V–i in C', ['iiø7', 'V7', 'i7'], 'C'],
+      ['I–vi–ii–V in G', ['I', 'vi', 'ii', 'V'], 'G'],
+      ['a twelve-bar blues in B♭', ['I7', 'I7', 'I7', 'I7', 'IV7', 'IV7', 'I7', 'I7', 'V7', 'IV7', 'I7', 'V7'], 'Bb'],
+      ['a borrowed ♭VII in D', ['I', '♭VII', 'IV', 'I'], 'D'],
+      ['a secondary V/V in F', ['I', 'II7', 'V7', 'I'], 'F']];
+    return cases.map(([n, r, k]) => { const s = studioRomanToSymbols(r, k), back = studioSymbolsToRoman(s, k); return [n, s.join(' '), JSON.stringify(back) === JSON.stringify(r)]; });
+  });
+  rt.forEach(([n, s, same]) => yes(`${n} survives the round trip`, same, s));
+  is('the example in the brief', await ev(() => studioRomanToSymbols(['ii7', 'V7', 'Imaj7'], 'Eb')), ['Fm7', 'Bb7', 'Ebmaj7']);
+  is('printed, with the flat sign', await ev(() => studioRomanToSymbols(['ii7', 'V7', 'Imaj7'], 'Eb').map(studioPretty)), ['Fm7', 'B♭7', 'E♭maj7']);
+  is('a sharp key is named in sharps', await ev(() => studioRomanToSymbols(['I', 'V7'], 'F#')), ['F#', 'C#7']);
+  is('what cannot be said stays as it was written, and nothing throws', await ev(() => studioSymbolsToRoman(['N.C.', 'C/E', 'Cmaj7', '', null, 'x?'], 'C')), ['N.C.', 'C/E', 'Imaj7', '', '', 'x?']);
+  is('an altered dominant is said plainly and marked as lossy', await ev(() => studioSymbolsToRomanDetailed(['G7alt'], 'C').map(x => [x.roman, x.lossy])), [['V7', true]]);
+
+  console.log('\n10. a hand-off is an address, and it resolves against what is kept');
+  is('the link', await ev(() => [studioLink('#/jazz/playalong', 'lab', 'songwriting'), studioLink('/songwriting/tool/chord-lab', 'tune:autumn-leaves:1-3', 'jazz')]),
+     ['#/jazz/playalong?from=songwriting&ref=lab', '#/songwriting/tool/chord-lab?from=jazz&ref=tune%3Aautumn-leaves%3A1-3']);
+  is('its references read', await ev(() => ['lab', 'song:abc', 'seed:x1', 'tune:autumn-leaves:1-3', 'tune:so-what', 'exercise:2.1:Eb', 'exercise:v3-2.1b', 'tune:a:3-1'].map(r => { const x = studioParseRef(r); return [x.ok, x.kind, x.id || null, x.start || null, x.end || null, x.key || null]; })),
+     [[true, 'lab', null, null, null, null], [true, 'song', 'abc', null, null, null], [true, 'seed', 'x1', null, null, null], [true, 'tune', 'autumn-leaves', 1, 3, null], [true, 'tune', 'so-what', null, null, null],
+      [true, 'exercise', '2.1', null, null, 'Eb'], [true, 'exercise', 'v3-2.1b', null, null, null], [true, 'tune', 'a', 1, 3, null]]);
+  is('nonsense does not read, and does not throw', await ev(() => ['', null, 'junk', 'song', 'song:a:b', 'tune:x:y'].map(r => studioParseRef(r).ok)), [false, false, false, false, false, false]);
+  await go('#/jazz/playalong?from=songwriting&ref=song:nosuchsong');
+  yes('a reference that no longer resolves gets a calm word, and the page opens as usual',
+    await ev(() => !!document.querySelector('.studio-hand.miss') && /Play-along/.test(document.querySelector('.jz-page h1').textContent)));
+
+  console.log('\n11. the Chord Lab → the Jazz band');
+  await ev(() => { const L = sngLabState(); L.prog = ['ii7', 'V7', 'Imaj7', 'Imaj7']; L.keyPc = 3; L.colour = 'major'; L.styleId = 'jazz-swing'; L.bpm = 132; saveNow(); S._studioPlay = {}; });
+  await go('#/songwriting/tool/chord-lab');
+  yes('the button is beside Export MIDI', await ev(() => !!document.querySelector('#labMidi') && !!document.querySelector('#labJazz')));
+  await p.click('#labJazz'); await p.waitForTimeout(900);
+  is('it opens the play-along in its own room, with the reference in the address', await ev(() => [location.hash, parseHash().name, parseHash().query]), ['#/jazz/playalong?from=songwriting&ref=lab', 'jazz', {from: 'songwriting', ref: 'lab'}]);
+  const pa = await ev(() => ({line: (document.querySelector('.studio-hand') || {}).textContent || '', chart: document.body.textContent.includes('Fm7') || document.body.textContent.includes('Fm7'),
+    bass: (document.querySelector('#jzbtBass') || {}).value, drums: (document.querySelector('#jzbtDrums') || {}).value, comp: (document.querySelector('#jzbtComp') || {}).value, bpm: (document.querySelector('#jzbtBpm') || {}).value,
+    sel: (document.querySelector('#jpTune') || {}).value}));
+  yes('it says where it came from, and offers the way back', /From your Chord Lab progression/.test(pa.line) && /back to Songwriting/.test(pa.line), pa.line);
+  yes('the changes are in E♭, as symbols', pa.chart);
+  is('a Jazz-family groove maps to the band by the explicit table', [pa.bass, pa.drums, pa.comp, pa.bpm], ['walking', 'swing', 'charleston', '132']);
+  is('and the tune is the studio\'s, not the library\'s', pa.sel, 'studio-lab');
+  await ev(() => { sngLabState().styleId = 'jazz-rev-charleston'; S._studioPlay = {}; });
+  await go('#/jazz/playalong?from=songwriting&ref=lab');
+  is('reverse Charleston maps to reverse Charleston comping', await ev(() => document.querySelector('#jzbtComp').value), 'reverse_charleston');
+  await ev(() => { sngLabState().styleId = 'pop-ballad'; S._studioPlay = {}; });
+  await go('#/jazz/playalong?from=songwriting&ref=lab');
+  is('a groove outside the Jazz family is read by its name (ballad → brushes), and says so', await ev(() => [document.querySelector('#jzbtDrums').value, /its own defaults/.test([...document.querySelectorAll('.studio-hand')].map(n => n.textContent).join(' '))]), ['ballad', true]);
+  yes('nothing was written to the tune library for it', await ev(() => !(jazzTunesState().tuneUi.play || {})['studio-lab']));
+  is('the table is small and explicit', await ev(() => [Object.keys(STUDIO_GROOVE_TO_BAND).length, studioGrooveToBand('jazz-bossa').drums, studioGrooveToBand('brazil-samba').explicit]), [11, 'bossa', false]);
+  await p.goBack(); await p.waitForTimeout(700);
+  yes('Back returns to the origin', await ev(() => parseHash().name === 'songwriting'));
+
+  console.log('\n12. a song → the Jazz band');
+  const sid = await ev(() => { const st = sngState();
+    const s = sngSongDefaults({title: 'Last Train', sections: [
+      {type: 'intro', lines: [{text: ''}], prog: ['I', 'V'], keyPc: 7, colour: 'major', styleId: 'pop-ballad', bpm: 76},
+      {type: 'verse', lines: [{text: 'a line'}], prog: ['I', 'vi', 'IV', 'V'], keyPc: 7, colour: 'major', styleId: 'pop-ballad', bpm: 76},
+      {type: 'chorus', lines: [{text: 'a chorus'}], prog: ['IV', 'V', 'I', 'I'], keyPc: 7, colour: 'major', styleId: 'pop-ballad', bpm: 76},
+      {type: 'verse', lines: [{text: 'two'}], prog: ['I', 'vi', 'IV', 'V'], keyPc: 7, colour: 'major', styleId: 'pop-ballad', bpm: 76}]});
+    st.songs.unshift(s); saveNow(); return s.id; });
+  await go('#/songwriting/song/' + sid);
+  yes('the Song Desk offers it once a section has chords', await p.$('#sdJazz') !== null);
+  await p.click('#sdJazz'); await p.waitForTimeout(900);
+  is('the address', await ev(() => location.hash), '#/jazz/playalong?from=songwriting&ref=song%3A' + sid);
+  const song = await ev(() => { const t = studioTuneById('studio-song-' + parseHash().query.ref.split(':')[1]); return {chart: t.chordProgression, form: t.form, key: t.key,
+    marks: jzbtForm(t, jzbtBars(t, 'G').bars, jazzParseChart(t.chordProgression)).filter((x, i, a) => a.indexOf(x) === i)}; });
+  yes('its sections are the form, named as rehearsal marks', /Intro:/.test(song.chart) && /A\(Verse\):/.test(song.chart) && /B\(Chorus\):/.test(song.chart), song.chart);
+  is('the verse comes round twice and keeps one mark', song.marks.sort(), ['A(Verse)1', 'A(Verse)2', 'B(Chorus)', 'Intro'].sort());
+  yes('the performance panel is offered', await p.$('#jzbtGo') !== null);
+
+  console.log('\n13. the Jazz tune → the Chord Lab');
+  const lab = await ev(() => { const t = jazzTune('autumn-leaves'); const p = studioTuneProgression(t, 1, 3); return {romans: p.romans, notes: p.notes, key: p.keyPc, sym: p.symbols}; });
+  is('three bars of Autumn Leaves, as numerals', [lab.romans.length, lab.notes], [3, []]);
+  const long = await ev(() => { const t = jazzTune('blues-for-alice'); const p = studioTuneProgression(t); return {n: p.romans.length, notes: p.notes}; });
+  is('a longer selection is cut to eight, and says so', [long.n, /first eight/.test(long.notes.join(' '))], [8, true]);
+  const split = await ev(() => { const t = jazzTune('autumn-leaves'); const p = studioTuneProgression(t); return p.notes.join(' '); });
+  yes('a bar with two chords gives its first, and says so (where the chart has one)', await ev(() => { const t = jazzTune('blues-for-alice'); const c = jazzParseChart(t.chordProgression); const two = c.bars.some(b => b.chords.filter(x => !x.optional).length > 1);
+    return !two || /two chords/.test(studioTuneProgression(t).notes.join(' ')); }), split);
+  await go('#/jazz/tune/autumn-leaves');
+  yes('the tune page offers it, and the seed, and the Listening Room', await ev(() => !!document.querySelector('#jtLab') && !!document.querySelector('#jtSeed') && !!document.querySelector('#jtListen')));
+  await p.click('#jtLab'); await p.waitForTimeout(900);
+  is('it opens the Chord Lab with the reference', await ev(() => [location.hash, parseHash().name]), ['#/songwriting/tool/chord-lab?from=jazz&ref=tune%3Aautumn-leaves', 'songwriting']);
+  const applied = await ev(() => ({prog: sngLabState().prog, line: (document.querySelector('.studio-hand') || {}).textContent || ''}));
+  yes('the Lab holds the first eight bars, and the line says where from', applied.prog.length === 8 && /Autumn Leaves/i.test(applied.line) && /eight/.test(applied.line), JSON.stringify(applied));
+  await ev(() => { sngLabState().prog = ['I']; });
+  await go('#/songwriting/tool/chord-lab?from=jazz&ref=tune%3Aautumn-leaves');
+  is('a redraw does not apply it a second time over what was typed since', await ev(() => sngLabState().prog), ['I']);
+  yes('nothing but the Lab\'s working progression was written: no seeds or songs were made', await ev(() => sngState().seeds.length === 0));
+  await go('#/songwriting/tool/chord-lab?from=jazz&ref=tune%3Aautumn-leaves%3A1-3');
+  is('bars 1–3 only', await ev(() => sngLabState().prog.length), 3);
+
+  console.log('\n14. a Jazz exercise → "Write with this"');
+  await ev(() => { jazzUi().key = 'Eb'; });
+  await go('#/jazz/2.1');
+  yes('a ii–V–I exercise offers it', await p.$('#jzWrite') !== null);
+  await p.click('#jzWrite'); await p.waitForTimeout(900);
+  is('in the key it was shown in', await ev(() => [sngLabState().prog, sngLabState().keyPc]), [['ii7', 'V7', 'Imaj7', 'Imaj7'], 3]);
+  await go('#/jazz/8.1');
+  yes('an exercise that is not a progression does not', await p.$('#jzWrite') === null);
+  is('the minor ii–V–i and the blues are progressions too', await ev(() => [studioExerciseProgression('2.3', 'C').kind, studioExerciseProgression('5.1', 'F').kind, studioExerciseProgression('5.2', 'F')]), ['minor', 'blues', null]);
+
+  console.log('\n15. what jazz would call this');
+  await ev(() => { const L = sngLabState(); L.prog = ['ii7', 'V7', 'Imaj7', 'vi7']; L.keyPc = 0; });
+  await go('#/songwriting/tool/chord-lab');
+  const strip = await ev(() => { const d = document.querySelector('.studio-jazz'); return d ? {sum: d.querySelector('summary').textContent, link: (d.querySelector('a.tbtn') || {}).getAttribute && d.querySelector('a.tbtn').getAttribute('href'), pat: d.querySelectorAll('[data-pat]').length, why: /found because/.test(d.textContent)} : null; });
+  yes('the strip names the ii–V–I', strip && /ii-V-I/.test(strip.sum), JSON.stringify(strip));
+  is('it colours the three bars, links to the exercise, and gives its reason', strip && [strip.pat, strip.link, strip.why], [3, '#/jazz/2.1', true]);
+  is('the colours are the Jazz Studio\'s, from one place', await ev(() => JSON.stringify(STUDIO_PATTERN_COLOURS) === JSON.stringify(JAZZ_TUNE_PATTERNS)), true);
+  yes('every pattern that names an exercise names one that exists', await ev(() => Object.values(STUDIO_PATTERN_EXERCISE).every(id => !!jazzExercise(id))));
+
+  console.log('\n16. the Jazz analysis is exactly what it was');
+  const EXPECT = {"so-what": [], "blues-for-alice": [["minor", 2, 3, "minor ii-V-i to Dm"], ["minor", 3, 4, "minor ii-V-i to Cm"], ["tonicization", 4, 5, "ii-V-I to Bb"], ["iivi", 9, 11, "ii-V-I to F"]], "anthropology": [["tonicization", 1, 2, "V7 of C"], ["iivi", 2, 3, "ii-V-I to Bb"], ["tonicization", 5, 6, "ii-V-I to Eb"], ["minor", 7, 8, "minor ii-V-i to Cm"]], "oleo": [["tonicization", 1, 2, "V7 of C"], ["iivi", 2, 3, "ii-V-I to Bb"], ["tonicization", 3, 4, "V7 of C"], ["tonicization", 5, 6, "ii-V-I to Eb"], ["tonicization", 7, 8, "V7 of C"]], "autumn-leaves": [["iivi", 1, 3, "ii-V-I to G"], ["minor", 5, 7, "minor ii-V-i to Em"], ["minor", 9, 11, "minor ii-V-i to Em"], ["iivi", 13, 15, "ii-V-I to G"], ["minor", 17, 19, "minor ii-V-i to Em"], ["tritone", 19, 20, "Eb7 for A7, into D"], ["tritone", 20, 21, "Db7 for G7, into C"], ["tonicization", 22, 23, "V7 of E"]]};
+  const got = await ev(ids => Object.fromEntries(ids.map(id => [id, jazzTuneAnalysis(jazzTune(id)).spans.map(s => [s.kind, s.from, s.to, s.label])])), Object.keys(EXPECT));
+  for(const id of Object.keys(EXPECT)) is(`${id}: the same spans, bar for bar`, got[id], EXPECT[id]);
+
+  console.log('\n17. the Seedbank takes either form of source');
+  await ev(() => { const st = sngState(); st.seeds.length = 0; sngSeed({type: 'line', content: 'an old seed', source: 'Chord Lab'});
+    sngSeed({type: 'progression', content: 'from a tune', source: {room: 'jazz', kind: 'tune', id: 'autumn-leaves', bars: [1, 3]}, data: {chords: [], keyPc: 0, colour: 'major'}}); saveNow(); });
+  await go('#/songwriting/seeds');
+  const sb = await ev(() => ({txt: document.querySelector('.sng-seeds').textContent, link: [...document.querySelectorAll('.sng-seeds a')].map(a => a.getAttribute('href')), icon: !!document.querySelector('.studio-room')}));
+  yes('the string form still reads, the object form says where from, with a way back', /Chord Lab/.test(sb.txt) && /Autumn Leaves/i.test(sb.txt) && sb.link.includes('#/jazz/tune/autumn-leaves') && sb.icon && !/\[object/.test(sb.txt), JSON.stringify(sb));
+  await go('#/jazz/tune/autumn-leaves');
+  await p.click('#jtSeed'); await p.waitForTimeout(500);
+  const kept = await ev(() => { const s = sngState().seeds[0]; return {type: s.type, src: s.source, n: sngState().seeds.length}; });
+  is('"Keep progression in Seedbank" keeps it with a source that points home', [kept.type, kept.src.room, kept.src.kind, kept.src.id, kept.n], ['progression', 'jazz', 'tune', 'autumn-leaves', 3]);
+
+  console.log('\n18. the Listening Room, from a Real Book tune');
+  await ev(() => { sngState().listening.length = 0; });
+  await go('#/songwriting/listening');
+  await p.fill('#lrTuneQ', 'blue bossa'); await p.waitForTimeout(500);
+  yes('the search finds it', await p.$('[data-lrtune="blue-bossa"]') !== null);
+  await p.click('[data-lrtune="blue-bossa"]'); await p.waitForTimeout(500);
+  const draft = await ev(() => ({secs: (document.querySelector('#lrDraftSections') || {}).value, chords: (document.querySelector('#lrDraftChords') || {}).value, kept: sngState().listening.length}));
+  yes('sections, key and Roman numerals are filled in, and nothing is kept yet', draft.secs && /\(\d+\)/.test(draft.secs) && /minor|major/.test(draft.chords) && /\bi7|ii/.test(draft.chords) && draft.kept === 0, JSON.stringify(draft));
+  await p.click('#lrDraftKeep'); await p.waitForTimeout(500);
+  const lr = await ev(() => { const x = sngState().listening[0]; return {id: x.tuneId, hasLyrics: JSON.stringify(x).toLowerCase().includes('lyric'), block: /From the Jazz Studio/.test(document.body.textContent)}; });
+  is('kept: by the tune\'s id, with what the Jazz Studio found read live from it', [lr.id, lr.block], ['blue-bossa', true]);
+  await go('#/songwriting/listening?from=jazz&ref=tune%3Aautumn-leaves');
+  yes('"Analyse as a songwriter" arrives with a draft, not a record', await ev(() => !!document.querySelector('#lrDraftKeep') && sngState().listening.length === 1));
+
+  console.log('\n99. nothing threw');
   is('no page errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
   await b.close();

@@ -237,7 +237,9 @@ const JAZZ_PLAY_PRESETS = [
 const jazzPlayUi = () => S._jplay = S._jplay || {bpm: 120, semis: 0, swing: 0.62, layers: {bass: true, piano: true, drums: true}, click: false};
 let _jzBand = null, _jzClick = null;
 function jazzPlayAlongHTML(id){
-  const tune = (id && (jazzTune(id) || JAZZ_PLAY_PRESETS.find(p => p.id === id))) || JAZZ_PLAY_PRESETS[0];
+  const handed = typeof studioHandoffTune === 'function' ? studioHandoffTune() : null;
+  const tune = (id && (jazzTune(id) || (typeof studioTuneById === 'function' && studioTuneById(id)) || JAZZ_PLAY_PRESETS.find(p => p.id === id))) || handed || JAZZ_PLAY_PRESETS[0];
+  if(tune.studio && typeof studioApplyBand === 'function') studioApplyBand(tune);
   jazzPlayUi().id = tune.id;
   const u = jazzTuneUi();
   const key = JAZZ_KEY_NAMES.includes(u.key) ? u.key : '';
@@ -249,6 +251,7 @@ function jazzPlayAlongHTML(id){
     <label class="pd-q"><span class="k">what to play over</span>
       <select class="sel" id="jpTune"><optgroup label="From the curriculum">${JAZZ_PLAY_PRESETS.map(p =>
         `<option value="${esc(p.id)}" ${p.id === tune.id ? 'selected' : ''}>${esc(p.title)}</option>`).join('')}</optgroup>
+        ${tune.studio ? `<optgroup label="From your studio"><option value="${esc(tune.id)}" selected>${esc(tune.title)}</option></optgroup>` : ''}
         <optgroup label="From the Real Book">${analysed.map(r => `<option value="${esc(r.id)}" ${r.id === tune.id ? 'selected' : ''}>${esc(r.title)}</option>`).join('')}</optgroup></select></label>
     <div class="jz-keyrow"><span class="mono faint">in the key of</span>
       <div class="jz-keypick"><button class="jz-k wide${key ? '' : ' on'}" data-jtkey="">as written</button>${JAZZ_KEY_NAMES.map(k =>
@@ -257,17 +260,19 @@ function jazzPlayAlongHTML(id){
     <p class="faint jzp-note">Solo track mode isolates one instrument. For a real recording, stem-separation tools such as
       Moises or LALAL.AI split a track into its instruments; this band is synthesised, so each instrument is already its own track.</p>
     ${jazzChartHTML(tune, key, false)}
+    ${tune.studio && typeof studioPlayAlongExtrasHTML === 'function' ? studioPlayAlongExtrasHTML(tune) : ''}
     ${jazzTune(tune.id) ? `<p class="mono faint"><a href="#/jazz/tune/${esc(tune.id)}">the tune page</a> has the analysis, the chord popovers and the journal</p>` : ''}`;
 }
 function bindJazzPlayAlong(root){
   const u = jazzPlayUi();
-  const tune = jazzTune(u.id) || JAZZ_PLAY_PRESETS.find(p => p.id === u.id) || JAZZ_PLAY_PRESETS[0];
+  const tune = jazzTune(u.id) || (typeof studioTuneById === 'function' && studioTuneById(u.id)) || JAZZ_PLAY_PRESETS.find(p => p.id === u.id) || JAZZ_PLAY_PRESETS[0];
   $$('[data-jzgo]', root).forEach(b => b.onclick = () => navigate(b.dataset.jzgo));
   root.querySelector('#jpTune').onchange = e => { if(_jzBand){ _jzBand.stop(); _jzBand = null; } navigate('#/jazz/playalong/' + e.target.value); };
   $$('[data-jtkey]', root).forEach(b => b.onclick = () => { jazzTuneUi().key = b.dataset.jtkey; sound('click');
     if(_jzBand && _jzBand.running && _jzBand._tune === tune.id){ _jzBand.set('toKey', b.dataset.jtkey); _jzBand.set('semis', jazzTuneShift(tune, b.dataset.jtkey)); }
     rerender(); });
   bindJazzPracticePanel(root, tune);
+  if(tune.studio && typeof bindStudioPlayAlongExtras === 'function') bindStudioPlayAlongExtras(root, tune);
 }
 
 /* ---------- 4D: audiation ---------- */
