@@ -30,7 +30,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     meta: ['purpose', 'purposeImprint', 'valuesImprint', 'museState', 'zogTarget', 'journeyOverride', 'zogStreak'].filter(k => !META_KEYS.includes(k)),
     ver: db.verno}));
   is('every new array store and meta key is registered', [reg.stores, reg.meta], [[], []]);
-  is('the database is at version 24', reg.ver, 24);
+  is('the database is at version 25', reg.ver, 25);
   const seeded = await p.evaluate(() => { masterValuesSeed(); const xs = lifeArray('masterValues'); return [xs.length > 50, xs.every(x => x.userAdded === false)]; });
   is('the master list is seeded with userAdded false on every row', seeded, [true, true]);
 
