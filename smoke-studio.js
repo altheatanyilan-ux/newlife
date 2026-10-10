@@ -489,6 +489,28 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await ev(() => { sngUi().seedType = ''; });
   is('the old string source and a new object source side by side: both read', await ev(() => [studioSeedSource('Chord Lab').label, studioSeedSource({room: 'jazz', kind: 'tune', id: 'so-what'}).label.slice(0, 21)]), ['Chord Lab', 'Jazz Studio · So What']);
 
+  console.log('\n24. a song with a melody: the guide, and the range said before it is sung');
+  await ev(() => { studioSetVocalRange('C3', 'C5'); sngState().melodies = []; });
+  const sid2 = await ev(() => { const st = sngState();
+    const mA = {id: 'mA', name: 'Verse tune', keyPc: 7, colour: 'major', bpm: 76, beats: 4, prog: ['I', 'vi', 'IV', 'V'], notes: [{midi: 67, t: 0, d: 1}, {midi: 69, t: 1, d: 1}, {midi: 71, t: 2, d: 2}, {midi: 72, t: 4, d: 4}], createdAt: ''};
+    const mB = {id: 'mB', name: 'Chorus tune', keyPc: 7, colour: 'major', bpm: 76, beats: 4, prog: ['IV', 'V', 'I', 'I'], notes: [{midi: 84, t: 0, d: 2}, {midi: 79, t: 2, d: 2}], createdAt: ''};
+    st.melodies.push(mA, mB);
+    const sg = sngSongDefaults({title: 'With Tunes', sections: [
+      {type: 'verse', lines: [{text: 'a line'}], prog: ['I', 'vi', 'IV', 'V'], keyPc: 7, colour: 'major', styleId: 'pop-ballad', bpm: 76, melodyId: 'mA'},
+      {type: 'chorus', lines: [{text: 'a chorus'}], prog: ['IV', 'V', 'I', 'I'], keyPc: 7, colour: 'major', styleId: 'pop-ballad', bpm: 76, melodyId: 'mB'}]});
+    st.songs.unshift(sg); saveNow(); return sg.id; });
+  const tm = await ev(id => { const t = studioSongTune(id); return t && t.melodyMusicXml ? {measures: (t.melodyMusicXml.match(/<measure /g) || []).length, notes: (t.melodyMusicXml.match(/<pitch>/g) || []).length} : null; }, sid2);
+  yes('the song\'s tune carries its sections\' melodies as a guide, each at its section\'s first bar (the verse\'s four bars, then the chorus\'s first bar: five measures, six notes)', tm && tm.measures === 5 && tm.notes === 6, tm);
+  await go('#/songwriting/song/' + sid2);
+  yes('Song Desk shows "Show as notation" and "Check me on the piano" beside a section\'s melody', await ev(() => document.querySelectorAll('[data-studio-notation]').length === 2 && document.querySelectorAll('[data-studio-check]').length === 2));
+  await go('#/jazz/playalong?from=songwriting&ref=' + encodeURIComponent('song:' + sid2));
+  yes('the performance panel offers the melody as a guide: heard quietly, shown, or not at all', await ev(() => !!document.querySelector('#jzbtMel') && !!document.querySelector('#jzbtShow')));
+  const rl = await ev(() => (document.querySelector('.studio-play-hand') || {}).textContent || '');
+  yes('and the range is checked first: the chorus goes up to C6, above C3–C5', /above your range/.test(rl) && /C6/.test(rl), rl);
+  await ev(() => { sngState().songs.find(x => true).sections[1].melodyId = 'mA'; saveNow(); });
+  await go('#/jazz/playalong?from=songwriting&ref=' + encodeURIComponent('song:' + sid2));
+  yes('a melody inside the range says nothing', await ev(() => !/range/.test((document.querySelector('.studio-play-hand') || {}).textContent || '')));
+
   console.log('\n99. nothing threw');
   is('no page errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

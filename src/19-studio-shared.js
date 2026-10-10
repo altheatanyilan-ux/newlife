@@ -449,6 +449,17 @@ function studioSongTune(songId){
     keyPc, colour, styleId: first.styleId, bpm: first.bpm || 100, chart, back: {route: '#/songwriting/song/' + song.id, said: 'back to the Song Desk'},
     note: differs ? 'The sections are set in different keys; the band plays them all in the first section’s key.' : ''});
   t.form = form.map(f => f.label.charAt(0)).join('');
+  /* a section's melody (the Song Desk's melodyId) becomes the guide melody: each sits at its section's first bar */
+  try {
+    const beats = +String(t.timeSignature || '4/4').split('/')[0] || 4;
+    let at = 0; const notes = [];
+    form.forEach(f => {
+      const m = f.sec.melodyId && st.melodies.find(x => x.id === f.sec.melodyId);
+      if(m) (m.notes || []).forEach(n => notes.push({midi: n.midi, t: at * beats + n.t, d: n.d}));
+      at += f.sec.prog.length;
+    });
+    if(notes.some(n => n.midi != null)) t.melodyMusicXml = studioMelodyXml({name: t.title, notes, keyPc, colour, beats, bpm: first.bpm || 100});
+  } catch(e){ console.warn('the song’s melody could not be set as a guide', e); }
   return t;
 }
 function studioSeedTune(seedId){
@@ -494,11 +505,17 @@ function studioApplyBand(t){
 
 /* what the play-along shows under a handed-over progression: where it came from, the band's
    performance panel (set from the groove, in memory), and a way back */
+/* the song's melodies against the shared vocal range, said before anyone sings */
+function studioPlayRangeLine(s){
+  if(s.kind !== 'song') return '';
+  try { const song = sngState().songs.find(x => 'studio-song-' + x.id === (s.ref ? 'studio-' + s.ref.replace(':', '-') : '')); const msg = song && studioSongRangeCheck(song); return msg ? ' ' + esc(msg) : ''; }
+  catch(e){ return ''; }
+}
 function studioPlayAlongExtrasHTML(t){
   const s = t.studio, back = s.back;
   return `<div class="studio-hand studio-play-hand" role="status"><span>From ${s.kind === 'lab' ? 'your Chord Lab progression' : s.kind === 'song' ? `the song “${esc(t.title)}”` : 'a seed from your Seedbank'}
       — ${esc(s.romans.slice(0, 12).join(' '))}${s.romans.length > 12 ? ' …' : ''}${back ? ` — <a href="${back.route}" data-studio-back>${esc(back.said)}</a>` : ''}.
-      ${s.band.explicit ? 'The band follows the groove you chose.' : 'The band plays its own defaults for this groove.'}${s.note ? ' ' + esc(s.note) : ''}</span></div>
+      ${s.band.explicit ? 'The band follows the groove you chose.' : 'The band plays its own defaults for this groove.'}${s.note ? ' ' + esc(s.note) : ''}${studioPlayRangeLine(s)}</span></div>
     ${typeof jazzTunePlayHTML === 'function' ? jazzTunePlayHTML(t) : ''}`;
 }
 function bindStudioPlayAlongExtras(root, t){
