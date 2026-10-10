@@ -38,6 +38,13 @@ function icsWords(s){ return String(s || '').trim().split(/\s+/).filter(Boolean)
 const ICS_ROUTES = {};
 function icsRoute(v, root, a){ const f = v && ICS_ROUTES[v]; if(!f) return undefined; f(root, a); return true; }
 
+/* a page gains the fields it lacks, with safe defaults, and nothing it already has is touched */
+function icsBackfillPage(n){
+  let ch = false;
+  Object.keys(ICS_PAGE_DEFAULTS).forEach(k => { if(!(k in n)){ n[k] = ICS_PAGE_DEFAULTS[k]; ch = true; } });
+  return ch;
+}
+
 /* ---------- the migration: additive, idempotent, never touches prose ---------- */
 function icsEnsure(){
   const P = S.treePrefs; if(!P) return {migrated: false};
@@ -45,11 +52,7 @@ function icsEnsure(){
   const from = P.icsSchema || 0;
   /* backfill the page fields that are absent; never overwrite */
   if(from < ICS_SCHEMA_VERSION){
-    (S.treeNodes || []).forEach(n => {
-      let ch = false;
-      Object.keys(ICS_PAGE_DEFAULTS).forEach(k => { if(!(k in n)){ n[k] = ICS_PAGE_DEFAULTS[k]; ch = true; } });
-      if(ch) touched++;
-    });
+    (S.treeNodes || []).forEach(n => { if(icsBackfillPage(n)) touched++; });
     if(!Array.isArray(P.ladder)) P.ladder = ICS_DEFAULT_LADDER.slice();
     P.icsSchema = ICS_SCHEMA_VERSION;
     if(typeof icsMigrateLadder === 'function') icsMigrateLadder();

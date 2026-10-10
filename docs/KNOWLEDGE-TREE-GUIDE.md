@@ -132,17 +132,17 @@ A **graft** joins two pages, in a direction, with a **kind** and a **required re
 
 1. **No dragging, anywhere.** Not pages, not outline rows, not between parents.
 2. **No keywords, tags or labels.** Pages have titles, kind, status, aliases, text. Search finds words in text and titles only.
-3. **No picture of the tree.** There is only an indented text outline; no map, no graph view, no canvas. (The Learning Studio is the visual one, and it is separate.)
+3. ~~No picture of the tree.~~ **Changed (Part D):** a root now has a read-only **chunk map**. Still no canvas and nothing on it can be dragged; the Learning Studio is where you place things by hand.
 4. **No delete.** A page can only be set to *Pruned*. A mistaken page stays until you prune it; there is no way to erase one (except the worked-example pages, which the Settings tutorial removes in one click).
 5. **One parent per page, one position per moment.** No page lives in two places; no page can have two current positions.
 6. **Saved positions and sealed predictions are permanent.** By design. Experiments have no edit button either (and are not locked, so they can only be removed through the tutorial strip or by clearing data).
-7. **No undo.** There is no undo/redo for edits; the history that exists is *positions* and *resolved tensions*, not your page text. A page's text is simply replaced when you save; earlier versions of the *text* are not kept.
+7. **No undo button — but earlier versions are kept.** **Changed (Part D):** each time a page's text or its encoding fields change, the previous version is kept (*Earlier versions* under the text) and can be restored *as a new save*. Nothing is rewound or deleted.
 8. **No bulk actions.** No multi-select, no "move these five", no merge-two-pages.
-9. **Links match exact titles.** `[[Encodng]]` is a red link; there is no fuzzy matching. Library, Journal and Writing links match by exact title (case-insensitive) or date.
+9. **Links match exact titles — but a typo gets a suggestion.** **Changed (Part D):** `[[Encodng]]` is still red (and still a gap), but a small **?** offers "Did you mean *Encoding*?" and adds the typo as an alias if you say yes. The page text is never rewritten. Library, Journal and Writing links still match by exact title (case-insensitive) or date.
 10. **Renaming doesn't rewrite other pages' text.** Old links keep working only because the old name is kept as an alias.
-11. **Points only come back through their review ladder.** The "left longest" card picks roots and branches, never points. A *Dormant* page is skipped as "left longest" but still resurfaces; only *Pruned* stops that.
-12. **The weekly summary is computed when you open Tree Home**, not when the site opens; the saved past weeks are stored but nothing displays them yet.
-13. **Revising does not advance the ladder** (only *Still hold* does).
+11. **"Left longest" now includes points.** **Changed (Part D):** it is the last thing the tending card falls back on. A *Dormant* page is still skipped as "left longest" but still resurfaces; only *Pruned* stops that.
+12. **The weekly summary is computed when you open Tree Home**, not when the site opens. **Changed (Part D):** the saved past weeks are now shown (*Past weeks*, folded, under *This week* and on the Review page).
+13. **Revising now advances the ladder** (when the recall was at least patchy). **Changed (Part D).** The ladder itself is also editable.
 14. **Images and files cannot be attached to pages.** Text and links only.
 15. **Not shared and not synced** — one browser, one device, unless you export/import by hand.
 
@@ -165,9 +165,9 @@ This part describes what it actually does today. Several of the eight steps are 
 **Limits right at the door:**
 - **If your Tree has no branches yet, you cannot use the Studio at all.** The screen just says *"No branches in your Knowledge Tree yet. Open Tree →"* — and the *Start without a branch* button is not shown in that case. Make a root and a branch first (A3).
 - The list shows **branches only** (not roots, not points).
-- **A board starts empty.** Opening a branch does **not** bring in its points or text as cards; chips are separate from Tree pages.
-- **"+ Start without a branch" makes a new untitled board each time and there is no list of them afterwards** — you can only get back to one by its address (or browser Back/History). Prefer a real branch.
-- The Tree's branch pages do **not** have an "Open in Studio" button (the function exists in the code but nothing calls it). The only way in is the sidebar.
+- **A board starts empty** — on purpose. **Changed (Part D):** a header button, **Bring in the branch's points**, lists the branch's live points with tick-boxes; only the ticked ones become chips.
+- **"+ Start without a branch" makes a new untitled board each time.** **Changed (Part D):** boards without a branch are now listed on this screen, so they can be found again. Prefer a real branch.
+- **Changed (Part D):** a branch page now has an **Open in Studio** button (and the same in its ⋯ menu). If the branch has no board yet it asks before making one.
 
 ## B3. The screen
 
@@ -249,20 +249,20 @@ Chips marked "in tray" are held off the board. Put one there with *right-click �
 ## B9. What the Learning Studio cannot do (verified), in one list
 
 **Missing features (built as data or code, but no way to use them):**
-1. **Make groups** — and therefore no group frames, group signals, group-based Ghost levels or shuffle regrouping.
-2. **Promote a chip to a Tree page** — so chips never become pages, and Relate arrows never become Tree grafts. (The cards for Tree pages exist in the code, but nothing puts a Tree page on a board.)
-3. **Import from the Tree** — a board never starts with the branch's pages.
+1. ~~Make groups.~~ **Changed (Part D):** in **Sort** mode, select chips, name the group and give the reason they belong together (required); the group gets a frame on the board.
+2. ~~Promote a chip to a page.~~ **Changed (Part D):** *Send to the Tree…* (on a chip's right-click menu, and in **Check** mode) makes a **Stub** page after you confirm its title, kind and home. An arrow becomes a Tree graft only by *Make this a graft* — when both its ends are pages and it has a reason — and a group becomes a chunk only by *Make this a chunk*. Nothing crosses by itself.
+3. ~~Import from the Tree.~~ **Changed (Part D):** see *Bring in the branch's points* above.
 4. **A source panel / attach a passage** to a chip.
-5. **Rename or list boards** — no board names; no list of boards other than one-per-branch; detached boards can't be found again.
+5. **Rename boards** — there are no board names. (Boards without a branch are now listed on the start screen.)
 6. **Drag chips into or out of the tray**; **drag arrows**; **resize chips**; **change a chip's colour**; **select, edit or delete an arrow**.
-7. **Counterfactual drag** ("what if" zone), **session timer**, **session records**, **weekly-review strip**, **a snapshot viewer/comparer**, **pre-flight card** (setting exists, no screen).
+7. **Counterfactual drag** ("what if" zone), **a snapshot viewer/comparer**, **pre-flight card** (setting exists, no screen). (**Changed (Part D):** sessions are now recorded, the clock starts through the house's time tracker, and the weekly strip appears on the Tree's Review page.)
 8. **Align / Distribute** (functions exist; no buttons). **Arrange** is the only tidy tool.
 
 **Things that run but don't do what their name says:**
-9. **Shuffle** recall does nothing visible and always scores "all correct".
-10. **Skip** in Shoot doesn't skip.
+9. ~~Shuffle does nothing.~~ **Changed (Part D):** Shuffle now really scatters the cards, and *Restore* puts them back.
+10. ~~Skip doesn't skip.~~ **Changed (Part D):** a skipped question goes to the back of the line.
 11. **Teach** records an attempt without checking anything.
-12. **"Links" counter** in Ask never changes.
+12. ~~The "links" counter never changes.~~ **Changed (Part D):** it counts the distinct Tree pages a question and its answer reach through `[[links]]`.
 13. **Zoom level isn't saved**; **undo is lost when you leave the board**; the context-menu *Delete* can't be undone.
 
 **Hard limits of the design:**
@@ -275,6 +275,64 @@ Chips marked "in tray" are held off the board. Put one there with *right-click �
 
 ## Part C — How the two rooms relate
 
-The Studio is called the Tree's "spatial companion", but they are only loosely joined today: a board belongs to a Tree *branch* (by its id and title) and shares the Study Deck and Today. Nothing flows automatically between them: Tree pages don't appear on boards, board chips don't become Tree pages, and Relate arrows don't become grafts. If you want something in both, write it in both.
+The Studio is the Tree's "spatial companion": a board belongs to a Tree *branch* and shares the Study Deck and Today. Since Part D they are joined by a bridge that **carries things across only when you say so**: a board can bring in its branch's points; a chip can be sent to the Tree as a stub page; an arrow can be made a graft (with its reason); a group can be made a chunk (with its reason). Each leaves a back-reference, so doing it twice finds the first result and makes nothing new. Editing a chip never changes the page it came from. And the Tree's Export now carries the Studio's boards under a key of their own.
 
 *Where the code is:* Tree — `src/19-tree-a-model.js … 19-tree-g-proof.js`; Studio — `src/19-ls-a-model.js` (data), `19-ls-b-canvas.js` (the board), `19-ls-c-modes.js` (Ask, Shoot, Relate, Chunk, Check, signals), `19-ls-d-recall.js` (Recall), `19-ls-e-page.js` (route, header, mode bar). Test for the board: `smoke-ls-canvas.js`.
+
+
+---
+
+# Part D — The iCanStudy layer (added)
+
+Everything below was added to turn the Tree from a record of what you believe into an instrument for *encoding* — the method taught by iCanStudy: decide what is important and why, group by reason, ask questions, recall before you look, space and vary the reviews, teach, and look back. The specification it was built from is in the repository history (`Knowledge Tree × iCanStudy — Amendment and Addition Specification`). The rules it keeps throughout: **no AI and no network; nothing is filed, merged or promoted for you; no delete; positions and sealed predictions stay permanent; one parent per page; gaps are prompts and never block a save; nothing on the Tree can be dragged.**
+
+## D1. On every page
+
+- **Why is this important?** Pick *Core / Supporting / Peripheral* (or *Not decided*, which is stored as nothing and shown differently from Peripheral), tick *Part of the trunk of this root*, and write the reason (markdown and `[[links]]` allowed). Marking Core with no reason prompts you; it still saves.
+- **How well do I know this?** A level from 1 to 5 with the evidence for it (required). Levels: Facts · Isolated concepts · Relationships · Integrated (*aim for this*) · Novel. Each assessment is added to a history that cannot be edited. Mastery is never worked out from your confidence: they are different things.
+- **Collected / Processed.** *Split this page…* (under the text) moves what is written to **Collected** and leaves **Processed** for your own compressed words (150 is the budget — a signal, never a block). Rejoin whenever you like.
+- **Questions** (under *What would change my mind?*, which is unchanged): what / why / how related / personal, each red until answered, **amber** once answered, **green** only when the answer is at least 15 words *and* reaches another page by a `[[link]]`. *Suggest four questions* adds four red, editable ones from a template. *Let it go* retires a question (kept, hidden).
+- **Challenge questions**: write a hard question now and **seal** it; it cannot be answered until the date you set (at least a day on; two weeks is the suggestion). The seal is enforced in the data layer, not only the form.
+- **Chunks** (above *Beneath it*): *Group pages…* — a name, a **required reason**, two or more pages under the same root (two to four is the guide). A page may sit in several chunks and still has one parent; across two roots you are told to use a graft.
+- **Earlier versions**: every change to the text or the encoding fields keeps the version before it. *View*, *Compare with now* (word by word), *Restore as a new save*.
+- **Mistakes** (⋯ → *Log a mistake*; offered after a review you missed): the question, the kind (misunderstood · working · fundamental gap · right answer by a worse method), why, and **how it will never happen again** (required). It comes back in three days, by a *different* retrieval method.
+- Title row: the importance mark, the mastery pill (L1–L5, or L? if not assessed), a trunk mark.
+- **Open in Studio** (branches), **See the chunk map** (roots), ⋯ → *Prime this branch*, *Teach it*.
+
+## D2. Reviewing
+
+Opening a page still doesn't count as tending. A review (the tending card, or ⋯ → *Review it now*) is now four steps, and the page is **not in the document** during the first two:
+
+1. **Prime** — only the title and the method for this time (it changes each time and is aimed at the page's level).
+2. **Recall** — write everything you can remember. Under five words is turned back; **I remember nothing** is always one click and scores zero.
+3. **Reveal** — what you wrote beside what the page says; grade it: *Missed it · Patchy · Had it*. **Only here is a record written** (a review abandoned before this leaves nothing).
+4. **Belief** — the old "Do you still hold this?" (skipped for a page with no position).
+
+The ladder moves on the recall: *Had it* one rung out, *Patchy* holds and reschedules, *Missed it* back to the start; *I doubt it now* back to the start; *Revise* moves out one rung when the recall was at least patchy; *Still hold* never moves it twice. The default ladder is **0, 1, 3, 7, 16, 50, 120, 365 days**, editable on Tree Home (*How often things come back*); a bad ladder is refused and the old one kept. A new page is first asked after about three days, as before. A same-day rung waits four hours. Pages on the old ladder keep their due dates and are moved to the nearest new rung once.
+
+**Today's tending** is still one card. The order: a page due for review; a challenge question whose date has come; a mistake to re-test; the oldest inbox item; a question red for a fortnight; a chunk with no reason; a bare branch to prime; and, last, the page left longest (now including points).
+
+## D3. Looking at it
+
+- **Tree Home**: *Past weeks* (folded), the ladder editor, the Mastery tile (share at level 4+ and a bar of the levels), and the Gaps tile with its breakdown on hover.
+- **Gaps** now includes *How well it is encoded*: no reason it matters · island (no graft, link or child) · too many loose children · root with no trunk · question left red · stuck at a low level · long prose with no links · never retrieved · a chunk with no reason. Stubs are left out of the first, second and eighth so priming a branch with fifty stubs doesn't raise fifty gaps.
+- **Outline → Trunk only** (also on a page's *Beneath it*): shows only the trunk-marked and Core pages, keeping the pages above them as pale connectors and counting what it hides (*+6 more* opens them in place).
+- **Map** (nav, or a root's *See the chunk map*): a read-only SVG of one root — parents, grafts (arrows, with an unresolved *contradicts* the most prominent), faint `[[link]]` ties, chunks as labelled boxes, trunk pages heavy, islands dashed-red, colour by mastery / importance / status. A line reports pages, grafts, density (*too few / about right / too many*), islands, trunk and the share at L4+. Above 250 pages it opens on the trunk. *Save as SVG* exports it.
+- **Review** (nav): the week's retrievals and how many *methods* (breadth, not volume), what you recalled by level, mastery, questions, mistakes, gaps, the Studio's weekly strip, and the **Kolb form** (experience · reflection · abstraction · experiment) — saved reflections are written to the Journal and kept, not edited. After 17 days it also asks you to look at the learning system itself.
+- **How the learning is going** (from Mastery or Review): retention at *about a week* by the level tested (only recalls 5–10 days after the previous one for that page; a cell under 8 observations says *too few to say*), twelve weeks of sparklines, whether encoding is carrying more of the load or you're filling a leaky bucket, and decay slopes. Everything is worked out from your retrievals when you open it; nothing is stored.
+
+## D4. Building a branch, and teaching it
+
+- **Prime this branch** (⋯ on a branch, or the tending card for a bare one): Resources → Keywords (paste one per line; bullets and numbers are stripped; duplicates removed; ones already in the tree are flagged, near matches linked) → Organise (tick, group, give each group its reason) → Questions. The last screen says exactly what it will create — *N* stub points, *M* chunks, *Q* red questions — and **one** confirmation makes them. A group without a reason is skipped and reported. Nothing is answered. This is the only bulk action on the Tree, it only *adds blank stubs*, and there is still no bulk edit, move, status change or delete.
+- **Teach it** (⋯ on a root or branch): the **whole** (why does this matter, before any terminology), each **part** (your chunks, else the trunk children, else the children — in an order that changes each session), then the **whole** again. The pages are hidden until the end; a step needs 20 words or a skip. Finishing records one level-4 *teach* retrieval. It does not grade you; you do, against the pages, and may then record a mastery level.
+
+## D5. What is still not there
+
+- No bulk edit, move, status change or delete (priming only *creates* stubs).
+- No images or files on pages.
+- No dragging on the Tree; the map is drawn by rule and has no saved layout.
+- No meaning-based matching in the Studio's Fog recall (it says so now); the Tree's review is self-graded for exactly that reason.
+- No sync: one browser, one device, unless you export and import by hand.
+- Zoom is still not saved in the Studio, and there is no snapshot viewer there.
+
+*Where the code is:* `src/19-tree-h-ics.js` (schema, versions, weeks, "did you mean", gaps), `19-tree-i-ics-encode.js` (importance, questions, split page, chunks), `19-tree-j-ics-retrieve.js` (ladder, mastery, recall-first review, tending, challenges, mistakes), `19-tree-k-ics-visual.js` (trunk, map, priming, teaching), `19-tree-l-ics-reflect.js` (review, Kolb, metrics), `19-ls-f-bridge.js` (the Studio bridge). Tests: `smoke-tree-ics.js` and `smoke-ls-canvas.js`.

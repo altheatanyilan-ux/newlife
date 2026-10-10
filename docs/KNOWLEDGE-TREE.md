@@ -231,7 +231,7 @@ The Tree is intentionally **not** in the weekly/monthly review flows as a step o
 
 ## 14. The Learning Studio (the Tree's spatial companion)
 
-`#/studio`, `src/19-ls-*.js`. A canvas for turning **one Tree branch** into long-term memory along an iCanStudy-style pipeline — **Harvest → Sort → Ask → Shoot → Chunk → Relate → Recall → Check** — governed by one rule: *remove mechanical friction; preserve cognitive effort*. There is **no "Open in Studio" button on branch pages** — you reach a board from the Studio's own screen (`#/studio`) and pick a branch there. Cards on a board are lightweight **chips** (the "keywords"), and arrows between chips are kept in the Studio's own store (`lsGrafts`); they do **not** become Tree grafts automatically, and chips are not promoted to Tree pages by any button. Snapshots of the layout and recall attempts are add-only (the same kind of guard). Nothing in the Studio changes how the Tree itself works. **The full first-time explanation, including everything the Studio cannot do, is in [KNOWLEDGE-TREE-GUIDE.md](KNOWLEDGE-TREE-GUIDE.md)** (an earlier description in `docs/INNER-LIFE.md` §11.2 overstates the Studio in places).
+`#/studio`, `src/19-ls-*.js`. A canvas for turning **one Tree branch** into long-term memory along an iCanStudy-style pipeline — **Harvest → Sort → Ask → Shoot → Chunk → Relate → Recall → Check** — governed by one rule: *remove mechanical friction; preserve cognitive effort*. A branch page has an **Open in Studio** button (it asks before making a board). Cards on a board are lightweight **chips** (the "keywords"), and arrows between chips are kept in the Studio's own store (`lsGrafts`); they become Tree grafts, and chips become stub pages, groups chunks, only when you ask (the **To the Tree** section of Check mode, and the chip's right-click menu). Snapshots of the layout and recall attempts are add-only (the same kind of guard). Nothing in the Studio changes how the Tree itself works. **The full first-time explanation, including everything the Studio cannot do, is in [KNOWLEDGE-TREE-GUIDE.md](KNOWLEDGE-TREE-GUIDE.md)** (an earlier description in `docs/INNER-LIFE.md` §11.2 overstates the Studio in places).
 
 ## 15. Rules at a glance
 
@@ -278,3 +278,20 @@ The Tree is intentionally **not** in the weekly/monthly review flows as a step o
 | Persistence hooks | `src/06-db.js` (schema, `ARRAY_STORES`, `treeGuard` call), `src/04-core.js` (`migrate`) |
 
 *Companion docs:* `docs/GUIDE.md` (all areas), `docs/INNER-LIFE.md` (the inward rooms), `docs/PURPOSE.md` (the Purpose layer), `docs/STUDIOS.md` (Jazz and Songwriting).
+
+
+---
+
+## 18. The iCanStudy layer (added)
+
+A second set of amendments turned the Tree from a record of belief into an instrument for encoding and retrieval. It is described in plain language, feature by feature, in **[KNOWLEDGE-TREE-GUIDE.md](KNOWLEDGE-TREE-GUIDE.md) Part D**; this section records what is stored and the rules. It does not change anything in §§1–17 except where noted.
+
+**New stores** (all in `TREE_STORES`, so they travel with the Export; Import stays add-only): `treeChunks`, `treeQuestions`, `treeRetrievals` *(add-only)*, `treeMistakes`, `treePageRevisions` *(add-only)*, `treeKolb` *(add-only)*. The Studio's boards go out under a separate `studio` key; an older Tree-only file still imports, and its pages gain the new fields with safe defaults. The migration (`icsEnsure`, schema version 2) only adds, never touches your words, and is safe to run twice.
+
+**New fields on a page** (null / empty until you decide): `importance` (`core` · `supporting` · `peripheral`), `whyImportant`, `backbone`, `mastery` (`{level, history[]}`, history never edited), `collected` / `processed` (both null until the page opts into the split; then the old text moves to Collected).
+
+**Rules, in one place.** Importance, mastery and the trunk are *your* judgements and are never inferred. A chunk needs a name, a reason and two or more pages under one root, and is never consulted for parentage, breadcrumbs or moves. A question is green only if answered *and* connected. A challenge question cannot be answered before its date (enforced in the model). A review writes a record only when graded. The ladder is a setting (`S.treePrefs.ladder`), a rung is the `step` index in `treeReviews`, and an answer outside the review flow (`treeReviewAnswer`) now moves a page out a rung on *hold* and on *revise*. Gaps and the tending card are registries (`icsRegisterGapRule`, `icsRegisterTendingRule`) of small rules; a rule that throws is skipped. Page versions are kept without a cap (the add-only guard would put a pruned one back); only a change to a watched field makes one.
+
+**Where it differs from the specification it was built from.** The spec was written from the guide, not the code, and where they disagreed the code won: pages are `treeNodes` with `body` (the spec's `text`); the rung and due date live in `treeReviews` (`step`, `dueAt`), not on the page; a new page is first asked after ~3 days (rung 2 of the new ladder) so a page you have just written is not due the same day; "left longest" is the *last* tending rule (as the first-listed it would have made every later rule unreachable); an island needs no graft, no link *and* nothing beneath it (so a root with children isn't an island); "Processed is longer than collected" is a signal as the spec says, so a heavily-compressed page needs a long Collected side to be quiet; and version history has no cap.
+
+*Where it lives:* `src/19-tree-h-ics.js` … `19-tree-l-ics-reflect.js`, `src/19-ls-f-bridge.js`; tests `smoke-tree-ics.js`, `smoke-ls-canvas.js`.

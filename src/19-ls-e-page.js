@@ -52,6 +52,7 @@ function lsHeaderHTML(board){
     <div class="ls-header-actions">
       ${board && board.branchId ? '<button class="btn sm ghost" data-ls-action="import-branch" title="Bring in this branch\'s points as chips, with your say-so">Bring in the branch\'s points</button>' : ''}
       <button class="btn sm ghost" data-ls-action="scaffold-level" title="Scaffold level: ${esc(scaffoldLabel)} — click to cycle">◈ ${esc(scaffoldLabel)}</button>
+      <button class="btn sm ghost" data-ls-action="end-session" title="Reflect on this session (Kolb)">End session</button>
       <button class="btn sm ghost" data-ls-action="snapshot" title="Save layout snapshot">Snapshot</button>
       <button class="btn sm ghost" data-ls-action="fit"      title="Fit all cards (0)">Fit</button>
       <button class="btn sm ghost" data-ls-action="spaceout" title="Auto-arrange">Arrange</button>

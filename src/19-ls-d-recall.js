@@ -761,59 +761,8 @@ function bindRecallPanelFull(panelEl, boardId, canvasApi){
 
 /* ---------- Session summary modal ---------- */
 function lsOpenSessionSummary(boardId){
-  lsEnsure();
-  const board = lsBoardById(boardId);
-  if(!board) return;
-  const branchTitle = board.branchId
-    ? (S.treeNodes||[]).find(n => n.id === board.branchId)?.title || 'Studio'
-    : 'Studio';
-
-  const chipCount = (S.lsChips||[]).filter(c => c.boardId === boardId).length;
-  const groupCount = (S.lsGroups||[]).filter(g => g.boardId === boardId).length;
-  const recallCount = (S.lsRecalls||[]).filter(r => r.boardId === boardId).length;
-  const deckCount = (S.lsChips||[]).filter(c => c.boardId === boardId && c.promotedToNodeId).length;
-
-  const m = openModal(`
-    <h2>Session Summary</h2>
-    <p class="muted" style="margin-bottom:10px">${esc(branchTitle)}</p>
-    <div class="ls-summary-stats">
-      <div class="ls-summary-stat"><span class="ls-summary-n">${chipCount}</span><span class="ls-summary-label">chips</span></div>
-      <div class="ls-summary-stat"><span class="ls-summary-n">${groupCount}</span><span class="ls-summary-label">groups</span></div>
-      <div class="ls-summary-stat"><span class="ls-summary-n">${recallCount}</span><span class="ls-summary-label">recalls</span></div>
-      <div class="ls-summary-stat"><span class="ls-summary-n">${deckCount}</span><span class="ls-summary-label">promoted</span></div>
-    </div>
-    <div class="field" style="margin-top:16px">
-      <label style="font-size:.82rem;color:var(--muted)">Kolb reflection (What did you learn? How will you use it?)</label>
-      <textarea class="ta" id="lsKolbNote" rows="4" placeholder="Concrete experience → Reflective observation → Abstract conceptualisation → Active experimentation…" style="margin-top:6px"></textarea>
-    </div>
-    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px">
-      <button class="btn ghost" id="lsSumClose">Close</button>
-      <button class="btn primary" id="lsSumSave">Save to journal</button>
-    </div>
-  `);
-
-  const sess = (S.lsSessions||[]).filter(s => s.boardId === boardId).slice(-1)[0];
-  if(sess?.kolbNote) m.querySelector('#lsKolbNote').value = sess.kolbNote;
-
-  m.querySelector('#lsSumClose').onclick = () => m.remove();
-  m.querySelector('#lsSumSave').onclick = () => {
-    const note = m.querySelector('#lsKolbNote').value.trim();
-    /* update session kolbNote */
-    if(sess){ sess.kolbNote = note; save(); }
-    /* write a journal entry */
-    if(note && S.entries){
-      const body = `**Learning Studio — ${branchTitle}**\n\n${note}\n\n*${chipCount} chips · ${groupCount} groups · ${recallCount} recalls*`;
-      S.entries.push({
-        id: uid(), type: 'reflection',
-        body, occurredAt: new Date().toISOString(),
-        extra: { linkedType: 'learningStudio', linkedId: boardId },
-        createdAt: new Date().toISOString()
-      });
-      save();
-      toast('Saved to Reflections journal.');
-    }
-    m.remove();
-  };
+  /* the reflection is the Tree's Kolb form (19-tree-l-ics-reflect.js): sessions are recorded, so it has somewhere to go */
+  if(typeof lsBridgeEndDialog === 'function') lsBridgeEndDialog(boardId);
 }
 
 /* ---------- Week review strip ---------- */

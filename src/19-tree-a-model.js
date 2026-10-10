@@ -26,7 +26,7 @@ const TREE_KINDS = {root: 'Root', branch: 'Branch', point: 'Point'};
 const TREE_STATUS = {stub: 'Stub', active: 'Active', dormant: 'Dormant', pruned: 'Pruned'};
 const TREE_GRAFTS = {supports: 'supports', contradicts: 'contradicts', extends: 'extends', echoes: 'echoes', raises: 'raises'};
 const TREE_GRAFT_BLURB = {supports: 'gives reason to believe', contradicts: 'pulls against', extends: 'carries further', echoes: 'rhymes with, from elsewhere', raises: 'opens the question of'};
-const TREE_ADD_ONLY = ['treePositions', 'treePredictions', 'treePageRevisions', 'treeRetrievals'];
+const TREE_ADD_ONLY = ['treePositions', 'treePredictions', 'treePageRevisions', 'treeRetrievals', 'treeKolb'];
 const TREE = {idx: null, ver: 0};
 
 /* every Tree store exists on S as an array, and the add-only rows are frozen */
@@ -302,6 +302,7 @@ function treeImport(obj){
       if(!r || !r.id) return;
       if(have.has(r.id)){ kept++; return; }
       if(k === 'treeNodes' && !treeSlugFree(r.slug, r.id)){ kept++; return; }
+      if(k === 'treeNodes' && typeof icsBackfillPage === 'function') icsBackfillPage(r);
       S[k].push(TREE_ADD_ONLY.includes(k) ? Object.freeze(Object.assign({}, r)) : r); added[k]++;
     });
   });

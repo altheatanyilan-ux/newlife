@@ -34,7 +34,7 @@ routes.tree = function(root, params){
 };
 function treeNav(on){
   const inbox = S.treeInbox.length;
-  const l = [['', 'Home'], ['outline', 'Outline'], ['inbox', 'Inbox' + (inbox ? ` <i>${inbox}</i>` : '')], ['search', 'Search'], ['tensions', 'Tensions'], ['gaps', 'Gaps'], ['proof', 'Proof'], ...(S.treeNodes.length ? [['map', 'Map']] : [])];
+  const l = [['', 'Home'], ['outline', 'Outline'], ['inbox', 'Inbox' + (inbox ? ` <i>${inbox}</i>` : '')], ['search', 'Search'], ['tensions', 'Tensions'], ['gaps', 'Gaps'], ['proof', 'Proof'], ['week', 'Review'], ...(S.treeNodes.length ? [['map', 'Map']] : [])];
   return `<nav class="tr-nav" aria-label="Knowledge Tree">${l.map(([k, n]) => `<a href="#/tree${k ? '/' + k : ''}" class="${on === k ? 'on' : ''}">${n}</a>`).join('')}
     <button class="tbtn tr-newbtn" id="trNew">＋ New page</button></nav>`;
 }

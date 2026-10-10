@@ -566,6 +566,109 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.click('[data-act="teach-quit"]'); await p.waitForTimeout(300);
   yes('no page errors in Phase 4 (Tree side)', errs.length === 0, errs);
 
+  console.log('\nN-08. the weekly review and the Kolb form');
+  const wk8 = await E(() => {
+    const keys = ['treeRetrievals', 'treeKolb'], keep = {}; keys.forEach(k => { keep[k] = S[k]; S[k] = []; }); const ej = S.entries.length; const o = {};
+    try {
+      const empty = icsWeekSnapshot(); o.empty = [empty.retrievals.total, /Nothing retrieved/.test(icsInterleavingVerdict(empty))];
+      const pg = mk({title: 'Remoteness review'});
+      icsRecordRetrieval({pageId: pg.id, method: 'free-recall', recallText: 'aaa bbb ccc ddd eee', score: 1}); icsRecordRetrieval({pageId: pg.id, method: 'teach', recallText: 'aaa bbb ccc ddd eee', score: 0.5});
+      const snap = icsWeekSnapshot(); o.snap = [snap.retrievals.total, snap.retrievals.distinctMethods, /Two methods/.test(icsInterleavingVerdict(snap)), typeof snap.retentionByLevel];
+      try { icsSaveKolb({}); o.empty4 = false; } catch(e){ o.empty4 = true; }
+      const k = icsSaveKolb({experience: 'Taught vicarious liability twice.', experiment: 'Try a chunkmap instead of a brain dump.'});
+      const je = S.entries.find(e => e.id === k.journalRef); o.kolb = [k.scope, !!k.journalRef, !!je && /Experiment/.test(je.body), S.entries.length - ej, Object.isFrozen(k)];
+      o.dueNone = icsSystemReviewDue().due; icsSaveKolb({scope: 'system', reflection: 'Spacing slipped; interleaving improved.'}); o.dueAfter = icsSystemReviewDue().due;
+      o.dueLater = icsSystemReviewDue(treeAddDays(treeToday(), 20)).due;
+      o.range = icsWeekRange('2026-W41'); o.start = icsStartOfWeek('2026-W41');
+    } finally { keys.forEach(k => { S[k] = keep[k]; }); }
+    return o; });
+  is('it renders for a tree with no recalls', wk8.empty, [0, true]);
+  is('the week counts retrievals and methods, and the verdict is about breadth', wk8.snap, [2, 2, true, 'object']);
+  is('all four empty is refused; one is enough; it writes a journal entry and the record keeps the reference; it cannot be edited', [wk8.empty4, wk8.kolb], [true, ['week', true, true, 1, true]]);
+  is('the system review is due until done, then not for seventeen days', [wk8.dueNone, wk8.dueAfter, wk8.dueLater], [true, false, true]);
+  is('the ISO week of 5-11 October 2026', [wk8.start, wk8.range], ['2026-10-05', '5–11 October 2026']);
+  await E(() => { location.hash = '#/tree/week'; }); await p.waitForTimeout(600);
+  yes('the Review page is in the nav and shows the week, the grid and the form', await E(() => !!document.querySelector('.tr-nav a[href="#/tree/week"]') && !!document.querySelector('.tr-week-grid') && document.querySelectorAll('.tr-kolb textarea').length >= 4 && /Week of/.test(document.querySelector('h1').textContent)));
+  yes('past weeks and the stored summary are reachable from it', await E(() => !!document.querySelector('#trWeeksHist')));
+  await p.fill('.tr-kolb textarea[name=experience]', 'Primed a branch and taught it.'); await p.click('.tr-kolb [data-act="kolb-save"]'); await p.waitForTimeout(500);
+  yes('saving through the form keeps it', await E(() => S.treeKolb.some(k => k.experience === 'Primed a branch and taught it.') && /Earlier reflections/.test(document.body.innerText)));
+  yes('the Studio\'s session summary goes to the same place', await E(() => { const b = S.lsBoards[0]; lsBridgeEndDialog(b.id); const f = document.querySelector('.modal form, .overlay form'); if(!f) return false; f.elements.reflection.value = 'It felt hardest to sort.'; document.querySelector('[data-act="ok"]').click(); return S.treeKolb.some(k => k.reflection === 'It felt hardest to sort.' && k.boardId === b.id); }));
+  yes('Kolb records travel in the export without being doubled by import', await E(() => { const blob = JSON.parse(JSON.stringify({kind: 'life-instrument-knowledge-tree', version: 1, data: Object.fromEntries(TREE_STORES.map(k => [k, S[k]]))})); return blob.data.treeKolb.length >= 2 && treeImport(blob).added.treeKolb === 0; }));
+
+  console.log('\nN-09. learning metrics');
+  const m9 = await E(() => {
+    const keys = ['treeRetrievals'], keep = {}; keys.forEach(k => { keep[k] = S[k]; S[k] = []; }); const o = {};
+    const seed = (pageId, date, level, score, method) => S.treeRetrievals.push(Object.freeze({id: uid(), pageId, date, at: date + 'T10:00:00.000Z', method: method || 'free-recall', recallText: 'a b c d e', score, levelTested: level, rungBefore: 0, rungAfter: 0}));
+    try {
+      const e = icsRetentionProfile(); o.empty = [e[1].n, e[1].mean, icsIsReportable(e[1]), icsTrends().bucket, icsDecaySlope(1).slope];
+      const p = mk({title: 'Metrics page'});
+      seed(p.id, '2026-09-01', 3, 1); seed(p.id, '2026-09-08', 3, 0.5); let pr = icsRetentionProfile(); o.one = [pr[3].n, pr[3].mean];
+      seed(p.id, '2026-09-09', 3, 1); pr = icsRetentionProfile(); o.nextDay = pr[3].n; o.thin = icsIsReportable(pr[3]);
+      for(let i = 0; i < 10; i++){ const q = mk({title: 'Metrics q' + i}); seed(q.id, '2026-09-01', 3, 1); seed(q.id, '2026-09-08', 3, 0.6); }
+      o.rep = icsIsReportable(icsRetentionProfile()[3]); const s = icsWeeklySeries(12); o.series = [s.length, s.every(w => typeof w.retrievals === 'number')];
+      const d = icsDecaySlope(3); o.decay = [d.n >= 5, typeof d.slope];
+      S.treeRetrievals.length = 0;
+      /* the leaky bucket, from dates inside the last twelve weeks */
+      const day = ago => new Date(Date.now() - ago * 864e5).toISOString().slice(0, 10);
+      for(let i = 0; i < 6; i++) seed(p.id, day(75 - i), 2, 0.8);
+      for(let i = 0; i < 12; i++) seed(p.id, day(8 - (i % 5)), 2, 0.4);
+      o.leaky = icsTrends().bucket;
+      S.treeRetrievals.length = 0;
+      for(let i = 0; i < 12; i++) seed(p.id, day(80 - (i % 6)), 2, 0.4); for(let i = 0; i < 5; i++) seed(p.id, day(6 - (i % 4)), 2, 0.8);
+      o.better = icsTrends().bucket;
+    } finally { keys.forEach(k => { S[k] = keep[k]; }); }
+    return o; });
+  is('an empty log reports no data, not zeroes', m9.empty, [0, null, false, 'not enough data yet', null]);
+  is('two recalls a week apart count; a next-day recall does not', [m9.one, m9.nextDay], [[1, 0.5], 1]);
+  is('thin data is not reportable; ten more are', [m9.thin, m9.rep], [false, true]);
+  is('the series has twelve weeks of numbers, and a slope needs five observations', [m9.series, m9.decay], [[12, true], [true, 'number']]);
+  is('rising volume with falling scores is the leaky bucket; falling volume with rising scores is encoding carrying more', [m9.leaky, m9.better], ['more retrieval, worse results — that is the leaky bucket', 'encoding is carrying more of the load']);
+  await E(() => { location.hash = '#/tree/metrics'; }); await p.waitForTimeout(600);
+  yes('the metrics page renders with its reference column and no NaN', await E(() => /Reference/.test(document.body.innerText) && !/NaN/.test(document.body.innerText) && document.querySelectorAll('.tr-spark2').length === 3));
+  await E(() => { location.hash = '#/tree/mastery'; }); await p.waitForTimeout(500);
+  yes('and the mastery page leads to it', await E(() => !!document.querySelector('a[href="#/tree/metrics"]')));
+  yes('no page errors in Phase 5', errs.length === 0, errs);
+
+  console.log('\nInvariants (AT-00 .. AT-10)');
+  const inv = await E(() => {
+    const o = {};
+    /* AT-00: export, then import the same file: nothing is added, in any store, the Studio's included */
+    const payload = JSON.parse(JSON.stringify({kind: 'life-instrument-knowledge-tree', version: 1, data: Object.fromEntries(TREE_STORES.map(k => [k, S[k]])), studio: lsBridgeExport()}));
+    const r = treeImport(payload); o.roundtrip = Object.entries(r.added).filter(([k, v]) => v !== 0).map(([k]) => k);
+    o.covers = ['treeChunks', 'treeQuestions', 'treeRetrievals', 'treeMistakes', 'treePageRevisions', 'treeKolb'].every(k => k in payload.data && payload.data[k].length > 0);
+    /* AT-01: a file from before any of this: pages gain the fields, nothing fails */
+    const old = {kind: 'life-instrument-knowledge-tree', version: 1, data: {treeNodes: [{id: 'oldp1', title: 'An old page', slug: 'an-old-page', kind: 'root', status: 'active', body: 'as it was', openQuestion: '', parentId: null, createdAt: '2024-01-01T00:00:00.000Z'}]}};
+    const ri = treeImport(old); const op = treeNode('oldp1');
+    o.old = [!!ri.error, op.importance, op.whyImportant, op.backbone, op.mastery, op.collected, op.body];
+    /* AT-02: a saved position cannot be edited by any path that touches a page */
+    const pg = mk({title: 'AT02 page'}); treeAddPosition(pg.id, 'I hold this', 60);
+    treeSavePage({id: pg.id, body: 'changed', importance: 'core', mastery: {level: 2, history: []}}); icsRestoreRevision(icsRevisionsFor(pg.id)[0].id);
+    try { treePositionsOf(pg.id)[0].statement = 'tampered'; } catch(e){} o.pos = treePositionsOf(pg.id)[0].statement;
+    /* AT-04: one parent each, the same breadcrumb, after chunks, grafts, questions and promotions */
+    const root = mk({title: 'AT04 root', kind: 'root'}), a = mk({title: 'AT04 a', parentId: root.id}), b = mk({title: 'AT04 b', parentId: root.id});
+    const before = [a, b].map(x => treeAncestors(treeNode(x.id)).map(y => y.id).join() + '|' + treeNode(x.id).parentId);
+    icsCreateChunk({title: 'ab', reason: 'together', memberIds: [a.id, b.id]}); treeAddGraft(a.id, b.id, 'extends', 'because'); icsSaveQuestion({pageId: a.id, kind: 'what', text: 'about [[AT04 b]]'});
+    o.parents = JSON.stringify(before) === JSON.stringify([a, b].map(x => treeAncestors(treeNode(x.id)).map(y => y.id).join() + '|' + treeNode(x.id).parentId));
+    /* AT-06: the migration twice */
+    const snap1 = JSON.stringify(S.treeNodes); S.treePrefs.icsSchema = 1; icsEnsure(); const r2 = icsEnsure(); o.mig = [r2.migrated, JSON.stringify(S.treeNodes) === snap1];
+    /* AT-09: every rule at once, and the save still succeeds */
+    const bad = mk({title: 'AT09 page', body: 'word '.repeat(300)}); icsEnableSplit(bad.id);
+    const sv = treeSavePage({id: bad.id, importance: 'core', whyImportant: '', processed: 'word '.repeat(300), backbone: false}); icsSaveQuestion({pageId: bad.id, kind: 'what', text: 'unanswered'});
+    o.save = [!sv.error, treeNode(bad.id).importance];
+    return o; });
+  is('AT-00: export then import the same file adds nothing, and the new stores are all in it', [inv.roundtrip, inv.covers], [[], true]);
+  is('AT-01: an export from before any of this imports, and its page gains the fields with safe defaults', inv.old, [false, null, '', false, null, null, 'as it was']);
+  is('AT-02: a saved position survives every new path that touches a page', inv.pos, 'I hold this');
+  is('AT-04: chunks, grafts and questions leave every page its one parent and its breadcrumb', inv.parents, true);
+  is('AT-06: the migration, run twice, changes nothing', inv.mig, [false, true]);
+  is('AT-09: a page can trigger every rule and still save', inv.save, [true, 'core']);
+  const src = require('fs').readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  const mine = ['19-tree-h-ics', '19-tree-i-ics-encode', '19-tree-j-ics-retrieve', '19-tree-k-ics-visual', '19-tree-l-ics-reflect', '19-ls-f-bridge'].map(f => require('fs').readFileSync(path.join(__dirname, 'src', f + '.js'), 'utf8')).join('\n');
+  yes('AT-07/08: nothing here calls out (no fetch, XHR, WebSocket or model endpoint)', !/\bfetch\s*\(|XMLHttpRequest|WebSocket|api\.anthropic|openai/i.test(mine));
+  yes('AT-10: no drag handler on any Tree surface in the new code', !/draggable|dragstart|ondrag|pointerdown|setPointerCapture|mousedown/.test(mine));
+  yes('AT-05: the new code deletes no record (the only removals are its own just-made empty session and cap-free probes)', (mine.match(/\.splice\(|spliceOut\(|\.filter\([^)]*!==\s*[a-z]+\.id\)/g) || []).length <= 3, (mine.match(/\.splice\(|spliceOut\(|\.filter\([^)]*!==\s*[a-z]+\.id\)/g) || []));
+  yes('no page errors in the invariants', errs.length === 0, errs);
+
   /* the sections of later amendments are added below, in the order they are built */
   yes('no page errors', errs.length === 0, errs);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

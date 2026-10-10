@@ -422,7 +422,7 @@ function icsHomeTilesHTML(){
 }
 function icsMasteryRoute(root){
   const d = icsMasteryDistribution();
-  root.innerHTML = `<div class="page tr-page">${treeNav('')}<header class="tr-head"><h1 class="serif">Mastery</h1><p class="tr-lede">How well each page is known, as you assessed it — not how sure you are that it is true. Level 4 is the one to aim for.</p></header>
+  root.innerHTML = `<div class="page tr-page">${treeNav('')}<header class="tr-head"><h1 class="serif">Mastery</h1><p class="tr-lede">How well each page is known, as you assessed it — not how sure you are that it is true. Level 4 is the one to aim for. <a href="#/tree/metrics">How the learning is going →</a></p></header>
     <section class="tr-sec"><div class="tr-sechead"><h2>Across the tree</h2><span class="faint">${Math.round(icsShareAtAim() * 100)}% of live pages at level 4 or above</span></div>
       <ul class="tr-gaplist">${[['unassessed', 'Not yet assessed'], ...ICS_MASTERY.map(x => [x.level, `Level ${x.level} · ${x.name}`])].map(([k, l]) => `<li><b>${d[k]}</b> ${esc(l)}</li>`).join('')}</ul></section>
     ${ICS_MASTERY.map(x => ({x, pages: S.treeNodes.filter(p => p.status !== 'pruned' && p.mastery && p.mastery.level === x.level)})).filter(g => g.pages.length).reverse().map(g => `<section class="tr-sec"><div class="tr-sechead"><h2>Level ${g.x.level} · ${esc(g.x.name)}</h2></div><ul class="tr-gaplist">${g.pages.map(p => `<li>${treeKindMark(p)}<a href="${treeUrl(p)}">${esc(p.title)}</a></li>`).join('')}</ul></section>`).join('')}</div>`;
