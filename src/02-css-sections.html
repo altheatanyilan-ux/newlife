@@ -8140,7 +8140,7 @@ body.pbd-open .toast-wrap{z-index:170}
    ============================================================ */
 .room-wrap,#looms{--rm-wall:#2b2622;--rm-cut:#3b332a;--rm-wall-2:#221e1b;--rm-floor:#201c19;--rm-plank:rgba(232,224,212,.05);
   --rm-line:rgba(232,224,212,.14);--rm-light:#e8b968;--rm-wood:#4a3a2c;--rm-wood-2:#5c4835;
-  --rm-cloth:#5a3f52;--rm-cush:#8a5f6b;--rm-cush-2:#6f4a55;--rm-say:#e8e0d4;
+  --rm-cloth:#5a3f52;--rm-cush:#8a5f6b;--rm-cush-2:#6f4a55;--rm-say:#e8e0d4;--rm-halo:rgba(20,15,12,.82);
   /* width:100% as well as the auto margins: an auto cross-axis margin on a
      flex item overrides stretch, and an SVG asked to fit its content falls
      back to three hundred pixels */
@@ -8152,7 +8152,7 @@ body.pbd-open .toast-wrap{z-index:170}
 html[data-theme="light"] .room-wrap,html[data-theme="light"] #looms{--rm-wall:#eee5d8;--rm-cut:#ede1c9;--rm-wall-2:#e6dbcc;--rm-floor:#d8c4a8;
   --rm-plank:rgba(44,37,32,.07);--rm-line:rgba(44,37,32,.18);--rm-light:#d99a3a;
   --rm-wood:#a9814f;--rm-wood-2:#8d6a3f;--rm-cloth:#8e5f6b;--rm-cush:#b8848f;--rm-cush-2:#9c6a76;
-  --rm-say:#2c2520;box-shadow:inset 0 2px 14px rgba(120,90,60,.10)}
+  --rm-say:#2c2520;--rm-halo:rgba(246,238,226,.88);box-shadow:inset 0 2px 14px rgba(120,90,60,.10)}
 /* No max-height: capping the height of an SVG with a fixed viewBox letterboxes
    it, and a room with a bar of nothing down each side is a picture of a room
    rather than a room. The width is what is capped, and the height follows it. */
@@ -8195,6 +8195,9 @@ html[data-theme="light"] .rm-wax{fill:#fbf6ea;stroke:rgba(44,37,32,.12);stroke-w
 .obj-say{font-size:13px;font-family:var(--mono);letter-spacing:.06em;text-transform:lowercase}
 .zone:hover>.rm-say,.zone:focus-visible>.rm-say,.obj:hover .obj-say{opacity:.9}
 .zone-table:hover>.rm-say{opacity:.9}
+/* the lifted caption: always above the picture, with a halo, never half-hidden */
+.zone>.rm-say,.obj .obj-say{opacity:0!important}
+.rm-say-top{opacity:1!important;paint-order:stroke;stroke:var(--rm-halo);stroke-width:6px;stroke-linejoin:round}
 /* the whole zone leans toward you, from where it stands in the room */
 .zone>g,.zone>rect,.zone>ellipse,.zone>path{transition:transform .24s var(--ease),
   opacity .24s var(--ease),filter .24s var(--ease)}

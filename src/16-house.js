@@ -985,3 +985,36 @@ function houseArrive(host){
     requestAnimationFrame(() => stage.classList.add('arrived'));
   }
 }
+
+
+/* ---------- the words a place says, above everything ----------
+   Each caption is drawn inside its own zone, so the zones drawn after it (and the
+   things drawn after it within it) sit on top of the words. When a place is reached,
+   its caption is lifted onto a layer at the very top of the picture, with a halo so
+   it reads on any ground, and put back when the place is left. */
+(function houseSayLayer(){
+  const NS = 'http://www.w3.org/2000/svg';
+  const target = ev => ev.target && ev.target.closest ? ev.target.closest('.sacred-room .zone, .sacred-room .obj') : null;
+  const clear = svg => { const g = svg && svg.querySelector('.rm-saylayer'); if(g) g.replaceChildren(); };
+  const lift = ev => {
+    const z = target(ev); if(!z) return;
+    const svg = z.ownerSVGElement; if(!svg) return;
+    const src = z.querySelector('.rm-say, .obj-say'); if(!src) return;
+    let g = svg.querySelector('.rm-saylayer');
+    if(!g){ g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'rm-saylayer'); g.setAttribute('pointer-events', 'none'); svg.appendChild(g); }
+    else if(g !== svg.lastElementChild) svg.appendChild(g);
+    g.replaceChildren();
+    const c = src.cloneNode(true); c.classList.add('rm-say-top');
+    /* keep the words inside the picture, however near its edge the place is */
+    g.appendChild(c);
+    try { const b = c.getBBox(), vb = svg.viewBox.baseVal, m = 14;
+      let dx = 0; if(b.x < vb.x + m) dx = vb.x + m - b.x; else if(b.x + b.width > vb.x + vb.width - m) dx = vb.x + vb.width - m - (b.x + b.width);
+      if(dx) c.setAttribute('transform', `translate(${dx} 0)`); } catch(e){}
+  };
+  const drop = ev => { const z = target(ev); if(!z) return; const to = ev.relatedTarget;
+    if(to && z.contains(to)) return; clear(z.ownerSVGElement); };
+  document.addEventListener('pointerover', lift);
+  document.addEventListener('focusin', lift);
+  document.addEventListener('pointerout', drop);
+  document.addEventListener('focusout', drop);
+})();
