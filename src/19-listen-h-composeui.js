@@ -154,6 +154,7 @@ function cpPieceHTML(piece){
       <button class="btn sm" data-cpx="mid">⇩ MIDI</button><button class="btn sm ghost" data-cpx="played">⇩ MIDI as played</button>
       <span class="grow"></span>
       <button class="btn sm" id="cpToRep">Save to Repertoire</button>
+      ${typeof studioComposeToMelody === 'function' ? '<button class="btn sm ghost" id="cpToSeed" title="The top line of what you played, kept as a melody in the Songwriting Studio’s Seedbank">Send to Seedbank as a melody</button>' : ''}
       <button class="btn sm ${piece.exercise ? 'ghost' : 'primary'}" id="cpEx">${piece.exercise ? '✓ one of your exercises' : 'Keep as an exercise'}</button>
     </div>
     ${piece.exercise && typeof lfPanelHTML === 'function' ? (cpRegisterExercise(piece), lfPanelHTML('cmp:' + piece.id)) : ''}
@@ -242,6 +243,11 @@ function cpBindPiece(root, piece){
   });
   root.querySelector('#cpToRep').onclick = async () => { const rec = await takeScoreFile(new File([xml], fname + '.musicxml', {type: 'application/xml'}));
     if(rec){ piece.repertoireId = rec.id; save(); } };
+  const toSeed = root.querySelector('#cpToSeed');
+  if(toSeed) toSeed.onclick = () => { const m = studioComposeToMelody(cpModel(piece), piece.title);
+    if(!m){ toast('There are no notes to send.'); return; }
+    const s = studioMelodySeed(m, {room: 'jazz', kind: 'compose', id: piece.id}, ['from jazz', 'played in']);
+    if(s){ sound('success'); toast('In the Seedbank, as a melody. It re-sounds there and opens in the Melody Sketcher.'); } };
   root.querySelector('#cpEx').onclick = () => { piece.exercise = !piece.exercise; save(); toast(piece.exercise ? 'Kept as one of your exercises — the Play it strip under it checks you on it.' : 'No longer an exercise.'); rerender(); };
 }
 /* a click on the engraving picks the nearest written note */

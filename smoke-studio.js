@@ -287,6 +287,67 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('"show" brings it back', await ev(() => !!document.querySelector('.studio-bridge') && Object.keys(studioState().bridgesDismissed).length === 0));
   yes('a card never changes anything it advises on (no ready/lit/plan state read or written here)', await ev(() => !/jazzStageReached|jazzDayPlan|generateDailyPlan|lit/.test(studioBridgeCardHTML.toString() + studioMountBridges.toString())));
 
+  console.log('\n20. the Seedbank as the shared shelf');
+  await ev(() => { const j = jazzState(); j.compose = {settings: {}, takes: [], pieces: [], current: null}; sngState().seeds = []; sngState().melodies = []; saveNow(); });
+  /* a played phrase, cleaned up by Play to compose */
+  await ev(() => { const evs = [60, 62, 64, 65, 67, 69].map((pc, i) => ({pitch: pc, onset: i * 0.5, offset: i * 0.5 + 0.45, velocity: 0.7, confidence: 1}));
+    cpAddTake({source: 'midi', bpm: 120, ts: '4/4', free: false, t0: 0, events: evs, name: 'a phrase'}); });
+  await go('#/jazz/compose');
+  yes('Play to compose offers "Send to Seedbank as a melody" and still has "Save to Repertoire"', await ev(() => !!document.querySelector('#cpToSeed') && !!document.querySelector('#cpToRep')));
+  await ev(() => document.querySelector('#cpToSeed').click()); await p.waitForTimeout(300);
+  const ms = await ev(() => { const s = sngState().seeds[0]; return s ? {type: s.type, src: s.source, notes: s.data && s.data.melody && s.data.melody.notes.map(n => n.midi), t: s.data && s.data.melody && s.data.melody.notes.map(n => n.t), blobFree: !/Blob/.test(JSON.stringify(s))} : null; });
+  is('the seed is a melody with the played notes, in beats, from the Jazz Studio', [ms && ms.type, ms && ms.notes, ms && ms.src && ms.src.kind], ['melody', [60, 62, 64, 65, 67, 69], 'compose']);
+  is('and the times are in beats (a note every half second at 120 bpm is a note a beat)', ms && ms.t, [0, 1, 2, 3, 4, 5]);
+  /* the MusicXML of a melody that crosses bar lines and rests */
+  const xmlOk = await ev(() => {
+    const m = {name: 't', keyPc: 3, colour: 'major', bpm: 90, beats: 4, prog: [], notes: [{midi: 63, t: 0, d: 1.5}, {midi: 65, t: 1.5, d: 0.5}, {midi: 67, t: 3, d: 3}, {midi: null, t: 6, d: 1}, {midi: 70, t: 7, d: 1}]};
+    const xml = studioMelodyXml(m), doc = new DOMParser().parseFromString(xml, 'application/xml');
+    const bad = !!doc.querySelector('parsererror');
+    const sums = [...doc.querySelectorAll('measure')].map(me => [...me.querySelectorAll('note')].reduce((z, n) => z + +n.querySelector('duration').textContent, 0));
+    const pitched = [...doc.querySelectorAll('note')].filter(n => n.querySelector('pitch') && !n.querySelector('tie[type="stop"]')).length;
+    return {bad, sums, pitched, fifths: doc.querySelector('fifths').textContent, ties: doc.querySelectorAll('tie').length};
+  });
+  is('melody → MusicXML: well-formed, every bar exactly full, four-flat… E♭ has three flats, a held note is tied over the bar line', [xmlOk.bad, xmlOk.sums.every(x => x === 16), xmlOk.sums.length, xmlOk.pitched, xmlOk.fifths, xmlOk.ties >= 2], [false, true, 2, 4, '-3', true]);
+  await go('#/songwriting/seeds');
+  const sbk = await ev(() => ({hear: !!document.querySelector('[data-studio-seedhear]'), sk: !!document.querySelector('[data-studio-seedsketch]'), nt: !!document.querySelector('[data-studio-notation]'), ck: !!document.querySelector('[data-studio-check]'),
+    room: !!document.querySelector('.sng-seed .studio-room'), back: !!document.querySelector('.sng-seed a[href="#/jazz/compose"]')}));
+  is('the Seedbank card: hear it, open in the Melody Sketcher, show as notation, check me on the piano, the Jazz room icon and the way back', sbk, {hear: true, sk: true, nt: true, ck: true, room: true, back: true});
+  await ev(() => document.querySelector('[data-studio-notation]').click()); await p.waitForTimeout(2500);
+  yes('"Show as notation" draws it read-only in a window (no editor), engraved by the existing engraver', await ev(() => !!document.querySelector('.modal .jz-score svg')));
+  yes('and that window has no Play-it strip', await ev(() => !document.querySelector('.modal #lfPanel')));
+  await ev(() => { document.querySelector('.modal .btn.ghost, .modal [data-close], .modal .x') && 0; document.querySelectorAll('.modal-bg, .overlay, .modal').forEach(n => n.remove()); });
+  await ev(() => document.querySelector('[data-studio-check]').click()); await p.waitForTimeout(2500);
+  yes('"Check me on the piano" opens the existing Play-it feedback on that melody', await ev(() => !!document.querySelector('.modal #lfPanel') && !!document.querySelector('.modal .jz-score svg')));
+  await ev(() => document.querySelectorAll('.modal-bg, .overlay, .modal').forEach(n => n.remove()));
+  const nm0 = await ev(() => sngState().melodies.length);
+  await ev(() => document.querySelector('[data-studio-seedsketch]').click()); await p.waitForTimeout(700);
+  is('"Open in the Melody Sketcher" makes a sketcher melody with the same notes, and goes there', await ev(() => [sngState().melodies.length, sngState().melodies[0].notes.map(n => n.midi), location.hash]), [nm0 + 1, [60, 62, 64, 65, 67, 69], '#/songwriting/tool/melody-sketcher']);
+  /* the Sketcher's own Keep now carries its notes too, so it re-sounds */
+  await ev(() => { document.querySelector('#skSeed').click(); }); await p.waitForTimeout(300);
+  yes('the Melody Sketcher\'s own "Keep in the Seedbank" now carries its notes as well', await ev(() => { const s = sngState().seeds[0]; return s.source === 'Melody Sketcher' && !!(s.data && s.data.melody && s.data.melody.notes.length); }));
+  /* a recorded take, kept by reference */
+  const memo = await ev(async () => { const id = await jazzPutAudio(new Blob(['abc'], {type: 'audio/webm'})); const rec = jazzAddRecording({kind: 'drone', exerciseId: 'P0.1', audioId: id, seconds: 3});
+    const s = studioMemoSeedFromTake(rec); return {s, json: JSON.stringify(s), recId: rec.id, id}; });
+  yes('a take kept as a voice-memo seed holds a pointer (store + id), never the Blob', memo.s.audioRef && memo.s.audioRef.store === 'jazzAudio' && !memo.s.audioId && !/Blob|data:|blob:/.test(memo.json));
+  yes('and its source points back to the Jazz Studio', memo.s.source && memo.s.source.room === 'jazz' && memo.s.source.kind === 'recording');
+  await go('#/songwriting/seeds');
+  yes('the Seedbank plays it from the Jazz Studio\'s store and carries the device-local note', await ev(() => !!document.querySelector('[data-studio-memoref]') && /Kept on this device only\. Not in your backup/.test(document.body.textContent)));
+  await ev(async (id) => { await jazzRemoveRecording(id); }, memo.recId);
+  await ev(() => document.querySelector('[data-studio-memoref]').click()); await p.waitForTimeout(400);
+  yes('if the take is deleted the memo says so calmly instead of failing', await ev(() => /no longer on this device/.test(document.body.textContent)));
+  /* the quick-add on a Jazz page */
+  await go('#/jazz/tune/so-what');
+  yes('Jazz pages have a "+" with "A seed (Songwriting Seedbank)"', await ev(() => !!document.querySelector('#ctxAddBtn')));
+  const nSeeds0 = await ev(() => sngState().seeds.length);
+  await ev(() => document.querySelector('#ctxAddBtn').click()); await p.waitForTimeout(500);
+  const form = await ev(() => ({c: (document.querySelector('#stSeedC') || {}).value, t: (document.querySelector('#stSeedT') || {}).value}));
+  yes('it opens prefilled with the tune and its progression', form.t === 'progression' && /So What/.test(form.c), form);
+  is('and nothing is kept before "Keep it"', await ev(() => sngState().seeds.length), nSeeds0);
+  await ev(() => document.querySelector('#stSeedOk').click()); await p.waitForTimeout(400);
+  is('"Keep it" keeps one seed, sourced to the tune, with chords that re-sound', await ev(() => { const s = sngState().seeds[0]; return [sngState().seeds.length, s.source && s.source.kind, s.source && s.source.id, !!(s.data && s.data.chords && s.data.chords.length)]; }), [nSeeds0 + 1, 'tune', 'so-what', true]);
+  await go('#/songwriting');
+  yes('the Songwriting Studio\'s own quick-add entries are as they were', await ev(() => { const o = PageEntryConfig.current; return !!o && o.pageName === 'Songwriting Studio' && o.options.map(x => x.label).join('|') === 'Object writing|A seed|A new song'; }));
+
   console.log('\n99. nothing threw');
   is('no page errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

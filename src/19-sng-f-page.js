@@ -241,6 +241,7 @@ function sngSeedsHTML(){
       ${s.content ? `<div class="sng-seed-c">${esc(s.content)}</div>` : ''}
       ${s.type === 'memo' && s.audioId ? `<button class="tbtn" data-sngmemo="${esc(s.audioId)}">▶ play</button>` : ''}
       ${s.data && s.data.chords ? `<button class="tbtn" data-sngseedplay="${esc(s.id)}">▶ hear it</button>` : ''}
+      ${typeof studioSeedMelodyButtonsHTML === 'function' ? studioSeedMelodyButtonsHTML(s) : ''}${typeof studioSeedMemoRefHTML === 'function' ? studioSeedMemoRefHTML(s) : ''}
       ${(s.tags || []).length ? `<div class="mono faint">${s.tags.map(t => '#' + esc(t)).join(' ')}</div>` : ''}</div>`).join('')}</div>`
       : `<div class="empty">No seeds${q || u.seedType ? ' match' : ' yet'}. Every tool has a 🌱 button; the Harvest button on an exercise takes the line you select.</div>`}`;
 }
@@ -317,6 +318,7 @@ function bindSongwriting(root){
       const timer = s.audioId ? setTimeout(() => sngAudioDrop(s.audioId), (typeof UNDO_MS === 'number' ? UNDO_MS : 8000) + 2000) : null;
       return () => { if(timer) clearTimeout(timer); back(); }; }}); });
   $$('[data-sngmemo]', root).forEach(b => b.onclick = () => sngMemoPlay(b.dataset.sngmemo));
+  if(typeof studioBindMelodyButtons === 'function'){ studioBindMelodyButtons(root); studioBindMemoRefs(root); }
   $$('[data-sngseedplay]', root).forEach(b => b.onclick = () => { const s = byId(st.seeds, b.dataset.sngseedplay); if(s && s.data) sngPlaySeed(s.data); });
   /* a tool */
   const tool = root.querySelector('[data-sngtool]');

@@ -137,6 +137,7 @@ function bindJazzRecTool(el){
           r.role ? ` · ${esc(r.role === 'original' ? 'the original' : 'your copy')}` : ''}${r.title ? ` · ${esc(r.title)}` : ''}${
           r.seconds ? ` · ${r.seconds}s` : ''}</span>
         <span class="row" style="gap:4px">${kind === 'drone' || kind === 'corea' ? `<label class="jz-gate mono"><input type="checkbox" data-cmp="${esc(r.id)}"> compare</label>` : ''}
+          ${typeof studioTakeSeedButtonHTML === 'function' ? studioTakeSeedButtonHTML(r) : ''}
           <button class="tbtn danger" data-del="${esc(r.id)}">delete</button></span></div>
       <canvas class="jzr-wave"></canvas>
       ${kind === 'pwys' ? '<div class="jzr-notes mono"></div>' : ''}
@@ -144,6 +145,7 @@ function bindJazzRecTool(el){
     recs.slice(0, 12).forEach(r => drawItem(list.querySelector(`[data-rid="${r.id}"]`), r));
     $$('[data-del]', list).forEach(b => b.onclick = async () => { await jazzRemoveRecording(b.dataset.del); drawList(); });
     $$('[data-cmp]', list).forEach(c => c.onchange = () => drawCompare());
+    if(typeof studioBindTakeSeeds === 'function') studioBindTakeSeeds(list);
   };
   const drawItem = async (box, r) => {
     const canvas = box.querySelector('canvas'), play = box.querySelector('.jzr-play');

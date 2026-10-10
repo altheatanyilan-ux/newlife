@@ -684,7 +684,9 @@ function studioSectionExtrasHTML(sec, i){
   const mel = st.melodies.length ? `<label class="mono faint">melody <select class="inp" data-sdmel="${i}"><option value="">none</option>${st.melodies.map(m =>
     `<option value="${esc(m.id)}"${sec.melodyId === m.id ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>` : '';
   const strip = sec.prog && sec.prog.length ? studioJazzStripHTML(sec.prog, sec.keyPc || 0) : '';
-  return mel + strip;
+  const chosen = sec.melodyId ? st.melodies.find(m => m.id === sec.melodyId) : null;
+  const btns = chosen && chosen.notes && chosen.notes.some(n => n.midi != null) ? studioMelodyButtonsHTML('mel:' + chosen.id) : '';
+  return mel + btns + strip;
 }
 
 /* ---------- on the Jazz tune page and the exercise page ---------- */
@@ -704,10 +706,8 @@ function studioBindTune(root, t){
   const seed = root.querySelector('#jtSeed');
   if(seed) seed.onclick = () => { const l = loop(), p = studioTuneProgression(t, l ? l[0] : null, l ? l[1] : null);
     if(!p.romans.length){ toast('There are no chords in that selection.'); return; }
-    const chords = p.romans.map(r => sngParseRoman(r) || {roman: r, root: 0, quality: 'maj'});
     const s = sngSeed({type: 'progression', content: `${p.romans.join('–')} in ${studioKeyName(p.keyPc)} — from ${t.title}${l ? `, bars ${l[0]}–${l[1]}` : ''}`,
-      source: {room: 'jazz', kind: 'tune', id: t.id, bars: [p.from, p.to]}, tags: [p.colour, 'from jazz'],
-      data: {chords, keyPc: p.keyPc, colour: p.colour, styleId: 'jazz-swing', bpm: 120}});
+      source: {room: 'jazz', kind: 'tune', id: t.id, bars: [p.from, p.to]}, tags: [p.colour, 'from jazz'], data: studioProgressionSeedData(p)});
     if(s){ sound('success'); toast(p.notes.length ? 'In the Seedbank. ' + p.notes.join(' ') : 'In the Seedbank.'); } };
   const lis = root.querySelector('#jtListen'); if(lis) lis.onclick = () => navigate(studioLink('#/songwriting/listening', 'tune:' + t.id, 'jazz'));
 }
@@ -948,3 +948,222 @@ function studioMountBridges(root, room, params){
     try { jazzUi().scrollTo = btn.dataset.studioJzstage; } catch(x){}
     if(location.hash === '#/jazz' && typeof rerender === 'function') rerender(); else location.hash = '#/jazz'; });
 }
+
+/* ============================================================
+   THE SEEDBANK AS THE STUDIO'S SHARED SHELF
+
+   A melody the Jazz Studio hears out (Play to compose), or one the Songwriting
+   Studio sketches, is kept in the same shape — a seed whose data.melody is what
+   the Melody Sketcher keeps: {notes: [{midi, t, d}], keyPc, colour, bpm, beats}
+   (times in beats). From there it re-sounds, opens in the Melody Sketcher, is
+   read back as notation, and can be checked on the piano. Nothing in this
+   section writes until a button that says Keep/Send is pressed.
+   ============================================================ */
+const STUDIO_MELODY_TYPES = [[1, 'sixteenth', 1], [2, 'eighth', 2], [3, 'eighth', 3], [4, 'quarter', 4], [6, 'quarter', 6], [8, 'half', 8], [12, 'half', 12], [16, 'whole', 16]];
+/* Play to compose → a melody: the top note at each onset, each as long as it sounds before the next begins */
+function studioComposeToMelody(model, title){
+  if(!model || !model.notes || !model.notes.length) return null;
+  const div = typeof CP_DIV === 'number' ? CP_DIV : 12;
+  const byStart = new Map();
+  model.notes.forEach(n => { const c = byStart.get(n.start); if(!c || n.pitch > c.pitch) byStart.set(n.start, n); });
+  const line = [...byStart.values()].sort((a, b) => a.start - b.start);
+  const notes = line.map((n, i) => {
+    const next = line[i + 1], end = next ? Math.min(n.start + n.dur, next.start) : n.start + n.dur;
+    return {midi: n.pitch, t: +(n.start / div).toFixed(4), d: +Math.max(1 / 8, (end - n.start) / div).toFixed(4), deg: null, why: ['played in, cleaned up by Play to compose']};
+  });
+  const minor = model.key && model.key.mode === 'minor', tonic = model.key ? model.key.tonic : 0;
+  const beats = model.ts ? model.ts[0] * (4 / (model.ts[1] || 4)) : 4;
+  return {name: title || model.title || 'A played melody', notes, keyPc: tonic, colour: minor ? 'minor' : 'major', bpm: model.bpm || 90, beats, prog: []};
+}
+/* a melody as MusicXML: one treble staff, sixteenth-note grid, notes tied across bar lines */
+function studioMelodyXml(m){
+  const beats = Math.max(1, Math.round(m.beats || 4)), per = beats * 4;
+  const minor = m.colour === 'minor' || m.colour === 'dorian';
+  const keyName = studioKeyName(minor ? (m.keyPc + 3) % 12 : m.keyPc);
+  const fifths = typeof jzeFifthsFor === 'function' ? jzeFifthsFor(keyName, 0) : 0;
+  const units = n => Math.max(1, Math.round(n * 4));
+  const evs = [];   /* {u: start unit, len, midi|null} */
+  let at = 0;
+  m.notes.slice().sort((a, b) => a.t - b.t).forEach(n => {
+    const s = Math.round(n.t * 4);
+    if(s > at) evs.push({u: at, len: s - at, midi: null});
+    if(s < at) return;
+    const len = units(n.d); evs.push({u: s, len, midi: n.midi == null ? null : n.midi}); at = s + len; });
+  const bars = Math.max(1, Math.ceil(at / per));
+  const pieces = [];   /* split at bar lines, then into plain note values */
+  evs.forEach(e => {
+    let u = e.u, left = e.len, first = true;
+    while(left > 0){
+      const room = per - (u % per), take = Math.min(left, room);
+      let rest = take;
+      while(rest > 0){
+        const fit = STUDIO_MELODY_TYPES.filter(t => t[0] <= rest).pop() || STUDIO_MELODY_TYPES[0];
+        const more = left - fit[0] > 0;
+        pieces.push({u, len: fit[0], type: fit[1], dot: fit[2] === 3 || fit[2] === 6 || fit[2] === 12, midi: e.midi,
+          tieStart: e.midi != null && (more || (rest - fit[0]) > 0), tieStop: e.midi != null && !first});
+        u += fit[0]; left -= fit[0]; rest -= fit[0]; first = false; }
+    }
+  });
+  const measure = k => {
+    const mine = pieces.filter(p => Math.floor(p.u / per) === k);
+    const attrs = k === 0 ? `<attributes><divisions>4</divisions><key><fifths>${fifths}</fifths></key><time><beats>${beats}</beats><beat-type>4</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>` : '';
+    const body = mine.map(p => {
+      let pitch = '';
+      if(p.midi != null){ const sp = typeof jazzSpellMidi === 'function' ? jazzSpellMidi(p.midi, keyName) : {step: 'C', alter: 0, octave: 4};
+        pitch = `<pitch><step>${sp.step}</step>${sp.alter ? `<alter>${sp.alter}</alter>` : ''}<octave>${sp.octave}</octave></pitch>`; }
+      return `<note>${p.midi == null ? '<rest/>' : pitch}<duration>${p.len}</duration>${p.tieStop ? '<tie type="stop"/>' : ''}${p.tieStart ? '<tie type="start"/>' : ''}<type>${p.type}</type>${p.dot ? '<dot/>' : ''}${
+        (p.tieStop || p.tieStart) ? `<notations>${p.tieStop ? '<tied type="stop"/>' : ''}${p.tieStart ? '<tied type="start"/>' : ''}</notations>` : ''}</note>`; }).join('');
+    const used = mine.reduce((z, p) => z + p.len, 0);
+    const pad = used < per ? `<note><rest/><duration>${per - used}</duration><type>${(STUDIO_MELODY_TYPES.filter(t => t[0] <= per - used).pop() || STUDIO_MELODY_TYPES[0])[1]}</type></note>` : '';
+    return `<measure number="${k + 1}">${attrs}${body}${pad}</measure>`;
+  };
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="3.1"><part-list><score-part id="P1"><part-name>Melody</part-name></score-part></part-list>
+<part id="P1">${[...Array(bars)].map((_, k) => measure(k)).join('')}</part></score-partwise>`;
+}
+/* the melody inside a seed, or a Song Desk melody, in the Sketcher's shape */
+function studioSeedMelody(seed){
+  const d = seed && seed.data && seed.data.melody;
+  if(!d || !Array.isArray(d.notes) || !d.notes.length) return null;
+  return Object.assign({name: (seed.content || 'A melody').split(':')[0], colour: 'major', keyPc: 0, bpm: 90, beats: 4, prog: []}, d);
+}
+function studioMelodySeed(m, source, tags){
+  const names = m.notes.filter(n => n.midi != null).map(n => sngMidiName(n.midi));
+  return sngSeed({type: 'melody', content: `${m.name}: ${names.slice(0, 24).join(' ')}${names.length > 24 ? ' …' : ''}`, source, tags: tags || [],
+    data: {melody: {notes: m.notes.map(n => ({midi: n.midi, t: n.t, d: n.d, deg: n.deg == null ? null : n.deg})), keyPc: m.keyPc, colour: m.colour, bpm: m.bpm, beats: m.beats, prog: (m.prog || []).slice()}}});
+}
+/* a seed's melody becomes a Melody Sketcher melody only when you ask for it */
+function studioOpenSeedMelodyInSketcher(seed){
+  const d = studioSeedMelody(seed); if(!d) return;
+  const st = sngState();
+  const m = {id: uid(), name: d.name, keyPc: d.keyPc, colour: d.colour, prog: d.prog && d.prog.length ? d.prog : sngLabState().prog.slice(0, 4), bpm: d.bpm, beats: d.beats,
+    notes: d.notes.map(n => Object.assign({why: ['from the Seedbank']}, n)), createdAt: new Date().toISOString()};
+  st.melodies.unshift(m); sngUi().melodyId = m.id; saveNow();
+  navigate('#/songwriting/tool/melody-sketcher');
+}
+/* read-only notation, and the Play-it feedback on the same melody, in a modal of its own */
+function studioMelodyModal(m, regId, record, check){
+  const xml = studioMelodyXml(m);
+  const mod = openModal(`<h2 class="serif">${esc(m.name)}</h2>
+    <p class="faint">${check ? 'Play it on the piano; each note is marked as you go.' : 'A read-only engraving of this melody.'} It is drawn from the melody’s notes each time; nothing here is saved.</p>
+    <div class="jz-stage-box"><div class="jz-score" id="jzScore"><div class="faint">Drawing…</div></div></div>
+    ${check && typeof lfPanelHTML === 'function' ? (() => { _lfEx[regId] = {ex: {id: regId, name: m.name, category: 'melody', description: 'your own'}, record}; return lfPanelHTML(regId); })() : ''}`, 'wide');
+  const box = mod.querySelector('#jzScore');
+  Promise.resolve(jazzEngrave(box, xml)).then(() => { if(check && typeof bindLfPanel === 'function') bindLfPanel(mod, regId); });
+  return mod;
+}
+function studioMelodyButtonsHTML(id){
+  return `<span class="studio-melbtns"><button class="tbtn" data-studio-notation="${esc(id)}" title="Draw this melody as written music (read-only)">Show as notation</button>
+    <button class="tbtn" data-studio-check="${esc(id)}" title="Play it on the piano and see each note marked">Check me on the piano</button></span>`;
+}
+/* the Seedbank's melody seeds: notation, the piano check, re-sounding and "open in the Melody Sketcher" */
+function studioSeedMelodyButtonsHTML(s){
+  if(!studioSeedMelody(s)) return '';
+  return `<button class="tbtn" data-studio-seedhear="${esc(s.id)}">▶ hear it</button>
+    <button class="tbtn" data-studio-seedsketch="${esc(s.id)}">Open in the Melody Sketcher</button>${studioMelodyButtonsHTML('seed:' + s.id)}`;
+}
+function studioBindMelodyButtons(root){
+  const st = sngState();
+  const melodyOf = id => {
+    const [kind, ref] = [id.slice(0, id.indexOf(':')), id.slice(id.indexOf(':') + 1)];
+    if(kind === 'seed'){ const s = st.seeds.find(x => x.id === ref); return s ? {m: studioSeedMelody(s), holder: s} : null; }
+    const m = st.melodies.find(x => x.id === ref); return m ? {m, holder: m} : null;
+  };
+  const open = (id, check) => { const r = melodyOf(id); if(!r || !r.m){ toast('That melody is no longer there.'); return; }
+    studioMelodyModal(r.m, 'mel:' + id, () => { r.holder.keys = r.holder.keys || {}; r.holder.heard = r.holder.heard || []; return r.holder; }, check); };
+  root.querySelectorAll('[data-studio-notation]').forEach(b => b.onclick = () => open(b.dataset.studioNotation, false));
+  root.querySelectorAll('[data-studio-check]').forEach(b => b.onclick = () => open(b.dataset.studioCheck, true));
+  root.querySelectorAll('[data-studio-seedhear]').forEach(b => b.onclick = () => { const s = st.seeds.find(x => x.id === b.dataset.studioSeedhear), m = s && studioSeedMelody(s); if(m) sngPlayMelodyOver(m); });
+  root.querySelectorAll('[data-studio-seedsketch]').forEach(b => b.onclick = () => { const s = st.seeds.find(x => x.id === b.dataset.studioSeedsketch); if(s) studioOpenSeedMelodyInSketcher(s); });
+}
+
+/* ---------- a recorded take, kept as a voice-memo seed ----------
+   The sound is not copied and never goes into the seed's JSON: the seed holds a reference
+   to the Jazz Studio's recording (store jazzAudio, by id), and plays it from there. If the
+   take is deleted, the memo says so rather than failing. Both stores stay on this device. */
+const STUDIO_LOCAL_NOTE = 'Kept on this device only. Not in your backup — export notes, MIDI or MusicXML to take it elsewhere.';
+function studioDeviceLocalNote(){ return `<p class="studio-local faint" role="note">${STUDIO_LOCAL_NOTE}</p>`; }
+function studioMemoSeedFromTake(rec){
+  const audioId = rec.audioId || rec.vocalId || rec.pianoId;
+  if(!audioId) return null;
+  const when = `${rec.day || ''} ${rec.at ? new Date(rec.at).toTimeString().slice(0, 5) : ''}`.trim();
+  return sngSeed({type: 'memo', content: `${rec.title || 'A take'}${when ? ' — ' + when : ''}`, audioRef: {store: 'jazzAudio', id: audioId},
+    source: {room: 'jazz', kind: 'recording', id: rec.id}, tags: ['from jazz', 'recorded']});
+}
+function studioSeedMemoRefHTML(s){
+  if(!(s && s.type === 'memo' && s.audioRef)) return '';
+  return `<button class="tbtn" data-studio-memoref="${esc(s.id)}">▶ play</button>${studioDeviceLocalNote()}`;
+}
+function studioBindMemoRefs(root){
+  root.querySelectorAll('[data-studio-memoref]').forEach(b => b.onclick = async () => {
+    const s = sngState().seeds.find(x => x.id === b.dataset.studioMemoref); if(!s || !s.audioRef) return;
+    const blob = await jazzGetAudio(s.audioRef.id);
+    if(!blob){ toast('That take is no longer on this device — it was deleted in the Jazz Studio, or this is another device.', 5000); return; }
+    const a = new Audio(URL.createObjectURL(blob)); a.play().catch(() => toast('This browser would not play it.')); });
+}
+function studioTakeSeedButtonHTML(rec){
+  return rec && (rec.audioId || rec.vocalId || rec.pianoId) ? `<button class="tbtn" data-studio-takeseed="${esc(rec.id)}" title="Keep a pointer to this take in the Songwriting Seedbank — the sound stays here">Keep as a voice-memo seed</button>` : '';
+}
+function studioBindTakeSeeds(root){
+  root.querySelectorAll('[data-studio-takeseed]').forEach(b => b.onclick = () => {
+    const rec = (typeof jazzRecordings === 'function' ? jazzRecordings() : []).find(r => r.id === b.dataset.studioTakeseed);
+    const s = rec && studioMemoSeedFromTake(rec);
+    if(s){ sound('success'); toast('A pointer to the take is in the Seedbank; the sound stays on this device.'); } else toast('That take has no sound to point to.'); });
+}
+
+/* ---------- "A seed (Songwriting Seedbank)" from any Jazz page ----------
+   Prefilled from where you are: the tune (and the bars you are looping), the exercise in the
+   key shown, or nothing. The seed carries a source that points home. Nothing is kept until "Keep it". */
+function studioProgressionSeedData(p, styleId){
+  const chords = p.romans.map(r => sngParseRoman(r) || {roman: r, root: 0, quality: 'maj'});
+  return {chords, keyPc: p.keyPc, colour: p.colour, styleId: styleId || 'jazz-swing', bpm: 120};
+}
+function studioJazzSeedPrefill(){
+  let h = null; try { h = parseHash(); } catch(e){}
+  const a = h && h.name === 'jazz' ? (h.params || [])[0] : null, b = h && h.name === 'jazz' ? (h.params || [])[1] : null;
+  const bare = {type: 'line', content: '', tags: ['from jazz'], source: {room: 'jazz', kind: 'page', id: a || ''}, data: null, from: 'the Jazz Studio'};
+  try {
+    if(a === 'tune' && b && typeof jazzTune === 'function'){
+      const t = jazzTune(b); if(!t) return bare;
+      const P = jazzPracFor(t.id), l = P && P.loop && P.loop.length === 2 ? P.loop : null;
+      const p = studioTuneProgression(t, l ? l[0] : null, l ? l[1] : null);
+      if(!p.romans.length) return Object.assign(bare, {content: t.title, source: {room: 'jazz', kind: 'tune', id: t.id}, from: t.title});
+      return {type: 'progression', content: `${p.romans.join('–')} in ${studioKeyName(p.keyPc)} — from ${t.title}${l ? `, bars ${l[0]}–${l[1]}` : ''}`,
+        tags: [p.colour, 'from jazz'], source: {room: 'jazz', kind: 'tune', id: t.id, bars: [p.from, p.to]}, data: studioProgressionSeedData(p), from: t.title};
+    }
+    if(a && typeof jazzExercise === 'function' && jazzExercise(a)){
+      const ex = jazzExercise(a), key = (jazzUi().key) || 'C', p = studioExerciseProgression(a, key);
+      if(p) return {type: 'progression', content: `${p.romans.join('–')} in ${studioKeyName(p.keyPc)} — from ${ex.name}`, tags: [p.colour, 'from jazz'],
+        source: {room: 'jazz', kind: 'exercise', id: a}, data: studioProgressionSeedData(p), from: ex.name};
+      return Object.assign(bare, {content: ex.name, source: {room: 'jazz', kind: 'exercise', id: a}, from: ex.name});
+    }
+  } catch(e){ console.warn('the seed form could not read where you are', e); }
+  return bare;
+}
+function studioJazzSeedForm(){
+  const pre = studioJazzSeedPrefill();
+  const m = openModal(`<h2>🌱 A seed <span class="faint">for the Songwriting Seedbank</span></h2>
+    <p class="faint">From ${esc(pre.from)}. It is kept with a way back here.</p>
+    <label class="sng-field"><span>What</span><textarea class="inp sng-ta" rows="3" id="stSeedC">${esc(pre.content)}</textarea></label>
+    <div class="sng-row"><select class="inp" id="stSeedT">${SNG_SEED_TYPES.filter(t => t[0] !== 'memo').map(([k, n]) => `<option value="${k}"${pre.type === k ? ' selected' : ''}>${n}</option>`).join('')}</select>
+      <input class="inp" id="stSeedTags" placeholder="tags, comma separated" value="${esc(pre.tags.join(', '))}"></div>
+    <button class="btn primary" id="stSeedOk">Keep it</button>`);
+  m.querySelector('#stSeedC').focus();
+  m.querySelector('#stSeedOk').onclick = () => {
+    const type = m.querySelector('#stSeedT').value;
+    const s = sngSeed({type, content: m.querySelector('#stSeedC').value, source: pre.source, data: type === pre.type ? pre.data : null,
+      tags: m.querySelector('#stSeedTags').value.split(',').map(x => x.trim()).filter(Boolean)});
+    m.remove(); if(s){ sound('success'); toast('In the Seedbank.'); } };
+}
+(function studioJazzQuickAdd(){
+  const f = routes.jazz;
+  if(typeof f !== 'function' || f._studioAdd) return;
+  const g = function(root, params){
+    const out = f.apply(this, arguments);
+    try { registerPageEntry({pageName: 'Jazz Studio', addLabel: 'Add', defaultEntryType: 'session', prefilledFields: {}, options: [
+      {icon: '🌱', label: 'A seed (Songwriting Seedbank)', desc: 'A line, a progression or an idea from here, kept with a way back.', run: () => studioJazzSeedForm()}]}); } catch(e){}
+    return out;
+  };
+  g._studio = f._studio; g._studioAdd = true; routes.jazz = g;
+})();

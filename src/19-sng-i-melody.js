@@ -62,7 +62,7 @@ SNG_TOOL_VIEWS['melody-sketcher'] = {
     $$('[data-rolllock]', host).forEach(b => b.onclick = () => { const n = m.notes[+b.dataset.rolllock]; if(n){ n.locked = !n.locked; redraw(); } });
     $$('[data-skdev]', host).forEach(b => b.onclick = () => { sngDevelop(m, b.dataset.skdev); redraw(); });
     q('#skPlay').onclick = () => sngPlayMelodyOver(m);
-    q('#skSeed').onclick = () => { sngSeed({type: 'melody', content: `${m.name}: ${m.notes.filter(n => n.midi != null).map(n => sngMidiName(n.midi)).join(' ')}`, source: 'Melody Sketcher', data: null}); sound('success'); toast('In the Seedbank.'); };
+    q('#skSeed').onclick = () => { if(typeof studioMelodySeed === 'function') studioMelodySeed(m, 'Melody Sketcher'); else sngSeed({type: 'melody', content: `${m.name}: ${m.notes.filter(n => n.midi != null).map(n => sngMidiName(n.midi)).join(' ')}`, source: 'Melody Sketcher', data: null}); sound('success'); toast('In the Seedbank.'); };
     q('#skMidi').onclick = () => sngDownload(sngMelodyMidi(m), `${m.name.replace(/[^\w-]+/g, '-')}.mid`);
   }
 };
