@@ -115,6 +115,15 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   treeReviews:     'id, nodeId, dueAt',
   treePredictions: 'id, nodeId, createdAt, resolvedAt',
   treeExperiments: 'id, nodeId, date',
+  /* the iCanStudy layer of the Tree (19-tree-h-ics*.js). Earlier versions of a page and
+     retrievals are add-only (treeGuard); chunks, questions, mistakes and the Kolb
+     reflections are ordinary rows. */
+  treeChunks:        'id, rootId',
+  treeQuestions:     'id, pageId, status',
+  treeRetrievals:    'id, pageId, date',
+  treeMistakes:      'id, pageId, retestDue',
+  treePageRevisions: 'id, pageId, savedAt',
+  treeKolb:          'id, date, weekOf',
   /* Score Study, the analysis layer of the Repertoire room (19-score-a*.js).
      An analysis row carries its key spans, chord labels, cadences, units,
      sections, schemata, structural line and tension as nested arrays — one
@@ -187,7 +196,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
   'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview','purpose','purposeImprint','valuesImprint','museState','zogTarget','journeyOverride','zogStreak','studio'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals','practiceLog','strengths','strengthSnapshots','strengthRankHistory','affirmations','beliefs','bets','retreats','negativeValues','masterValues','zoneItems','flowClues','breaks','habitsToDrop','alignmentChecks','convergence'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','treeChunks','treeQuestions','treeRetrievals','treeMistakes','treePageRevisions','treeKolb','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals','practiceLog','strengths','strengthSnapshots','strengthRankHistory','affirmations','beliefs','bets','retreats','negativeValues','masterValues','zoneItems','flowClues','breaks','habitsToDrop','alignmentChecks','convergence'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -275,7 +284,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(24).stores(DB_SCHEMA);   // v24 the purpose spine (new stores only), v23 timeIntentions + perfGoals (new stores only), v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(25).stores(DB_SCHEMA);   // v25 the iCanStudy layer of the Knowledge Tree (new stores only), v24 the purpose spine (new stores only), v23 timeIntentions + perfGoals (new stores only), v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){

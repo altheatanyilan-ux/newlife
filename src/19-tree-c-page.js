@@ -61,7 +61,7 @@ function treePageRoute(root, n, wanted){
       <h1 class="serif">${treeKindMark(n)}${esc(n.title)}</h1>
       <div class="tr-headrow">${treeBadge(n)}<span class="faint">${TREE_KINDS[n.kind]}${aliases.length ? ` · also known as ${aliases.map(a => esc(a.title || a.alias)).join(', ')}` : ''}</span>
         <span class="tr-grow"></span>
-        <button class="tbtn" id="trEdit">Edit</button><button class="tbtn" id="trMore" aria-label="More">⋯</button></div>
+        ${typeof icsOpenBtnHTML === 'function' ? icsOpenBtnHTML(n) : ''}<button class="tbtn" id="trEdit">Edit</button><button class="tbtn" id="trMore" aria-label="More">⋯</button></div>
     </header>
     <section class="tr-position">
       ${cur ? `<div class="tr-pos-now"><div class="tr-conf" style="--c:${cur.confidence}"><b>${cur.confidence}</b><span>%</span></div>
@@ -73,6 +73,7 @@ function treePageRoute(root, n, wanted){
       <button class="btn sm" id="trRevise">${cur ? 'Revise position' : 'State a position'}</button>
     </section>
     <article class="tr-body prose">${(n.body || '').trim() ? treeRender(n.body) : '<p class="faint">Nothing written here yet.</p>'}</article>
+    ${typeof icsPageAfterTextHTML === 'function' ? icsPageAfterTextHTML(n) : ''}
     <section class="tr-question"><span class="tr-lbl">What would change my mind?</span>${(n.openQuestion || '').trim() ? `<div>${treeRender(n.openQuestion)}</div>` : '<p class="faint">Not yet asked.</p>'}</section>`}
     <section class="tr-sec"><div class="tr-sechead"><h2>Beneath it</h2><span class="faint">${kids.length || 'nothing yet'}</span><span class="tr-grow"></span><button class="tbtn" id="trChild">＋ ${n.kind === 'root' ? 'Branch' : 'Point'} here</button></div>
       ${points > 15 ? `<p class="tr-warn">${points} points under one page. Some may belong on a branch of their own.</p>` : ''}
@@ -99,10 +100,12 @@ function treePageRoute(root, n, wanted){
     ['Seal a prediction', () => treePredictDialog(n, () => treePageRoute(root, n))],
     ['Record an experiment', () => treeExperimentDialog(n, () => treePageRoute(root, n))],
     ['Review it now', () => treeReviewDialog(n, () => treePageRoute(root, n))],
+    ...(typeof icsCanOpenInStudio === 'function' && icsCanOpenInStudio(n) ? [['Open in Studio', () => icsOpenInStudio(n.id)]] : []),
     ...Object.keys(TREE_STATUS).filter(s => s !== n.status).map(s => [`Mark ${TREE_STATUS[s].toLowerCase()}`, () => { treeSetStatus(n.id, s); treePageRoute(root, n); }])
   ]);
   treeBindGrafts(root, n);
   treeBindProof(root, n);
+  if(typeof icsBindPage === 'function') icsBindPage(root, n);
   treeTouchView(n);
 }
 function treeTouchView(n){ /* opening a page is not tending it; only an action is */ S._tree.lastOpened = n.id; }

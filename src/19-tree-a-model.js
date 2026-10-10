@@ -19,12 +19,14 @@
    unique index, so the in-memory maps are checked before every save.
    ============================================================ */
 
-const TREE_STORES = ['treeNodes', 'treeAliases', 'treeLinks', 'treeGrafts', 'treePositions', 'treeLeaves', 'treeInbox', 'treeReviews', 'treePredictions', 'treeExperiments'];
+const TREE_STORES = ['treeNodes', 'treeAliases', 'treeLinks', 'treeGrafts', 'treePositions', 'treeLeaves', 'treeInbox', 'treeReviews', 'treePredictions', 'treeExperiments',
+  /* the iCanStudy layer (19-tree-h-ics.js and after): earlier versions of a page, chunks, questions, retrievals, mistakes, reflections */
+  'treeChunks', 'treeQuestions', 'treeRetrievals', 'treeMistakes', 'treePageRevisions', 'treeKolb'];
 const TREE_KINDS = {root: 'Root', branch: 'Branch', point: 'Point'};
 const TREE_STATUS = {stub: 'Stub', active: 'Active', dormant: 'Dormant', pruned: 'Pruned'};
 const TREE_GRAFTS = {supports: 'supports', contradicts: 'contradicts', extends: 'extends', echoes: 'echoes', raises: 'raises'};
 const TREE_GRAFT_BLURB = {supports: 'gives reason to believe', contradicts: 'pulls against', extends: 'carries further', echoes: 'rhymes with, from elsewhere', raises: 'opens the question of'};
-const TREE_ADD_ONLY = ['treePositions', 'treePredictions'];
+const TREE_ADD_ONLY = ['treePositions', 'treePredictions', 'treePageRevisions', 'treeRetrievals'];
 const TREE = {idx: null, ver: 0};
 
 /* every Tree store exists on S as an array, and the add-only rows are frozen */
@@ -33,6 +35,7 @@ function treeEnsure(){
   TREE_ADD_ONLY.forEach(k => { S[k] = S[k].map(r => Object.isFrozen(r) ? r : Object.freeze(Object.assign({}, r))); });
   S.treePrefs = Object.assign({dismissed: [], lastSummary: null, lastYearAgo: null, lastExportAt: null, outlineOpen: {}}, S.treePrefs || {});
   TREE.idx = null;
+  if(typeof icsEnsure === 'function') icsEnsure();
 }
 function treeNow(){ return new Date().toISOString(); }
 function treeToday(){ return typeof today === 'function' ? today() : new Date().toISOString().slice(0, 10); }
@@ -97,9 +100,11 @@ function treeValidate(n){
 function treeSavePage(draft){
   treeEnsure();
   const old = draft.id ? treeNode(draft.id) : null;
-  const n = Object.assign({}, old || {id: uid(), createdAt: treeNow(), status: 'stub', kind: 'point', body: '', openQuestion: '', lastTendedAt: null}, draft);
+  const n = Object.assign({}, old || Object.assign({id: uid(), createdAt: treeNow(), status: 'stub', kind: 'point', body: '', openQuestion: '', lastTendedAt: null}, typeof ICS_PAGE_DEFAULTS !== 'undefined' ? ICS_PAGE_DEFAULTS : {}), draft);
   n.title = String(n.title || '').trim();
   const err = treeValidate(n); if(err) return {error: err};
+  /* what the page was, kept before it is changed (A-04): only when a watched field really changes */
+  if(old && typeof icsRecordRevision === 'function') icsRecordRevision(old, n);
   const slug = treeSlug(n.title);
   if(old && old.slug !== slug){
     /* the old name keeps working, as a redirect */

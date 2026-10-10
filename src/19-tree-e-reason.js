@@ -77,8 +77,10 @@ function treeGaps(){
     const gs = S.treeGrafts.filter(g => ids.has(g.fromId) || ids.has(g.toId));
     return gs.some(g => g.type === 'supports') && !gs.some(g => g.type === 'contradicts');
   });
-  return {red: [...red.entries()].map(([slug, v]) => ({slug, title: v.title, from: [...v.from].map(treeNode).filter(Boolean)})), noLeaf, noPos, noQ, oneSided,
-    total: red.size + noLeaf.length + noPos.length + noQ.length + oneSided.length};
+  /* the encoding gaps (19-tree-h-ics.js): a registry of rules, each inert until its field exists */
+  const enc = typeof icsGapGroups === 'function' ? icsGapGroups() : [];
+  return {red: [...red.entries()].map(([slug, v]) => ({slug, title: v.title, from: [...v.from].map(treeNode).filter(Boolean)})), noLeaf, noPos, noQ, oneSided, enc,
+    total: red.size + noLeaf.length + noPos.length + noQ.length + oneSided.length + enc.reduce((a, g) => a + g.items.length, 0)};
 }
 function treeGapsRoute(root){
   const g = treeGaps();
@@ -86,11 +88,14 @@ function treeGapsRoute(root){
   const nl = n => `<li>${treeKindMark(n)}<a href="${treeUrl(n)}">${esc(n.title)}</a><span class="faint">${esc(treeAncestors(n).map(a => a.title).join(' › '))}</span></li>`;
   root.innerHTML = `<div class="page tr-page">${treeNav('gaps')}
     <header class="tr-head"><h1 class="serif">Gaps</h1><p class="tr-lede">What the tree is missing: ${g.total ? `${g.total} things worth an hour` : 'nothing, just now'}.</p></header>
-    <section class="tr-sec"><div class="tr-sechead"><h2>Red links</h2><span class="faint">named, never written</span></div>${list(g.red, r => `<li><a class="tr-link red" href="#" data-trnew="${esc(r.title)}">${esc(r.title)}</a><span class="faint">from ${r.from.map(f => `<a href="${treeUrl(f)}">${esc(f.title)}</a>`).join(', ')}</span></li>`)}</section>
+    <section class="tr-sec"><div class="tr-sechead"><h2>Red links</h2><span class="faint">named, never written</span></div>${list(g.red, r => `<li><span class="tr-redwrap"><a class="tr-link red" href="#" data-trnew="${esc(r.title)}">${esc(r.title)}</a>${typeof icsRedHintHTML === 'function' ? icsRedHintHTML(r.title) : ''}</span><span class="faint">from ${r.from.map(f => `<a href="${treeUrl(f)}">${esc(f.title)}</a>`).join(', ')}</span></li>`)}</section>
     <section class="tr-sec"><div class="tr-sechead"><h2>Citation needed</h2><span class="faint">points with no leaf from the Library, Journal or Writing</span></div>${list(g.noLeaf, nl)}</section>
     <section class="tr-sec"><div class="tr-sechead"><h2>Branches with no position</h2></div>${list(g.noPos, nl)}</section>
     <section class="tr-sec"><div class="tr-sechead"><h2>Positions with no open question</h2><span class="faint">held, with nothing named that would change them</span></div>${list(g.noQ, nl)}</section>
     <section class="tr-sec"><div class="tr-sechead"><h2>One-sided branches</h2><span class="faint">every graft supports; nothing contradicts</span></div>${list(g.oneSided, nl)}</section>
+    ${g.enc.length ? `<section class="tr-sec tr-encgaps"><div class="tr-sechead"><h2>How well it is encoded</h2><span class="faint">prompts, not errors</span></div>
+      ${g.enc.map(t => `<details class="tr-gaptype" open><summary>${esc(t.label)} <i>${t.items.length}</i></summary><p class="faint tr-hint">${esc(t.hint)}</p>
+        <ul class="tr-gaplist">${t.items.map(x => { const n = treeNode(x.pageId); return n ? nl(n) : ''; }).join('')}</ul></details>`).join('')}</section>` : ''}
   </div>`;
   treeBindNav(root);
 }

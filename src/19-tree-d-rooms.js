@@ -25,14 +25,14 @@ function treeHomeRoute(root){
     ${S.treeNodes.length && (age === null || age > 30) ? `<div class="tr-backup"><span>${age === null ? 'The tree has never been exported.' : `The last export was ${age} days ago.`} A copy somewhere safe costs a click.</span><button class="btn sm" id="trExport">Export the tree</button></div>` : ''}
     <section class="tr-tend" id="trTend">${treeTendCardHTML()}</section>
     ${s ? `<section class="tr-sec tr-week"><div class="tr-sechead"><h2>This week</h2><span class="faint">${esc(s.range)}</span></div>
-      <div class="tr-weekgrid">${[['new pages', s.newPages], ['red links turned blue', s.blued], ['positions revised', s.revised], ['branches pruned', s.pruned], ['open tensions', s.tensions]].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}</div></section>` : ''}
+      <div class="tr-weekgrid">${[['new pages', s.newPages], ['red links turned blue', s.blued], ['positions revised', s.revised], ['branches pruned', s.pruned], ['open tensions', s.tensions]].map(([k, v]) => `<div><b>${v}</b><span>${k}</span></div>`).join('')}</div>${typeof icsWeeksHistoryHTML === 'function' ? icsWeeksHistoryHTML() : ''}</section>` : ''}
     <div class="tr-homegrid">
       <section class="tr-sec"><div class="tr-sechead"><h2>The tree</h2><span class="faint">${S.treeNodes.length} pages</span><span class="tr-grow"></span><a class="tbtn" href="#/tree/outline">Outline</a></div>
         ${treeRoots().length ? treeOutlineHTML(treeRoots(), 0) : `<div class="tr-empty"><p>Nothing has taken root yet.</p><p class="faint">Start with a root — one of the great questions — and let branches and points grow under it.</p><button class="btn primary" id="trFirst">Plant the first root</button></div>`}</section>
       <aside class="tr-side">
         <a class="tr-tile" href="#/tree/inbox"><b>${S.treeInbox.length}</b><span>in the inbox</span></a>
         <a class="tr-tile" href="#/tree/tensions"><b>${tens}</b><span>open tensions</span></a>
-        <a class="tr-tile" href="#/tree/gaps"><b>${treeGaps().total}</b><span>gaps</span></a>
+        <a class="tr-tile" href="#/tree/gaps" title="${esc(treeGapTitle())}"><b>${treeGaps().total}</b><span>gaps</span></a>
         <a class="tr-tile" href="#/tree/proof"><b>${S.treePredictions.filter(p => !p.resolvedAt).length}</b><span>sealed predictions</span></a>
         <div class="tr-tile quiet"><b>${due}</b><span>due to resurface</span></div>
         <div class="tr-keys faint"><kbd>Alt</kbd>+<kbd>K</kbd> quick capture, from any room</div>
@@ -48,6 +48,12 @@ function treeHomeRoute(root){
   root.querySelector('#trImp').onchange = async e => { const f = e.target.files[0]; if(!f) return;
     try { const r = treeImport(JSON.parse(await f.text())); if(r.error) toast(r.error); else toast(`Imported: ${Object.values(r.added).reduce((a, b) => a + b, 0)} records added, ${r.kept} already here and left as they are.`, 6000); } catch(err){ toast('That file could not be read.'); }
     treeHomeRoute(root); };
+}
+
+/* the hover on the gaps tile: the total, as it is made up */
+function treeGapTitle(){
+  const g = treeGaps(), parts = [['red links', g.red.length], ['no citation', g.noLeaf.length], ['no position', g.noPos.length], ['no question', g.noQ.length], ['one-sided', g.oneSided.length], ...g.enc.map(t => [t.label.toLowerCase(), t.items.length])];
+  return parts.filter(p => p[1]).map(p => `${p[1]} ${p[0]}`).join(' · ') || 'nothing missing';
 }
 
 /* ---------- quick capture ---------- */

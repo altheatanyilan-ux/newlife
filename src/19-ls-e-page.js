@@ -34,6 +34,7 @@ function lsBranchPickerHTML(){
     <p class="muted" style="margin-bottom:10px">Choose a branch to open in the Studio:</p>
     ${branches.map(b => `<button class="btn ghost ls-pick-branch" data-bid="${esc(b.id)}">${esc(b.title)}</button>`).join('')}
     <hr class="faint" style="margin:12px 0">
+    ${(() => { const d = (S.lsBoards||[]).filter(b => !b.branchId); return d.length ? `<p class="muted" style="margin-bottom:6px">Boards without a branch:</p>${d.map((b, i) => `<a class="btn ghost" href="#/studio/${esc(b.id)}">${esc(b.name || 'Untitled')} · ${esc(String(b.createdAt||'').slice(0,10))}${(S.lsChips||[]).filter(c => c.boardId === b.id).length ? ' · ' + (S.lsChips||[]).filter(c => c.boardId === b.id).length + ' chips' : ''}</a>`).join(' ')}<br>` : ''; })()}
     <button class="btn ghost ls-pick-branch" data-bid="__new__">+ Start without a branch</button>
   </div>`;
 }

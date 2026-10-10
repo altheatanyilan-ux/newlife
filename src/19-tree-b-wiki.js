@@ -25,7 +25,7 @@ function treeLinkHTML(l){
   if(l.room === 'tree'){
     const n = treeResolve(l.target);
     return n ? `<a class="tr-link" href="${treeUrl(n)}" title="${esc(n.title)}">${esc(l.display)}</a>`
-      : `<a class="tr-link red" href="#" data-trnew="${esc(l.target)}" title="No page yet — click to start one">${esc(l.display)}</a>`;
+      : `<span class="tr-redwrap"><a class="tr-link red" href="#" data-trnew="${esc(l.target)}" title="No page yet — click to start one">${esc(l.display)}</a>${typeof icsRedHintHTML === 'function' ? icsRedHintHTML(l.target) : ''}</span>`;
   }
   if(l.room === 'journal'){
     const ok = /^\d{4}-\d{2}-\d{2}$/.test(l.target) && treeJournalOn(l.target).length;
@@ -49,6 +49,7 @@ function treeRender(text){
 }
 function treeBindLinks(root){
   root.querySelectorAll('[data-trnew]').forEach(a => a.onclick = ev => { ev.preventDefault(); treeNewPageDialog({title: a.dataset.trnew, fromId: (root.dataset && root.dataset.trfrom) || null}); });
+  root.querySelectorAll('[data-trhint]').forEach(b => b.onclick = ev => { ev.preventDefault(); ev.stopPropagation(); if(typeof icsOpenHint === 'function') icsOpenHint(b.dataset.trhint); });
   root.querySelectorAll('[data-trmedia]').forEach(a => a.onclick = ev => { ev.preventDefault(); navigate('#/journals/library'); setTimeout(() => { if(typeof openMediaPanel === 'function') openMediaPanel(a.dataset.trmedia); }, 150); });
   root.querySelectorAll('[data-trjournal]').forEach(a => a.onclick = ev => { ev.preventDefault(); treeJournalDay(a.dataset.trjournal); });
 }

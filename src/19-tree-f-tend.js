@@ -117,7 +117,7 @@ function treeWeekSummary(){
   /* the red links as they stood at the start of the week, kept so "turned blue" can be counted */
   if(!P.redSnapshot || now - Date.parse(P.redSnapshot.at) > weekMs){
     if(P.redSnapshot){ const s = treeWeekNumbers(Date.parse(P.redSnapshot.at), new Set(P.redSnapshot.reds));
-      (P.summaries = P.summaries || []).push(Object.assign({week: P.redSnapshot.at.slice(0, 10)}, s)); if(P.summaries.length > 104) P.summaries.shift(); }
+      (P.summaries = P.summaries || []).push(Object.assign({week: P.redSnapshot.at.slice(0, 10), weekKey: typeof icsIsoWeekKey === 'function' ? icsIsoWeekKey(new Date(P.redSnapshot.at)) : undefined}, s)); if(P.summaries.length > 104) P.summaries.shift(); }
     P.redSnapshot = {at: new Date(now).toISOString(), reds: [...treeRedSlugs()]}; save();
   }
   const since = Math.min(Date.parse(P.redSnapshot.at), now - weekMs);
@@ -132,5 +132,7 @@ function treeWeekNumbers(since, reds){
   const revised = S.treePositions.filter(p => after(p.date) && S.treePositions.some(q => q.nodeId === p.nodeId && q.date < p.date)).length;
   const pruned = S.treeNodes.filter(n => n.status === 'pruned' && after(n.prunedAt)).length;
   const tensions = S.treeGrafts.filter(g => g.type === 'contradicts' && !g.resolvedAt).length;
-  return {newPages, blued, revised, pruned, tensions};
+  const positionsSet = S.treePositions.filter(p => after(p.date)).length;
+  const pagesTended = S.treeNodes.filter(n => after(n.lastTendedAt)).length;
+  return {newPages, blued, revised, pruned, tensions, positionsSet, pagesTended, gapsOpen: treeGaps().total};
 }

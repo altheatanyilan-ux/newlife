@@ -133,6 +133,7 @@ function _dutyDoneCheck(id, T){
       case 'knowledge_tree_tend':
         return typeof treeTendItem === 'function' ? treeTendItem() === null : true;
       case 'ls_recall': {
+        if(!(S.lsBoards||[]).length) return true; /* no board, nothing to recall */
         const cutoff = addDays(T, -3);
         return (S.lsRecalls||[]).some(r => (r.createdAt||'').slice(0,10) >= cutoff);
       }
@@ -341,6 +342,7 @@ const DUTIES = [
     route: '#/studio',
     windowDef: {type:'anytime'},
     recurrence: {type:'event-driven', check: T => {
+      if(!(S.lsBoards||[]).length) return false; /* no board, no duty */
       const cutoff = addDays(T,-3);
       return !(S.lsRecalls||[]).some(r => (r.createdAt||'').slice(0,10) >= cutoff);
     }},
