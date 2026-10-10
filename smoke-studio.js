@@ -467,6 +467,28 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('one habit linked to both rooms is the same fixture on #/jazz/plan and on Songwriting Today', [f1, f2], [1, 1]);
   await ev(id => { S.habits = S.habits.filter(h => h.id !== id); saveNow(); }, hid);
 
+  console.log('\n23. an old backup: no studio row, string seed sources');
+  const old = await ev(async () => {
+    sngState().seeds = [{id: 'o1', type: 'line', content: 'a line from before', tags: ['x'], source: 'Object Writing Desk', createdAt: '2025-01-01T00:00:00Z'},
+      {id: 'o2', type: 'melody', content: 'A melody: C D E', tags: [], source: 'Melody Sketcher', data: null, createdAt: '2025-01-02T00:00:00Z'},
+      {id: 'o3', type: 'progression', content: 'I–V', tags: [], source: '', createdAt: '2025-01-03T00:00:00Z'}];
+    S.studio = undefined;
+    const rows = JSON.parse(JSON.stringify(stateToStores(S)));
+    const hadRow = rows.meta.some(r => r.key === 'studio');
+    await importBackup({version: 1, data: rows});
+    return {hadRow, defaults: JSON.stringify(studioState()), seeds: sngState().seeds.map(x => [x.id, typeof x.source]), after: stateToStores(S).meta.some(r => r.key === 'studio')};
+  });
+  is('a backup without the studio row restores, and the row means defaults', [old.hadRow, old.defaults], [false, JSON.stringify({v: 1, bar: {collapsed: false}, bridgesDismissed: {}, practiceToWriting: false, vocalRangeNoticeSeen: false})]);
+  is('old string sources come back as strings, untouched', old.seeds, [['o1', 'string'], ['o2', 'string'], ['o3', 'string']]);
+  yes('and the row is written the next time anything is saved', old.after);
+  await go('#/songwriting/seeds');
+  const seedText = await ev(() => document.querySelector('.sng-seeds').textContent);
+  yes('the Seedbank lists the old seeds with their string sources', /a line from before/.test(seedText) && /Object Writing Desk/.test(seedText) && /Melody Sketcher/.test(seedText));
+  await ev(() => { sngUi().seedType = 'melody'; }); await go('#/songwriting/seeds');
+  is('and its filter by kind still works on both forms', await ev(() => [...document.querySelectorAll('.sng-seed')].length), 1);
+  await ev(() => { sngUi().seedType = ''; });
+  is('the old string source and a new object source side by side: both read', await ev(() => [studioSeedSource('Chord Lab').label, studioSeedSource({room: 'jazz', kind: 'tune', id: 'so-what'}).label.slice(0, 21)]), ['Chord Lab', 'Jazz Studio · So What']);
+
   console.log('\n99. nothing threw');
   is('no page errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');
