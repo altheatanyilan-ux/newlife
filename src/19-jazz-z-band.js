@@ -404,7 +404,7 @@ function jazzTunePlayHTML(t){
       <span class="mono faint">${mel ? 'with its melody' : 'no melody in it: the band plays the changes in the head'}</span></div>
     <div class="jzb-row">
       <button class="btn sm primary jzb-go" id="jzbtGo">▶ Play the tune</button>
-      <label class="mono jzb-f">♩ = <input class="inp sm mono" type="number" id="jzbtBpm" min="40" max="360" value="${s.bpm}"></label>
+      <label class="mono jzb-f">♩ = <input class="inp sm mono" type="number" id="jzbtBpm" min="40" max="360" value="${s.bpm}"></label>${typeof studioTapTempo === 'function' ? '<button class="tbtn" id="jzbtTap" title="tap the beat three times or more">tap</button>' : ''}
       <label class="mono jzb-f">choruses of solos <select class="sel sm" id="jzbtCh">${opt(JZBT_CHORUSES.map(n => [n, String(n)]), s.choruses)}</select></label>
       <label class="mono jzb-f" title="in the solos, four bars for you, four for the drums alone — keep the form in your head through them"><input type="checkbox" id="jzbtTrade" ${s.trading ? 'checked' : ''}> trade fours</label>
     </div>
@@ -419,7 +419,8 @@ function jazzTunePlayHTML(t){
       ${s.soloist && s.soloist !== 'none' ? `<label class="mono jzb-f">lines <select class="sel sm" id="jzbtSoloDen">${opt(JZS_DENSITY, s.soloDensity)}</select></label>
       <label class="mono jzb-f">inside ↔ outside <input type="range" min="0" max="4" id="jzbtSoloOut" value="${s.soloOutside}"></label>
       <label class="mono jzb-f" title="where ▶ starts: straight into the solos, or the head first">start <select class="sel sm" id="jzbtStart">${opt([['solos', 'at the solos'], ['head', 'with the head']], s.startAt || 'solos')}</select></label>
-      <button class="tbtn" id="jzbtSoloNew" title="the same rules, another solo">a new solo</button>
+      ${typeof studioSeedControl === 'function' ? studioSeedControl({seed: s.soloSeed || 1, sameId: 'jzbtSoloSame', newId: 'jzbtSoloNew', what: 'solo', label: 'the solo’s seed', newTitle: 'the same rules, another solo'})
+        : '<button class="tbtn" id="jzbtSoloNew" title="the same rules, another solo">a new solo</button>'}
       <button class="tbtn" id="jzbtSoloShow">${_jzbt.showSolo ? 'hide the solo' : 'show the solo'}</button>` : ''}
     </div>
     ${_jzbt.showSolo && s.soloist && s.soloist !== 'none' ? jzsExplainHTML(t, s) : ''}
@@ -500,6 +501,7 @@ function bindJazzTunePlay(root, t){
   const live = () => _jzbt.run && _jzbt.run.t.id === t.id;
   const again = () => { saveNow(); if(live()) jzbtStart(root, t); };
   $b('#jzbtGo').onclick = () => { sound('click'); if(live()) jzbtStop(); else jzbtStart(root, t); };
+  if(typeof studioTapForInput === 'function') studioTapForInput($b('#jzbtTap'), $b('#jzbtBpm'), 40, 360);
   $b('#jzbtBpm').onchange = () => { const v = +$b('#jzbtBpm').value; if(!(v >= 40 && v <= 360)){ $b('#jzbtBpm').value = s.bpm; return; }
     s.bpm = Math.round(v); saveNow(); if(live()) _jzbt.run.player.set('bpm', s.bpm); };
   $b('#jzbtCh').onchange = () => { s.choruses = +$b('#jzbtCh').value; again(); };
@@ -510,7 +512,8 @@ function bindJazzTunePlay(root, t){
   const den = $b('#jzbtSoloDen'); if(den) den.onchange = () => { s.soloDensity = den.value; again(); if(_jzbt.showSolo) rerender(); };
   const out = $b('#jzbtSoloOut'); if(out) out.onchange = () => { s.soloOutside = +out.value; again(); if(_jzbt.showSolo) rerender(); };
   const st2 = $b('#jzbtStart'); if(st2) st2.onchange = () => { s.startAt = st2.value; saveNow(); };
-  const nw = $b('#jzbtSoloNew'); if(nw) nw.onclick = () => { s.soloSeed = (s.soloSeed || 1) + 1; again(); if(_jzbt.showSolo) rerender(); };
+  const nw = $b('#jzbtSoloNew'); if(nw) nw.onclick = () => { s.soloSeed = (s.soloSeed || 1) + 1; const sn = $b('.studio-seed-n'); if(sn) sn.textContent = 'Seed ' + s.soloSeed; again(); if(_jzbt.showSolo) rerender(); };
+  const same = $b('#jzbtSoloSame'); if(same) same.onclick = () => { if(live()) jzbtStart(root, t); else if(typeof jzbtStart === 'function') jzbtStart(root, t); };
   const sh2 = $b('#jzbtSoloShow'); if(sh2) sh2.onclick = () => { _jzbt.showSolo = !_jzbt.showSolo; rerender(); };
   const mel = $b('#jzbtMel');
   if(mel) mel.onchange = () => { s.melody = +mel.value; saveNow();

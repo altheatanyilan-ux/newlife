@@ -152,6 +152,10 @@ function jzsExplainHTML(t, s){
   if(!notes.length) return `<div class="jzs-explain muted">No solo notes — the soloist plays only in the solo choruses.</div>`;
   const byBar = new Map(); notes.forEach(n => { const p = tl.perf[n.perf]; const k = `${p.soloN}|${p.k}`; if(!byBar.has(k)) byBar.set(k, {p, notes: []}); byBar.get(k).notes.push(n); });
   const name = m => (typeof sngMidiName === 'function' ? sngMidiName(m) : String(m));
+  const note = `${notes.length} notes over ${s.choruses} chorus${s.choruses > 1 ? 'es' : ''}`;
+  if(typeof studioExplainPanel === 'function')
+    return studioExplainPanel({title: `The solo, note by note — ${note}`, groups: [...byBar.values()].map(({p, notes}) => ({head: `chorus ${p.soloN} · bar ${p.k + 1} · ${notes[0].sym || ''}`,
+      items: notes.map(n => ({note: name(n.midi), why: n.why || '', title: n.why || ''}))}))});
   return `<details class="jzs-explain" open><summary class="mono">the solo, note by note — ${notes.length} notes over ${s.choruses} chorus${s.choruses > 1 ? 'es' : ''}</summary>
     <div class="jzs-bars">${[...byBar.values()].map(({p, notes}) => `<div class="jzs-bar"><span class="mono faint">chorus ${p.soloN} · bar ${p.k + 1} · ${esc(notes[0].sym || '')}</span>
       <div>${notes.map(n => `<span class="jzs-n" title="${esc(n.why || '')}"><b>${esc(name(n.midi))}</b> ${esc(n.why || '')}</span>`).join('')}</div></div>`).join('')}</div></details>`;

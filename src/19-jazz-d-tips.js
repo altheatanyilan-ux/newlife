@@ -447,7 +447,9 @@ function jazzTipHTML(t, full){
       <button class="jz-star${on ? ' on' : ''}" data-jzstar="${esc(t.id)}" aria-pressed="${on ? 'true' : 'false'}"
         title="${on ? 'starred — it comes round more often' : 'star it and it comes round more often'}">${on ? '★' : '☆'}</button></div>
     <p class="jz-tiptext">${esc(t.tip)}</p>
-    <p class="jz-tipsrc mono">— ${esc(full ? jazzTipCiteFull(t) : jazzTipCite(t))}</p>
+    <p class="jz-tipsrc mono">${typeof studioSourceChip === 'function'
+      ? studioSourceChip({book: full ? ((typeof JAZZ_BOOKS !== 'undefined' && JAZZ_BOOKS[t.source]) || t.source) : t.source, where: t.sourceDetail, icon: false})
+      : '— ' + esc(full ? jazzTipCiteFull(t) : jazzTipCite(t))}</p>
     ${goes ? `<button class="tbtn jz-tipgo" data-jzgo="${esc(goes.href)}">→ ${esc(goes.said)}</button>` : ''}
   </div>`;
 }
@@ -476,7 +478,7 @@ function jazzTipOfDayHTML(){
         title="star it and it comes round more often">${jazzTipStarred(t.id) ? '★' : '☆'}</button></div>
     <b class="serif">${esc(t.title)}</b>
     <p class="jz-tiptext">${esc(t.tip)}</p>
-    <p class="jz-tipsrc mono">— ${esc(jazzTipCite(t))}</p>
+    <p class="jz-tipsrc mono">${typeof studioSourceChip === 'function' ? studioSourceChip({book: t.source, where: t.sourceDetail, icon: false}) : '— ' + esc(jazzTipCite(t))}</p>
     <div class="row" style="gap:8px;flex-wrap:wrap">
       ${goes ? `<button class="tbtn jz-tipgo" data-jzgo="${esc(goes.href)}">→ ${esc(goes.said)}</button>` : ''}
       <button class="tbtn" id="jzAllTips">🏆 all ${UNIVERSAL_PRACTICE_TIPS.length} tips</button></div>

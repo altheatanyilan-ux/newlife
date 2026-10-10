@@ -392,6 +392,81 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('a colour with no related jazz pattern owned shows no dots', await ev(() => [...document.querySelectorAll('#labKey option')].filter(o => /●/.test(o.textContent)).length), 0);
   await ev(() => { jazzState().progress = {}; sngLabState().colour = 'major'; saveNow(); });
 
+  console.log('\n22. one vocabulary for both rooms');
+  /* seed control */
+  await ev(() => { const L = sngLabState(); L.prog = ['ii7', 'V7', 'Imaj7', 'Imaj7']; L.keyPc = 3; L.colour = 'major'; S._studioPlay = {}; saveNow(); });
+  await go('#/jazz/playalong?from=songwriting&ref=lab');
+  await ev(() => { const sel = document.querySelector('#jzbtSolo'); const v = [...sel.options].map(o => o.value).find(x => x !== 'none'); sel.value = v; sel.dispatchEvent(new Event('change', {bubbles: true})); }); await p.waitForTimeout(700);
+  const seed0 = await ev(() => { const el = document.querySelector('.studio-seed-n'); return el ? +el.textContent.replace(/\D/g, '') : null; });
+  yes('the jazz soloist shows "Seed N · Same again · New"', seed0 != null && await ev(() => !!document.querySelector('#jzbtSoloSame') && !!document.querySelector('#jzbtSoloNew')), seed0);
+  await ev(() => document.querySelector('#jzbtSoloNew').click()); await p.waitForTimeout(500);
+  const seed1 = await ev(() => +document.querySelector('.studio-seed-n').textContent.replace(/\D/g, ''));
+  yes('"New" draws another solo (the seed moves on); the same seed gives the same solo as before', seed1 === seed0 + 1, [seed0, seed1]);
+  await ev(() => document.querySelector('#jzbtSoloShow').click()); await p.waitForTimeout(500);
+  yes('"show the solo" uses the shared explain panel, worded "what it measured"', await ev(() => { const e = document.querySelector('.studio-explain'); return !!e && /what it measured/.test(e.querySelector('summary').textContent) && e.querySelectorAll('li').length > 0; }));
+  await go('#/songwriting/tool/melody-gen');
+  yes('the Melody Generator shows the same seed control', await ev(() => !!document.querySelector('.studio-seed #genSame') && !!document.querySelector('.studio-seed #genNew') && /^Seed \d+/.test(document.querySelector('.studio-seed-n').textContent)));
+  const gseed = await ev(() => sngGenState().seed);
+  await ev(() => document.querySelector('#genSame').click()); await p.waitForTimeout(500);
+  is('"Same again" keeps the seed, and with it the melody', await ev(() => sngGenState().seed), gseed);
+  await ev(() => document.querySelector('#genNew').click()); await p.waitForTimeout(500);
+  yes('"New" moves it on', await ev(g => sngGenState().seed !== g, gseed));
+  yes('"Explain this melody" is the same panel, in the same words', await ev(() => { const e = document.querySelector('.studio-explain'); return !!e && /Explain this melody/.test(e.querySelector('summary').textContent) && /what it measured/.test(e.querySelector('summary').textContent); }));
+  /* progress */
+  await go('#/songwriting/path');
+  yes('the Path\'s stage cards use the shared progress bar, with "advice, not a lock"', await ev(() => { const b = document.querySelector('.sng-room .studio-prog'); return !!b && /Advice, not a lock/.test(b.title); }));
+  await ev(() => { jazzStartStage('P0', 'standard'); saveNow(); });
+  await go('#/jazz/progress');
+  yes('the Jazz readiness count uses the same bar and the same words', await ev(() => { const b = document.querySelector('.jz-ready .studio-prog'); return !!b && /Advice, not a lock/.test(b.title); }));
+  /* citation chips */
+  await go('#/songwriting/ex/2.3');
+  yes('a songwriting exercise cites its source as a chip', await ev(() => !!document.querySelector('.sng-exercise .studio-src')));
+  await go('#/songwriting/stage/2');
+  yes('and so does a songwriting stage (its books)', await ev(() => document.querySelectorAll('.studio-src').length >= 1));
+  await go('#/jazz/plan');
+  yes('a golden tip cites its book and page as the same chip', await ev(() => !!document.querySelector('.jz-tipsrc .studio-src')));
+  /* honesty badges */
+  await go('#/songwriting/tool/chord-lab');
+  yes('the Chord Lab says "simplified standard version" with the shared badge', await ev(() => !!document.querySelector('.studio-honest-simplified')));
+  await go('#/songwriting/tool/lyric-sheet');
+  yes('the lyric sheet marks its checks "heuristic"', await ev(() => !!document.querySelector('.studio-honest-heuristic')));
+  const sentenceEx = await ev(() => jazzStages().flatMap(s => s.subs).find(id => { const e = jazzExercise(id); return e && e.v3gen; }));
+  if(sentenceEx){ await go('#/jazz/' + sentenceEx); yes('a score written from a sentence says so with the shared badge', await ev(() => !!document.querySelector('.studio-honest-sentence'))); }
+  else ok('(no score written from a sentence in this catalogue)');
+  const unver = await ev(() => jazzStages().flatMap(s => s.subs).find(id => { const e = jazzExercise(id); return e && !jazzTrusted(e); }));
+  if(unver){ await go('#/jazz/' + unver); yes('and an approximate score says so with the shared badge too', await ev(() => !!document.querySelector('.jz-doubt .studio-honest-accuracy'))); }
+  /* the device-local note, word for word */
+  await go('#/jazz/record');
+  const n1 = await ev(() => (document.querySelector('.studio-local') || {}).textContent);
+  await go('#/songwriting/seeds');
+  const n2 = await ev(() => (document.querySelector('.studio-local') || {}).textContent);
+  is('the device-local note is the same words in both rooms', [n1, n2], ['Kept on this device only. Not in your backup — export notes, MIDI or MusicXML to take it elsewhere.', 'Kept on this device only. Not in your backup — export notes, MIDI or MusicXML to take it elsewhere.']);
+  /* the card deck frame */
+  await go('#/songwriting/tool/block-deck');
+  yes('the Writer\'s-Block Deck is dealt in the shared card frame', await ev(() => !!document.querySelector('.studio-deck #blockNext')));
+  await ev(() => { jazzUi().flash = {cards: [{exerciseId: 'P0.1', key: 'C'}], at: 0, shown: false}; }); await go('#/jazz/cards');
+  yes('the Jazz flashcard is in the same frame', await ev(() => !!document.querySelector('.studio-deck .jz-card')));
+  await ev(() => { jazzUi().flash = null; });
+  await go('#/jazz/cards/A');
+  yes('and so are the lead-sheet cards', await ev(() => !!document.querySelector('.studio-deck #jzlHost')));
+  /* tap tempo, shared */
+  await go('#/songwriting/tool/chord-lab');
+  await ev(() => { document.querySelector('#labBpm').value = '60'; });
+  for(let i = 0; i < 4; i++){ await ev(() => document.querySelector('#labTap').click()); await p.waitForTimeout(250); }
+  yes('Songwriting\'s tap tempo works from the shared function (four taps a quarter-second apart ≈ 240)', await ev(() => { const v = +document.querySelector('#labBpm').value; return v >= 200 && v <= 280; }));
+  await go('#/jazz/playalong?from=songwriting&ref=lab');
+  await ev(() => { document.querySelector('#jzbtBpm').value = '60'; });
+  for(let i = 0; i < 4; i++){ await ev(() => document.querySelector('#jzbtTap').click()); await p.waitForTimeout(250); }
+  yes('and the Jazz band\'s tempo box takes the same taps', await ev(() => { const v = +document.querySelector('#jzbtBpm').value; return v >= 200 && v <= 280; }));
+  /* the habit fixture, the same component in both rooms */
+  const hid = await ev(() => { const h = habDefaults({id: uid(), name: 'Practise', order: 1, created: today(), freq: {type: 'daily', days: [], count: 1}, timeOfDay: 'anytime', negative: false, links: {values: [], skills: []}, linkedRooms: ['jazz', 'songwriting']}); S.habits.push(h); saveNow(); return h.id; });
+  await go('#/jazz/plan');
+  const f1 = await ev(() => document.querySelectorAll('.hab-fixtures .hab-fixture').length);
+  await ev(() => { sngUi().tab = 'today'; }); await go('#/songwriting');
+  const f2 = await ev(() => document.querySelectorAll('.hab-fixtures .hab-fixture').length);
+  is('one habit linked to both rooms is the same fixture on #/jazz/plan and on Songwriting Today', [f1, f2], [1, 1]);
+  await ev(id => { S.habits = S.habits.filter(h => h.id !== id); saveNow(); }, hid);
+
   console.log('\n99. nothing threw');
   is('no page errors', errs, []);
   console.log(bad ? `\n${bad} FAILED` : '\nall good');

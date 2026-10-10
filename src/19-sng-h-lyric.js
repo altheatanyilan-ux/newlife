@@ -150,7 +150,7 @@ SNG_TOOL_VIEWS['lyric-sheet'] = {
     const allLines = sections.flatMap(s => s.lines.map(l => l.text || ''));
     const pt = sngPovTense(allLines.join(' '));
     return `<div class="sng-row"><span class="mono faint">sheet</span><select class="inp" id="lsSong"><option value="">scratch sheet</option>${st.songs.map(s => `<option value="${s.id}" ${u.sheetSong === s.id ? 'selected' : ''}>${esc(s.title)}</option>`).join('')}</select>
-      <span class="grow"></span><span class="muted">Press a syllable to mark it strong or weak; the rest is measured as you type.</span></div>
+      <span class="grow"></span><span class="muted">Press a syllable to mark it strong or weak; the rest is measured as you type. ${typeof studioHonestyBadge === 'function' ? studioHonestyBadge('heuristic') : ''}</span></div>
     ${sections.map((sec, si) => { const stab = sngStability(sec); const prevSec = sections[si - 1]; const con = prevSec ? sngContrast(prevSec, sec) : null;
       const lines = sec.lines.map(l => l.text || ''); const cl = sngClicheFlags(lines.filter(Boolean)); const shown = sngShowTell(lines.join(' '));
       const nextIsChorus = sections[si + 1] && sections[si + 1].type === 'chorus' && sec.type !== 'chorus';

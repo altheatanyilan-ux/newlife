@@ -584,7 +584,7 @@ function jazzBackingHTML(id){
     <div class="jzb-h"><span class="sc">🥁 Play-Along</span><span class="grow"></span><span class="mono faint" id="jzbSay"></span></div>
     <div class="jzb-row">
       <button class="btn sm primary jzb-go" id="jzbGo">▶ Play with band</button>
-      <label class="mono jzb-f">♩ = <input class="inp sm mono" type="number" id="jzbBpm" min="30" max="360" value="${s.bpm}"></label>
+      <label class="mono jzb-f">♩ = <input class="inp sm mono" type="number" id="jzbBpm" min="30" max="360" value="${s.bpm}"></label>${typeof studioTapTempo === 'function' ? '<button class="tbtn" id="jzbTap" title="tap the beat three times or more">tap</button>' : ''}
       <label class="mono jzb-f" title="from straight (50:50) to hard swing (70:30); loosens by itself past ♩=220">swing
         <input type="range" id="jzbSwing" min="50" max="70" step="1" value="${Math.round(s.swingRatio * 100)}">
         <b id="jzbSwingV">${Math.round(s.swingRatio * 100)}:${100 - Math.round(s.swingRatio * 100)}</b></label>
@@ -633,6 +633,7 @@ function bindJazzBacking(root, id){
      and your part are heard at once */
   const again = () => { if(live()) jzbStart(root, id); };
   $b('#jzbGo').onclick = () => { sound('click'); if(live()) jzbStop('stopped'); else jzbStart(root, id); };
+  if(typeof studioTapForInput === 'function') studioTapForInput($b('#jzbTap'), $b('#jzbBpm'), 30, 360);
   $b('#jzbBpm').onchange = () => { const v = +$b('#jzbBpm').value; if(!(v >= 30 && v <= 360)){ $b('#jzbBpm').value = jzbSettings(id).bpm; return; }
     const s = jzbSave(id, {bpm: Math.round(v)}); const r = live();
     if(r){ r.settings.bpm = s.bpm; r.player.set('bpm', s.bpm);

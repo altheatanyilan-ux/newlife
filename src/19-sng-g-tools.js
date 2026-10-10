@@ -109,7 +109,7 @@ SNG_TOOL_VIEWS['chord-lab'] = {
     const fam = u.labFam || '', mood = u.labMood || '';
     const families = [...new Set(SNG_STYLES.map(s => s.family))], moods = [...new Set(SNG_STYLES.flatMap(s => s.mood))].sort();
     const shown = SNG_STYLES.filter(s => (!fam || s.family === fam) && (!mood || s.mood.includes(mood)));
-    return `<p class="muted sng-note">The sounds are synthesized and the patterns are simplified standard versions — adjust by ear.</p>
+    return `<p class="muted sng-note">${typeof studioHonestyBadge === 'function' ? studioHonestyBadge('simplified') + ' ' : ''}The sounds are synthesized and the patterns are simplified standard versions — adjust by ear.</p>
     <div class="sng-lab">
       <section class="card sng-lab-key">
         <div class="sng-row"><label class="mono faint">key <select class="inp" id="labKey">${SNG_NOTE_NAMES.map((n, i) => { const dot = typeof studioKeyDot === 'function' ? studioKeyDot(i, L.colour) : {mark: '', title: ''};
@@ -194,9 +194,10 @@ SNG_TOOL_VIEWS['chord-lab'] = {
     const bpm = v => { L.bpm = Math.max(30, Math.min(260, Math.round(v))); live('bpm', L.bpm); saveNow(); const a = q('#labBpm'), r = q('#labBpmR'); if(a && document.activeElement !== a) a.value = L.bpm; if(r) r.value = L.bpm; };
     q('#labBpm').onchange = e => bpm(+e.target.value);
     q('#labBpmR').oninput = e => bpm(+e.target.value);
-    const taps = [];
+    if(typeof studioTapTempo === 'function') studioTapTempo(q('#labTap'), bpm);
+    else { const taps = [];
     q('#labTap').onclick = () => { const t = performance.now(); if(taps.length && t - taps[taps.length - 1] > 2000) taps.length = 0; taps.push(t);
-      if(taps.length >= 3){ const d = (taps[taps.length - 1] - taps[0]) / (taps.length - 1); bpm(60000 / d); } };
+      if(taps.length >= 3){ const d = (taps[taps.length - 1] - taps[0]) / (taps.length - 1); bpm(60000 / d); } }; }
     /* the style */
     $$('[data-labstyle]', host).forEach(b => b.onclick = () => { const s = SNG_STYLES.find(x => x.id === b.dataset.labstyle); if(!s) return;
       L.styleId = s.id; L.bpm = Math.max(s.bpmRange[0], Math.min(s.bpmRange[1], L.bpm)); L.swing = s.swing || 0; L.anticipation = null; L.grid = null;
@@ -342,8 +343,9 @@ function sngGmGrid(g){
 /* ---------- the Writer's-Block Deck ---------- */
 SNG_TOOL_VIEWS['block-deck'] = {
   html(){ const u = sngUi(); const c = SNG_BLOCK_CARDS[u.blockCard != null ? u.blockCard : 0];
-    return `<div class="card sng-block"><p class="serif sng-block-t">${esc(c.text)}</p><p class="mono faint">${esc(c.source)}</p>
-      <div class="sng-row"><button class="btn primary" id="blockNext">Draw another</button>${c.tool ? `<a class="tbtn" href="#/songwriting/tool/${esc(c.tool)}">Open the ${esc(sngToolName(c.tool))}</a>` : ''}</div></div>
+    const inner = `<p class="serif sng-block-t">${esc(c.text)}</p><p class="mono faint">${esc(c.source)}</p>
+      <div class="sng-row"><button class="btn primary" id="blockNext">Draw another</button>${c.tool ? `<a class="tbtn" href="#/songwriting/tool/${esc(c.tool)}">Open the ${esc(sngToolName(c.tool))}</a>` : ''}</div>`;
+    return `${typeof studioCardDeck === 'function' ? studioCardDeck({title: 'Writer’s-Block Deck', count: `${SNG_BLOCK_CARDS.length} cards`, cls: 'card sng-block', body: inner}) : `<div class="card sng-block">${inner}</div>`}
       <p class="muted">${SNG_BLOCK_CARDS.length} techniques, each from the book named on it. Take the card literally for ten minutes.</p>`; },
   bind(host){ host.querySelector('#blockNext').onclick = () => { const u = sngUi(); let n; do { n = Math.floor(Math.random() * SNG_BLOCK_CARDS.length); } while(n === u.blockCard && SNG_BLOCK_CARDS.length > 1); u.blockCard = n; rerender(); }; }
 };
@@ -364,7 +366,6 @@ SNG_TOOL_VIEWS['metronome'] = {
       rerender(); };
     q('#metBpm').onchange = e => { u.metBpm = Math.max(30, Math.min(260, +e.target.value || 90)); };
     q('#metPer').onchange = e => { u.metPer = +e.target.value; };
-    const taps = []; q('#metTap').onclick = () => { const t = performance.now(); if(taps.length && t - taps[taps.length - 1] > 2000) taps.length = 0; taps.push(t);
-      if(taps.length >= 3){ u.metBpm = Math.round(60000 / ((taps[taps.length - 1] - taps[0]) / (taps.length - 1))); q('#metBpm').value = u.metBpm; } };
+    studioTapTempo(q('#metTap'), b => { u.metBpm = Math.max(30, Math.min(260, b)); q('#metBpm').value = u.metBpm; });
   }
 };

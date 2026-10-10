@@ -182,7 +182,7 @@ function jazzAccuracyHTML(ex){
   const a = jazzAccuracy(ex);
   return `<div class="jz-doubt" data-jzacc="${esc(ex.acc)}">
     <span class="jz-doubti" aria-hidden="true">${a.tone === 'bad' ? '\u26a0' : '\u203c'}</span>
-    <div><b>${a.tone === 'bad' ? 'These notes have not been verified' : 'These notes are approximate'}</b>
+    <div><b>${a.tone === 'bad' ? 'These notes have not been verified' : 'These notes are approximate'}</b>${typeof studioHonestyBadge === 'function' ? ' ' + studioHonestyBadge('accuracy', {text: a.short + ' notes', title: a.said}) : ''}
       <p>${esc(a.said)}${ex.source ? ` \u2014 ${esc(ex.source)}` : ''}</p></div></div>`;
 }
 /* The citation, with the page range and what to look for on it, and a button
@@ -195,7 +195,7 @@ function jazzReferenceHTML(ex){
   return `<div class="jz-ref">
     <div class="jz-refhead">
       <span class="jz-refi" aria-hidden="true">\u{1f4d6}</span>
-      <span><b>${esc(r.bookFull)}</b>${where ? `<span class="mono jz-refwhere">${esc(where)}</span>` : ''}</span>
+      <span><b>${esc(r.bookFull)}</b>${where ? (typeof studioSourceChip === 'function' ? studioSourceChip({where, icon: false, cls: 'jz-refwhere'}) : `<span class="mono jz-refwhere">${esc(where)}</span>`) : ''}</span>
       <button class="tbtn" data-jzcite="${esc(jazzCitation(r))}" title="copy the citation">copy</button>
     </div>
     ${r.description ? `<p class="jz-refwhat">${esc(r.description)}</p>` : ''}</div>`;
@@ -315,8 +315,8 @@ function jazzStageHTML(s, here){
             <span class="jz-subn mono">${esc(jazzV3Label(ex))}</span>
             <span class="jz-subt">${jazzV3TypePill(ex, true)} ${jazzTierBadgeHTML(id, true)} ${esc(ex.name)}${
               jazzHasScore(ex) ? '' : '<span class="jz-nodraw mono">no notation</span>'}${
-              jazzTrusted(ex) ? '' : `<span class="jz-nodraw mono jz-unver" title="${
-                esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}${
+              jazzTrusted(ex) ? '' : `${typeof studioHonestyBadge === 'function' ? studioHonestyBadge('accuracy', {text: jazzAccuracy(ex).short + ' notes', title: jazzAccuracy(ex).said, cls: 'jz-nodraw jz-unver'})
+              : `<span class="jz-nodraw mono jz-unver" title="${esc(jazzAccuracy(ex).said)}">${esc(jazzAccuracy(ex).short)} notes</span>`}`}${
               jazzEdited(id) ? '<span class="jz-editpill mono" title="you have edited this score">✏️ edited</span>' : ''}${
               jazzV3ConflictPillHTML(id)}</span>
             ${single ? `<span class="jz-keys jz-one"><i class="${r.done ? 'on' : ''}" title="${r.done ? 'done' : 'not yet'}"></i></span>
@@ -467,7 +467,7 @@ function jazzExerciseHTML(id){
   return `<div class="row between" style="align-items:baseline;gap:10px;flex-wrap:wrap">
       <button class="btn sm ghost" id="jzBack">← the roadmap</button>
       <span class="mono faint">${at ? `${esc(jazzV3Label(ex))} · Stage ${esc(String(at.stage.n))} — ${esc(at.stage.name)}` : ''}</span></div>
-    <h1 class="serif" style="margin-top:8px">${esc(ex.name)} ${jazzV3TypePill(ex)}</h1>
+    <h1 class="serif" style="margin-top:8px">${esc(ex.name)} ${jazzV3TypePill(ex)}${ex.v3gen && typeof studioHonestyBadge === 'function' ? ' ' + studioHonestyBadge('sentence') : ''}</h1>
     <div class="jz-tierrow">${jazzTierBadgeHTML(id)}
       <label class="mono faint">tier <select class="sel sm" id="jzTierSet">${JAZZ_TIERS.map(t =>
         `<option value="${t.id}" ${jazzTierOf(id) === t.id ? 'selected' : ''}>${t.badge} ${esc(t.label.toLowerCase())}</option>`).join('')}</select></label>

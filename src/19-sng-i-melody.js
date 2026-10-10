@@ -310,13 +310,16 @@ SNG_TOOL_VIEWS['melody-gen'] = {
         <label class="sng-check"><input type="checkbox" data-gen="titleDown" ${g.titleDown ? 'checked' : ''}> the title on the downbeat</label>
       </div>
       <label class="sng-field"><span>A lyric to set (optional): its syllables and stresses make the rhythm</span><textarea class="inp sng-ta" rows="2" data-gen="lyric">${esc(g.lyric || '')}</textarea></label></details>
-      <div class="sng-row"><button class="btn primary" id="genGo">Generate</button><button class="tbtn" id="genNew">new seed</button><span class="mono faint">seed ${g.seed}</span>
+      <div class="sng-row"><button class="btn primary" id="genGo">Generate</button>${typeof studioSeedControl === 'function' ? studioSeedControl({seed: g.seed, sameId: 'genSame', newId: 'genNew', what: 'melody', label: 'the melody’s seed', newTitle: 'another melody, by the same rules'})
+          : `<button class="tbtn" id="genNew">new seed</button><span class="mono faint">seed ${g.seed}</span>`}
         <span class="grow"></span><span class="mono faint">nudge</span>${[['stable', 'more stable'], ['leaps', 'more leaps'], ['climax', 'higher climax'], ['sync', 'more syncopation'], ['resolved', 'more resolved']].map(([k, n]) => `<button class="tbtn" data-nudge="${k}">${n}</button>`).join('')}</div></div>
     <div class="card">${sngRollHTML(mel, res.lo, res.hi)}
       <div class="sng-row"><button class="btn" id="genPlay">▶ Play</button><button class="tbtn" id="genAccept">Accept into the Sketcher</button><button class="tbtn" id="genSix">Six over this progression</button><button class="tbtn" id="genSave">Save these controls as mine</button><button class="tbtn" id="genMidi">MIDI</button></div>
       <div class="sng-comply">${comp.map(([t, ok]) => `<span class="${ok ? 'ok' : 'no'}">${ok ? '✓' : '·'} ${esc(t)}</span>`).join('')}</div>
-      <details class="sng-why"><summary class="mono faint">explain this melody</summary><ol>${res.notes.map(n => n.midi == null ? '' : `<li><b>${esc(sngMidiName(n.midi))}</b> at beat ${(n.t + 1).toFixed(1)} — ${esc((n.why || []).join('; '))}</li>`).join('')}</ol>
-        <p class="muted">The rules in force: ${esc(res.rules.join(' · '))}.</p></details></div>
+      ${typeof studioExplainPanel === 'function' ? studioExplainPanel({title: 'Explain this melody', open: false, groups: [{items: res.notes.filter(n => n.midi != null).map(n => ({note: sngMidiName(n.midi), where: `beat ${(n.t + 1).toFixed(1)}`, why: (n.why || []).join('; ')}))}],
+        foot: `The rules in force: ${res.rules.join(' · ')}.`})
+      : `<details class="sng-why"><summary class="mono faint">explain this melody</summary><ol>${res.notes.map(n => n.midi == null ? '' : `<li><b>${esc(sngMidiName(n.midi))}</b> at beat ${(n.t + 1).toFixed(1)} — ${esc((n.why || []).join('; '))}</li>`).join('')}</ol>
+        <p class="muted">The rules in force: ${esc(res.rules.join(' · '))}.</p></details>`}</div>
     ${u.genSix ? sngGenSixHTML(g) : ''}
     <div class="card sng-contrast"><div class="sng-card-h"><b>Section contrast</b><span class="mono faint">verse low and stepwise, chorus higher with leaps and the title on the downbeat</span></div>
       <button class="tbtn" id="genContrast">make a verse and a chorus</button>${u.genPair ? `<p class="muted">Verse (seed ${u.genPair.v}) and chorus (seed ${u.genPair.c}) are in the Sketcher.</p>` : ''}</div>`;
@@ -336,6 +339,7 @@ SNG_TOOL_VIEWS['melody-gen'] = {
     q('#genProg').onchange = e => { const p = e.target.value.split(/[\s,–-]+/).filter(Boolean); if(p.every(r => sngParseRoman(r))) g.prog = p; else toast('Roman numerals, like vi IV I V.'); redraw(); };
     q('#genFromLab').onclick = () => { const L = sngLabState(); g.prog = L.prog.slice(0, 8); g.keyPc = L.keyPc; redraw(); };
     q('#genGo').onclick = () => { u.genRes = null; rerender(); };
+    const gs = q('#genSame'); if(gs) gs.onclick = () => { u.genRes = null; rerender(); setTimeout(() => { const pl = document.querySelector('#genPlay'); if(pl) pl.click(); }, 60); };
     q('#genNew').onclick = () => { g.seed = (g.seed * 7919 + 13) % 99991 || 1; u.genRes = null; redraw(); };
     $$('[data-nudge]', host).forEach(b => b.onclick = () => { const k = b.dataset.nudge;
       if(k === 'stable') g.stable = Math.min(95, g.stable + 15); else if(k === 'leaps'){ g.steps = Math.max(20, g.steps - 15); g.maxLeap = Math.min(12, g.maxLeap + 2); }

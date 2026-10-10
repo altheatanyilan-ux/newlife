@@ -229,6 +229,7 @@ function jazzProgressHTML(){
       ${(() => { const r = jazzReadiness(active[0].id);
         return `${r.rows.map(row => `<div class="jz-rrow${row.ok ? ' on' : ''}">
           <span>${row.ok ? '☑' : '☐'}</span><span>${esc(row.said)}</span></div>`).join('')}
+        ${typeof studioProgress === 'function' ? studioProgress({done: r.met, of: r.of, label: 'Readiness'}) : ''}
         <p class="jz-rsaid">${r.met} of ${r.of} met. These are suggestions — the button below
           works whatever they say.</p>
         <button class="btn sm primary" data-jzfinish="${esc(active[0].id)}">Finish this stage</button>`; })()}

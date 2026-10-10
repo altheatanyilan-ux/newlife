@@ -216,7 +216,7 @@ function jazzRecordHTML(){
       <h1 class="serif" style="margin:0">Recording</h1>
       <button class="btn sm ghost" data-jzgo="#/jazz">← the roadmap</button></div>
     <div class="jzt-doc">${jazzV3FeatureHTML('4B')}</div>
-    <p class="mono faint">${all.length} recordings kept in this browser.</p>
+    <p class="mono faint">${all.length} recordings kept in this browser.</p>${typeof studioDeviceLocalNote === 'function' ? studioDeviceLocalNote() : ''}
     <div class="jzt-grid">${Object.keys(JAZZ_REC_KINDS).map(k => `<div class="jzt-tool"><span class="sc">${esc(JAZZ_REC_KINDS[k].name)}</span>
       ${jazzRecToolHTML(k, '')}</div>`).join('')}</div>`;
 }

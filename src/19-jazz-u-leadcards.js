@@ -393,7 +393,7 @@ function jazzLeadCardsHTML(mode){
       <button class="btn sm ghost" data-jzgo="#/jazz">← the roadmap</button></div>
     ${jazzCardTabsHTML(mode)}
     <p class="page-blurb">${esc(JAZZ_LEAD_SAID[mode])} <span class="faint">Curriculum v3, Section 4A.</span></p>
-    <div id="jzlHost" data-mode="${esc(mode)}"></div>`;
+    ${typeof studioCardDeck === 'function' ? studioCardDeck({title: 'Lead-sheet cards', cls: 'jz-deck', body: `<div id="jzlHost" data-mode="${esc(mode)}"></div>`}) : `<div id="jzlHost" data-mode="${esc(mode)}"></div>`}`;
 }
 function jzlStageSelectHTML(n){
   const st = jazzStages().filter(s => /^(P0|\d+)$/.test(String(s.id)));

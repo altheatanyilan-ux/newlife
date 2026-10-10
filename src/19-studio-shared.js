@@ -1279,3 +1279,73 @@ function studioKeyDotLegend(colour){
   const o = studioOwnedKeyPcs(colour);
   return o.pcs.size ? `<span class="mono faint studio-dotlegend" title="Information only">● you own ${esc(o.said)} in this key (Jazz Studio)</span>` : '';
 }
+
+/* ============================================================
+   ONE VOCABULARY FOR BOTH ROOMS
+
+   Small presentational pieces the two rooms used to say each in their own way. Each
+   changes how something is drawn and worded, never what it does.
+   ============================================================ */
+
+/* "Seed 48213 · Same again · New": the same seed gives the same output (jazz soloist, melody generator) */
+function studioSeedControl(o){
+  return `<span class="studio-seed" role="group" aria-label="${esc(o.label || 'seed')}">
+    <span class="mono faint studio-seed-n" title="the same seed gives the same ${esc(o.what || 'result')}">Seed ${esc(String(o.seed))}</span>
+    <button class="tbtn" id="${esc(o.sameId)}" title="play the same ${esc(o.what || 'result')} again">Same again</button>
+    <button class="tbtn" id="${esc(o.newId)}" title="${esc(o.newTitle || 'another one, by the same rules')}">New</button></span>`;
+}
+/* the per-note rules behind "show the solo" and "Explain this melody": one layout, one wording ("what it measured") */
+function studioExplainPanel(o){
+  const groups = (o.groups || []).filter(g => g.items && g.items.length);
+  return `<details class="studio-explain"${o.open === false ? '' : ' open'}>
+    <summary class="mono">${esc(o.title)} <span class="faint">— what it measured</span></summary>
+    <div class="studio-explain-body">${groups.map(g => `<div class="studio-explain-g">${g.head ? `<span class="mono faint">${esc(g.head)}</span>` : ''}
+      <ul>${g.items.map(i => `<li${i.title ? ` title="${esc(i.title)}"` : ''}><b>${esc(i.note)}</b>${i.where ? ` <span class="faint">${esc(i.where)}</span>` : ''} <span class="studio-explain-why">${esc(i.why || '')}</span></li>`).join('')}</ul></div>`).join('')}</div>
+    ${o.foot ? `<p class="faint studio-explain-foot">${esc(o.foot)}</p>` : ''}</details>`;
+}
+/* advice, never a lock: one bar and one tooltip for the stage rooms' lit-ness and the readiness count */
+function studioProgress(o){
+  const of = Math.max(0, +o.of || 0), done = Math.max(0, Math.min(of, +o.done || 0));
+  const pct = of ? Math.round(done / of * 100) : (o.pct || 0);
+  const tip = `${o.label ? o.label + ' — ' : ''}${of ? `${done} of ${of}` : pct + '%'}. Advice, not a lock.`;
+  return `<span class="studio-prog" role="img" aria-label="${esc(tip)}" title="${esc(tip)}" style="--lit:${(pct / 100).toFixed(2)}"><i style="width:${pct}%"></i></span>`;
+}
+/* a citation: book · unit or chapter · page */
+function studioSourceChip(o){
+  const parts = [o.book, o.where, o.page ? (/^p/i.test(o.page) ? o.page : 'p. ' + o.page) : ''].filter(Boolean);
+  if(!parts.length) return '';
+  return `<span class="studio-src mono${o.cls ? ' ' + esc(o.cls) : ''}" title="${esc(o.title || parts.join(' · '))}">${o.icon === false ? '' : '📖 '}${parts.map(esc).join(' · ')}</span>`;
+}
+/* "Hooktheory I ch1" → the book and where in it; anything else is all book */
+function studioSourceFromText(text){
+  const m = /^(.*?)\s+((?:ch|chap|chapter|unit|p|pp)\b\.?.*)$/i.exec(String(text || '').trim());
+  return m ? {book: m[1], where: m[2]} : {book: String(text || '').trim()};
+}
+/* "written from a sentence", "approximate notes", "heuristic", "simplified standard version" */
+const STUDIO_HONESTY = {
+  sentence: ['written from a sentence', 'This score was written from the book’s one-line description of it, not copied from a printed page.'],
+  heuristic: ['heuristic', 'A rule of thumb: it counts and compares, and does not understand. Take it as a prompt, not a verdict.'],
+  simplified: ['simplified standard version', 'The pattern is a simplified standard version, played by synthesised sounds — adjust by ear.']};
+function studioHonestyBadge(kind, o){
+  o = o || {};
+  const d = STUDIO_HONESTY[kind] || [kind, ''];
+  return `<span class="studio-honest studio-honest-${esc(kind)}${o.cls ? ' ' + esc(o.cls) : ''}" tabindex="0" title="${esc(o.title || d[1])}">${esc(o.text || d[0])}</span>`;
+}
+/* a shared frame for a card in a deck; what is on it, how it is dealt and how it is graded stay in each room */
+function studioCardDeck(o){
+  return `<section class="studio-deck${o.cls ? ' ' + esc(o.cls) : ''}" ${o.attrs || ''}>
+    <header class="studio-deck-h"><b class="serif">${esc(o.title || '')}</b>${o.count != null ? `<span class="mono faint">${esc(String(o.count))}</span>` : ''}</header>
+    <div class="studio-deck-card">${o.body || ''}</div>
+    ${o.foot ? `<footer class="studio-deck-f">${o.foot}</footer>` : ''}</section>`;
+}
+/* tap tempo: three taps or more, a pause of two seconds starts again */
+function studioTapTempo(btn, onBpm){
+  if(!btn) return;
+  const taps = [];
+  btn.onclick = () => { const t = performance.now(); if(taps.length && t - taps[taps.length - 1] > 2000) taps.length = 0; taps.push(t);
+    if(taps.length >= 3){ const d = (taps[taps.length - 1] - taps[0]) / (taps.length - 1); onBpm(Math.round(60000 / d)); } };
+}
+/* a tap button beside a tempo box that already has its own change handling */
+function studioTapForInput(btn, input, lo, hi){
+  studioTapTempo(btn, bpm => { if(!input) return; input.value = String(Math.max(lo, Math.min(hi, bpm))); input.dispatchEvent(new Event('change', {bubbles: true})); });
+}

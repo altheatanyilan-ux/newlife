@@ -114,7 +114,7 @@ function jazzCardHTML(){
   const card = f.cards[f.at];
   const ex = jazzExercise(card.exerciseId);
   if(!ex) return '<div class="empty">That exercise is no longer in the book.</div>';
-  return `<div class="jz-card">
+  return `${typeof studioCardDeck === 'function' ? '<section class="studio-deck studio-deck-bare" aria-label="Flashcards">' : ''}<div class="jz-card">
     <div class="row between" style="align-items:baseline">
       <span class="mono faint">card ${f.at + 1} of ${f.cards.length}</span>
       <button class="tbtn" id="jzQuit">stop</button></div>
@@ -151,7 +151,7 @@ function jazzCardHTML(){
       <div class="row" style="justify-content:center;margin-top:26px">
         <button class="btn primary lg" id="jzShow">Show me</button></div>
       <p class="jz-chint mono">play it first — the card is worth nothing if you look</p>`}
-  </div>`;
+  </div>${typeof studioCardDeck === 'function' ? '</section>' : ''}`;
 }
 function bindJazzCard(root){
   if(typeof bindJazzBandCard === 'function' && jazzBandCardSettings().on){ bindJazzBandCard(root); return; }

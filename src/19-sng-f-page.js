@@ -154,7 +154,7 @@ function sngPathHTML(){
       return `<a class="sng-room${pct === 100 ? ' done' : pct ? ' lit' : ''}" href="#/songwriting/stage/${s.id}" style="--lit:${(pct / 100).toFixed(2)}">
         <span class="sng-room-n mono">${s.id}</span><span class="sng-room-t serif">${esc(s.name)}</span>
         <span class="sng-room-s muted">${esc(s.subtitle)}</span>
-        <span class="sng-room-bar"><i style="width:${pct}%"></i></span><span class="mono faint">${pct}% · ${s.exercises.filter(e => st.outputs[e.id]).length}/${s.exercises.length}</span></a>`; }).join('')}
+        ${typeof studioProgress === 'function' ? studioProgress({pct, label: `Stage ${s.id}`}).replace('class="studio-prog"', 'class="studio-prog sng-room-bar"') : `<span class="sng-room-bar"><i style="width:${pct}%"></i></span>`}<span class="mono faint">${pct}% · ${s.exercises.filter(e => st.outputs[e.id]).length}/${s.exercises.length}</span></a>`; }).join('')}
       <a class="sng-room capstone" href="#/songwriting/capstone"><span class="sng-room-n mono">★</span><span class="sng-room-t serif">${esc(SNG_CAPSTONE.name)}</span>
         <span class="sng-room-s muted">Capstone</span><span class="mono faint">${sngState().songs.filter(s => s.capstone && s.status === 'finished').length}/3 songs</span></a>
     </div>`;
@@ -164,7 +164,7 @@ function sngStageHTML(id){
   if(!s) return sngPathHTML();
   return `<a class="tbtn" href="#/songwriting/path">← the Path</a>
     <h2 class="serif sng-stage-t">${s.id}. ${esc(s.name)} <span class="muted">— ${esc(s.subtitle)}</span></h2>
-    <p class="sng-promise">${esc(s.promise)}</p><p class="mono faint">${s.books.map(esc).join(' · ')}</p>
+    <p class="sng-promise">${esc(s.promise)}</p><p class="mono faint">${s.books.map(b => typeof studioSourceChip === 'function' ? studioSourceChip(studioSourceFromText(b)) : esc(b)).join(' ')}</p>
     <div class="sng-exlist">${s.exercises.map(e => { const o = st.outputs[e.id];
       return `<a class="sng-ex${o ? ' done' : ''}" href="#/songwriting/ex/${esc(e.id)}"><span class="mono">${esc(e.id)}</span>
         <span class="sng-ex-t"><b>${esc(e.title)}</b><span class="muted">${esc(e.purpose)}</span></span>
@@ -179,7 +179,7 @@ function sngExerciseHTML(ex){
       ${prev ? `<a class="tbtn" href="#/songwriting/ex/${esc(prev.id)}">‹ ${esc(prev.id)}</a>` : ''}${next ? `<a class="tbtn" href="#/songwriting/ex/${esc(next.id)}">${esc(next.id)} ›</a>` : ''}</div>
     <article class="card sng-exercise" data-sngex="${esc(ex.id)}">
       <div class="sng-card-h"><span class="mono faint">${esc(ex.id)}</span><h2 class="serif">${esc(ex.title)}</h2></div>
-      <p class="mono faint">${esc(ex.source)}</p>
+      <p class="mono faint">${typeof studioSourceChip === 'function' ? studioSourceChip(studioSourceFromText(ex.source)) : esc(ex.source)}</p>
       <h4>Why this exercise</h4><p>${esc(ex.purpose)}</p>
       ${ex.constraints ? `<p class="sng-constraint">⏱ ${esc(ex.constraints)}</p>` : ''}
       <h4>Instructions</h4><ol class="sng-steps">${(ex.instructions || []).map(x => `<li>${esc(x)}</li>`).join('')}</ol>
@@ -234,7 +234,7 @@ function sngSeedsHTML(){
       <button class="tbtn" id="sngMemoNew">🎙 Voice memo</button>
       <input class="inp" id="sngSeedFind" placeholder="find…" value="${esc(u.seedFilter || '')}">
       <select class="inp" id="sngSeedType"><option value="">every kind</option>${SNG_SEED_TYPES.map(([k, n]) => `<option value="${k}" ${u.seedType === k ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
-    <p class="muted">Lines, images, titles, progressions, melodies, memos — anything worth keeping, from any tool. Voice memos stay on this device.</p>
+    <p class="muted">Lines, images, titles, progressions, melodies, memos — anything worth keeping, from any tool.</p>${typeof studioDeviceLocalNote === 'function' ? studioDeviceLocalNote() : '<p class="muted">Voice memos stay on this device.</p>'}
     ${list.length ? `<div class="sng-seeds">${list.map(s => `<div class="card sng-seed" data-sngseed="${esc(s.id)}">
       <div class="sng-card-h"><span class="chip">${esc((SNG_SEED_TYPES.find(t => t[0] === s.type) || ['', s.type])[1])}</span><span class="mono faint">${esc((s.createdAt || '').slice(0, 10))}${s.source ? ` · ${typeof studioSeedSourceHTML === 'function' ? studioSeedSourceHTML(s.source) : esc(s.source)}` : ''}</span>
         <button class="del-x inline" data-sngseeddel="${esc(s.id)}" aria-label="throw it away">×</button></div>
@@ -261,7 +261,7 @@ function sngSeedModal(pre){
 async function sngMemoFlow(){
   let rec;
   try { rec = await sngRecord(); } catch(e){ sngMemoFromFile(e && e.message); return; }
-  const m = openModal(`<h2>🎙 Recording…</h2><p class="muted">Sing or play the idea. It stays on this device.</p><button class="btn primary" id="sngMemoStop">■ Stop and keep</button>`);
+  const m = openModal(`<h2>🎙 Recording…</h2><p class="muted">Sing or play the idea.</p>${typeof studioDeviceLocalNote === 'function' ? studioDeviceLocalNote() : ''}<button class="btn primary" id="sngMemoStop">■ Stop and keep</button>`);
   m.querySelector('#sngMemoStop').onclick = async () => { const blob = await rec.stop(); m.remove(); await sngMemoKeep(blob); };
 }
 function sngMemoFromFile(why){

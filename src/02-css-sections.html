@@ -9296,8 +9296,8 @@ html[data-theme="dark"] .sc-nb-chart{--nb-s1:#3987e5;--nb-s2:#d95926;--nb-t:#c3c
    Quiet by design: the site's cards and type, one accent, a thin line
    between things. Colour is used only where it says something — how lit a
    stage is, a chord's function, a note's role on the keyboard. */
-.sng-page{--sng-t:#7f916a;--sng-pd:#b08968;--sng-d:#5c7c8a;--sng-out:#8a7f9e;--sng-warm:#c9a96e}
-html[data-theme="dark"] .sng-page{--sng-t:#9db287;--sng-pd:#caa384;--sng-d:#86a6b3;--sng-out:#aea3c2;--sng-warm:#d9bc84}
+.sng-page{--sng-t:#7f916a;--sng-pd:#b08968;--sng-d:#5c7c8a;--sng-out:#8a7f9e;--sng-warm:var(--studio-ramp-fill)}
+html[data-theme="dark"] .sng-page{--sng-t:#9db287;--sng-pd:#caa384;--sng-d:#86a6b3;--sng-out:#aea3c2;--sng-warm:var(--studio-ramp-fill)}
 .sng-head{display:flex;align-items:flex-start;gap:16px;justify-content:space-between}
 .sng-lede{max-width:70ch;margin:4px 0 0}
 .sng-ring{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:inherit;flex:none}
@@ -9333,7 +9333,7 @@ html[data-theme="dark"] .sng-page{--sng-t:#9db287;--sng-pd:#caa384;--sng-d:#86a6
 .sng-room.done{border-color:color-mix(in srgb,var(--sng-warm) 70%,var(--line))}
 .sng-room.capstone{border-style:dashed}
 .sng-room-n{font-size:.72rem;opacity:.7}.sng-room-t{font-size:1.05rem}.sng-room-s{font-size:.78rem}
-.sng-room-bar{height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin-top:6px}.sng-room-bar i{display:block;height:100%;background:var(--sng-warm)}
+.sng-room-bar{height:4px;border-radius:2px;background:var(--studio-ramp-track);overflow:hidden;margin-top:6px}.sng-room-bar i{display:block;height:100%;background:var(--studio-ramp-fill)}
 .sng-stage-t{margin:10px 0 2px}.sng-promise{font-style:italic;margin:2px 0}
 .sng-exlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--surface)}
 .sng-ex{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:9px 12px;border:0;border-bottom:1px solid var(--line);
@@ -12604,6 +12604,26 @@ html[data-theme="light"] .ls-fog-overlay{background:rgba(240,238,233,.82);backdr
 .studio-dotlegend{margin-left:8px}
 .studio-melbtns{display:inline-flex;gap:6px;flex-wrap:wrap}
 .studio-local{margin:4px 0 0;font-size:.78rem}
+/* shared pieces */
+:root{--studio-ramp-track:var(--line);--studio-ramp-fill:#c9a96e;--studio-honest-fg:var(--muted);--studio-honest-bd:var(--line-2)}
+html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
+.studio-prog{display:block;height:4px;border-radius:2px;background:var(--studio-ramp-track);overflow:hidden;margin-top:6px;min-width:60px}
+.studio-prog i{display:block;height:100%;background:var(--studio-ramp-fill)}
+.studio-seed{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+.studio-explain{margin:8px 0;font-size:.82rem}
+.studio-explain>summary{cursor:pointer}
+.studio-explain-g{border-top:1px solid var(--line);padding-top:4px;margin-top:6px}
+.studio-explain ul{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:2px 14px}
+.studio-explain b{font-family:var(--serif);font-weight:400}
+.studio-explain-why{color:var(--muted)}
+.studio-explain-foot{margin:6px 0 0}
+.studio-explain-body{max-height:320px;overflow:auto}
+.studio-src{display:inline-block;padding:1px 8px;border:1px solid var(--line);border-radius:999px;font-size:.72rem;color:var(--muted)}
+.studio-honest{display:inline-block;padding:0 8px;border:1px dashed var(--studio-honest-bd);border-radius:999px;font-size:.72rem;font-family:var(--mono);color:var(--studio-honest-fg);cursor:help;vertical-align:middle}
+.studio-deck{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:10px 12px;margin:10px 0}
+.studio-deck-bare{border:0;background:none;padding:0;margin:0}
+.studio-deck-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
+.studio-deck-f{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
 /* end studio synergy */
 </style>
 

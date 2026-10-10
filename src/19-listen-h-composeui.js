@@ -110,6 +110,7 @@ function jazzComposeHTML(){
         <button class="tbtn" data-cpuse="${t.id}">use as the piece</button>
         ${piece && !(piece.takeIds || []).includes(t.id) ? `<button class="tbtn" data-cpadd="${t.id}">add to the end</button>` : ''}
         ${t.source === 'mic' && !t.audioId && _cp.pcm && _cp.pcm.id === t.id ? `<button class="tbtn" data-cpkeep="${t.id}">keep the sound</button>` : ''}
+        ${t.audioId && typeof studioDeviceLocalNote === 'function' ? studioDeviceLocalNote() : ''}
         ${t.audioId ? `<button class="tbtn" data-cpplay="${t.id}">▶ the sound</button>` : ''}
         <button class="tbtn danger" data-cpdel="${t.id}">Delete take</button></div>`).join('')}</div></section>` : ''}
 
