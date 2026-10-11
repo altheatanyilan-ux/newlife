@@ -358,7 +358,8 @@ routes.today = function(root, params = []){
   /* which part of the week today is in, if the week was planned in parts */
   const wkPers = wkPlan && typeof weekPeriods === 'function' ? weekPeriods(wkPlan) : [];
   const wkNow = wkPlan && typeof weekPeriodOn === 'function' ? weekPeriodOn(wkPlan, T) : null;
-  const weekCarryHTML = () => (!wkPlan || (!wkGoals.length && !wkPlan.theme && !wkWins.length && !wkRisks.length && !wkPers.length)) ? '' :
+  const wkThr = wkPlan && typeof weekThreads === 'function' ? weekThreads(wkPlan) : [];
+  const weekCarryHTML = () => (!wkPlan || (!wkGoals.length && !wkPlan.theme && !wkWins.length && !wkRisks.length && !wkPers.length && !wkThr.length)) ? '' :
     `<div class="wk-carry">
       <div class="row between" style="align-items:baseline">
         <span class="sc" style="margin:0">This week</span>
@@ -378,6 +379,7 @@ routes.today = function(root, params = []){
         ${wkPers.length > 1 || !wkNow ? `<div class="wk-period-strip">${wkPers.map(x => `<span class="${x === wkNow ? 'on' : ''}" title="${esc(x.focus || '')}">${
           esc(wpSpan(x))}${x.name ? ` ${esc(x.name)}` : ''}</span>`).join('')}</div>` : ''}
       </div>` : ''}
+      ${wkThr.length ? `<div class="wk-threads"><span class="sc" style="margin:0">Threads</span><ul class="wk-thread-list">${wkThr.map(t => `<li class="wk-thread ${esc(t.kind)}${t.days.includes(T) ? ' today' : ''}"><span class="mono">${esc(WEEK_THREAD_KIND[t.kind])}</span><span class="wk-thread-text">${esc(t.text)}</span><span class="mono faint">${t.days.slice().sort().map(x => esc(wpDayShort(x))).join(' \u00b7 ')}</span></li>`).join('')}</ul></div>` : ''}
       ${wkGoals.length ? `<div class="wk-goals">${wkGoals.map(o => {
         const g = weekGoalProgress(o);
         return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
@@ -526,6 +528,7 @@ routes.today = function(root, params = []){
       ${planSection === 'week'
         ? weekCarryHTML() || `<div class="empty">No week plan yet. <button class="tbtn" id="planWeekHere2">Plan the week →</button></div>`
         : `${planT.why ? `<p class="plan-why">${esc(planT.why)}</p>` : ''}
+           ${typeof weekThreadsTodayHTML === 'function' ? weekThreadsTodayHTML(T) : ''}
            ${three.length ? `<ol class="today-three">${(planT.intentions || []).map((t, i) => t ? `<li class="${typeof pbdIntentionDone === 'function' && pbdIntentionDone(planT, i) ? 'done' : ''}">${typeof pbdIntentionDone === 'function' && pbdIntentionDone(planT, i) ? '\u2713 ' : ''}${esc(t)}${typeof pbdTopTwo === 'function' && pbdTopTwo(planT).includes(i) ? ' <span class="mono faint" title="one of the top two">\u2605</span>' : ''}</li>` : '').join('')}</ol>`
              : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
            ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
@@ -639,6 +642,7 @@ routes.today = function(root, params = []){
 
     <section class="today-view" data-view="in"${view === 'in' ? '' : ' hidden'}>
     ${typeof purposeText === 'function' && purposeText('statement') ? `<a class="pp-today mono-soft serif" href="#/purpose" title="the purpose sheet">${esc(purposeText('statement'))}</a>` : ''}
+    ${typeof weekThreadsTodayHTML === 'function' ? weekThreadsTodayHTML(T, 'turn') : ''}
 
     <div class="daybox daybox-solo">
 

@@ -531,6 +531,7 @@ function planMyDay(d = today()){
         r.doDay ? `<span class="d">on ${esc(taskDoSaid(r.task, 'short'))} — ticking brings it to ${dayWord}</span>`
         : r.day ? `<span class="d">due ${esc(fmtDate(r.day, 'short'))}</span>` : ''}</span></label></div>`;
   const weekPickHTML = () => (!stage && !weekRefs.length) ? '' : `<div class="plan-week-pick">
+    ${typeof weekThreadsTodayHTML === 'function' ? weekThreadsTodayHTML(d) : ''}
     ${stage ? `<div class="pick-group plan-stage">
       <div class="pick-glabel" style="--c:var(--page-accent)"><span>${esc(stage.name || 'This stage of the week')} <span class="faint">· ${esc(wpSpan(stage))}</span></span><span class="mono">${stageRefs.length}</span></div>
       ${stage.focus ? `<p class="plan-stage-focus">${esc(stage.focus)}</p>` : ''}
@@ -1153,6 +1154,9 @@ function weekPlan(wk){
   /* the week in parts: a span of its days, each with a focus of its own
      (added later; a plan made before simply has none) */
   if(!Array.isArray(p.periods)) p.periods = [];
+  /* threads: things to do, or turn over, on some of the week's days (added later) */
+  if(!Array.isArray(p.threads)) p.threads = [];
+  p.threads.forEach(t => { if(t){ if(!Array.isArray(t.days)) t.days = []; if(t.kind !== 'turn') t.kind = 'do'; } });
   /* and each period its own work, chosen from the week's (added later still;
      a period made before has none under it) */
   p.periods.forEach(x => { if(x && !Array.isArray(x.taskIds)) x.taskIds = []; });
@@ -1187,6 +1191,20 @@ function weekPeriodProgress(x){
   if(!ids.length) return null;
   const refs = ids.map(id => findTaskRef(id)).filter(Boolean);
   return {done: refs.filter(r => r.done).length, total: refs.length};
+}
+/* THREADS. Stages are runs of days; a thread is the other way across the week — something to do, or to turn over in the
+   mind, on the particular days it should be there ({id, text, kind: 'do' | 'turn', days: [dates]}). On each of its days it
+   shows on Today (and in planning that day); on the others it does not. */
+const WEEK_THREAD_KIND = {do: 'to do', turn: 'to contemplate'};
+const weekThreads = p => (Array.isArray(p && p.threads) ? p.threads : [])
+  .filter(t => t && (t.text || '').trim() && Array.isArray(t.days) && t.days.length);
+const weekThreadsOn = (p, d) => weekThreads(p).filter(t => t.days.includes(d));
+function weekThreadsTodayHTML(d, kind){
+  const p = weekPlanSeen(weekStart(d)), l = weekThreadsOn(p, d).filter(t => !kind || t.kind === kind);
+  if(!l.length) return '';
+  return `<div class="wk-threads"><span class="sc" style="margin:0">${kind === 'turn' ? 'To turn over today' : kind === 'do' ? 'To do today' : 'Threaded through today'}</span>
+    <ul class="wk-thread-list">${l.map(t => `<li class="wk-thread ${esc(t.kind)}"><span class="mono">${esc(WEEK_THREAD_KIND[t.kind] || '')}</span><span class="wk-thread-text">${esc(t.text)}</span>
+      <span class="mono faint">${t.days.slice().sort().map(x => esc(wpDayShort(x))).join(' \u00b7 ')}</span></li>`).join('')}</ul></div>`;
 }
 const wpDayShort = d => DOW[parseDay(d).getDay()].slice(0, 3);
 const wpSpan = x => x.from === x.to ? wpDayShort(x.from) : `${wpDayShort(x.from)}\u2013${wpDayShort(x.to)}`;
@@ -1240,6 +1258,11 @@ function openWeeklyPlan(d = today()){
       p.risks = all('[data-wprisk]').map(i => ({id: i.dataset.wpid || uid(), text: i.value.trim(),
         prevent: (q(`[data-wpprev="${i.dataset.wprisk}"]`) || {value: ''}).value.trim()})).filter(r => r.text || r.prevent);
       p.guard = p.risks.map(r => r.text).filter(Boolean).join('; ');
+    }
+    if(q('[data-wpthname]') || q('#wpAddThread')){
+      p.threads = all('[data-wpthname]').map(i => { const n = i.dataset.wpthname, row = i.closest('.wp-thread');
+        return {id: row.dataset.wpthid, text: i.value.trim(), kind: (q(`[data-wpthkind="${n}"]`) || {value: 'do'}).value === 'turn' ? 'turn' : 'do',
+          days: all(`[data-wpthday="${n}"]`).filter(c => c.checked).map(c => c.value)}; });
     }
     all('[data-wpaim]').forEach(i => p.aims[i.dataset.wpaim] = i.value.trim());
     all('[data-wpout]').forEach(i => { const o = p.outcomes[+i.dataset.wpout]; if(o) o.text = i.value.trim(); });
@@ -1486,6 +1509,19 @@ function openWeeklyPlan(d = today()){
     return loose.length ? `<p class="faint wp-unplaced">${loose.length} of the week’s things ${loose.length === 1 ? 'is' : 'are'} in no stage yet: ${
       loose.slice(0, 6).map(r => esc(r.text)).join(', ')}${loose.length > 6 ? ', …' : ''}</p>` : '';
   };
+  /* THREADS — step 4's second part. A row: what, whether to do it or to turn it over, and the days it belongs to. */
+  const threadsHTML = () => `<div class="wp-threads">
+      <div class="sc" style="margin:18px 0 4px">Threads through the week</div>
+      <p class="muted" style="font-size:.84rem;margin:0 0 8px">Things to do or turn over in your mind — each on only the days it belongs to. They show up on those days, and on no others.</p>
+      ${p.threads.map((t, i) => `<div class="wp-thread" data-wpthid="${esc(t.id)}">
+        <div class="row" style="gap:6px;flex-wrap:wrap">
+          <input class="inp grow" data-wpthname="${i}" value="${esc(t.text || '')}" placeholder="e.g. think about the opening argument · practise the left hand">
+          <select class="sel sm" data-wpthkind="${i}" aria-label="to do or to contemplate"><option value="do"${t.kind === 'do' ? ' selected' : ''}>to do</option><option value="turn"${t.kind === 'turn' ? ' selected' : ''}>to contemplate</option></select>
+          <button class="del-x inline" data-wpthdel="${i}" title="take this thread out">\u00d7</button></div>
+        <div class="wp-thdays">${wkDays.map(d => `<label class="wp-dchip${t.days.includes(d) ? ' on' : ''}"><input type="checkbox" data-wpthday="${i}" value="${esc(d)}" ${t.days.includes(d) ? 'checked' : ''}>${esc(wpDayShort(d))} ${parseDay(d).getDate()}</label>`).join('')}
+          <span class="wp-thquick"><button class="tbtn" data-wpthset="${i}:all">every day</button><button class="tbtn" data-wpthset="${i}:wd">weekdays</button><button class="tbtn" data-wpthset="${i}:none">clear</button></span></div>
+      </div>`).join('')}
+      <button class="btn sm ghost" id="wpAddThread">\uff0b a thread</button></div>`;
   const periodsHTML = () => {
     const rows = p.periods;
     const clash = wkDays.filter(d => rows.filter(x => x.from <= d && d <= x.to).length > 1);
@@ -1505,7 +1541,7 @@ function openWeeklyPlan(d = today()){
       <div class="row wp-stage-add" style="gap:6px;flex-wrap:wrap;margin-top:10px">
         ${rows.length ? '' : [1, 2, 3].map(n => `<button class="btn sm" data-wpsplit="${n}">${
           n === 1 ? 'one stage — the whole week' : `${n === 2 ? 'two' : 'three'} stages`}</button>`).join('')}
-        <button class="btn sm ghost" id="wpAddPeriod">＋ a stage</button></div>`;
+        <button class="btn sm ghost" id="wpAddPeriod">＋ a stage</button></div>${threadsHTML()}`;
   };
 
   const recapHTML = () => { const named = weekGoalsNamed(p);
@@ -1522,6 +1558,8 @@ function openWeeklyPlan(d = today()){
         <div class="stack" style="gap:4px">${weekPeriods(p).map(x => `<div class="row" style="gap:8px;align-items:baseline">
           <b class="mono" style="min-width:74px;font-size:.78rem">${esc(wpSpan(x))}</b><span>${x.name ? `<b>${esc(x.name)}</b>${x.focus ? ' \u2014 ' : ''}` : ''}${esc(x.focus || '')}${
             (x.taskIds || []).length ? ` <span class="mono faint">\u00b7 ${x.taskIds.length} thing${x.taskIds.length === 1 ? '' : 's'}</span>` : ''}</span></div>`).join('')}</div>` : ''}
+      ${weekThreads(p).length ? `<div class="sc" style="margin:12px 0 6px">Threads</div><div class="stack" style="gap:4px">${weekThreads(p).map(t => `<div class="row" style="gap:8px;align-items:baseline">
+          <b class="mono" style="min-width:120px;font-size:.78rem">${t.days.slice().sort().map(x => esc(wpDayShort(x))).join(' \u00b7 ')}</b><span>${esc(t.text)} <span class="mono faint">\u00b7 ${esc(WEEK_THREAD_KIND[t.kind])}</span></span></div>`).join('')}</div>` : ''}
       ${weekWins(p).length ? `<div class="sc" style="margin:12px 0 4px">A win would be</div>${wpWinListHTML(weekWins(p))}` : ''}
       ${weekRisks(p).length ? `<div class="sc" style="margin:12px 0 4px">What could take it away, and what you will do</div>${wpRiskListHTML(weekRisks(p))}` : ''}
     </div>`; };
@@ -1601,6 +1639,14 @@ function openWeeklyPlan(d = today()){
     m.querySelectorAll('[data-wpgoaldel]').forEach(b => b.onclick = () => { read();
       p.outcomes.splice(+b.dataset.wpgoaldel, 1);
       Object.keys(goalOpen).forEach(k => delete goalOpen[k]);
+      draw(); });
+    const addTh = m.querySelector('#wpAddThread');
+    if(addTh) addTh.onclick = () => { read(); p.threads.push({id: uid(), text: '', kind: 'do', days: []}); draw(); const f = m.querySelectorAll('[data-wpthname]'); f[f.length - 1]?.focus(); };
+    m.querySelectorAll('[data-wpthdel]').forEach(b => b.onclick = () => { read(); p.threads.splice(+b.dataset.wpthdel, 1); draw(); });
+    m.querySelectorAll('[data-wpthday]').forEach(c => c.onchange = () => c.closest('.wp-dchip').classList.toggle('on', c.checked));
+    m.querySelectorAll('[data-wpthset]').forEach(b => b.onclick = () => { read();
+      const [i, how] = b.dataset.wpthset.split(':'), t = p.threads[+i]; if(!t) return;
+      t.days = how === 'all' ? wkDays.slice() : how === 'wd' ? wkDays.slice(0, 5) : [];
       draw(); });
     const addPer = m.querySelector('#wpAddPeriod');
     if(addPer) addPer.onclick = () => { read();
