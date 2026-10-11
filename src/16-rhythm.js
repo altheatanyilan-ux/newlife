@@ -1267,6 +1267,8 @@ function openWeeklyPlan(d = today()){
      kept here so a redraw (adding a task, changing a list) does not fold
      everything back up under you */
   const editing = new Set(), goalOpen = {};
+  /* tidying: tick tasks off the list as done, or away for good */
+  const tidy = {on: false, sel: new Set()};
 
   /* which work a goal may reach for: the open work of the part of a life it
      was put under, or all of it while it has not been put anywhere */
@@ -1291,10 +1293,17 @@ function openWeeklyPlan(d = today()){
     return [pr && pr.n ? `<span class="wp-tprio" style="--c:${pr.color}" title="${esc(pr.name)} priority"></span>` : '',
       [t.doDay ? `do ${taskDoSaid(t, 'short')}` : '', t.day ? `due ${fmtDate(t.day, 'short')}${t.dueTime ? ' ' + t.dueTime : ''}` : '',
        mins ? fmtEst(mins) : '', r.where || ''].filter(Boolean).map(esc).join(' \u00b7 ')].join(''); };
+  const wpTidyBarHTML = () => { const n = tidy.sel.size;
+    return tidy.on ? `<div class="wp-tidybar on"><span class="mono">${n} ticked</span>
+        <button class="btn sm" data-wptidy="done" ${n ? '' : 'disabled'}>Mark done</button>
+        <button class="btn sm danger" data-wptidy="del" ${n ? '' : 'disabled'}>Delete</button>
+        <button class="tbtn" data-wptidy="off">finish ticking</button></div>`
+      : `<div class="wp-tidybar"><button class="tbtn" data-wptidy="on" title="tick tasks off the list: finished, or deleted">\u2611 tick tasks off\u2026</button></div>`; };
   const wpTaskRowHTML = (i, r, on) => { const t = r.task || {}, ed = editing.has(r.id);
     const fromSteps = typeof taskHasSubEst === 'function' && taskHasSubEst(t);
     return `<div class="wp-trow${on ? ' on' : ''}${ed ? ' editing' : ''}" data-wptrow="${esc(r.id)}">
       <div class="wp-tline">
+        ${tidy.on ? `<input type="checkbox" class="wp-tidy" data-wpsel="${esc(r.id)}" ${tidy.sel.has(r.id) ? 'checked' : ''} title="tick it off \u2014 to finish it or delete it">` : ''}
         <input type="checkbox" data-wptask="${i}" value="${esc(r.id)}" ${on ? 'checked' : ''} title="put it under this goal">
         <input class="inp wp-ttext" data-wptext="${esc(r.id)}" value="${esc(r.text)}" aria-label="the task">
         <span class="mono wp-tchips">${wpChipsHTML(r)}</span>
@@ -1395,6 +1404,7 @@ function openWeeklyPlan(d = today()){
         <summary><span class="mono">${o.taskIds.length
           ? `${o.taskIds.length} thing${o.taskIds.length === 1 ? '' : 's'} under it`
           : 'nothing under it yet \u2014 choose the work'}</span></summary>
+        ${pool.length ? wpTidyBarHTML() : ''}
         <div class="stack wp-tlist" data-wptlist="${i}">${
           pool.length ? pool.slice(0, 60).map(r => wpTaskRowHTML(i, r, picked.has(r.id))).join('')
             : `<div class="empty">Nothing open in ${esc(goalUnder(o) || 'the planner')} yet.</div>`}</div>
@@ -1428,6 +1438,7 @@ function openWeeklyPlan(d = today()){
     /* the goal it was chosen for, so the list reads as the week's goals */
     const goal = p.outcomes.find(o => (o.text || '').trim() && (o.taskIds || []).includes(r.id));
     return `<div class="wp-trow${on ? ' on' : ''}${r.done ? ' is-done' : ''}" data-wpprow="${esc(r.id)}"><label class="wp-tline">
+      ${tidy.on ? `<input type="checkbox" class="wp-tidy" data-wpsel="${esc(r.id)}" ${tidy.sel.has(r.id) ? 'checked' : ''} title="tick it off \u2014 to finish it or delete it">` : ''}
       <input type="checkbox" data-wpptask="${esc(x.id)}" value="${esc(r.id)}" ${on ? 'checked' : ''} title="for these days">
       <span class="wp-ptext">${esc(r.text)}${goal ? `<span class="wp-pgoal">\u25c6 ${esc(goal.text)}</span>` : ''}</span>
       <span class="mono wp-tchips">${also.length ? `<span class="wp-palso">also ${esc(also.map(stageLabel).join(', '))}</span>` : ''}${
@@ -1444,6 +1455,7 @@ function openWeeklyPlan(d = today()){
     const pool = wpPerPool(x), on = new Set(x.taskIds || []), n = (x.taskIds || []).length;
     return `<details class="wp-under wp-pwork" data-wppunder="${esc(x.id)}" ${(perOpen[x.id] ?? true) ? 'open' : ''}>
       <summary><span class="mono">${wpPerSum(n)}</span></summary>
+      ${pool.length ? wpTidyBarHTML() : ''}
       <div class="stack wp-tlist" data-wpplist="${esc(x.id)}">${pool.length ? pool.map(r => wpPerRowHTML(x, r, on.has(r.id))).join('')
         : `<div class="empty" style="font-size:.8rem">Nothing is under the week’s goals yet — put work under them in step 3, or find it here by name.</div>`}</div>
       <div class="wp-tadd"><input class="inp" data-wppfind="${esc(x.id)}" value="${esc(perFind[x.id] || '')}"
@@ -1629,6 +1641,34 @@ function openWeeklyPlan(d = today()){
       saveNow(); redraw();
     });
     bindPerRows(m);
+    /* the tick-off bar: choose tasks, then finish them or delete them */
+    const tidyBars = () => { m.querySelectorAll('.wp-tidybar').forEach(b => { b.outerHTML = wpTidyBarHTML(); }); bindTidyBars(); };
+    const bindTidyBars = () => m.querySelectorAll('[data-wptidy]').forEach(b => b.onclick = () => {
+      const act = b.dataset.wptidy, ids = [...tidy.sel];
+      if(act === 'on'){ read(); tidy.on = true; return draw(); }
+      if(act === 'off'){ read(); tidy.on = false; tidy.sel.clear(); return draw(); }
+      if(!ids.length) return;
+      read();
+      if(act === 'done'){
+        ids.forEach(id => setTaskDone(id, true));
+        toast(`${ids.length} task${ids.length === 1 ? '' : 's'} marked done.`); sound('success');
+        tidy.sel.clear(); saveNow(); return draw();
+      }
+      /* delete: out of the week's goals and stages, and out of the planner — with an Undo that puts back all of it */
+      const snapO = p.outcomes.map(o => [o, o.taskIds.slice()]), snapP = p.periods.map(x => [x, (x.taskIds || []).slice()]);
+      const label = ids.length === 1 ? ((findTaskRef(ids[0]) || {}).text || 'Task') : `${ids.length} tasks`;
+      requestDelete({label, after: () => { tidy.sel.clear(); saveNow(); draw(); },
+        remove: () => {
+          const undo = ids.map(id => { const r = findTaskRef(id); if(!r) return () => {};
+            return r.kind === 'own' ? spliceOut(S.tasks, x => x.id === r.task.id) : spliceOut(r.phase.tasks, x => x.id === r.task.id); });
+          p.outcomes.forEach(o => { o.taskIds = o.taskIds.filter(i => !ids.includes(i)); });
+          p.periods.forEach(x => { x.taskIds = (x.taskIds || []).filter(i => !ids.includes(i)); });
+          return () => { undo.reverse().forEach(f => f()); snapO.forEach(([o, a]) => { o.taskIds = a; }); snapP.forEach(([x, a]) => { x.taskIds = a; }); try { draw(); } catch(e){} };
+        }});
+    });
+    bindTidyBars();
+    m.querySelectorAll('[data-wpsel]').forEach(c => c.onchange = () => {
+      c.checked ? tidy.sel.add(c.dataset.wpsel) : tidy.sel.delete(c.dataset.wpsel); tidyBars(); });
     m.querySelectorAll('[data-wppunder]').forEach(d => d.addEventListener('toggle', () => { perOpen[d.dataset.wppunder] = d.open; }));
     m.querySelectorAll('[data-wppfind]').forEach(inp => {
       const id = inp.dataset.wppfind;
