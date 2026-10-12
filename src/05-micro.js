@@ -223,8 +223,12 @@ const MicroFX = (() => {
       n.style.setProperty('--mouse-x', (x * 100) + '%');
       n.style.setProperty('--mouse-y', (y * 100) + '%');
       n.style.transition = '';
-      n.style.transform = `perspective(800px) rotateX(${(.5 - y) * next.tilt.max * 2}deg) `
-        + `rotateY(${(x - .5) * next.tilt.max * 2}deg) scale3d(1.02,1.02,1.02)`;
+      /* The tilt is an angle, so the same angle moves the edges of a tall card
+         a long way and reads as a lurch. Past 500px the angle and the swell
+         both shrink in proportion to the height, so a long card only leans. */
+      const damp = Math.min(1, 500 / Math.max(r.height, 1)), sc = 1 + .02 * damp;
+      n.style.transform = `perspective(800px) rotateX(${(.5 - y) * next.tilt.max * 2 * damp}deg) `
+        + `rotateY(${(x - .5) * next.tilt.max * 2 * damp}deg) scale3d(${sc},${sc},${sc})`;
     }
     if(next.magnet && !sameNode){
       const n = next.magnet.node, r = rectOf(n);

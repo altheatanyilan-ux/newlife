@@ -31,6 +31,8 @@ routes.settings = function(root){
       <div class="opt"><div><b>Say the minutes</b><div class="d">How lengths are read out. The exact times are always what is kept underneath, and anything that happened counts as at least one step.</div></div>
         <select class="sel" style="width:auto" id="sTimeRound">${[[1,'to the minute'],[5,'to five minutes'],[15,'to the quarter hour']].map(([v, l]) =>
           `<option value="${v}" ${timeSettings().round === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    </div>
+    <div class="card rv"><h3>Breaks</h3>
       <!-- a pause is a break, and a break is asked about in one line with these underneath -->
       <div class="opt"><div><b>How long a break is meant to be</b><div class="d">When you pause, the break is held against this \u2014 or against its chip's own length \u2014 and what runs past it is recorded as its own stretch, so a walk is not blamed for the scrolling after it.</div></div>
         <input class="inp" type="number" min="1" max="120" style="width:80px" id="sBreakMin" value="${timeSettings().breakMin}"></div>
@@ -44,11 +46,15 @@ routes.settings = function(root){
             `<option value="${v}" ${c.defaultVerdict === v ? 'selected' : ''}>usually: ${esc(TIME_VERDICT_WORDS[v])}</option>`).join('')}</select>
           <button class="pl-mini" data-bdel="${esc(c.id)}" title="take it out">\u00d7</button></div>`).join('')}
           <button class="btn sm ghost" id="sBreakAdd" style="margin-top:8px">+ a chip</button></div></div>
-      ${typeof pqSettingsHTML === 'function' ? pqSettingsHTML() : ''}
-      ${typeof dutiesSettingsHTML === 'function' ? dutiesSettingsHTML() : ''}
+    </div>
+    ${typeof pqSettingsHTML === 'function' ? pqSettingsHTML() : ''}
+    ${typeof dutiesSettingsHTML === 'function' ? dutiesSettingsHTML() : ''}
+    <div class="card rv"><h3>Sittings and estimates</h3>
       ${typeof fzSettingsHTML === 'function' ? fzSettingsHTML() : ''}
       ${typeof learnedSettingsHTML === 'function' ? learnedSettingsHTML() : ''}
       ${typeof pbdSettingsHTML === 'function' ? pbdSettingsHTML() : ''}
+    </div>
+    <div class="card rv"><h3>Records and categories</h3>
       <div class="opt"><div><b>A sitting on a project is a nod</b><div class="d">Time hung on a project writes itself into that project's record of work.</div></div><label class="toggle ${timeSettings().autoNods?'on':''}" id="sTimeNods"><span class="sw"></span></label></div>
       <div class="opt"><div><b>An hour with somebody is an hour with them</b><div class="d">Time hung on a person writes itself into their record.</div></div><label class="toggle ${timeSettings().autoInteractions?'on':''}" id="sTimeInts"><span class="sw"></span></label></div>
       <!-- there used to be a place here to add your own beside the shipped
