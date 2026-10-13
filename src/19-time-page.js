@@ -293,13 +293,19 @@ function bindTimeDrag(root){
       const a = Math.min(from, to), b = Math.max(from, to);
       clean();
       if(b - a < TM_DRAG_MIN) return;
-      /* the form asks for a living day, and the small hours belong to the evening
-         before, so file the stretch under the day its start lives in and hand over
-         the exact instants too, so nothing is re-guessed from clock faces */
-      openTimeEntryModal(null, timeLivingDay(instant(a)), {from: fmt(a), to: b >= 1440 ? '23:59' : fmt(b),
-        fromISO: instant(a), toISO: instant(b >= 1440 ? 1439 : b)});
+      timeDragOpen(day, a, b);
     });
   });
+}
+/* A stretch dragged out on a calendar day, in minutes from midnight, becomes the
+   sitting form. The form asks for a living day, and the small hours belong to
+   the evening before, so the stretch is filed under the day its start lives in
+   and the exact instants go too, so nothing is re-guessed from clock faces. */
+function timeDragOpen(day, a, b){
+  const fmt = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  const instant = m => { const d = parseDay(day); d.setHours(Math.floor(m / 60), m % 60, 0, 0); return d.toISOString(); };
+  return openTimeEntryModal(null, timeLivingDay(instant(a)), {from: fmt(a), to: b >= 1440 ? '23:59' : fmt(b),
+    fromISO: instant(a), toISO: instant(b >= 1440 ? 1439 : b)});
 }
 
 /* ---------- the categories, which are yours ----------

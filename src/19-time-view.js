@@ -177,6 +177,7 @@ function bindTimeOverview(root){
   const cl = root.querySelector('[data-tmclear]'); if(cl) cl.onclick = () => { u.narrow = null; rerender(); };
   $$('[data-tmgoto]', root).forEach(b => b.onclick = () => { u.day = b.dataset.tmgoto > today() ? today() : b.dataset.tmgoto; rerender(); });
   const more = root.querySelector('#tmMore'); if(more) more.onclick = () => { u.more = true; rerender(); };
+  bindTimeBoardDrag(root);
   $$('[data-tmboard]', root).forEach(b => b.onclick = () => pbdOpen(b.dataset.tmboard, {onClose: () => rerender()}));
   const pr = root.querySelector('[data-tmprint]'); if(pr) pr.onclick = () => printWeek(timeViewRange().from);
   $$('[data-tmgoals]', root).forEach(b => b.onclick = () => navigate('#/time/goals'));

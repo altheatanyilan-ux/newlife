@@ -83,7 +83,8 @@ function timeBoardHTML(r, narrow){
   const days = timeDaysIn(r.from, r.to);   /* a week shows its days still to come too: they may already have a plan */
   if(!days.length) return '';
   const cols = days.map(d => ({d, plan: narrow ? [] : tmbPlanned(d), did: tmbTracked(d, narrow)}));
-  if(!cols.some(c => c.plan.length || c.did.length)) return `<div class="empty">Nothing was planned or tracked ${r.unit === 'day' ? 'on this day' : 'this week'}. Start the clock in the corner, or lay the day out on the planning board.</div>`;
+  /* an empty day still gets its hours: drag across the tracked column to write a sitting down */
+  const bare = !cols.some(c => c.plan.length || c.did.length);
   /* the hours shown: waking hours, widened to take in anything that fell outside them */
   let lo = 1440, hi = 0;
   cols.forEach(c => { const bd = pbdBounds(c.d); lo = Math.min(lo, bd.wake); hi = Math.max(hi, bd.bed);
@@ -92,11 +93,12 @@ function timeBoardHTML(r, narrow){
   const H = (hi - lo) * TMB_PX;
   const ticks = []; for(let m = lo; m <= hi; m += 60) ticks.push(`<div class="tmb-tick" style="top:${((m - lo) * TMB_PX).toFixed(1)}px"><span class="mono">${String(Math.floor(m / 60) % 24).padStart(2, '0')}:00</span></div>`);
   const week = days.length > 1;
+  const calToday = timeDayOf(new Date().toISOString());
   const now = (() => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); })();
   const dayHTML = c => {
     const t = tmbTotals(c.d, narrow), nm = parseDay(c.d);
     const sub = (kind, items) => `<div class="tmb-sub ${kind}"><span class="tmb-sh mono">${kind === 'plan' ? 'planned' : 'tracked'}</span>
-        <div class="tmb-track" style="height:${H.toFixed(1)}px">${tmbLanes(items).map(o => tmbBlockHTML(o, lo, kind)).join('')}${c.d === today() && now >= lo && now <= hi ? `<i class="tmb-now" style="top:${((now - lo) * TMB_PX).toFixed(1)}px"></i>` : ''}</div></div>`;
+        <div class="tmb-track${kind === 'did' && c.d <= calToday ? ' tmb-drag' : ''}" style="height:${H.toFixed(1)}px"${kind === 'did' && c.d <= calToday ? ` data-tmbday="${esc(c.d)}" data-tmblo="${lo}"` : ''}>${tmbLanes(items).map(o => tmbBlockHTML(o, lo, kind)).join('')}${c.d === today() && now >= lo && now <= hi ? `<i class="tmb-now" style="top:${((now - lo) * TMB_PX).toFixed(1)}px"></i>` : ''}</div></div>`;
     return `<div class="tmb-day${c.d === today() ? ' today' : ''}">
       <div class="tmb-dh" style="height:${TMB_HEAD}px"><b>${week ? `${DOW[nm.getDay()].slice(0, 3)} ${nm.getDate()}` : esc(fmtDate(c.d, 'med'))}</b>
         <span class="mono faint">${narrow ? '' : `plan ${tmbSay(t.plan)} · `}tracked ${tmbSay(t.did)}</span></div>
@@ -105,10 +107,11 @@ function timeBoardHTML(r, narrow){
   return `<div class="tmb${week ? ' week' : ''}" style="--tmb-h:${H.toFixed(1)}px">
     <div class="tmb-wrap"><div class="tmb-axis" style="padding-top:${TMB_HEAD + 16}px"><div class="tmb-ticks" style="height:${H.toFixed(1)}px">${ticks.join('')}</div></div>
     <div class="tmb-days">${cols.map(dayHTML).join('')}</div></div>
+    ${bare ? `<div class="faint tmb-note">Nothing was planned or tracked ${r.unit === 'day' ? 'on this day' : 'this week'}. Start the clock in the corner, lay the day out on the planning board, or drag down the tracked column to write a sitting down.</div>` : ''}
     ${narrow ? '<div class="faint mono tmb-note">Narrowed: only the tracked time that belongs to it is drawn; the plan is not split by it.</div>' : ''}
     ${!week && !narrow ? tmbCompareHTML(days[0]) : ''}
     <div class="tmb-key faint mono"><span><i class="k-plan"></i>planned work</span><span><i class="k-habit"></i>habit</span><span><i class="k-fixed"></i>fixed (meals, protected time)</span><span><i class="k-did"></i>tracked, in the colour of its category</span><span><i class="k-brk"></i>a break</span></div>
-    ${!narrow ? '<div class="faint tmb-note">The plan is the planning board’s blocks for the day; tracked is the clock. Click a tracked block to change it.</div>' : ''}</div>`;
+    ${!narrow ? '<div class="faint tmb-note">The plan is the planning board’s blocks for the day; tracked is the clock. Click a tracked block to change it, or drag down empty time in the tracked column to write a sitting down.</div>' : ''}</div>`;
 }
 
 /* each planned block against the time that was spent on the same work */
@@ -149,4 +152,48 @@ function timePlanTrackedWeeksHTML(r, narrow){
       <div class="tmb-wb">${narrow ? '' : `<i class="plan" style="width:${(x.plan / top * 100).toFixed(1)}%" title="planned ${tmbSay(x.plan)}"></i>`}<i class="did" style="width:${(x.did / top * 100).toFixed(1)}%" title="tracked ${tmbSay(x.did)}"></i></div>
       <span class="mono faint">${narrow ? '' : `plan ${tmbSay(x.plan)} · `}tracked ${tmbSay(x.did)}</span></div>`).join('')}
     <div class="faint tmb-note">Weeks beginning on the date shown. Planned is the time blocks gave to work and habits; tracked leaves out breaks.</div></div>`;
+}
+
+/* Drag down the tracked column to write a sitting down, as a calendar does:
+   press on empty time, pull to the end, and the sitting form opens with the
+   stretch filled in. Five-minute steps; a press on a block still opens that
+   block; a press that does not move writes nothing; on today the stretch
+   stops at now, since this is for what already happened. */
+function bindTimeBoardDrag(root){
+  const STEP = 5, MIN = 5;
+  const fmt = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  const calToday = timeDayOf(new Date().toISOString());
+  $$('[data-tmbday]', root).forEach(track => {
+    const day = track.dataset.tmbday, lo = +track.dataset.tmblo;
+    const limit = () => day === calToday ? (() => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); })() : 1440;
+    const at = ev => { const r = track.getBoundingClientRect();
+      const m = lo + Math.round((ev.clientY - r.top) / TMB_PX / STEP) * STEP;
+      return Math.max(lo, Math.min(limit(), m)); };
+    let ghost = null, tip = null, from = null, to = null;
+    const clean = () => { if(ghost) ghost.remove(); if(tip) tip.remove(); ghost = tip = from = to = null; };
+    const paint = ev => {
+      const a = Math.min(from, to), b = Math.max(from, to);
+      ghost.style.top = ((a - lo) * TMB_PX) + 'px'; ghost.style.height = Math.max(2, (b - a) * TMB_PX) + 'px';
+      tip.textContent = `${fmt(a)}\u2013${fmt(b)} \u00b7 ${timeSaid(b - a)}`;
+      tip.style.left = Math.min(innerWidth - 150, ev.clientX + 14) + 'px';
+      tip.style.top = Math.max(4, ev.clientY - 34) + 'px';
+    };
+    track.addEventListener('pointerdown', ev => {
+      if(ev.button > 0 || ev.target.closest('.tmb-b')) return;
+      if(ev.pointerType === 'touch') return;   /* a finger scrolls the page; the form's own fields are there for it */
+      from = to = at(ev);
+      ghost = document.createElement('i'); ghost.className = 'tmb-ghost'; track.appendChild(ghost);
+      tip = document.createElement('div'); tip.className = 'tm-dragtip mono'; document.body.appendChild(tip);
+      track.setPointerCapture(ev.pointerId); paint(ev); ev.preventDefault();
+    });
+    track.addEventListener('pointermove', ev => { if(ghost){ to = at(ev); paint(ev); } });
+    track.addEventListener('pointercancel', clean);
+    track.addEventListener('pointerup', ev => {
+      if(!ghost) return;
+      to = at(ev);
+      const a = Math.min(from, to), b = Math.max(from, to);
+      clean();
+      if(b - a >= MIN) timeDragOpen(day, a, b);
+    });
+  });
 }

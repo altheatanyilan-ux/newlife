@@ -10217,8 +10217,12 @@ html.sc-reading .tdock{display:none}
 .tmb-pair{display:grid;grid-template-columns:1fr 1fr;gap:4px}.tmb-pair.one{grid-template-columns:1fr}
 .tmb-sh{display:block;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);height:16px}
 .tmb-track{position:relative;border-radius:6px;background:var(--surface-2) linear-gradient(var(--line) 1px,transparent 1px) 0 0/100% calc(60px * .9);overflow:hidden}
-.tmb-now{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--rose);z-index:3;pointer-events:none}
-.tmb-b{position:absolute;box-sizing:border-box;border-radius:5px;overflow:hidden;padding:1px 6px;font-size:.72rem;line-height:1.25;display:flex;flex-direction:column;border:1px solid transparent}
+/* the time now: a hairline under the blocks, never across their words, with a dot at its left end */
+.tmb-now{position:absolute;left:0;right:0;height:0;border-top:1px dashed color-mix(in srgb,var(--rose) 60%,transparent);z-index:0;pointer-events:none}
+.tmb-now::before{content:"";position:absolute;left:-1px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--rose);opacity:.8}
+.tmb-drag{cursor:crosshair;user-select:none;-webkit-user-select:none}
+.tmb-ghost{position:absolute;left:2px;right:2px;border-radius:5px;background:color-mix(in srgb,var(--terra) 45%,transparent);outline:1px dashed var(--terra);pointer-events:none;z-index:2}
+.tmb-b{position:absolute;z-index:1;box-sizing:border-box;border-radius:5px;overflow:hidden;padding:1px 6px;font-size:.72rem;line-height:1.25;display:flex;flex-direction:column;border:1px solid transparent}
 .tmb-b .tmb-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
 .tmb-b .tmb-t{font-size:.62rem;opacity:.95;white-space:nowrap}
 .tmb-b.plan.work,.tmb-b.did{text-shadow:0 1px 1px rgba(0,0,0,.28)}
