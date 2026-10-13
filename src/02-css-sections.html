@@ -11206,6 +11206,9 @@ html.page-focus .sx-undo{left:60px}
 .sx-review.sx-fit .sx-stage{flex:1 1 0;min-height:0}
 .sx-review.sx-fit .sx-cardwrap{flex:0 1 auto;min-height:0;max-height:100%;overflow-y:auto;overscroll-behavior:contain}
 .sx-review.sx-fit .sx-card{height:120px;min-height:0}
+/* the card is frosted glass over the page, not a solid sheet */
+.sx-review .sx-cardwrap{background:color-mix(in srgb,var(--surface) 55%,transparent);
+  -webkit-backdrop-filter:blur(10px) saturate(1.1);backdrop-filter:blur(10px) saturate(1.1)}
 .sx-review.sx-fit .sx-bar{flex:none;min-height:100px;align-items:flex-start;align-content:flex-start;padding-top:10px}
 .sx-rtop{display:flex;align-items:center;gap:12px;padding:4px 0;font-size:.86rem;color:var(--muted)}
 .sx-back{font-size:1.4rem;line-height:1;color:var(--muted);text-decoration:none;padding:0 6px}
