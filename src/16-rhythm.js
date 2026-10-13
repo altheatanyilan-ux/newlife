@@ -1288,7 +1288,8 @@ function openWeeklyPlan(d = today()){
     /* the rows of wins and threats, each with the box beside it; a row
        left empty on both sides is not kept */
     if(q('[data-wpwin]')){
-      p.wins = all('[data-wpwin]').map(i => ({id: i.dataset.wpid || uid(), text: i.value.trim(),
+      const prevWins = p.wins || [];
+      p.wins = all('[data-wpwin]').map(i => ({id: i.dataset.wpid || uid(), evidence: ((prevWins.find(x => x.id === i.dataset.wpid) || {}).evidence) || [], text: i.value.trim(),
         why: (q(`[data-wpwhy="${i.dataset.wpwin}"]`) || {value: ''}).value.trim()})).filter(w => w.text || w.why);
       p.win = p.wins.map(w => w.text).filter(Boolean).join('; ');
     }

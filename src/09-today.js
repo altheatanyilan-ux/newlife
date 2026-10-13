@@ -174,6 +174,89 @@ function openMilestoneInTasks(id){
   if(typeof sound === 'function') sound('click');
   if(location.hash === '#/today/tasks') rerender(); else navigate('#/today/tasks');
 }
+/* ---------- the week's goals, each with the work under it ----------
+   A goal is a line with how much of its work is done; press it and the work
+   opens under it — the same rows as in Tasks, so the tick, the estimate, the
+   timer, the steps and the rest all work here — and a box adds a new task that
+   goes straight under the goal (into its list, in the planner's own grammar). */
+let _wkGoalOpen = {};
+function weekGoalsHTML(plan){
+  const goals = typeof weekGoalsNamed === 'function' ? weekGoalsNamed(plan) : [];
+  if(!goals.length) return '';
+  return `<div class="wk-goals">${goals.map(o => {
+    const g = weekGoalProgress(o), refs = (o.taskIds || []).map(id => findTaskRef(id)).filter(Boolean);
+    const pct = g && g.total ? Math.round(100 * g.done / g.total) : 0;
+    const where = o.linkType === 'list' ? (planList(o.linkId) || {}).name : o.linkType === 'project' ? ((S.projects || []).find(x => x.id === o.linkId) || {}).name : '';
+    return `<details class="wk-goal" data-wkgoal="${esc(o.id)}"${_wkGoalOpen[o.id] ? ' open' : ''}>
+      <summary><span class="wk-goal-t">${esc(o.text)}</span>
+        <span class="wk-goal-bar" aria-hidden="true"><i style="width:${pct}%"></i></span>
+        <span class="mono faint wk-goal-n">${g ? `${g.done}/${g.total}` : '—'}</span></summary>
+      <div class="wk-goal-body">
+        ${refs.length ? refs.map(r => taskRowHTML(r, {showDay: true})).join('') : '<div class="faint wk-goal-none">Nothing under this goal yet — add the first below.</div>'}
+        <div class="wk-goal-add"><input class="inp" data-wkgoaladd="${esc(o.id)}" aria-label="a new task under this goal"
+          placeholder="＋ a task in ${esc(where || 'the Inbox')} — e.g. draft the intro ~45m friday !high"><button class="btn sm" data-wkgoaladdgo="${esc(o.id)}">Add</button></div>
+      </div></details>`;
+  }).join('')}</div>`;
+}
+function repaintWeekGoals(root){
+  const box = root.querySelector('.wk-goals'); if(!box) return;
+  const plan = weekPlanSeen(weekStart(today()));
+  const tmp = document.createElement('div'); tmp.innerHTML = weekGoalsHTML(plan);
+  const fresh = tmp.firstElementChild; if(!fresh) return;
+  box.replaceWith(fresh); bindWeekGoals(root);
+}
+function bindWeekGoals(root){
+  const box = root.querySelector('.wk-goals'); if(!box) return;
+  box.querySelectorAll('.wk-goal').forEach(d => d.addEventListener('toggle', () => { _wkGoalOpen[d.dataset.wkgoal] = d.open; }));
+  if(typeof bindTaskRows === 'function') bindTaskRows(box, () => repaintWeekGoals(root));
+  const add = id => {
+    const inp = box.querySelector(`[data-wkgoaladd="${CSS.escape(id)}"]`); if(!inp || !inp.value.trim()) return;
+    const plan = weekPlanSeen(weekStart(today())), o = (plan.outcomes || []).find(x => x.id === id); if(!o) return;
+    if(o.linkType === 'project' && !planList(o.linkId) && typeof projectListsSync === 'function') projectListsSync();
+    const listId = (o.linkType === 'list' || o.linkType === 'project') && planList(o.linkId) ? o.linkId : 'inbox';
+    const t = commitQuickTask(inp.value, {listId}); if(!t) return;
+    o.taskIds = o.taskIds || []; if(!o.taskIds.includes(t.id)) o.taskIds.push(t.id);
+    _wkGoalOpen[id] = true; sound('success'); saveNow(); repaintWeekGoals(root);
+    const again = root.querySelector(`[data-wkgoaladd="${CSS.escape(id)}"]`); if(again) again.focus();
+  };
+  box.querySelectorAll('[data-wkgoaladd]').forEach(inp => inp.onkeydown = ev => { if(ev.key === 'Enter'){ ev.preventDefault(); add(inp.dataset.wkgoaladd); } });
+  box.querySelectorAll('[data-wkgoaladdgo]').forEach(b => b.onclick = () => add(b.dataset.wkgoaladdgo));
+}
+/* ---------- what would make the week a win, and the evidence that it is coming ----------
+   Under each line, bubbles of evidence: a thing that happened, or a reason to
+   think you are getting there. Written here, dated, kept on the win. */
+function weekWinsHTML(plan){
+  const wins = typeof weekWins === 'function' ? weekWins(plan) : [];
+  if(!wins.length) return '';
+  return `<div class="wk-win wk-wins"><span class="mono">a win would be</span><ul class="wp-list">${wins.map(w => {
+    const k = (plan.wins || []).indexOf(w);
+    return `<li data-wkwin="${k}"><span>${esc(w.text)}</span>${w.why ? `<span class="wp-list-why">${esc(w.why)}</span>` : ''}
+      <div class="wk-ev">${(w.evidence || []).map(ev => `<span class="wk-ev-b" title="${esc(fmtDate(ev.at, 'med'))}"><span class="wk-ev-t">${esc(ev.text)}</span><button class="wk-ev-x" data-wkevdel="${k}|${esc(ev.id)}" aria-label="take this out">×</button></span>`).join('')}
+        <input class="wk-ev-in" data-wkevadd="${k}" aria-label="evidence for this win" placeholder="＋ evidence you are getting there"></div></li>`; }).join('')}</ul></div>`;
+}
+function repaintWeekWins(root){
+  const box = root.querySelector('.wk-wins'); if(!box) return;
+  const tmp = document.createElement('div'); tmp.innerHTML = weekWinsHTML(weekPlanSeen(weekStart(today())));
+  const fresh = tmp.firstElementChild; if(!fresh) return;
+  const had = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.wkevadd : null;
+  box.replaceWith(fresh); bindWeekWins(root);
+  if(had != null){ const again = root.querySelector(`[data-wkevadd="${had}"]`); if(again) again.focus(); }
+}
+function bindWeekWins(root){
+  const box = root.querySelector('.wk-wins'); if(!box) return;
+  const plan = () => weekPlanSeen(weekStart(today()));
+  box.querySelectorAll('[data-wkevadd]').forEach(inp => inp.onkeydown = ev => {
+    if(ev.key !== 'Enter') return; ev.preventDefault();
+    const w = (plan().wins || [])[+inp.dataset.wkevadd], text = inp.value.trim(); if(!w || !text) return;
+    w.evidence = Array.isArray(w.evidence) ? w.evidence : [];
+    w.evidence.push({id: uid(), text, at: today()});
+    sound('click'); saveNow(); repaintWeekWins(root); });
+  box.querySelectorAll('[data-wkevdel]').forEach(b => b.onclick = () => {
+    const [k, id] = b.dataset.wkevdel.split('|'), w = (plan().wins || [])[+k]; if(!w) return;
+    const undo = spliceOut(w.evidence || [], e => e.id === id);
+    saveNow(); repaintWeekWins(root);
+    toast('Evidence taken out.', 6000, {label: 'undo', fn: () => { undo(); saveNow(); repaintWeekWins(root); }}); });
+}
 function bindTodayMilestones(root){
   const box = root.querySelector('.today-ms'); if(!box) return;
   box.addEventListener('toggle', () => { _todayMsOpen = box.open;
@@ -382,13 +465,8 @@ routes.today = function(root, params = []){
           esc(wpSpan(x))}${x.name ? ` ${esc(x.name)}` : ''}</span>`).join('')}</div>` : ''}
       </div>` : ''}
       ${wkThr.length && typeof weekThreadsTableHTML === 'function' ? weekThreadsTableHTML(wkPlan, T) : ''}
-      ${wkGoals.length ? `<div class="wk-goals">${wkGoals.map(o => {
-        const g = weekGoalProgress(o);
-        return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
-          g ? `<span class="mono faint">${g.done}/${g.total}</span>` : '<span class="mono faint">—</span>'}</div>`;
-      }).join('')}</div>` : ''}
-      ${wkWins.length ? `<div class="wk-win"><span class="mono">a win would be</span><ul class="wp-list">${wkWins.map(w =>
-        `<li><span>${esc(w.text)}</span>${w.why ? `<span class="wp-list-why">${esc(w.why)}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
+      ${weekGoalsHTML(wkPlan)}
+      ${weekWinsHTML(wkPlan)}
       ${wkRisks.length ? `<div class="wk-win"><span class="mono">what could take it away</span><ul class="wp-list">${wkRisks.map(r =>
         `<li><span>${esc(r.text)}</span>${r.prevent ? `<span class="wp-list-why">\u2192 ${esc(r.prevent)}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
     </div>`;
@@ -840,6 +918,7 @@ routes.today = function(root, params = []){
   /* the one on the plan card opens THIS week, which is the one it is showing */
   $('#planWeekHere') && ($('#planWeekHere').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(T); });
   $('#planWeekHere2') && ($('#planWeekHere2').onclick = () => { if(typeof openWeeklyPlan === 'function') openWeeklyPlan(T); });
+  bindWeekGoals(root); bindWeekWins(root);
   root.querySelectorAll('[data-plansec]').forEach(b => b.onclick = () => { S.settings = S.settings || {}; S.settings.planSection = b.dataset.plansec; saveNow(); rerender(); });
   $('#eveningReview') && ($('#eveningReview').onclick = () => { if(typeof flowEvening === 'function') flowEvening(); });
 
