@@ -2593,6 +2593,30 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .wp-tline{display:flex;align-items:center;gap:8px;min-width:0}
 .wk-threads{margin:8px 0 12px;padding:8px 12px;border:1px solid var(--line);border-radius:11px}.wk-thread-list{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
 .wk-thread{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.wk-thread.turn .wk-thread-text{font-style:italic}.wk-thread.today .wk-thread-text{font-weight:600}.wk-thread .mono:first-child{min-width:96px;font-size:.72rem;color:var(--muted)}
+/* the week's threads, as a table with no box round it */
+.wk-tt{border:0;padding:4px 0;margin:10px 0 14px}
+.tt-scroll{overflow-x:auto;margin-top:6px}
+.tt{border-collapse:separate;border-spacing:0 5px;width:100%;min-width:480px}
+.tt th,.tt td{padding:0 4px;font-weight:400;vertical-align:middle}
+.tt-h{text-align:center;width:42px;font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tt-h span,.tt-h b{display:block;line-height:1.3}.tt-h b{font-size:.74rem;color:var(--faint);font-weight:400}
+.tt-h.now{color:var(--page-accent)}.tt-h.now b{color:var(--page-accent);font-weight:600}
+.tt-name{text-align:left;padding:7px 10px 7px 12px!important}
+.tt-text{display:block;font-size:.92rem;line-height:1.3}.tt-row.turn .tt-text{font-style:italic}
+.tt-kind{display:block;font-size:.66rem;color:var(--faint);margin-top:1px}
+.tt-c{text-align:center;height:34px}.tt-c.now{background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.tt-h.now{background:color-mix(in srgb,var(--page-accent) 7%,transparent);border-radius:8px 8px 0 0}
+.tt-off{display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--line-2,var(--line))}
+.tt-day{width:24px;height:24px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--muted) 60%,transparent);background:transparent;color:#fff;font-size:.78rem;line-height:1;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s,transform .1s}
+.tt-day:hover{border-color:var(--sage);transform:scale(1.08)}
+.tt-day.done{background:var(--sage);border-color:var(--sage)}
+.tt-day.big{width:22px;height:22px;flex:none;align-self:center}
+.wk-thread.ticked .wk-thread-text{text-decoration:line-through;opacity:.55}
+.tt-row.alldone .tt-text{text-decoration:line-through;opacity:.55}
+/* a thread that applies today: a darker outline round its whole row */
+.tt-row.today > td{border-top:1.5px solid color-mix(in srgb,var(--text) 70%,transparent);border-bottom:1.5px solid color-mix(in srgb,var(--text) 70%,transparent)}
+.tt-row.today > td:first-child{border-left:1.5px solid color-mix(in srgb,var(--text) 70%,transparent);border-radius:9px 0 0 9px}
+.tt-row.today > td:last-child{border-right:1.5px solid color-mix(in srgb,var(--text) 70%,transparent);border-radius:0 9px 9px 0}
 .wp-thread{padding:8px 0;border-bottom:1px solid var(--line)}.wp-thread .inp.grow{flex:1;min-width:220px}.wp-thread .sel{width:auto}.wp-thdays{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .wp-dchip{display:inline-flex;gap:4px;align-items:center;padding:3px 9px;border:1px solid var(--line);border-radius:999px;font-size:.78rem;cursor:pointer}.wp-dchip input{display:none}.wp-dchip.on{background:color-mix(in srgb,var(--page-accent) 18%,transparent);border-color:var(--page-accent)}
 .wp-thquick{margin-left:auto;display:inline-flex;gap:2px}

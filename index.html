@@ -3266,6 +3266,30 @@ html[data-theme="light"]{--jzp-iivi:#2a78d6;--jzp-ton:#1baf7a;--jzp-tri:#eb6834;
 .wp-tline{display:flex;align-items:center;gap:8px;min-width:0}
 .wk-threads{margin:8px 0 12px;padding:8px 12px;border:1px solid var(--line);border-radius:11px}.wk-thread-list{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
 .wk-thread{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.wk-thread.turn .wk-thread-text{font-style:italic}.wk-thread.today .wk-thread-text{font-weight:600}.wk-thread .mono:first-child{min-width:96px;font-size:.72rem;color:var(--muted)}
+/* the week's threads, as a table with no box round it */
+.wk-tt{border:0;padding:4px 0;margin:10px 0 14px}
+.tt-scroll{overflow-x:auto;margin-top:6px}
+.tt{border-collapse:separate;border-spacing:0 5px;width:100%;min-width:480px}
+.tt th,.tt td{padding:0 4px;font-weight:400;vertical-align:middle}
+.tt-h{text-align:center;width:42px;font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tt-h span,.tt-h b{display:block;line-height:1.3}.tt-h b{font-size:.74rem;color:var(--faint);font-weight:400}
+.tt-h.now{color:var(--page-accent)}.tt-h.now b{color:var(--page-accent);font-weight:600}
+.tt-name{text-align:left;padding:7px 10px 7px 12px!important}
+.tt-text{display:block;font-size:.92rem;line-height:1.3}.tt-row.turn .tt-text{font-style:italic}
+.tt-kind{display:block;font-size:.66rem;color:var(--faint);margin-top:1px}
+.tt-c{text-align:center;height:34px}.tt-c.now{background:color-mix(in srgb,var(--page-accent) 7%,transparent)}
+.tt-h.now{background:color-mix(in srgb,var(--page-accent) 7%,transparent);border-radius:8px 8px 0 0}
+.tt-off{display:inline-block;width:3px;height:3px;border-radius:50%;background:var(--line-2,var(--line))}
+.tt-day{width:24px;height:24px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--muted) 60%,transparent);background:transparent;color:#fff;font-size:.78rem;line-height:1;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s,transform .1s}
+.tt-day:hover{border-color:var(--sage);transform:scale(1.08)}
+.tt-day.done{background:var(--sage);border-color:var(--sage)}
+.tt-day.big{width:22px;height:22px;flex:none;align-self:center}
+.wk-thread.ticked .wk-thread-text{text-decoration:line-through;opacity:.55}
+.tt-row.alldone .tt-text{text-decoration:line-through;opacity:.55}
+/* a thread that applies today: a darker outline round its whole row */
+.tt-row.today > td{border-top:1.5px solid color-mix(in srgb,var(--text) 70%,transparent);border-bottom:1.5px solid color-mix(in srgb,var(--text) 70%,transparent)}
+.tt-row.today > td:first-child{border-left:1.5px solid color-mix(in srgb,var(--text) 70%,transparent);border-radius:9px 0 0 9px}
+.tt-row.today > td:last-child{border-right:1.5px solid color-mix(in srgb,var(--text) 70%,transparent);border-radius:0 9px 9px 0}
 .wp-thread{padding:8px 0;border-bottom:1px solid var(--line)}.wp-thread .inp.grow{flex:1;min-width:220px}.wp-thread .sel{width:auto}.wp-thdays{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .wp-dchip{display:inline-flex;gap:4px;align-items:center;padding:3px 9px;border:1px solid var(--line);border-radius:999px;font-size:.78rem;cursor:pointer}.wp-dchip input{display:none}.wp-dchip.on{background:color-mix(in srgb,var(--page-accent) 18%,transparent);border-color:var(--page-accent)}
 .wp-thquick{margin-left:auto;display:inline-flex;gap:2px}
@@ -23189,7 +23213,7 @@ routes.today = function(root, params = []){
         ${wkPers.length > 1 || !wkNow ? `<div class="wk-period-strip">${wkPers.map(x => `<span class="${x === wkNow ? 'on' : ''}" title="${esc(x.focus || '')}">${
           esc(wpSpan(x))}${x.name ? ` ${esc(x.name)}` : ''}</span>`).join('')}</div>` : ''}
       </div>` : ''}
-      ${wkThr.length ? `<div class="wk-threads"><span class="sc" style="margin:0">Threads</span><ul class="wk-thread-list">${wkThr.map(t => `<li class="wk-thread ${esc(t.kind)}${t.days.includes(T) ? ' today' : ''}"><span class="mono">${esc(WEEK_THREAD_KIND[t.kind])}</span><span class="wk-thread-text">${esc(t.text)}</span><span class="mono faint">${t.days.slice().sort().map(x => esc(wpDayShort(x))).join(' \u00b7 ')}</span></li>`).join('')}</ul></div>` : ''}
+      ${wkThr.length && typeof weekThreadsTableHTML === 'function' ? weekThreadsTableHTML(wkPlan, T) : ''}
       ${wkGoals.length ? `<div class="wk-goals">${wkGoals.map(o => {
         const g = weekGoalProgress(o);
         return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
@@ -45571,13 +45595,51 @@ const WEEK_THREAD_KIND = {do: 'to do', turn: 'to contemplate'};
 const weekThreads = p => (Array.isArray(p && p.threads) ? p.threads : [])
   .filter(t => t && (t.text || '').trim() && Array.isArray(t.days) && t.days.length);
 const weekThreadsOn = (p, d) => weekThreads(p).filter(t => t.days.includes(d));
+const weekThreadDone = (t, d) => !!(t && t.done && t.done[d]);
+const wkThBtn = (t, d, big) => `<button class="tt-day${weekThreadDone(t, d) ? ' done' : ''}${big ? ' big' : ''}" data-wkth="${esc(t.id)}|${esc(d)}" aria-pressed="${weekThreadDone(t, d)}"
+  title="${esc(DOW[parseDay(d).getDay()])}${weekThreadDone(t, d) ? ' \u2014 done (press to undo)' : ' \u2014 press to mark done'}">${weekThreadDone(t, d) ? '\u2713' : ''}</button>`;
 function weekThreadsTodayHTML(d, kind){
   const p = weekPlanSeen(weekStart(d)), l = weekThreadsOn(p, d).filter(t => !kind || t.kind === kind);
   if(!l.length) return '';
   return `<div class="wk-threads"><span class="sc" style="margin:0">${kind === 'turn' ? 'To turn over today' : kind === 'do' ? 'To do today' : 'Threaded through today'}</span>
-    <ul class="wk-thread-list">${l.map(t => `<li class="wk-thread ${esc(t.kind)}"><span class="mono">${esc(WEEK_THREAD_KIND[t.kind] || '')}</span><span class="wk-thread-text">${esc(t.text)}</span>
+    <ul class="wk-thread-list">${l.map(t => `<li class="wk-thread ${esc(t.kind)}${weekThreadDone(t, d) ? ' ticked' : ''}">${wkThBtn(t, d, true)}<span class="mono">${esc(WEEK_THREAD_KIND[t.kind] || '')}</span><span class="wk-thread-text">${esc(t.text)}</span>
       <span class="mono faint">${t.days.slice().sort().map(x => esc(wpDayShort(x))).join(' \u00b7 ')}</span></li>`).join('')}</ul></div>`;
 }
+/* The week's threads as a table: a row each, the seven days across. A day the
+   thread applies to is a button that marks it done (press again to undo); one it
+   does not apply to is left blank. Today's column is marked, and a thread that
+   applies today has a darker outline round its row. No box round the table. */
+function weekThreadsTableHTML(p, T){
+  const l = weekThreads(p); if(!l.length) return '';
+  const wk = weekStart(T), days = Array.from({length: 7}, (_, i) => addDays(wk, i));
+  return `<div class="wk-threads wk-tt"><span class="sc" style="margin:0">Threads</span>
+    <div class="tt-scroll"><table class="tt" aria-label="this week's threads">
+      <thead><tr><th class="tt-name"></th>${days.map(d => `<th class="tt-h${d === T ? ' now' : ''}"><span>${esc(wpDayShort(d))}</span><b class="mono">${+d.slice(8)}</b></th>`).join('')}</tr></thead>
+      <tbody>${l.map(t => { const mine = t.days.includes(T), n = t.days.length, k = t.days.filter(d => weekThreadDone(t, d)).length;
+        return `<tr class="tt-row ${esc(t.kind)}${mine ? ' today' : ''}${n && k === n ? ' alldone' : ''}">
+          <td class="tt-name"><span class="tt-text">${esc(t.text)}</span><span class="tt-kind mono">${esc(WEEK_THREAD_KIND[t.kind] || '')} \u00b7 ${k} of ${n}</span></td>
+          ${days.map(d => `<td class="tt-c${d === T ? ' now' : ''}">${t.days.includes(d) ? wkThBtn(t, d) : '<i class="tt-off"></i>'}</td>`).join('')}</tr>`; }).join('')}</tbody>
+    </table></div></div>`;
+}
+/* one handler for every thread button on any page: mark the day, keep it, redraw the buttons */
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-wkth]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const [id, d] = b.dataset.wkth.split('|'), p = weekPlanSeen(weekStart(d)), t = (p.threads || []).find(x => x.id === id); if(!t) return;
+  t.done = t.done && typeof t.done === 'object' ? t.done : {};
+  if(t.done[d]) delete t.done[d]; else t.done[d] = true;
+  if(S.weekPlans && S.weekPlans[weekStart(d)]) saveNow();
+  document.querySelectorAll(`[data-wkth="${CSS.escape(id + '|' + d)}"]`).forEach(x => {
+    const on = !!t.done[d]; x.classList.toggle('done', on); x.setAttribute('aria-pressed', on); x.textContent = on ? '\u2713' : '';
+    x.title = DOW[parseDay(d).getDay()] + (on ? ' \u2014 done (press to undo)' : ' \u2014 press to mark done');
+    const li = x.closest('.wk-thread'); if(li) li.classList.toggle('ticked', on);
+    const row = x.closest('.tt-row');
+    if(row){ const mine = [...row.querySelectorAll('[data-wkth]')], k = mine.filter(y => y.classList.contains('done')).length;
+      row.classList.toggle('alldone', mine.length > 0 && k === mine.length);
+      const kind = row.querySelector('.tt-kind'); if(kind) kind.textContent = kind.textContent.replace(/\d+ of \d+$/, `${k} of ${mine.length}`); }
+  });
+  if(typeof sound === 'function') sound('click');
+}, true);
 const wpDayShort = d => DOW[parseDay(d).getDay()].slice(0, 3);
 const wpSpan = x => x.from === x.to ? wpDayShort(x.from) : `${wpDayShort(x.from)}\u2013${wpDayShort(x.to)}`;
 /* last week's plan as it was left, without writing an empty one for a week
@@ -45632,8 +45694,10 @@ function openWeeklyPlan(d = today()){
       p.guard = p.risks.map(r => r.text).filter(Boolean).join('; ');
     }
     if(q('[data-wpthname]') || q('#wpAddThread')){
+      const prev = p.threads || [];
       p.threads = all('[data-wpthname]').map(i => { const n = i.dataset.wpthname, row = i.closest('.wp-thread');
-        return {id: row.dataset.wpthid, text: i.value.trim(), kind: (q(`[data-wpthkind="${n}"]`) || {value: 'do'}).value === 'turn' ? 'turn' : 'do',
+        const was = prev.find(x => x.id === row.dataset.wpthid);
+        return {id: row.dataset.wpthid, done: was && was.done ? was.done : {}, text: i.value.trim(), kind: (q(`[data-wpthkind="${n}"]`) || {value: 'do'}).value === 'turn' ? 'turn' : 'do',
           days: all(`[data-wpthday="${n}"]`).filter(c => c.checked).map(c => c.value)}; });
     }
     all('[data-wpaim]').forEach(i => p.aims[i.dataset.wpaim] = i.value.trim());

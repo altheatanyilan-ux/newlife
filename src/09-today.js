@@ -381,7 +381,7 @@ routes.today = function(root, params = []){
         ${wkPers.length > 1 || !wkNow ? `<div class="wk-period-strip">${wkPers.map(x => `<span class="${x === wkNow ? 'on' : ''}" title="${esc(x.focus || '')}">${
           esc(wpSpan(x))}${x.name ? ` ${esc(x.name)}` : ''}</span>`).join('')}</div>` : ''}
       </div>` : ''}
-      ${wkThr.length ? `<div class="wk-threads"><span class="sc" style="margin:0">Threads</span><ul class="wk-thread-list">${wkThr.map(t => `<li class="wk-thread ${esc(t.kind)}${t.days.includes(T) ? ' today' : ''}"><span class="mono">${esc(WEEK_THREAD_KIND[t.kind])}</span><span class="wk-thread-text">${esc(t.text)}</span><span class="mono faint">${t.days.slice().sort().map(x => esc(wpDayShort(x))).join(' \u00b7 ')}</span></li>`).join('')}</ul></div>` : ''}
+      ${wkThr.length && typeof weekThreadsTableHTML === 'function' ? weekThreadsTableHTML(wkPlan, T) : ''}
       ${wkGoals.length ? `<div class="wk-goals">${wkGoals.map(o => {
         const g = weekGoalProgress(o);
         return `<div class="row between" style="gap:8px"><span>${esc(o.text)}</span>${
