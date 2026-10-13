@@ -29,6 +29,11 @@ const yes = (n, c, g = '') => c ? console.log('  ok   ' + n) : (bad++, console.l
   yes('a long card does not grow past the room', q1.cardH < q1.barTop && a1.cardH < a1.barTop);
   is('the buttons are at the same place on every card', [...new Set(seen.map(s => s.btnTop))].length, 1);
   yes('and on screen without scrolling', seen.every(s => s.barBottom <= s.vh), JSON.stringify(seen.map(s => s.barBottom)));
+  /* the undo after a rating sits in the top row and covers nothing */
+  const ov = await p.evaluate(() => { const u = document.querySelector('.sx-undo'); if(!u) return null; const r = u.getBoundingClientRect();
+    const hit = [...document.querySelectorAll('#sxCardWrap, #sxBar, .sx-ans, #sxShow, #sxCounts, #sxMore, .sx-rdeck')].some(a => { const q = a.getBoundingClientRect(); return !(r.right <= q.left || r.left >= q.right || r.bottom <= q.top || r.top >= q.bottom); });
+    return {hit, top: Math.round(r.top), inRow: !!u.closest('.sx-rtop')}; });
+  yes('the undo, after a rating, is in the top row and covers nothing', ov && ov.inRow && !ov.hit, JSON.stringify(ov));
   is('no page errors', errs, []);
   await b.close(); console.log(bad ? 'FAILURES' : 'all good'); process.exit(bad ? 1 : 0);
 })();

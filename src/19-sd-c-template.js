@@ -255,6 +255,18 @@ function sdCardDoc(side, html, css, opts){
     if([' ', 'Enter'].indexOf(e.key) > -1) e.preventDefault();
   });
   document.addEventListener('input', function(e){ if(e.target.id === 'typeans') post({type: 'typed', value: e.target.value}); });
+  /* where the pointer is, for the page's cursor ring, which cannot see in here */
+  var pq = null, pdown = false, pend = function(){ pq = null; };
+  var pointer = function(e){
+    var t = e.target, ed = !!(t.closest && t.closest('input,textarea,[contenteditable="true"]')),
+        cl = !!(t.closest && t.closest('a[href],button,summary,[data-sdhint],[data-sdsound],[data-sdtag],label'));
+    if(pq) { pq = [e.clientX, e.clientY, ed, cl]; return; }
+    pq = [e.clientX, e.clientY, ed, cl];
+    requestAnimationFrame(function(){ var q = pq; pq = null; if(q) post({type: 'pointer', x: q[0], y: q[1], text: q[2], click: q[3], press: pdown}); });
+  };
+  document.addEventListener('mousemove', pointer, {passive: true});
+  document.addEventListener('mousedown', function(e){ pdown = true; pointer(e); });
+  document.addEventListener('mouseup', function(e){ pdown = false; pointer(e); });
   document.addEventListener('mouseup', function(){ var s = String(getSelection() || '').trim(); if(s && s.length < 60) post({type: 'select', text: s}); });
   var ro = new ResizeObserver(function(){ post({type: 'height', h: document.documentElement.scrollHeight}); });
   window.addEventListener('load', function(){ ro.observe(document.body); post({type: 'height', h: document.documentElement.scrollHeight}); var ti = document.getElementById('typeans'); if(ti && ti.tagName === 'INPUT') ti.focus(); });
@@ -268,6 +280,7 @@ function sdCardDoc(side, html, css, opts){
 <style>
 :root{--sd-ink:${o.ink || '#2b2622'};--sd-accent:${o.accent || '#3f6f8f'}}
 html,body{margin:0;padding:0;background:transparent;color:var(--sd-ink)}
+${document.documentElement.classList.contains('mfx-cursor') ? 'html,html *{cursor:none!important}' : ''}
 body{padding:${o.pad || '28px 22px'};font-size:${Math.round((o.scale || 1) * 100)}%;overflow-wrap:anywhere}
 img{max-width:100%;height:auto}
 hr#answer{border:0;border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);margin:1.2em auto;width:72%}

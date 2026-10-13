@@ -139,7 +139,12 @@ function sdUndoToast(text, undo){
   document.querySelectorAll('.sx-undo').forEach(x => x.remove());
   const t = document.createElement('div'); t.className = 'sx-undo'; t.setAttribute('role', 'status');
   t.innerHTML = `<span>${esc(text)}</span><button class="tbtn">Undo</button><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>`;
-  document.body.appendChild(t);
+  /* In a review it sits in the top row, between the counts and the menu, where
+     nothing else is: floating at a corner it covered the Again button and the
+     words under the card. Elsewhere it floats, as before. */
+  const host = document.querySelector('#sxRev .sx-rtop');
+  if(host){ t.classList.add('sx-undo-in'); host.insertBefore(t, host.querySelector('#sxMore')); }
+  else document.body.appendChild(t);
   const kill = setTimeout(() => t.remove(), 5000);
   t.querySelector('button').onclick = () => { clearTimeout(kill); t.remove(); undo(); };
 }

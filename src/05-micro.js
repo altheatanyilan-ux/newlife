@@ -250,10 +250,23 @@ const MicroFX = (() => {
     requestAnimationFrame(() => { queue.armed = false; if(pending) onMove(pending); });
   }
 
+  /* A sandboxed card is a document of its own: the page never hears a mouse
+     move inside it, so the ring stopped dead at the card's edge. The card posts
+     where the pointer is and what it is over; this moves the ring there. */
+  function fromFrame(ev){
+    const m = ev.data;
+    if(!started || !m || m.type !== 'pointer' || m.sdCard === undefined) return;
+    const f = [...document.querySelectorAll('iframe')].find(x => x.contentWindow === ev.source); if(!f) return;
+    const r = f.getBoundingClientRect();
+    onMove({clientX: r.left + m.x, clientY: r.top + m.y, target: f});
+    if(dot){ dot.classList.toggle('text', !!m.text); ring.classList.toggle('text', !!m.text);
+      ring.classList.toggle('click', !m.text && !!m.click); ring.classList.toggle('press', !!m.press); dot.classList.remove('gone'); ring.classList.remove('gone'); }
+  }
   function start(){
     if(started || off()) return;
     started = true;
     startCursor();
+    addEventListener('message', fromFrame);
     document.addEventListener('mousemove', queue, {passive:true});
     /* mousemove stops during a drag; dragover is the only thing still saying
        where the pointer is, so the ring keeps up instead of being left behind */
@@ -272,6 +285,7 @@ const MicroFX = (() => {
        running", so a restart would never take a frame again and the ring
        would sit where it was */
     cancelAnimationFrame(raf); raf = 0;
+    removeEventListener('message', fromFrame);
     document.removeEventListener('mousemove', queue);
     document.removeEventListener('dragover', queue);
     removeEventListener('scroll', dropRects, {capture:true});

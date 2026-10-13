@@ -11844,6 +11844,9 @@ html.page-focus .rem-float{left:50%;max-width:min(480px,calc(100vw - 480px))}
 .sx-undo svg{width:18px;height:18px;transform:rotate(-90deg)}.sx-undo circle{fill:none;stroke:var(--faint);stroke-width:2;stroke-dasharray:50.3;animation:sxDrain 5s linear forwards}
 @media (max-width:900px){.sx-undo{left:12px;bottom:auto;top:56px}}
 html.page-focus .sx-undo{left:60px}
+.sx-undo.sx-undo-in{position:static;z-index:auto;max-width:none;flex:none;padding:2px 6px 2px 12px;box-shadow:none;font-size:.8rem;animation:none}
+@media (max-width:900px){.sx-undo.sx-undo-in{left:auto;top:auto}}
+.sx-rtop .sx-pace{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @keyframes sxDrain{to{stroke-dashoffset:50.3}}
 @keyframes sxUp{from{opacity:0;transform:translate(-50%,8px)}}
 
@@ -16682,10 +16685,23 @@ const MicroFX = (() => {
     requestAnimationFrame(() => { queue.armed = false; if(pending) onMove(pending); });
   }
 
+  /* A sandboxed card is a document of its own: the page never hears a mouse
+     move inside it, so the ring stopped dead at the card's edge. The card posts
+     where the pointer is and what it is over; this moves the ring there. */
+  function fromFrame(ev){
+    const m = ev.data;
+    if(!started || !m || m.type !== 'pointer' || m.sdCard === undefined) return;
+    const f = [...document.querySelectorAll('iframe')].find(x => x.contentWindow === ev.source); if(!f) return;
+    const r = f.getBoundingClientRect();
+    onMove({clientX: r.left + m.x, clientY: r.top + m.y, target: f});
+    if(dot){ dot.classList.toggle('text', !!m.text); ring.classList.toggle('text', !!m.text);
+      ring.classList.toggle('click', !m.text && !!m.click); ring.classList.toggle('press', !!m.press); dot.classList.remove('gone'); ring.classList.remove('gone'); }
+  }
   function start(){
     if(started || off()) return;
     started = true;
     startCursor();
+    addEventListener('message', fromFrame);
     document.addEventListener('mousemove', queue, {passive:true});
     /* mousemove stops during a drag; dragover is the only thing still saying
        where the pointer is, so the ring keeps up instead of being left behind */
@@ -16704,6 +16720,7 @@ const MicroFX = (() => {
        running", so a restart would never take a frame again and the ring
        would sit where it was */
     cancelAnimationFrame(raf); raf = 0;
+    removeEventListener('message', fromFrame);
     document.removeEventListener('mousemove', queue);
     document.removeEventListener('dragover', queue);
     removeEventListener('scroll', dropRects, {capture:true});
@@ -118215,6 +118232,18 @@ function sdCardDoc(side, html, css, opts){
     if([' ', 'Enter'].indexOf(e.key) > -1) e.preventDefault();
   });
   document.addEventListener('input', function(e){ if(e.target.id === 'typeans') post({type: 'typed', value: e.target.value}); });
+  /* where the pointer is, for the page's cursor ring, which cannot see in here */
+  var pq = null, pdown = false, pend = function(){ pq = null; };
+  var pointer = function(e){
+    var t = e.target, ed = !!(t.closest && t.closest('input,textarea,[contenteditable="true"]')),
+        cl = !!(t.closest && t.closest('a[href],button,summary,[data-sdhint],[data-sdsound],[data-sdtag],label'));
+    if(pq) { pq = [e.clientX, e.clientY, ed, cl]; return; }
+    pq = [e.clientX, e.clientY, ed, cl];
+    requestAnimationFrame(function(){ var q = pq; pq = null; if(q) post({type: 'pointer', x: q[0], y: q[1], text: q[2], click: q[3], press: pdown}); });
+  };
+  document.addEventListener('mousemove', pointer, {passive: true});
+  document.addEventListener('mousedown', function(e){ pdown = true; pointer(e); });
+  document.addEventListener('mouseup', function(e){ pdown = false; pointer(e); });
   document.addEventListener('mouseup', function(){ var s = String(getSelection() || '').trim(); if(s && s.length < 60) post({type: 'select', text: s}); });
   var ro = new ResizeObserver(function(){ post({type: 'height', h: document.documentElement.scrollHeight}); });
   window.addEventListener('load', function(){ ro.observe(document.body); post({type: 'height', h: document.documentElement.scrollHeight}); var ti = document.getElementById('typeans'); if(ti && ti.tagName === 'INPUT') ti.focus(); });
@@ -118228,6 +118257,7 @@ function sdCardDoc(side, html, css, opts){
 <style>
 :root{--sd-ink:${o.ink || '#2b2622'};--sd-accent:${o.accent || '#3f6f8f'}}
 html,body{margin:0;padding:0;background:transparent;color:var(--sd-ink)}
+${document.documentElement.classList.contains('mfx-cursor') ? 'html,html *{cursor:none!important}' : ''}
 body{padding:${o.pad || '28px 22px'};font-size:${Math.round((o.scale || 1) * 100)}%;overflow-wrap:anywhere}
 img{max-width:100%;height:auto}
 hr#answer{border:0;border-top:1px solid color-mix(in srgb,currentColor 18%,transparent);margin:1.2em auto;width:72%}
@@ -118457,7 +118487,12 @@ function sdUndoToast(text, undo){
   document.querySelectorAll('.sx-undo').forEach(x => x.remove());
   const t = document.createElement('div'); t.className = 'sx-undo'; t.setAttribute('role', 'status');
   t.innerHTML = `<span>${esc(text)}</span><button class="tbtn">Undo</button><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>`;
-  document.body.appendChild(t);
+  /* In a review it sits in the top row, between the counts and the menu, where
+     nothing else is: floating at a corner it covered the Again button and the
+     words under the card. Elsewhere it floats, as before. */
+  const host = document.querySelector('#sxRev .sx-rtop');
+  if(host){ t.classList.add('sx-undo-in'); host.insertBefore(t, host.querySelector('#sxMore')); }
+  else document.body.appendChild(t);
   const kill = setTimeout(() => t.remove(), 5000);
   t.querySelector('button').onclick = () => { clearTimeout(kill); t.remove(); undo(); };
 }
