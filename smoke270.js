@@ -79,7 +79,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
     const s = document.querySelector('#t-plan'); if(s) s.open = true; });
   const card = await p.evaluate(() => ({now: document.querySelector('.wk-carry .wk-period.now')?.textContent.replace(/\s+/g, ' ').trim() || '',
     strip: [...document.querySelectorAll('.wk-carry .wk-period-strip span')].map(n => n.textContent.trim()),
-    goals: document.querySelectorAll('.wk-carry .wk-goals > div').length}));
+    goals: document.querySelectorAll('.wk-carry .wk-goals > .wk-goal').length}));
   yes('the week card says the period today is in, and its focus', card.now.includes(want) && /^now/.test(card.now), card.now);
   is('  with the whole week in periods beside it', card.strip.length, 2);
   is('  and all four goals', card.goals, 4);
