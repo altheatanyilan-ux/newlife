@@ -208,7 +208,7 @@ function timeStartingPoint(day){
 /* One form for correcting an entry and for writing one down afterwards, since
    they ask for exactly the same things. A running entry has no end yet, so
    the end field is left out rather than shown empty and ignored. */
-function openTimeEntryModal(id, day){
+function openTimeEntryModal(id, day, pre){
   timeState();
   const e = id ? byId(S.timeEntries, id) : null;
   const running = e && !e.endTime;
@@ -227,11 +227,11 @@ function openTimeEntryModal(id, day){
       <label class="pd-q" style="flex:1"><span class="k">day</span>
         <input class="inp mono" type="date" id="teDay" value="${esc(on)}"></label>
       <label class="pd-q" style="flex:1"><span class="k">from</span>
-        <input class="inp mono" type="time" id="teFrom" value="${esc(e ? timeClockOf(e.startTime) : after ? after.clock : '')}"></label>
+        <input class="inp mono" type="time" id="teFrom" value="${esc(e ? timeClockOf(e.startTime) : pre ? pre.from : after ? after.clock : '')}"></label>
       ${running ? '' : `<label class="pd-q" style="flex:1"><span class="k">to</span>
-        <input class="inp mono" type="time" id="teTo" value="${esc(e && e.endTime ? timeClockOf(e.endTime) : '')}"></label>`}
+        <input class="inp mono" type="time" id="teTo" value="${esc(e && e.endTime ? timeClockOf(e.endTime) : pre ? pre.to : '')}"></label>`}
     </div>
-    ${e ? '' : `<div class="mono faint te-after" id="teAfter"${after ? '' : ' hidden'}>${afterSaid(after)}</div>`}
+    ${e ? '' : `<div class="mono faint te-after" id="teAfter"${after && !pre ? '' : ' hidden'}>${afterSaid(after)}</div>`}
     ${running ? '' : `<label class="pd-q" style="margin-top:4px"><span class="k">or just how long, in minutes</span>
       <input class="inp mono" type="number" id="teMins" min="0" max="1440" placeholder="120"></label>`}
     <label class="pd-q" style="margin-top:10px"><span class="k">category</span>
@@ -258,7 +258,7 @@ function openTimeEntryModal(id, day){
       <button class="btn primary" id="teSave">Save</button></div>`, 'narrow');
   if(!e){
     const fromEl = m.querySelector('#teFrom'), dayEl = m.querySelector('#teDay'), note = m.querySelector('#teAfter');
-    let byHand = false;
+    let byHand = !!pre;   /* a stretch dragged out on the strip is the "from" */
     const mine = () => { byHand = true; if(note) note.hidden = true; };
     fromEl.addEventListener('input', mine); fromEl.addEventListener('change', mine);
     dayEl.addEventListener('change', () => {
@@ -294,9 +294,12 @@ function openTimeEntryModal(id, day){
       timeAfterSave(e);
       saveNow();
     } else {
+      /* a stretch dragged out on the strip carries its own instants; they stand
+         as long as the form's fields still say what it said */
+      const keep = pre && pre.fromISO && dayV === on;
       const made = logTime(Object.assign({}, common, {
-        startTime: timeAtOn(dayV, from || (timeStartingPoint(dayV) || {}).clock || '09:00'),
-        endTime: toEl && toEl.value ? timeAtOn(dayV, toEl.value) : null,
+        startTime: keep && from === pre.from ? pre.fromISO : timeAtOn(dayV, from || (timeStartingPoint(dayV) || {}).clock || '09:00'),
+        endTime: toEl && toEl.value ? (keep && toEl.value === pre.to ? pre.toISO : timeAtOn(dayV, toEl.value)) : null,
         minutes: minsEl ? +minsEl.value || 0 : 0}));
       /* written by hand or not, under a minute is not a sitting */
       if(!made){ toast('That is under a minute, so it was not written down.', 4500); return; }

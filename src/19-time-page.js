@@ -92,7 +92,7 @@ function timeStripHTML(rows, day){
      sitting that overlaps it — a nap logged by hand, a bedtime typed wrong —
      should be the thing you can see, not the thing hidden behind it */
   const said = timeSleepSaidOn(day);
-  return `<div class="tm-strip" role="img" aria-label="the day, midnight to midnight">
+  return `<div class="tm-strip" data-tmdrag="${esc(day || '')}" role="img" aria-label="the day, midnight to midnight. Drag across it to write down a sitting.">
     ${timeSleepBlocks(day).map(b =>
       `<i class="tm-seg tm-sleepseg" style="left:${(b.from / 14.4).toFixed(2)}%;width:${
         ((b.to - b.from) / 14.4).toFixed(2)}%" title="asleep${said ? ` \u2014 ${esc(said)}` : ''}"></i>`).join('')}
@@ -247,6 +247,59 @@ function bindTimePage(root){
   const add = root.querySelector('#tmAdd');
   if(add) add.onclick = () => openTimeEntryModal(null, timeDay());
   bindTimeCategories(root);
+  bindTimeDrag(root);
+}
+
+/* Drag across the strip to write a sitting down, the way a calendar does: press
+   on empty time, pull to the end, and the form opens with the stretch filled in.
+   Five-minute steps, because the strip is a thousand pixels for a day and a
+   minute is not something a hand can hit. A press that lands on a sitting
+   still opens that sitting; one that does not move writes nothing. On today
+   the stretch stops at now, since this is for what already happened. */
+const TM_DRAG_STEP = 5, TM_DRAG_MIN = 5;
+function bindTimeDrag(root){
+  const fmt = m => String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  $$('[data-tmdrag]', root).forEach(strip => {
+    /* the strip is a calendar day, midnight to midnight, so "today" here is
+       the calendar date and not the living day that today() answers with */
+    const day = strip.dataset.tmdrag, calToday = timeDayOf(new Date().toISOString());
+    if(!day || day > calToday) return;
+    const limit = () => day === calToday ? (() => { const n = new Date(); return n.getHours() * 60 + n.getMinutes(); })() : 1440;
+    const instant = m => { const d = parseDay(day); d.setHours(Math.floor(m / 60), m % 60, 0, 0); return d.toISOString(); };
+    const at = ev => { const r = strip.getBoundingClientRect();
+      const m = Math.round((ev.clientX - r.left) / r.width * 1440 / TM_DRAG_STEP) * TM_DRAG_STEP;
+      return Math.max(0, Math.min(limit(), m)); };
+    let ghost = null, tip = null, from = null, to = null;
+    const clean = () => { if(ghost) ghost.remove(); if(tip) tip.remove(); ghost = tip = from = to = null; };
+    const paint = ev => {
+      const a = Math.min(from, to), b = Math.max(from, to);
+      ghost.style.left = (a / 14.4) + '%'; ghost.style.width = ((b - a) / 14.4) + '%';
+      tip.textContent = `${fmt(a)}\u2013${fmt(b)} \u00b7 ${timeSaid(b - a)}`;
+      tip.style.left = Math.min(innerWidth - 150, ev.clientX + 12) + 'px';
+      tip.style.top = (strip.getBoundingClientRect().bottom + 22) + 'px';
+    };
+    strip.addEventListener('pointerdown', ev => {
+      if(ev.button > 0 || ev.target.closest('[data-tmgo]')) return;
+      from = to = at(ev);
+      ghost = document.createElement('i'); ghost.className = 'tm-seg tm-ghost'; strip.appendChild(ghost);
+      tip = document.createElement('div'); tip.className = 'tm-dragtip mono'; document.body.appendChild(tip);
+      strip.setPointerCapture(ev.pointerId); paint(ev); ev.preventDefault();
+    });
+    strip.addEventListener('pointermove', ev => { if(ghost){ to = at(ev); paint(ev); } });
+    strip.addEventListener('pointercancel', clean);
+    strip.addEventListener('pointerup', ev => {
+      if(!ghost) return;
+      to = at(ev);
+      const a = Math.min(from, to), b = Math.max(from, to);
+      clean();
+      if(b - a < TM_DRAG_MIN) return;
+      /* the form asks for a living day, and the small hours belong to the evening
+         before, so file the stretch under the day its start lives in and hand over
+         the exact instants too, so nothing is re-guessed from clock faces */
+      openTimeEntryModal(null, timeLivingDay(instant(a)), {from: fmt(a), to: b >= 1440 ? '23:59' : fmt(b),
+        fromISO: instant(a), toISO: instant(b >= 1440 ? 1439 : b)});
+    });
+  });
 }
 
 /* ---------- the categories, which are yours ----------

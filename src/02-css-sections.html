@@ -10319,6 +10319,11 @@ html.sc-reading .tdock{display:none}
 .tm-seg{position:absolute;top:0;bottom:0;display:block;background:var(--c);opacity:.82;
   border-radius:2px;cursor:pointer;min-width:2px}
 .tm-seg:hover{opacity:1;outline:1px solid var(--ink)}
+/* the strip takes a drag to write a sitting; vertical scrolling still passes through it */
+.tm-strip[data-tmdrag]{cursor:crosshair;touch-action:pan-y;user-select:none}
+.tm-ghost{background:var(--page-accent,var(--terra));opacity:.5;outline:1px dashed var(--ink);pointer-events:none}
+.tm-dragtip{position:fixed;z-index:60;padding:3px 8px;border-radius:6px;font-size:.72rem;
+  background:var(--surface-3,var(--surface));color:var(--text);border:1px solid var(--line-2,var(--line));pointer-events:none}
 /* the asleep hours, drawn under everything: a ground rather than a bar, in
    a stripe so it never reads as a sitting you can press */
 .tm-sleepseg{background:repeating-linear-gradient(135deg,#5a6a7a 0 4px,transparent 4px 8px);
