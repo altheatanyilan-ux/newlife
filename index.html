@@ -12678,6 +12678,10 @@ span.light{width:10px;height:10px;min-width:10px;padding:0;margin-right:6px;vert
 .pq-sub{font-size:.68rem;margin-left:auto}
 .pq-row{display:flex;align-items:center;gap:10px;padding:5px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
 .pq-h + .pq-row{border-top:0}
+/* the prompts sit in a box that scrolls, so a long queue costs three rows of the page, not twenty */
+.pq-scroll{max-height:min(34vh,240px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.pq-scroll > .pq-row:first-child{border-top:0}
+.pq-scroll:focus-visible{outline:2px solid color-mix(in srgb,var(--page-accent) 50%,transparent);outline-offset:-2px}
 .pq-cat{font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:64px}
 .pq-row.cat-now .pq-cat{color:var(--terra)}
 .pq-row.cat-duty.dd-item .pq-cat{color:var(--gold)}
@@ -14383,7 +14387,9 @@ function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && h
 function updateBackButton(){
   const b = $('#backBtn'); if(!b) return;
   const {name} = parseHash();
-  const show = history.length > 1 && (name !== homeRoute() || !!$('#panel'));
+  /* on every page, the home page included: Today is where most of the day is spent, and it is the page
+     you most often want to step back from */
+  const show = history.length > 1;
   if(show && b.hidden){ b.hidden = false; b.classList.remove('leaving'); b.classList.add('entering'); }
   else if(!show && !b.hidden){ if(reduced()){ b.hidden = true; return; } b.classList.add('leaving'); setTimeout(() => { if(b.classList.contains('leaving')){ b.hidden = true; b.classList.remove('leaving'); } }, 220); }
 }
@@ -23000,6 +23006,8 @@ function bindTodayMilestones(root){
    the eye finds it. A duty with nothing on the page to point at (the weekly and
    monthly reviews, the morning card) goes to where that is done instead. */
 function todayDutyGo(root, id, route, anchor){
+  /* the places that have a better answer than "this page, that spot" go there */
+  if(typeof dutyBestGo === 'function' && dutyBestGo(id)) return;
   if(route && route !== '#/today'){ navigate(route); return; }
   const find = () => anchor ? (document.querySelector(anchor) || null) : null;
   const show = el => {
@@ -42527,7 +42535,7 @@ function pbdReplan(){
    the reminders (a floating list). They are one ranked queue now. Every item
    says the rule that raised it — in words, as the reason it is there — and
    every item has the same three ways out: later (thirty minutes), not today,
-   and off. The queue shows five at most; the rest are a count.
+   and off. All of them are in the box, most pressing first; it scrolls.
 
    It reads; it does not decide. Dismissals last the period the item belongs
    to (the day, or the week for the weekly ones) and no longer, so a flag you
@@ -42539,7 +42547,6 @@ function pbdReplan(){
    nothing that reads them is left behind.
    ============================================================ */
 
-const PQ_MAX = 5;
 const PQ_RANK = {block: 10, remind: 20, overdue: 30, due: 40, nudge: 50, flag: 60, review: 70, mile: 80};
 
 function pqState(){
@@ -42577,6 +42584,30 @@ function pqOn(id){ delete pqState().off[id]; if(S.settings.nudgeDisabled) delete
 
 /* ---------- where they come from ---------- */
 const pqItem = o => Object.assign({period: 'day', category: 'flag', rank: PQ_RANK.flag}, o);
+
+/* ---------- where "open" goes ----------
+   Each prompt opens the thing it is about, not the room it lives in: the
+   milestone itself, that list with nothing else filtering it, the skill's own
+   panel, the review that is due. */
+function pqOpenList(id){
+  if(typeof planSetSel === 'function') planSetSel('list', id); else S._planSel = {kind: 'list', id};
+  S._planFilter = Object.assign({}, S._planFilter || {}, {milestone: null});
+  if(location.hash === '#/today/tasks') rerender(); else navigate('#/today/tasks');
+}
+function pqOpenCycle(key, T = today()){
+  const due = typeof reviewsDue === 'function' ? reviewsDue(T).find(x => x.c.key === key) : null;
+  if(due) openCycleReview(key, due.end); else navigate('#/today/review');
+}
+/* duties whose answer is a thing to open rather than a spot on a page; true when handled */
+function dutyBestGo(id){
+  const cyc = {weekly_review: 'weekly', monthly_review: 'monthly', seasonal_review: 'quarterly', half_review: 'half', annual_review: 'annual'};
+  if(cyc[id]){ pqOpenCycle(cyc[id]); return true; }
+  const doIt = {affirmation_practice: 'ppAffirmChooser', contemplation_practice: 'ppContemplate', purpose_visualisation: 'ppVisualise'};
+  if(doIt[id] && typeof window[doIt[id]] === 'function'){ navigate('#/purpose'); setTimeout(() => window[doIt[id]](), 120); return true; }
+  if(id === 'sealed_letters'){ navigate('#/journals/letter'); return true; }
+  if(id === 'decisions_due'){ navigate('#/journals/decision'); return true; }
+  return false;
+}
 
 function pqBlocks(T){
   if(typeof pbdLiveItems !== 'function') return [];
@@ -42646,7 +42677,7 @@ function pqMissing(T){
     const late = m.date && m.date < T, slip = m.status === 'slipping';
     if(late || slip) out.push(pqItem({id: 'ms:' + m.id, source: 'new', category: 'flag', rank: PQ_RANK.flag - 2, period: 'week',
       msg: `${m.name} (${l.name}) ${late ? 'is overdue' : 'is slipping'}.`, rule: late ? `its date was ${fmtDate(m.date, 'short')} and it is not marked on track or prepared` : 'its remaining estimates do not fit the time left, at the pace you set',
-      go: ['open', () => { S._planSel = {kind: 'list', id: l.id}; navigate('#/planning'); }]}));
+      go: ['open', () => openMilestoneInTasks(m.id)]}));
   })); } catch(e){}
   /* a person named in a time label, with no interaction logged */
   try {
@@ -42684,7 +42715,7 @@ function pqFlags(T){
     const d = planListCommitmentData(l);
     if(d && d.verdict === 'behind') push({id: 'commit:' + l.id, period: 'week', msg: `${l.name} is behind its pace.`,
       rule: `it needs about ${d.requiredHrsPerWk.toFixed ? d.requiredHrsPerWk.toFixed(1) : d.requiredHrsPerWk} h a week and is running at ${d.actualHrsPerWk.toFixed ? d.actualHrsPerWk.toFixed(1) : d.actualHrsPerWk}`,
-      go: ['open', () => { S._planSel = {kind: 'list', id: l.id}; navigate('#/planning'); }]});
+      go: ['open', () => pqOpenList(l.id)]});
   }); } catch(e){}
   /* an in-focus skill with no hours in seven days */
   try { (typeof focusSkills === 'function' ? focusSkills() : []).forEach(sk => {
@@ -42692,7 +42723,7 @@ function pqFlags(T){
     const lp = (typeof ledgerUnified === 'function' && ledgerUnified()) ? (typeof skillLastPracticed === 'function' ? skillLastPracticed(sk) : null) : sk.lastPracticed;
     const last = lp ? daysBetween(lp, T) : 999;
     if(!recent && last > 7) push({id: 'skill-idle:' + sk.id, period: 'week', msg: `${sk.name} is in focus and has had no time this week.`,
-      rule: `it is marked in focus, with no hours logged against it in seven days${lp ? ` (last practised ${fmtDate(lp, 'short')})` : ''}`, go: ['open', () => navigate('#/identity/skills')]});
+      rule: `it is marked in focus, with no hours logged against it in seven days${lp ? ` (last practised ${fmtDate(lp, 'short')})` : ''}`, go: ['open', () => { navigate('#/identity/skills'); setTimeout(() => openSkillPanel(sk.id), 120); }]});
   }); } catch(e){}
   /* an in-progress list or project with no time in fourteen days */
   try { planLists().filter(l => planListActive(l) && !l.archivedAt && l.id !== 'inbox').forEach(l => {
@@ -42701,7 +42732,7 @@ function pqFlags(T){
     const everTimed = (S.timeEntries || []).some(e => e.linkedType === 'task' && ids.has(e.linkedId));
     const recent = (S.timeEntries || []).some(e => e.linkedType === 'task' && ids.has(e.linkedId) && daysBetween(timeLivingDay(e.startTime), T) <= 14);
     if(open && everTimed && !recent) push({id: 'list-idle:' + l.id, period: 'week', msg: `${l.name} has had no time for a fortnight.`,
-      rule: `it has ${open} open task${open === 1 ? '' : 's'} and time was spent on it before, but none in the last fourteen days`, go: ['open', () => { S._planSel = {kind: 'list', id: l.id}; navigate('#/planning'); }]});
+      rule: `it has ${open} open task${open === 1 ? '' : 's'} and time was spent on it before, but none in the last fourteen days`, go: ['open', () => pqOpenList(l.id)]});
   }); } catch(e){}
   /* estimate drift above 150% */
   try {
@@ -42787,11 +42818,11 @@ let _pqCur = [];
 function pqHTML(T = today()){
   const q = promptQueue(T); _pqCur = q;
   if(!q.length) return '<div class="pq" id="pq" hidden></div>';
-  const shown = q.slice(0, PQ_MAX), more = q.length - shown.length;
+  /* all of them, in rank order, in a box of limited height that scrolls: nothing is
+     hidden behind a count, and a long queue does not push the day down the page */
   return `<div class="pq" id="pq" aria-label="prompts"><div class="pq-h"><span class="sc" style="margin:0">Prompts</span><span class="mono pq-n">${q.length}</span>
-    <span class="faint mono pq-sub">each says why it is here</span></div>
-    ${shown.map((it, i) => pqRowHTML(it, i)).join('')}
-    ${more > 0 ? `<div class="faint mono pq-more">${more} more, below these in rank</div>` : ''}</div>`;
+    <span class="faint mono pq-sub">each says why it is here${q.length > 3 ? ' \u00b7 scroll for the rest' : ''}</span></div>
+    <div class="pq-scroll" tabindex="0" aria-label="all the prompts, most pressing first">${q.map((it, i) => pqRowHTML(it, i)).join('')}</div></div>`;
 }
 function pqBind(box, T = today(), list){
   if(!box) return;

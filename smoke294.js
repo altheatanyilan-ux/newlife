@@ -1,7 +1,7 @@
 /* smoke294 — Phase 7 of the execution overhaul: one prompt queue.
 
    1. Duties, nudges, reminders, the block prompts and review chips are one
-      ranked queue on Today; five show, the rest are a count.
+      ranked queue on Today; all of them are in a scrolling box.
    2. Every row says the rule that raised it.
    3. The same three exits on every kind: later (30 min), not today, off —
       and an off kind comes back in Settings.
@@ -98,12 +98,12 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   r = await item('kolb');
   yes('a reflection put off is raised, with why', r && /put off/.test(r.msg) && /skipped/.test(r.rule), r);
 
-  console.log('\n3. the queue: ranked, five at a time, every row says why');
+  console.log('\n3. the queue: ranked, all in one scrolling box, every row says why');
   const q = await p.evaluate(() => { const box = document.createElement('div'); document.body.appendChild(box); box.innerHTML = pqHTML(today());
     const rows = [...box.querySelectorAll('.pq-row')]; const out = {rows: rows.length, n: +box.querySelector('.pq-n').textContent, more: (box.querySelector('.pq-more') || {}).textContent || '',
       allRules: rows.every(x => (x.querySelector('.pq-rule') || {}).textContent.length > 8), exits: rows.every(x => x.querySelector('[data-pqlater]') && x.querySelector('[data-pqnot]') && x.querySelector('[data-pqoff]'))};
     box.remove(); return out; });
-  yes('five rows at most, the rest a count', q.rows === 5 && q.n >= 9 && /more/.test(q.more), q);
+  yes('every prompt is in the box, which scrolls', q.rows === q.n && q.n >= 9, q);
   yes('each row carries its rule, and the same three exits', q.allRules && q.exits, q);
   const order = await p.evaluate(() => promptQueue(today()).map(x => x.rank));
   yes('ranked: lower rank first', order.every((x, i) => !i || order[i - 1] <= x), order);
@@ -143,7 +143,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   await p.waitForTimeout(900);
   const td = await p.evaluate(() => ({pq: !!document.querySelector('#todayAutoPrompts #pq'), n: (document.querySelector('#pq .pq-n') || {}).textContent, old: !!document.querySelector('.nudge-slot'), dd: !!document.querySelector('#ddPanel')}));
   yes('Today shows the one queue with its count, and neither the nudge slot nor the pending panel', td.pq && +td.n >= 1 && !td.old && !td.dd, td);
-  await p.evaluate(() => { document.querySelector('#pq [data-pqnot]').click(); });
+  await p.evaluate(() => { [...document.querySelectorAll('#pq .pq-row')].find(r => /no label/.test(r.textContent)).querySelector('[data-pqnot]').click(); });
   await p.waitForTimeout(200);
   yes('"not today" on Today takes the row off at once', await p.evaluate(() => !document.querySelector('#pq .pq-row') || !/no label/.test(document.querySelector('#pq').textContent)));
   await reset();

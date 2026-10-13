@@ -729,7 +729,9 @@ function homeRoute(){ const h = S?.settings?.home; return (h && h !== 'map' && h
 function updateBackButton(){
   const b = $('#backBtn'); if(!b) return;
   const {name} = parseHash();
-  const show = history.length > 1 && (name !== homeRoute() || !!$('#panel'));
+  /* on every page, the home page included: Today is where most of the day is spent, and it is the page
+     you most often want to step back from */
+  const show = history.length > 1;
   if(show && b.hidden){ b.hidden = false; b.classList.remove('leaving'); b.classList.add('entering'); }
   else if(!show && !b.hidden){ if(reduced()){ b.hidden = true; return; } b.classList.add('leaving'); setTimeout(() => { if(b.classList.contains('leaving')){ b.hidden = true; b.classList.remove('leaving'); } }, 220); }
 }

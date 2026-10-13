@@ -198,6 +198,8 @@ function bindTodayMilestones(root){
    the eye finds it. A duty with nothing on the page to point at (the weekly and
    monthly reviews, the morning card) goes to where that is done instead. */
 function todayDutyGo(root, id, route, anchor){
+  /* the places that have a better answer than "this page, that spot" go there */
+  if(typeof dutyBestGo === 'function' && dutyBestGo(id)) return;
   if(route && route !== '#/today'){ navigate(route); return; }
   const find = () => anchor ? (document.querySelector(anchor) || null) : null;
   const show = el => {

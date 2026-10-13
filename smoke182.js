@@ -72,9 +72,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const home = await p.evaluate(() => ({hidden: document.querySelector('#backBtn').hidden,
     w: Math.round(document.querySelector('#backBtn').getBoundingClientRect().width),
     display: getComputedStyle(document.querySelector('#backBtn')).display}));
-  yes('home again, the code asks for it to go', home.hidden);
-  is('  and it goes', home.display, 'none');
-  is('  taking its width with it', home.w, 0);
+  yes('on Today too, the Back button is there (it is wanted on every page)', !home.hidden && home.w > 0, JSON.stringify(home));
   /* the same rule, on the elements that had each needed their own patch */
   const others = await p.evaluate(() => {
     const mk = cls => { const n = document.createElement('div'); n.className = cls; n.hidden = true;
