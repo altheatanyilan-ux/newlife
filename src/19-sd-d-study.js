@@ -210,8 +210,20 @@ function sdReviewRoute(root){
       <div class="sx-swipelabel" id="sxSwipe"></div><iframe class="sx-card" id="sxCard" sandbox="allow-scripts" title="The card" referrerpolicy="no-referrer"></iframe></div></div>
     <div class="sx-bar" id="sxBar"></div>
   </div>`;
+  sdFitReview(root);
   sdShowNext(root);
   sdBindReview(root);
+}
+/* the review is as tall as the room left under it, and follows the window */
+function sdFitReview(root){
+  const rev = root.querySelector('#sxRev'); if(!rev) return;
+  const fit = () => {
+    if(!rev.isConnected){ removeEventListener('resize', fit); return; }
+    rev.classList.add('sx-fit');
+    const top = rev.getBoundingClientRect().top + (document.scrollingElement ? document.scrollingElement.scrollTop : 0);
+    rev.style.height = Math.max(360, innerHeight - rev.getBoundingClientRect().top - 12) + 'px';
+  };
+  fit(); addEventListener('resize', fit);
 }
 async function sdShowNext(root){
   const ui = sdUi(), sess = ui.session;
@@ -351,7 +363,7 @@ function sdBindReview(root){
   const onMsg = e => {
     const m = e.data || {}; if(!m.sdCard || m.sdCard !== ui.token){ if(!root.isConnected) removeEventListener('message', onMsg); return; }
     if(m.type === 'key') sdHandleKey(root, m);
-    else if(m.type === 'height'){ const f = root.querySelector('#sxCard'); if(f) f.style.height = Math.max(160, Math.min(4000, m.h + 4)) + 'px'; }
+    else if(m.type === 'height'){ const f = root.querySelector('#sxCard'); if(f) f.style.height = Math.max(96, Math.min(6000, m.h + 4)) + 'px'; }
     else if(m.type === 'sound') sdPlaySounds([m.file]);
     else if(m.type === 'typed'){ ui.typed = m.value; if(m.submit) act('show'); }
     else if(m.type === 'tag') navigate('#/study/browse/' + encodeURIComponent('tag:' + m.tag));
