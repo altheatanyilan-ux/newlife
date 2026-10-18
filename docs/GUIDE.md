@@ -76,7 +76,7 @@ It has three kinds of room:
 
 **What it is not.**
 
-- *Not a cloud service.* There is no account, no server and no sync company. Everything is stored in your browser, on your device (see §2).
+- *Not a cloud service.* By default there is no account, no server and no sync company: everything is stored in your browser, on your device (see §2). If you want the same life on several devices you can add **your own** Supabase project as an optional cloud copy (below) — nothing is sent until you sign in.
 - *Not a scoreboard.* Most rooms record *what happened* and then show it back honestly — including the gaps. Nothing is designed to make you feel productive; the untracked hours, the missed habits and the stale friendships are drawn, not hidden.
 - *Not a writer of your content.* Every suggestion in the house — the day's practice plan, the chord labels on a score, the melody generator, the Morning Theatre's session — comes from rules written in the code, and says why. Nothing is generated about your life behind your back. (There is one optional exception you have to switch on yourself: see *Voice & Claude* in §23.)
 
@@ -106,6 +106,8 @@ It has three kinds of room:
 3. The exchange is per *store*: practising on the tablet and tidying tasks on the laptop are not in conflict and both are kept. Only a store changed on *both* sides since the last exchange is a real conflict, and you are asked which to keep. A backup is written beside the sync file before anything is applied.
 
 Browsers without folder access can use **Merge a sync file by hand…** and **write this machine's file out**.
+
+**The cloud copy** (Settings → *The cloud copy (Supabase)*). Optional, and the same exchange as the folder one with your own Supabase project as the courier. Sign in with an email and password (**Create the account** the first time); this device's life goes up, and on another device the same sign-in asks once which copy to keep (*use the cloud's copy here* — your own data is saved to a file first — *put them together part by part*, or *replace the cloud with this device*). After that it keeps itself in step: a few seconds after a change, when you return to the app, and at start; **Exchange now** does it by hand, and offline it simply catches up later. A part changed on two devices is put to you rather than guessed. **Encrypt the cloud copy** encrypts everything in the browser with a passphrase before it is sent, so Supabase cannot read it — and a forgotten passphrase cannot be recovered. A session lives only in that browser and is never in a backup. Setting it up on Netlify and Supabase, step by step: `docs/SUPABASE.md`.
 
 **Deleting.** Deleting anything happens immediately, with a five-second **Undo** in the toast at the bottom of the screen. There are no "are you sure?" dialogs — the undo is the safety net. **Clear all data** (Settings) is the one exception and asks first.
 

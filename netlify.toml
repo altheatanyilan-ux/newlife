@@ -1,0 +1,39 @@
+# Netlify: build the single-file app and publish only what a browser needs.
+# Set these two in Site settings → Environment variables (Supabase → Project settings → API):
+#   SUPABASE_URL        https://<project>.supabase.co
+#   SUPABASE_ANON_KEY   the public "anon" key  (never the service_role key)
+[build]
+  command = "npm ci --no-audit --no-fund && node build.js --dist"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# The document and its service worker must never be served stale, or an installed copy would keep an old build.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Content-Type = "application/manifest+json"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

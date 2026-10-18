@@ -7,3 +7,6 @@ _*.sh
 
 # the recording-sync harness decodes the orchestra samples here once
 tools/.cache/
+
+# the hosted copy, made by `node build.js --dist`
+dist/

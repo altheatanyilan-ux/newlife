@@ -37,6 +37,11 @@ never your Anthropic key (it is typed in and stored locally, not committed).
    `src/` and publishes it.
 3. The site lands at `https://<user>.github.io/<repo>/`.
 
+### Netlify with Supabase (one life on every device)
+
+The `netlify.toml` in the repo builds and publishes the app, and the cloud copy keeps your data
+in step across devices through your own Supabase project. Step by step: **docs/SUPABASE.md**.
+
 ### Cloudflare Pages or Netlify
 
 Free, and both deploy from a **private** GitHub repo. Point either at this repo

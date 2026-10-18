@@ -445,6 +445,7 @@ async function initInner(){
     if(S.settings.firstOpen === today() && !S._welcomed){ S._welcomed = true;
       toast('Welcome home. Every piece of text here is editable — click it. The placeholder life is yours to overwrite.', 7000); }
     try { maybeOfferHandoff(); } catch(e){ console.warn('handoff notice skipped', e); }
+    try { if(typeof cloudBoot === 'function') cloudBoot(); } catch(e){ console.warn('cloud copy skipped', e); }
     /* A bedtime is the one thing here that cannot be logged when it happens,
        so on a morning the house asks for last night's — once, and only from
        the second day on. See the note above bedtimeAskDue for everything that

@@ -195,7 +195,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview','purpose','purposeImprint','valuesImprint','museState','zogTarget','journeyOverride','zogStreak','studio'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','cloud','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview','purpose','purposeImprint','valuesImprint','museState','zogTarget','journeyOverride','zogStreak','studio'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','treeChunks','treeQuestions','treeRetrievals','treeMistakes','treePageRevisions','treeKolb','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals','practiceLog','strengths','strengthSnapshots','strengthRankHistory','affirmations','beliefs','bets','retreats','negativeValues','masterValues','zoneItems','flowClues','breaks','habitsToDrop','alignmentChecks','convergence'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
@@ -579,6 +579,8 @@ async function persist(){
     }
   });
   dirty.forEach(remember);
+  /* a change worth sending to the cloud copy, if one is set up and signed in */
+  if(typeof cloudChanged === 'function') cloudChanged(dirty);
 }
 /* A save that arrives while one is already running has to wait for its turn,
    and the promise it is handed must be the one that settles when ITS OWN
@@ -664,6 +666,8 @@ function normaliseBackup(obj){
 }
 async function importBackup(obj){
   const rows = {}; for(const t of textTables()) rows[t.name] = Array.isArray(obj.data[t.name]) ? obj.data[t.name] : [];
+  /* the marks from this device's last cloud exchange describe the life that was just replaced; without them the cloud copy asks which to keep, as on a new device */
+  rows.meta = (rows.meta || []).filter(r => r.key !== 'cloud');
   await writeAllStores(rows);
   /* the Study Deck's own stores come back only when the backup has them: an
      older backup, from before them, must not empty a collection */

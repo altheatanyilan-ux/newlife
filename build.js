@@ -30,6 +30,16 @@ for(const f of parts){
   if(f.startsWith('06-db') && dexie) out += `/* ---- dexie (inlined by build.js, Apache-2.0, https://dexie.org) ---- */\n${dexie}\n/* ---- end dexie ---- */\n`;
   out += fs.readFileSync(path.join(src, f), 'utf8');
 }
+/* The cloud copy (src/19-cloud.js): a hosted build is pointed at its Supabase
+   project by two environment variables — set on Netlify, not committed. The anon
+   key is public by design; row level security is what keeps data private. */
+const cloudEnv = process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY
+  ? {url: process.env.SUPABASE_URL.trim(), key: process.env.SUPABASE_ANON_KEY.trim()} : null;
+if(!!process.env.SUPABASE_URL !== !!process.env.SUPABASE_ANON_KEY) console.warn('SUPABASE_URL and SUPABASE_ANON_KEY must both be set; the cloud copy is left unconfigured.');
+if(cloudEnv){
+  if(!out.includes('/*__LI_CLOUD__*/null')){ console.error('BUILD FAILED — the cloud placeholder is missing from src/19-cloud.js.'); process.exit(1); }
+  out = out.replace('/*__LI_CLOUD__*/null', () => JSON.stringify(cloudEnv).replace(/</g, '\\u003c'));
+}
 /* Stylesheet and script partials end in a closing tag, so anything appended to
    the bottom of one lands outside it and renders as raw text on every page.
    That shipped once; catch it here instead of in the browser. */
@@ -323,6 +333,16 @@ function stampServiceWorker(){
   return hash;
 }
 const build = stampServiceWorker();
+/* `node build.js --dist` also lays out just the files a host needs (the page, its
+   service worker, the manifest and the icons) in dist/, so a host publishes the
+   app and not the source, the tests and the notes beside it. */
+if(process.argv.includes('--dist')){
+  const dist = path.join(__dirname, 'dist');
+  fs.rmSync(dist, {recursive: true, force: true}); fs.mkdirSync(dist, {recursive: true});
+  for(const f of ['index.html', 'sw.js', 'manifest.webmanifest']) if(fs.existsSync(path.join(__dirname, f))) fs.copyFileSync(path.join(__dirname, f), path.join(dist, f));
+  if(fs.existsSync(path.join(__dirname, 'icons'))) fs.cpSync(path.join(__dirname, 'icons'), path.join(dist, 'icons'), {recursive: true});
+  console.log('dist/ ready: ' + fs.readdirSync(dist).join(', '));
+}
 console.log(`index.html written (${(out.length/1024).toFixed(0)} KB) — database layer: ${dexie ? 'Dexie (inlined)' : 'built-in MiniDexie fallback'}`
   + ` — score engraver: ${osmd ? `OSMD (${(osmd.length/1024).toFixed(0)} KB, parsed on first use)` : 'not installed'}`
   + ` — study deck libraries: ${sdLib ? `${(sdLib.length/1024).toFixed(0)} KB (FSRS, SQLite, zip, zstd, KaTeX), parsed on first use` : 'not installed'}`
