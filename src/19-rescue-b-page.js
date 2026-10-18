@@ -128,7 +128,32 @@ function rescueFit(ta){
   ta.style.width = Math.min(440, Math.max(q ? 260 : 96, Math.ceil(w) + 26)) + 'px';
   if(b && b.h){ ta.style.height = b.h + 'px'; ta.style.overflowY = 'auto'; } else { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.style.overflowY = 'hidden'; }
 }
+/* A mark says "→ a task" only while that task is still there. Each mark remembers what it made; one whose
+   things have all been deleted goes, and a card that was handled only by it is a loose card again.
+   Marks from before they remembered are checked against the words they were made from. */
+function rescueIdAlive(id){
+  try {
+    if(typeof findTaskRef === 'function' && findTaskRef(id)) return true;
+    if((S.entries || []).some(x => x.id === id) || (S.affirmations || []).some(x => x.id === id)) return true;
+    return Object.values(S.weekPlans || {}).some(p => p && (p.threads || []).some(t => t.id === id));
+  } catch(e){ return true; }
+}
+function rescueExitAlive(x){
+  if(Array.isArray(x.ids) && x.ids.length) return x.ids.some(rescueIdAlive);
+  if(!['task', 'goal', 'remind'].includes(x.kind)) return true;
+  const first = String(x.snippet || '').split('\n')[0].trim().toLowerCase().slice(0, 10);
+  if(first.length < 4) return true;
+  try { return allTaskRefs().some(r => String(r.text || '').toLowerCase().includes(first)); } catch(e){ return true; }
+}
+function rescueExitsPrune(b){
+  const was = (b.exits || []).length; if(!was) return false;
+  b.exits = b.exits.filter(rescueExitAlive);
+  if(b.exits.length === was) return false;
+  if(!b.exits.length && b.fate && b.fate !== 'letgo') b.fate = '';
+  save(); return true;
+}
 function rescueMarksHTML(b){
+  rescueExitsPrune(b);
   return (b.exits || []).map(x => `<span class="rs-mark" title="${esc(x.snippet || '')}">→ ${esc(x.label)}</span>`).join('');
 }
 function rescueRefsPaint(el, b){
@@ -366,7 +391,7 @@ function rescueMenuTop(ctx){
 /* success: note it on the box, say where it went, offer the undo */
 function rescueDone(ctx, kind, res, extraGo){
   if(!res){ toast('That did not make anything.'); return; }
-  const b = ctx.b, rec = {kind, label: res.label, at: new Date().toISOString(), snippet: ctx.text.slice(0, 140)};
+  const b = ctx.b, rec = {kind, label: res.label, at: new Date().toISOString(), snippet: ctx.text.slice(0, 140), ids: (res.made || []).map(x => x && x.id).filter(Boolean)};
   b.exits = b.exits || []; b.exits.push(rec);
   const prevFate = b.fate; if(ctx.whole || kind === 'letgo') b.fate = kind;
   rescueTouch(_rs.sheet); rescueRefsPaint(ctx.el, b); rescueCloseMenu();
