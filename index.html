@@ -118841,7 +118841,10 @@ function scorePlayAttach(bar, cfg){
     if(!osmd || !host) return null;
     const root = cfg.svgRoot || host;
     const svg = root.querySelector('svg');
-    const key = `${svg ? svg.getAttribute('width') + 'x' + svg.getAttribute('height') : ''}|${root.querySelectorAll('svg').length}|${osmd.zoom}|${host.clientWidth}`;
+    /* which pages are showing is part of the key: reading mode turns pages by hiding and showing them,
+       and a map made on the last page would put a press on this one nowhere */
+    const showing = [...root.querySelectorAll('svg')].map(s => s.getBoundingClientRect().width > 0 ? 1 : 0).join('');
+    const key = `${svg ? svg.getAttribute('width') + 'x' + svg.getAttribute('height') : ''}|${root.querySelectorAll('svg').length}|${showing}|${osmd.zoom}|${host.clientWidth}`;
     if(!geo || key !== geoKey || geoOsmd !== osmd){ geo = plxGeometry(osmd, host, root); geoKey = key; geoOsmd = osmd; }
     return geo;
   };
@@ -118862,8 +118865,10 @@ function scorePlayAttach(bar, cfg){
     const hl = layer(); if(!hl) return;
     if(pm.i !== lastPerf){ where(pm.i, q); }
     let g = (geometry() || new Map()).get(pm.k);
-    if(g && cfg.onPage && !g.shown){ cfg.onPage(g.page); geo = null; g = (geometry() || new Map()).get(pm.k); }
-    if(!g){ hl.hidden = true; lastPerf = pm.i; return; }
+    /* the page turns with the music, when it moves to a bar: not every frame, or a page turned to by
+       hand (to press a bar on it) is snatched back before the press lands */
+    if(g && cfg.onPage && !g.shown && pm.i !== lastPerf){ cfg.onPage(g.page); geo = null; g = (geometry() || new Map()).get(pm.k); }
+    if(!g || !g.shown){ hl.hidden = true; lastPerf = pm.i; return; }
     hl.hidden = false; hl.classList.toggle('paused', !!still);
     hl.style.left = g.x + 'px'; hl.style.top = (g.y - 6) + 'px'; hl.style.width = g.w + 'px'; hl.style.height = (g.h + 12) + 'px';
     /* the playhead runs from one moment with a note to the next */
