@@ -12868,7 +12868,7 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .rs-box.resizing{box-shadow:0 8px 24px rgba(0,0,0,.12);background:color-mix(in srgb,var(--surface) 70%,transparent);border-color:var(--line)}
 .rs-box.q .rs-q p{overflow-wrap:anywhere}
 .rs-stage-wrap{position:relative}
-.rs-ready{position:absolute;left:50%;top:92px;transform:translateX(-50%);z-index:6;width:min(560px,calc(100% - 40px));background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(8px);
+.rs-ready{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:6;width:min(600px,calc(100% - 40px));max-height:calc(100% - 100px);display:flex;flex-direction:column;background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(8px);
   border:1px solid var(--line);border-radius:18px;padding:14px 18px 12px;box-shadow:0 12px 36px rgba(0,0,0,.12);animation:sxUp .3s ease-out;transition:background .6s,border-color .6s}
 .rs-ready.ready{border-color:color-mix(in srgb,var(--sage) 60%,var(--line));background:color-mix(in srgb,var(--sage) 9%,var(--surface))}
 .rs-ready-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}.rs-ready-h .serif{font-size:1.2rem;font-style:italic}
@@ -12887,6 +12887,13 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .rs-ready-pill:hover{color:var(--text)}
 .rs-w.care{font-style:normal;font-size:.95rem;color:var(--text);border:1px solid color-mix(in srgb,var(--sage) 35%,transparent)}
 .rs-wx{font-size:1rem}
+.rs-ready-scroll{overflow:auto;min-height:0;margin:0 -4px;padding:0 4px;scrollbar-width:thin}
+.rs-ready-sec{margin:6px 0 2px}.rs-ready-sec .mono{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase}
+.rs-ready-n{font-size:.72rem;margin-left:auto;margin-right:6px}
+.rs-ready-i{padding:6px 2px}.rs-ready-t{font-size:.9rem}
+.rs-rec{color:var(--sage)!important}
+.rs-ess{display:flex;flex-direction:column;gap:10px;max-height:58vh;overflow:auto}.rs-ess-g{display:flex;flex-direction:column;gap:2px}.rs-ess-g > .mono{font-size:.64rem;letter-spacing:.1em;text-transform:uppercase}
+.rs-ess-r{display:grid;grid-template-columns:auto 9rem minmax(0,1fr);gap:8px;align-items:baseline;font-size:.86rem;padding:3px 0}.rs-ess-r em{font-style:normal;font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ===== end the Overwhelm rescue space ===== */
 </style>
 

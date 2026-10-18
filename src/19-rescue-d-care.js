@@ -30,7 +30,10 @@ const RESCUE_CARE = [
     ['Water first. It is the cheapest clarity on offer.', ''],
     ['Bring water you can reach without getting up.', 'A small thing, and the kind that decides whether you stay.'],
     ['Pour a glass for the person who will be sitting here in an hour.', 'You. Thirsty, a little deeper in.'],
-    ['Take a few sips now, before you have anything to think about.', '']]],
+    ['Take a few sips now, before you have anything to think about.', ''],
+    ['Fill the bottle and set it on the side you reach with.', ''],
+    ['Put a glass of water down before you sit, like a promise to yourself.', ''],
+    ['Is the bottle full? If you are not sure, it is not.', '']]],
   ['trash', 'room', 'rubbish', {pre: 1, hours: 40}, [
     ['Take the trash out and let the room exhale.', ''],
     ['Find the piece of rubbish that has been here longest, and end its stay.', ''],
@@ -40,7 +43,10 @@ const RESCUE_CARE = [
     ['Five things to the bin, counted aloud. Go.', '', 60],
     ['Remove one thing nobody is using from this room — out of the room, not onto another surface.', ''],
     ['Walk the bag to the outside bin, and take one slow breath of outdoors on the way back.', ''],
-    ['Rubbish out. It is the smallest big reset there is.', '']]],
+    ['Rubbish out. It is the smallest big reset there is.', ''],
+    ['Look around for anything that is rubbish and has simply been tolerated. Evict it.', ''],
+    ['Carry out the bin even if it is only half full. A half-empty bin is a to-do you carry around.', ''],
+    ['A trash sweep: one lap of the room, one bag, nothing negotiated.', '', 90]]],
   ['surface', 'room', 'the desk', {pre: 1, hours: 30}, [
     ['Clear the desk to what this hour needs, and rehome the rest for now.', 'A temporary home counts.'],
     ['Wipe down the surface you will think on, one pass of a cloth.', ''],
@@ -50,7 +56,10 @@ const RESCUE_CARE = [
     ['Leave one thing on the desk besides the laptop — the one you will need.', ''],
     ['Make a clean rectangle big enough for a notebook and your elbows.', ''],
     ['Look at the desk the way a stranger would. Move the first thing they would notice.', ''],
-    ['A clear surface is a decision you only have to make once.', 'Make it now.']]],
+    ['A clear surface is a decision you only have to make once.', 'Make it now.'],
+    ['Everything on the desk either earns its place for this hour or goes elsewhere.', 'The elsewhere can be the floor, for now.'],
+    ['Take the mug, the plate, the pen that does not work. Three things off the desk.', ''],
+    ['Start from an empty desk and put back only what you reach for.', '']]],
   ['air', 'air', 'air', {pre: 1, mid: 1, hours: 4}, [
     ['Open the window for the length of one song.', ''],
     ['Crack a window, even for three minutes.', 'Still air makes thoughts heavy.'],
@@ -58,38 +67,61 @@ const RESCUE_CARE = [
     ['Let the room breathe: door or window, three minutes.', ''],
     ['Is it too warm in here? A cooler room is a calmer one.', ''],
     ['Open something — a window, a door, a curtain — and feel the difference.', ''],
-    ['Fresh air first, then thoughts.', '']]],
+    ['Fresh air first, then thoughts.', ''],
+    ['Move the air: open a window, switch on the fan, or step outside for a minute.', ''],
+    ['Take three breaths at an open window or door.', '', 25],
+    ['The room has been breathing your air for a while. Give it some new.', ''],
+    ['A window open for ten minutes costs almost nothing and changes the whole room.', '']]],
   ['light', 'light', 'light', {pre: 1, hours: 8}, [
     ['Switch to the softer light: lamp on, ceiling off. If it is day, open the curtains.', ''],
     ['Light from the side is kinder than light from above. Move the lamp.', ''],
     ['Set the screen brightness to match the room, not to outshine it.', 'Your eyes do a quiet amount of work here.'],
     ['If it is day, move toward the window. If it is night, switch on only the light you need.', ''],
-    ['Warm light for thinking, bright light for doing. Which is this?', '']]],
+    ['Warm light for thinking, bright light for doing. Which is this?', ''],
+    ['Put the light where the page is, not where your face is.', ''],
+    ['Is there a glare on the screen? Turn the screen or the lamp until it is gone.', ''],
+    ['In the evening, dim the room a notch. The head follows the light down.', '', 0, 'night'],
+    ['Open the curtains all the way. Light is free, and it is on your side.', '']]],
   ['phone', 'attention', 'the phone', {pre: 1, hours: 6}, [
     ['Put the phone in another room — or at least face down across the room.', 'Fetching it should cost you a decision.'],
     ['Do-not-disturb on, phone where you would have to stand up to touch it.', ''],
     ['Silence everything that can ping. You can check all of it in one go afterwards.', ''],
     ['The phone goes in a drawer for the length of this page. It will still be there.', ''],
     ['Notifications off for an hour. The world queues politely.', ''],
-    ['Turn the phone face down, then turn it into the next room.', '']]],
+    ['Turn the phone face down, then turn it into the next room.', ''],
+    ['Imagine it buzzing in an hour. Now take away its chance to.', ''],
+    ['Plug the phone in somewhere across the room, screen down. It has a nice spot over there.', ''],
+    ['If someone truly needs you, they will ring. Everything else can queue.', ''],
+    ['Turn it off for the length of one page. You are allowed.', '']]],
   ['tabs', 'attention', 'the screen', {pre: 1, hours: 6}, [
     ['Close every tab you are not using for this. They live on in history.', ''],
     ['Quit the chat apps for the length of this page.', ''],
     ['One window only: this one.', ''],
-    ['Close the three tabs you have been “about to” read.', 'Bookmark them if it hurts.']]],
+    ['Close the three tabs you have been “about to” read.', 'Bookmark them if it hurts.'],
+    ['Put the screen in the state you would want to find it in if you were tired.', ''],
+    ['Archive the tabs: if it matters, it will be in your history.', ''],
+    ['Hide the dock, hide the desktop, hide the noise.', '']]],
   ['seat', 'body', 'the chair', {pre: 1, mid: 1, hours: 5}, [
     ['Both feet on the floor, screen at eye height, shoulders dropped — check them in that order.', ''],
     ['Set the chair so your elbows rest at about a right angle.', ''],
     ['Prop the laptop up so you look straight at it, not down. A pile of books will do.', ''],
     ['If you have sat all day, stand for the first ten minutes.', ''],
-    ['Slide your hips to the back of the chair and let it hold you.', '']]],
+    ['Slide your hips to the back of the chair and let it hold you.', ''],
+    ['Sit like someone with a lot of time. Back supported, jaw loose.', ''],
+    ['Lift the screen, drop the shoulders, uncross the legs.', ''],
+    ['Is the chair right? A cushion behind the lower back is a ten-second fix.', ''],
+    ['Check your feet: flat on the floor, or on a book if they do not reach.', '']]],
   ['fuel', 'drink', 'food', {pre: 1, mid: 1, hours: 4}, [
     ['When did you last eat? If the answer is “hm”, fix that first.', ''],
     ['A banana, some nuts, anything that is not sugar alone.', ''],
     ['Hungry thoughts sound just like deadline thoughts. Feed the hungry one first.', ''],
     ['Make tea — and notice the hour. Late caffeine borrows from tonight’s sleep.', '', 0, 'night'],
     ['Something warm to hold while you think?', ''],
-    ['A small snack within reach, so you do not have to leave in the middle.', '']]],
+    ['A small snack within reach, so you do not have to leave in the middle.', ''],
+    ['Something to eat before you start, so your brain is not borrowing against the meal.', ''],
+    ['Check the kitchen: has the last meal been a while? Eat something real.', ''],
+    ['A piece of fruit and a few nuts is a perfectly good meal for a page.', ''],
+    ['Eat a little now so the thinking is not done on an empty tank.', '']]],
   ['move', 'body', 'moving', {pre: 1, mid: 1, hours: 2}, [
     ['Roll your shoulders back ten times, slowly.', ''],
     ['Stand, reach for the ceiling, fold and touch the floor. Once.', ''],
@@ -97,44 +129,79 @@ const RESCUE_CARE = [
     ['Shake out your hands for ten seconds.', 'They have been holding a lot.', 15],
     ['Splash cold water on your face, or press a cool cloth to your eyes.', ''],
     ['Stretch your neck both ways and let your jaw hang loose.', ''],
-    ['Stand up and sit down again, slowly, as if you had just arrived.', '']]],
+    ['Stand up and sit down again, slowly, as if you had just arrived.', ''],
+    ['Two minutes on your feet before the sitting. It makes the sitting longer.', ''],
+    ['Walk to the farthest room and back, slowly, noticing nothing in particular.', '', 60],
+    ['Stand and shake out your legs like you are about to run, then do not.', '', 20]]],
   ['loo', 'body', 'the bathroom', {pre: 1, mid: 1, hours: 3}, [
     ['Bathroom now, so nothing interrupts the good bit later.', ''],
     ['Wash your hands and face — a small fresh start.', ''],
-    ['Go now, while it is optional.', '']]],
+    ['Go now, while it is optional.', ''],
+    ['Five minutes of nothing is hard to hold if you need the bathroom. Go first.', ''],
+    ['A quick wash, a glass of water on the way back.', ''],
+    ['Go while you are still thinking about nothing in particular.', ''],
+    ['Bathroom break, then a clean start.', ''],
+    ['Take one minute to go, and look out of a different window on the way.', '']]],
   ['paper', 'tools', 'pen & paper', {pre: 1, hours: 24}, [
     ['Put a pen and some paper within reach anyway.', 'Some thoughts come out better by hand.'],
     ['Open the notebook to a blank page, even if you end up using the screen.', ''],
-    ['A pen on the desk, the lid already off.', '']]],
+    ['A pen on the desk, the lid already off.', ''],
+    ['A pen that works, a page that is blank, within arm’s reach.', ''],
+    ['If you end up wanting to draw an arrow, you will want paper. Put some nearby.', ''],
+    ['Keep a scrap of paper beside you for the thoughts that are not for this page.', ''],
+    ['Open the notebook, uncap the pen, and leave them both there.', '']]],
   ['sound', 'sound', 'sound', {pre: 1, hours: 8}, [
     ['Choose your sound before you start: silence, rain, or one long instrumental track. Not a playlist.', ''],
     ['Headphones charged and on, the volume lower than you think.', ''],
     ['Is the room too quiet or too busy? Fix whichever it is.', ''],
-    ['Decide the noise, so the noise does not decide you.', '']]],
+    ['Decide the noise, so the noise does not decide you.', ''],
+    ['Is it quiet enough? If not, door shut, or a steady sound on.', ''],
+    ['Pick a track with no words, or choose silence on purpose.', ''],
+    ['Turn off anything that talks: the radio, the telly, the video you have “playing in the background”.', '']]],
   ['warmth', 'comfort', 'warmth', {pre: 1, hours: 8}, [
     ['Add a layer or take one off. Being slightly cold quietly steals focus.', ''],
     ['Socks and a blanket, if it is evening. Comfort is part of the plan.', '', 0, 'night'],
     ['Check your hands and feet. If either is cold, deal with that first.', ''],
-    ['Change into something you could think in all night.', '']]],
+    ['Change into something you could think in all night.', ''],
+    ['Is the room a degree too cold or too warm? Fix it, then forget it.', ''],
+    ['A jumper within reach is cheaper than being cold.', ''],
+    ['Warm hands, warm feet, a calm head.', '']]],
   ['line', 'time', 'a finish line', {pre: 1, hours: 12}, [
     ['Decide when you will stop — the time, not the feeling. Say it aloud.', ''],
     ['Set a timer for forty minutes so the page is allowed to end.', ''],
-    ['When will this page be over? Pick the time and write it on the first box.', '']]],
+    ['When will this page be over? Pick the time and write it on the first box.', ''],
+    ['Name the end of the hour before it starts. Say it: “I stop at…”.', ''],
+    ['A page with an edge feels lighter. When does this one end?', ''],
+    ['Pick the time you will leave off, and put one thing after it you are looking forward to.', ''],
+    ['Set a gentle alarm for the end. The page is allowed to finish.', '']]],
   ['power', 'tools', 'power', {pre: 1, hours: 24}, [
     ['Plug the laptop in so you are not hunting a charger in the middle of a thought.', ''],
-    ['Check the battery, and the charger, and the headphones.', '']]],
+    ['Check the battery, and the charger, and the headphones.', ''],
+    ['Laptop plugged in, headphones charged, phone somewhere that is not this desk.', ''],
+    ['Locate the charger now, in the calm, not in the middle of a thought.', ''],
+    ['A battery that dies halfway through a page is a small tragedy. Plug it in.', ''],
+    ['Power first: laptop, then anything else that has to last the hour.', '']]],
   ['eyes', 'body', 'your eyes', {mid: 1, hours: 1.2}, [
     ['Look at the farthest thing you can see for twenty seconds.', '', 20],
     ['Close your eyes for the length of three slow breaths.', '', 20],
-    ['Blink slowly ten times. Screens make us forget.', '']]],
+    ['Blink slowly ten times. Screens make us forget.', ''],
+    ['Look out of the window for twenty seconds. Focus on a far leaf, a far roof, a far cloud.', '', 20],
+    ['Cover your eyes with your palms for a slow count of ten.', '', 15],
+    ['Let your eyes rest on something green, if there is anything green.', '']]],
   ['breath', 'body', 'breath', {pre: 1, mid: 1, hours: 2}, [
     ['Three slow breaths, out longer than in.', '', 30],
     ['Breathe out as if fogging a window. Then once more.', '', 20],
-    ['One long breath in through the nose, a slow count of six out.', '', 20]]],
+    ['One long breath in through the nose, a slow count of six out.', '', 20],
+    ['Breathe in for four, hold for four, out for six. Three times.', '', 40],
+    ['Put a hand on your belly and let it rise on the in-breath.', '', 25],
+    ['Let the next three breaths be slower than you think they need to be.', '', 30]]],
   ['mind', 'attention', 'a clear head', {pre: 1, hours: 12}, [
     ['If there is a small chore nagging you, do it now or write it on the page. Not both.', ''],
     ['Is there one thing you keep “just remembering”? Get it onto paper before you start.', ''],
-    ['Tell someone you will be offline for an hour, if you need to.', '']]],
+    ['Tell someone you will be offline for an hour, if you need to.', ''],
+    ['Write down the one thing you keep almost forgetting. Now it is somebody else’s problem: the paper’s.', ''],
+    ['Is there a message you owe? Send a two-word reply, or write it on the page.', ''],
+    ['Take the nagging thing and give it a time: “tomorrow at ten”. Then let it go.', '']]],
 ];
 
 /* the openings, closings and quiet lines: varied for the same reason */
@@ -187,7 +254,7 @@ function rescueCarePick(n, mode, exclude){
   const picks = out.map(x => rescueCareVariant(x.id)).filter(Boolean);
   /* one of the person's own, now and then, in place of the last */
   if(mode !== 'mid' && mineN && picks.length && Math.random() < .4){
-    const m = c.mine[Math.floor(Math.random() * mineN)]; picks[picks.length - 1] = {id: 'mine:' + m.id, idx: 0, area: 'mine', name: 'mine', text: m.text, why: '', quest: 0, mine: true};
+    const pool2 = c.mine.filter(x => !x.always); if(!pool2.length) return picks; const m = pool2[Math.floor(Math.random() * pool2.length)]; picks[picks.length - 1] = {id: 'mine:' + m.id, idx: 0, area: 'mine', name: 'mine', text: m.text, why: '', quest: 0, mine: true};
   }
   return picks;
 }
@@ -199,56 +266,114 @@ function rescueCareMark(id, sheet){
     saveNow(); }
 }
 
-/* ---------- the invitation, on a blank page ---------- */
+/* ---------- the essentials, and the invitation on a blank page ----------
+   Some things are worth checking every single time. Those are the essentials: ALL of them
+   are on the card, each time, and which they are is yours to set. What changes is how
+   each one is put — a fresh wording and a fresh angle every time, from its shuffled pack.
+   Under them, "and maybe", a couple of optional extras that rotate by how long they
+   have gone undone. */
+const RESCUE_CARE_CORE = ['water', 'trash', 'surface', 'phone', 'air', 'light', 'loo', 'seat', 'power'];
+const rescueCareCoreIds = () => { const c = rescueCareState(); return Array.isArray(c.core) ? c.core.filter(id => rescueCareItem(id)) : RESCUE_CARE_CORE.slice(); };
+const RESCUE_CARE_ORDER = ['drink', 'room', 'air', 'light', 'attention', 'body', 'comfort', 'sound', 'tools', 'time', 'mine'];
 function rescueReadyOn(){ return (S.settings || {}).rescueReady !== false; }
 function rescueReadyHead(){ const c = rescueCareState(); let i = Math.floor(Math.random() * RESCUE_CARE_HEADS.length); if(i === c.lastHead) i = (i + 1) % RESCUE_CARE_HEADS.length; c.lastHead = i; return RESCUE_CARE_HEADS[i]; }
+/* the essentials in a sensible walk-round order, each with the next wording from its pack; the person's own "every time" items join them */
+function rescueReadyEssentials(){
+  const ids = rescueCareCoreIds().sort((a, b) => RESCUE_CARE_ORDER.indexOf(rescueCareItem(a).area) - RESCUE_CARE_ORDER.indexOf(rescueCareItem(b).area));
+  const out = ids.map(id => Object.assign(rescueCareVariant(id), {core: true}));
+  rescueCareState().mine.filter(m => m.always).forEach(m => out.push({id: 'mine:' + m.id, idx: 0, area: 'mine', name: 'mine', text: m.text, why: '', quest: 0, mine: true, core: true}));
+  return out;
+}
 function rescueReadyShow(root, force){
   if(!_rs) return;
   const s = _rs.sheet, stage = root.querySelector('#rsStage'); if(!stage) return;
   root.querySelectorAll('.rs-ready').forEach(n => n.remove());
   if(!force && (!rescueReadyOn() || rescueLive(s).length || (s.readyDismissed))) { if(rescueLive(s).length && (s.ready || []).length) rescueReadyPill(root); return; }
-  const picks = rescueCarePick(3, 'pre');
+  const core = rescueReadyEssentials();
+  const extra = rescueCarePick(2, 'pre', rescueCareCoreIds());
+  const picks = core.concat(extra.map(x => Object.assign(x, {core: false})));
   const d = document.createElement('div'); d.className = 'rs-ready'; d.setAttribute('role', 'region'); d.setAttribute('aria-label', 'ready the room');
   _rs.ready = {picks, done: new Set()};
-  d.innerHTML = `<div class="rs-ready-h"><span class="serif">${esc(rescueReadyHead())}</span><button class="rs-ready-x" aria-label="put this away" title="put this away">×</button></div>
-    <ul class="rs-ready-l">${picks.map((p, i) => rescueReadyItemHTML(p, i)).join('')}</ul>
-    <div class="rs-ready-f"><button class="tbtn" data-rd="mine" title="add something of your own to the pack">+ one of my own</button><span class="grow"></span><button class="btn sm" data-rd="go">${esc(['Begin', 'Enough — begin', 'Start the page', 'On to the page'][Math.floor(Math.random() * 4)])}</button></div>`;
+  const li = (p, i) => rescueReadyItemHTML(p, i);
+  d.innerHTML = `<div class="rs-ready-h"><span class="serif">${esc(rescueReadyHead())}</span><span class="rs-ready-n mono faint" id="rdN"></span><button class="rs-ready-x" aria-label="put this away" title="put this away">×</button></div>
+    <div class="rs-ready-scroll">
+      ${core.length ? `<div class="rs-ready-sec"><span class="mono faint">every time</span></div>
+      <ul class="rs-ready-l">${picks.map((p, i) => p.core ? li(p, i) : '').join('')}</ul>` : ''}
+      ${extra.length ? `<div class="rs-ready-sec"><span class="mono faint">and, maybe</span></div><ul class="rs-ready-l">${picks.map((p, i) => p.core ? '' : li(p, i)).join('')}</ul>` : ''}
+    </div>
+    <div class="rs-ready-f"><button class="tbtn" data-rd="mine" title="add something of your own to the pack">+ one of my own</button><button class="tbtn" data-rd="essentials" title="choose what is checked every time">my essentials…</button><span class="grow"></span><button class="tbtn" data-rd="all" title="everything above is already true">already all done</button><button class="btn sm" data-rd="go">${esc(['Begin', 'Enough — begin', 'Start the page', 'On to the page'][Math.floor(Math.random() * 4)])}</button></div>`;
   stage.parentNode.appendChild(d);
   rescueReadyBind(root, d);
+  rescueReadyCount(d);
+}
+/* how long ago, if it was done recently enough that it may well still be true */
+function rescueReadyRecent(p){
+  const id = p.id, at = (rescueCareState().done || {})[id]; if(!at) return '';
+  const it = rescueCareItem(id.replace(/^mine:.*/, '')), lim = it ? Math.max(it.cfg.hours / 2, .5) : 1, h = rescueHoursSince(at);
+  if(h > lim) return '';
+  const m = Math.round(h * 60); return m < 2 ? 'ticked a moment ago' : m < 90 ? `ticked ${m} min ago` : `ticked ${Math.round(h)}h ago`;
 }
 function rescueReadyItemHTML(p, i){
-  return `<li class="rs-ready-i" data-ri2="${i}"><button class="rs-tick" data-rd="tick" aria-label="done" title="done"></button>
-    <div class="rs-ready-t"><span>${esc(p.text)}</span>${p.why ? `<em>${esc(p.why)}</em>` : ''}${p.quest ? `<button class="tbtn rs-quest" data-rd="quest" data-sec="${p.quest}">start ${p.quest}s</button>` : ''}</div>
-    <button class="rs-swap" data-rd="swap" aria-label="another one" title="another one">↻</button></li>`;
+  const rec = rescueReadyRecent(p);
+  return `<li class="rs-ready-i${p.core ? ' core' : ''}" data-ri2="${i}"><button class="rs-tick" data-rd="tick" aria-label="done" title="done"></button>
+    <div class="rs-ready-t"><span>${esc(p.text)}</span>${p.why ? `<em>${esc(p.why)}</em>` : ''}${rec ? `<em class="rs-rec">${esc(rec)}</em>` : ''}${p.quest ? `<button class="tbtn rs-quest" data-rd="quest" data-sec="${p.quest}">start ${p.quest}s</button>` : ''}</div>
+    <button class="rs-swap" data-rd="swap" aria-label="${p.core ? 'say it another way' : 'another one'}" title="${p.core ? 'say it another way' : 'another one'}">↻</button></li>`;
+}
+function rescueReadyCount(d){
+  const picks = _rs.ready.picks, coreN = picks.filter(p => p.core).length, doneCore = [..._rs.ready.done].filter(i => picks[i] && picks[i].core).length;
+  const n = d.querySelector('#rdN'); if(n) n.textContent = coreN ? `${doneCore} of ${coreN}` : '';
+  return {coreN, doneCore};
 }
 function rescueReadyBind(root, d){
   const s = _rs.sheet;
   const finish = () => {
     d.classList.add('ready'); const c = rescueCareState();
     let i = Math.floor(Math.random() * RESCUE_CARE_DONE.length); if(i === c.doneLine) i = (i + 1) % RESCUE_CARE_DONE.length; c.doneLine = i;
-    const f = d.querySelector('.rs-ready-f'); const b = d.querySelector('[data-rd="go"]'); if(b) b.textContent = 'Begin';
+    const b = d.querySelector('[data-rd="go"]'); if(b) b.textContent = 'Begin';
     d.querySelector('.rs-ready-h .serif').textContent = RESCUE_CARE_DONE[i]; save();
+  };
+  const tick = (li, on) => {
+    const i = +li.dataset.ri2, p = _rs.ready.picks[i]; if(!p) return; li.classList.toggle('on', on);
+    if(on){ _rs.ready.done.add(i); if(!p.mine) rescueCareMark(p.id, s); else { rescueCareState().done[p.id] = new Date().toISOString(); save(); } } else _rs.ready.done.delete(i);
+    const c = rescueReadyCount(d); if(c.coreN && c.doneCore === c.coreN) finish(); else d.classList.remove('ready');
   };
   d.addEventListener('click', ev => {
     const b = ev.target.closest('[data-rd]'); if(!b) return; const act = b.dataset.rd, li = b.closest('.rs-ready-i'), i = li ? +li.dataset.ri2 : -1;
-    if(act === 'tick'){
-      const p = _rs.ready.picks[i]; if(!p) return; const on = !li.classList.contains('on'); li.classList.toggle('on', on);
-      if(on){ _rs.ready.done.add(i); if(!p.mine) rescueCareMark(p.id, s); else { const m = rescueCareState(); m.done[p.id] = new Date().toISOString(); save(); } sound('click'); } else _rs.ready.done.delete(i);
-      if(_rs.ready.done.size === _rs.ready.picks.length) finish();
-    } else if(act === 'swap'){
-      const p = _rs.ready.picks[i], others = _rs.ready.picks.filter((_, j) => j !== i), areas = new Set(others.map(x => x.area));
-      /* another thing, from an area the other two are not already covering */
-      const used = RESCUE_CARE.filter(r => areas.has(r[1]) || r[0] === p.id || others.some(x => x.id === r[0])).map(r => r[0]);
-      const alt = rescueCarePick(1, 'pre', used)[0]; if(!alt) return; _rs.ready.picks[i] = alt;
-      li.outerHTML = rescueReadyItemHTML(alt, i); sound('click');
+    if(act === 'tick'){ tick(li, !li.classList.contains('on')); sound('click'); }
+    else if(act === 'all'){ d.querySelectorAll('.rs-ready-i.core').forEach(l => { if(!l.classList.contains('on')) tick(l, true); }); sound('click'); }
+    else if(act === 'swap'){
+      const p = _rs.ready.picks[i]; if(!p) return;
+      let alt = null;
+      if(p.core && !p.mine){
+        /* the same thing, said another way */
+        alt = Object.assign(rescueCareVariant(p.id, p.idx), {core: true});
+      } else if(!p.core){
+        /* another optional thing, not one already on the card */
+        const used = _rs.ready.picks.map(x => x.id).concat(rescueCareCoreIds());
+        alt = rescueCarePick(1, 'pre', used)[0]; if(alt) alt.core = false;
+      }
+      if(!alt) return; _rs.ready.picks[i] = alt; _rs.ready.done.delete(i);
+      li.outerHTML = rescueReadyItemHTML(alt, i); rescueReadyCount(d); sound('click');
     } else if(act === 'quest'){
       const sec = +b.dataset.sec; let left = sec; b.disabled = true; b.textContent = left + 's';
       const t = setInterval(() => { left--; if(!d.isConnected){ clearInterval(t); return; } b.textContent = left > 0 ? left + 's' : 'time — done?'; if(left <= 0){ clearInterval(t); b.disabled = false; b.onclick = () => { li.querySelector('.rs-tick').click(); b.remove(); }; } }, 1000);
       if(_rs) _rs.timers.push(t);
     } else if(act === 'go'){ s.readyDismissed = true; d.remove(); if(_rs.ready && _rs.ready.done.size) rescueReadyPill(root); const f = root.querySelector('#rsCanvas'); if(f) f.focus(); rescueTouch(s); }
     else if(act === 'mine') rescueReadyMine(d);
+    else if(act === 'essentials') rescueEssentialsDialog(root);
   });
   d.querySelector('.rs-ready-x').onclick = () => { s.readyDismissed = true; d.remove(); rescueTouch(s); };
+}
+/* which things are checked every time */
+function rescueEssentialsDialog(root){
+  const c = rescueCareState(), on = new Set(rescueCareCoreIds());
+  const byArea = {}; RESCUE_CARE.filter(r => r[3].pre).forEach(r => { (byArea[r[1]] = byArea[r[1]] || []).push(r); });
+  const m = openModal(`<h2>My essentials</h2>
+    <p class="muted" style="font-size:.88rem">What is checked <b>every</b> time, all of it, on every page. Everything else turns up now and then as an optional extra. Whatever you choose, each one is worded differently each time.</p>
+    <div class="rs-ess">${RESCUE_CARE_ORDER.filter(a => byArea[a]).map(a => `<div class="rs-ess-g"><span class="mono faint">${esc(a)}</span>${byArea[a].map(r => `<label class="rs-ess-r"><input type="checkbox" data-ess="${r[0]}" ${on.has(r[0]) ? 'checked' : ''}><span>${esc(r[2])}</span><em class="faint">${esc(r[4][0][0])}</em></label>`).join('')}</div>`).join('')}</div>
+    <div class="row" style="justify-content:space-between;gap:8px;margin-top:12px"><button class="tbtn" id="essReset">back to the usual</button><button class="btn primary" id="essOk">Keep this</button></div>`, 'wide');
+  m.querySelector('#essReset').onclick = () => { m.querySelectorAll('[data-ess]').forEach(x => { x.checked = RESCUE_CARE_CORE.includes(x.dataset.ess); }); };
+  m.querySelector('#essOk').onclick = () => { c.core = [...m.querySelectorAll('[data-ess]:checked')].map(x => x.dataset.ess); save(); m.remove(); if(root && _rs) rescueReadyShow(root, true); };
 }
 /* once the writing has begun, the invitation folds to a small mark of what was done */
 function rescueReadyPill(root){
@@ -258,12 +383,14 @@ function rescueReadyPill(root){
   p.onclick = () => rescueReadyShow(root, true); root.querySelector('#rsStage').parentNode.appendChild(p);
 }
 function rescueReadyMine(d){
+  const root = document.querySelector('[data-rs-page]');
   const c = rescueCareState();
   const m = openModal(`<h2>One of my own</h2><p class="muted sm">Something only you would think to do before a hard hour. It joins the pack and turns up now and then in place of one of the others.</p>
     <input class="inp" id="rcOwn" placeholder="e.g. put on the green lamp, text Mira that I’m offline" maxlength="120">
+    <label class="row" style="gap:8px;margin-top:8px"><input type="checkbox" id="rcAlways"> <span class="faint sm">check this every time (otherwise it turns up now and then)</span></label>
     ${c.mine.length ? `<div class="rs-bt-l">${c.mine.map(x => `<div class="rs-bt"><span>${esc(x.text)}</span><button class="tbtn danger" data-rmx="${esc(x.id)}">remove</button></div>`).join('')}</div>` : ''}
     <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="btn primary" id="rcAdd">Add</button></div>`, 'narrow');
-  m.querySelector('#rcAdd').onclick = () => { const t = m.querySelector('#rcOwn').value.trim(); if(!t) return; c.mine.push({id: uid(), text: t}); save(); m.remove(); toast('Added to the pack.'); };
+  m.querySelector('#rcAdd').onclick = () => { const t = m.querySelector('#rcOwn').value.trim(); if(!t) return; c.mine.push({id: uid(), text: t, always: m.querySelector('#rcAlways').checked}); save(); m.remove(); toast('Added to the pack.'); if(root && _rs) rescueReadyShow(root, true); };
   m.querySelectorAll('[data-rmx]').forEach(b => b.onclick = () => { c.mine = c.mine.filter(x => x.id !== b.dataset.rmx); save(); b.closest('.rs-bt').remove(); });
 }
 
