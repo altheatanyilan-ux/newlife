@@ -72,7 +72,12 @@ function pqOpenCycle(key, T = today()){
 /* duties whose answer is a thing to open rather than a spot on a page; true when handled */
 function dutyBestGo(id){
   const cyc = {weekly_review: 'weekly', monthly_review: 'monthly', seasonal_review: 'quarterly', half_review: 'half', annual_review: 'annual'};
-  if(cyc[id]){ pqOpenCycle(cyc[id]); return true; }
+  if(cyc[id]){
+    /* the Review page, with the review that is due already open on it */
+    const due = typeof reviewsDue === 'function' ? reviewsDue(today()).find(x => x.c.key === cyc[id]) : null;
+    navigate('#/today/review');
+    if(due) setTimeout(() => openCycleReview(cyc[id], due.end), 150);
+    return true; }
   const doIt = {affirmation_practice: 'ppAffirmChooser', contemplation_practice: 'ppContemplate', purpose_visualisation: 'ppVisualise'};
   if(doIt[id] && typeof window[doIt[id]] === 'function'){ navigate('#/purpose'); setTimeout(() => window[doIt[id]](), 120); return true; }
   if(id === 'sealed_letters'){ navigate('#/journals/letter'); return true; }

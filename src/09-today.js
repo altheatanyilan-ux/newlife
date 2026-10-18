@@ -126,10 +126,15 @@ function bindTodaySwitch(root){
    it belongs to opens, narrowed to its work — and the pencil opens the
    milestone itself. A skill's level due this week is on the line too, and
    goes to the skill. */
+/* How far ahead the strip looks. Chosen on the strip itself and kept in the
+   settings, so it is the same after a refresh until it is changed again. */
+const TODAY_MS_RANGES = [[7, 'the next seven days'], [14, 'the next two weeks'], [30, 'the next month'], [60, 'the next two months'],
+  [90, 'the next three months'], [183, 'the next six months'], [365, 'the next year']];
+function todayMsDays(){ const d = +(S.settings || {}).todayMsDays; return TODAY_MS_RANGES.some(r => r[0] === d) ? d : 7; }
 function todayMilestonesItems(){
-  const T = today();
-  const plan = typeof planMilestonesAhead === 'function' ? planMilestonesAhead({within: 7, limit: 30}) : [];
-  const skill = typeof milestonesDueSoon === 'function' ? milestonesDueSoon(7) : [];
+  const T = today(), days = todayMsDays();
+  const plan = typeof planMilestonesAhead === 'function' ? planMilestonesAhead({within: days, limit: 80}) : [];
+  const skill = typeof milestonesDueSoon === 'function' ? milestonesDueSoon(days) : [];
   return [...plan,
     ...skill.map(({skill: sk, m}) => ({
       m: {id: 'sk-' + sk.id + '-' + m.levelTarget, date: (m.by || T).slice(0, 10), tag: 'skill',
@@ -154,13 +159,16 @@ function todayMilestonesHTML(){
      the next time the house is opened. */
   const open = _todayMsOpen;
   const next = items.find(x => x.m.date && x.m.date >= T) || items[0];
-  return `<details class="today-ms pl-ms rv" id="t-ms"${open ? ' open' : ''} aria-label="milestones in the next seven days">
+  const days = todayMsDays(), said = (TODAY_MS_RANGES.find(r => r[0] === days) || [])[1];
+  return `<details class="today-ms pl-ms rv" id="t-ms"${open ? ' open' : ''} aria-label="milestones in ${esc(said)}">
     <summary class="today-ms-sum">
-      <span class="k mono">Milestones · the next seven days</span>
+      <span class="k mono">Milestones · ${esc(said)}</span>
       <span class="today-ms-next faint">next: <b>${esc(next.m.name)}</b>, ${esc(planWhenAway(next.m.date))}</span>
       <span class="mono faint today-ms-count">${items.length - late} ahead${late ? ` · <span class="today-ms-late">${late} gone by</span>` : ''}</span>
+      <select class="sel sm today-ms-range" data-msrange aria-label="how far ahead to look" title="how far ahead to look (kept)">${TODAY_MS_RANGES.map(([d, w]) =>
+        `<option value="${d}"${d === days ? ' selected' : ''}>${esc(w.replace('the next ', 'next '))}</option>`).join('')}</select>
     </summary>
-    ${planMilestoneLineHTML(items, {from: addDays(lo, -1), to: addDays(T, 8)}, {step: 2, lit: false, compact: true})}</details>`;
+    ${planMilestoneLineHTML(items, {from: addDays(lo, -1), to: addDays(T, days + 1)}, Object.assign({lit: false, compact: true}, days <= 14 ? {step: 2} : {}))}</details>`;
 }
 /* the same two acts as the pin in Tasks: choosing the list it belongs to (which
    is what clears any other filter there) and then pressing the date */
@@ -259,6 +267,9 @@ function bindWeekWins(root){
 }
 function bindTodayMilestones(root){
   const box = root.querySelector('.today-ms'); if(!box) return;
+  const rng = box.querySelector('[data-msrange]');
+  if(rng){ rng.onclick = e => e.stopPropagation();
+    rng.onchange = () => { S.settings = S.settings || {}; S.settings.todayMsDays = +rng.value; saveNow(); rerender(); }; }
   box.addEventListener('toggle', () => { _todayMsOpen = box.open;
     if(box.open && typeof planMilestoneFitAll === 'function') planMilestoneFitAll(box); });
   /* whole names take the lines they need; the tiers are fitted once drawn */
@@ -581,6 +592,8 @@ routes.today = function(root, params = []){
       title="where today went">\u23f1 ${esc(timeTodaySay())}</button>` : ''}
 
     <section class="today-view" data-view="do"${view === 'do' ? '' : ' hidden'}>
+    <!-- what the week's threads put on today, doing and contemplating alike: part of the day's work, so here and not in Looking inward -->
+    ${typeof weekThreadsTodayHTML === 'function' ? weekThreadsTodayHTML(T) : ''}
 
     <!-- THE DAY, ONE ROOM AT A TIME
          Every section has a line to itself and stands about a screenful
@@ -608,7 +621,6 @@ routes.today = function(root, params = []){
       ${planSection === 'week'
         ? weekCarryHTML() || `<div class="empty">No week plan yet. <button class="tbtn" id="planWeekHere2">Plan the week →</button></div>`
         : `${planT.why ? `<p class="plan-why">${esc(planT.why)}</p>` : ''}
-           ${typeof weekThreadsTodayHTML === 'function' ? weekThreadsTodayHTML(T) : ''}
            ${three.length ? `<ol class="today-three">${(planT.intentions || []).map((t, i) => t ? `<li class="${typeof pbdIntentionDone === 'function' && pbdIntentionDone(planT, i) ? 'done' : ''}">${typeof pbdIntentionDone === 'function' && pbdIntentionDone(planT, i) ? '\u2713 ' : ''}${esc(t)}${typeof pbdTopTwo === 'function' && pbdTopTwo(planT).includes(i) ? ' <span class="mono faint" title="one of the top two">\u2605</span>' : ''}</li>` : '').join('')}</ol>`
              : `<div class="empty" style="margin-top:8px">Nothing was named for today. Plan tomorrow at the foot of this page — a day decided the night before starts already moving.</div>`}
            ${planT.firstMove ? `<p class="plan-line"><span class="mono">first move</span> ${esc(planT.firstMove)}</p>` : ''}
@@ -722,7 +734,6 @@ routes.today = function(root, params = []){
 
     <section class="today-view" data-view="in"${view === 'in' ? '' : ' hidden'}>
     ${typeof purposeText === 'function' && purposeText('statement') ? `<a class="pp-today mono-soft serif" href="#/purpose" title="the purpose sheet">${esc(purposeText('statement'))}</a>` : ''}
-    ${typeof weekThreadsTodayHTML === 'function' ? weekThreadsTodayHTML(T, 'turn') : ''}
 
     <div class="daybox daybox-solo">
 
