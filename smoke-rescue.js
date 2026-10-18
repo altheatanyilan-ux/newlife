@@ -19,6 +19,8 @@ const yes = (n, c, g = '') => c ? console.log('  ok   ' + n) : (bad++, console.l
   yes('Today has the door', await p.evaluate(() => { location.hash = '#/today'; return new Promise(r => setTimeout(() => r(!!document.querySelector('.rs-door')), 900)); }));
   await p.evaluate(() => { location.hash = '#/rescue'; }); await p.waitForTimeout(900);
   yes('the page is blank, with a hint, and no sheet is made until you write', await p.evaluate(() => !!document.querySelector('.rs-canvas') && !document.querySelector('.rs-hint').hidden && S.rescueSheets.length === 0));
+  yes('the room card is offered on the blank page', await p.evaluate(() => !!document.querySelector('.rs-ready')));
+  await p.click('.rs-ready-x'); await p.waitForTimeout(200);
   const canvas = await p.$('#rsCanvas'); const cb = await canvas.boundingBox();
   await p.mouse.click(cb.x + 200, cb.y + 140); await p.waitForTimeout(150);
   await p.keyboard.type('too many deadlines and I am tired'); await p.keyboard.press('Enter');
@@ -92,6 +94,17 @@ const yes = (n, c, g = '') => c ? console.log('  ok   ' + n) : (bad++, console.l
   await p.mouse.move(gr.x, gr.y); await p.mouse.down(); await p.mouse.move(gr.x - 140, gr.y, {steps: 5}); await p.mouse.up(); await p.waitForTimeout(300);
   const rw = await p.evaluate(() => ({w: document.querySelector('#rsRail').offsetWidth, saved: S.settings.rescueRailW}));
   yes('dragging its left edge widens the plate, and the width is kept', rw.w > rl.w + 100 && rw.saved === rw.w, [rl.w, rw]);
+
+  console.log('\n3d. the horizons: a box can be dropped into the last column, and the columns do not grow');
+  await p.evaluate(() => { document.querySelector('[data-rs="bands"]').click(); }); await p.waitForTimeout(300);
+  const colw0 = await p.evaluate(() => document.querySelector('.rs-band').getBoundingClientRect().width);
+  const mg = await p.evaluate(() => { const el = [...document.querySelectorAll('.rs-box:not(.q)')].find(e => !e.classList.contains('gone')); el.scrollIntoView({block: 'center'}); const g = el.querySelector('.rs-grip').getBoundingClientRect(); const c = document.querySelector('#rsCanvas').getBoundingClientRect(); return {id: el.dataset.rsb, gx: g.left + g.width / 2, gy: g.top + g.height / 2, right: c.right}; });
+  await p.mouse.move(mg.gx, mg.gy); await p.mouse.down(); await p.mouse.move(mg.right - 20, mg.gy, {steps: 8}); await p.mouse.move(mg.right + 300, mg.gy, {steps: 5}); await p.mouse.up(); await p.waitForTimeout(300);
+  const colw1 = await p.evaluate(() => document.querySelector('.rs-band').getBoundingClientRect().width);
+  yes('dragging far to the right does not widen the columns', Math.abs(colw1 - colw0) < 2, [colw0, colw1]);
+  const lnd = await p.evaluate(id => { const b = S.rescueSheets[0].boxes.find(x => x.id === id); const el = document.querySelector(`[data-rsb="${id}"]`); return {h: b.horizon, x: b.x, w: el.offsetWidth, cw: document.querySelector('#rsCanvas').clientWidth}; }, mg.id);
+  yes('and the box lands in "a way of being"', lnd.h === 'always', lnd);
+  await p.evaluate(() => { document.querySelector('[data-rs="bands"]').click(); }); await p.waitForTimeout(200);
 
   console.log('\n3c. a question box can be taken off the page');
   const nq = await p.evaluate(() => S.rescueSheets[0].boxes.filter(b => b.kind === 'question').length);

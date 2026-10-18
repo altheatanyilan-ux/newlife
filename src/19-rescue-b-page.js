@@ -158,7 +158,10 @@ function rescueSizeCanvas(root){
   let maxY = 0, maxX = 0;
   c.querySelectorAll('.rs-box').forEach(el => { maxY = Math.max(maxY, el.offsetTop + el.offsetHeight); maxX = Math.max(maxX, el.offsetLeft + el.offsetWidth); });
   c.style.minHeight = Math.max(st.clientHeight, maxY + 360) + 'px';
-  c.style.minWidth = Math.max(st.clientWidth - 2, maxX + 120) + 'px';
+  /* With the horizons showing, the page is exactly as wide as the window: the columns are fractions of it, so a page that grew
+     as a box was dragged right would widen every column with it and the last one could never be reached. */
+  if(_rs && _rs.ui.bands){ c.style.minWidth = ''; c.style.width = (st.clientWidth - 2) + 'px'; }
+  else { c.style.width = ''; c.style.minWidth = Math.max(st.clientWidth - 2, maxX + 120) + 'px'; }
 }
 /* a thread between boxes that name the same thing the site holds */
 function rescueStrings(root){
@@ -252,10 +255,15 @@ function rescueBindPage(root){
     const b = rescueBoxOf(el.dataset.rsb); if(!b) return;
     ev.preventDefault(); grip.setPointerCapture(ev.pointerId);
     const ox = ev.clientX - el.offsetLeft, oy = ev.clientY - el.offsetTop; el.classList.add('dragging');
-    const mv = e => { el.style.left = Math.max(0, e.clientX - ox) + 'px'; el.style.top = Math.max(0, e.clientY - oy) + 'px'; rescueStrings(root); };
-    const up = () => { grip.removeEventListener('pointermove', mv); grip.removeEventListener('pointerup', up); grip.removeEventListener('pointercancel', up);
+    const mv = e => {
+      /* with the horizons showing a box stays inside the page, so it can be dropped into the last column */
+      const maxL = _rs.ui.bands ? Math.max(0, canvas.clientWidth - el.offsetWidth - 6) : Infinity;
+      el.style.left = Math.min(maxL, Math.max(0, e.clientX - ox)) + 'px'; el.style.top = Math.max(0, e.clientY - oy) + 'px'; rescueStrings(root); };
+    const up = e => { grip.removeEventListener('pointermove', mv); grip.removeEventListener('pointerup', up); grip.removeEventListener('pointercancel', up);
       el.classList.remove('dragging'); b.x = el.offsetLeft; b.y = el.offsetTop;
-      if(_rs.ui.bands){ const w = canvas.clientWidth / RESCUE_HORIZONS.length, i = Math.min(RESCUE_HORIZONS.length - 1, Math.max(0, Math.floor((b.x + el.offsetWidth / 2) / w))); b.horizon = RESCUE_HORIZONS[i].id; rescueRefsPaint(el, b); }
+      /* the column is the one the pointer was dropped in (a wide box lying across several columns belongs to where it was put down) */
+      if(_rs.ui.bands){ const cr = canvas.getBoundingClientRect(), w = cr.width / RESCUE_HORIZONS.length, px = e && e.clientX != null ? e.clientX : cr.left + b.x + el.offsetWidth / 2;
+        const i = Math.min(RESCUE_HORIZONS.length - 1, Math.max(0, Math.floor((px - cr.left) / w))); b.horizon = RESCUE_HORIZONS[i].id; rescueRefsPaint(el, b); }
       rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); };
     grip.addEventListener('pointermove', mv); grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up);
   });
@@ -295,7 +303,11 @@ function rescueBindPage(root){
     if(a === 'new') navigate('#/rescue/new');
     else if(a === 'pages') rescuePagesDialog();
     else if(a === 'land') rescueLand(root);
-    else if(a === 'bands'){ _rs.ui.bands = !_rs.ui.bands; rescueQ('#rsBands', root).hidden = !_rs.ui.bands; canvas.classList.toggle('bands', _rs.ui.bands); b.classList.toggle('on', _rs.ui.bands); }
+    else if(a === 'bands'){ _rs.ui.bands = !_rs.ui.bands; rescueQ('#rsBands', root).hidden = !_rs.ui.bands; canvas.classList.toggle('bands', _rs.ui.bands); b.classList.toggle('on', _rs.ui.bands);
+      rescueSizeCanvas(root);
+      if(_rs.ui.bands){ /* boxes that sat beyond the edge are brought just inside it, so every one is in a column */
+        canvas.querySelectorAll('.rs-box').forEach(el => { const bx = rescueBoxOf(el.dataset.rsb), maxL = Math.max(0, canvas.clientWidth - el.offsetWidth - 6); if(bx && el.offsetLeft > maxL){ el.style.left = maxL + 'px'; bx.x = maxL; } }); rescueTouch(_rs.sheet); }
+      rescueStrings(root); }
     else if(a === 'rail'){ const r = rescueQ('#rsRail', root); r.hidden = !r.hidden; S.settings.rescueRail = !r.hidden; save(); b.classList.toggle('on', !r.hidden); if(!r.hidden) rescueRailPaint(root); }
     else if(a === 'coach') rescueCoachOpen(root);
     else if(a === 'tonight') rescueTonightFrame(root);
