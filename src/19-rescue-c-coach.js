@@ -364,9 +364,11 @@ function rescueSettingsHTML(){
     <div class="opt"><div><b>A line that leans in</b><div class="d">Once in a while a short, gentle line fades in at the edge of the page \u2014 chosen by what the page is about, from the starters and from the lines you have kept. Never twice running, never a command, gone after a few seconds.</div></div>
       <label class="toggle ${on ? 'on' : ''}" id="sRescueW"><span class="sw"></span></label></div>
     <div class="opt"><div><b>The question bank</b><div class="d">${rescueBankAll().length} questions (${RESCUE_STARTER.length} that ship with the house). Have a stronger AI write many more ahead of time from a prompt built from this house, and paste them in.</div></div>
-      <button class="btn sm" id="sRescueBank">Open the bank</button></div></div>`;
+      <button class="btn sm" id="sRescueBank">Open the bank</button></div>
+    ${typeof rescueCareSettingsHTML === 'function' ? rescueCareSettingsHTML() : ''}</div>`;
 }
 function bindRescueSettings(root){
   const w = (root || document).querySelector('#sRescueW'); if(w) w.onclick = () => { S.settings.rescueWhispers = !(S.settings.rescueWhispers !== false); w.classList.toggle('on', S.settings.rescueWhispers !== false); saveNow(); };
   const b = (root || document).querySelector('#sRescueBank'); if(b) b.onclick = () => rescueBankDialog();
+  if(typeof bindRescueCareSettings === 'function') bindRescueCareSettings(root);
 }

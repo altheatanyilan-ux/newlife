@@ -40,6 +40,7 @@ routes.rescue = function(root, params){
   rescueTickClock(root);
   _rs.timers.push(setInterval(() => rescueTickClock(root), 20000));
   rescueWhisperLater(root, 40000);
+  if(typeof rescueReadyShow === 'function'){ rescueReadyShow(root); rescueCareLater(root, (24 + Math.random() * 8) * 60000); }
   const first = root.querySelector('.rs-hint'); if(first && !rescueLive(s).length) first.hidden = false;
   if(!rescueLive(s).length) { const c = root.querySelector('#rsCanvas'); if(c) c.focus(); }
 };
@@ -63,6 +64,7 @@ function rescuePageHTML(s){
       <input class="rs-title" id="rsTitle" value="${esc(s.title || '')}" placeholder="${esc(s._virtual ? 'a page to think' : rescueTitle(s))}" aria-label="the page's name" ${s._virtual ? 'disabled' : ''}>
       <span class="rs-clock mono faint" id="rsClock"></span>
       <span class="grow"></span>
+      <button class="tbtn" data-rs="ready" title="small things the room can do for you before a hard hour">Ready the room</button>
       <button class="tbtn" data-rs="tonight" id="rsTonightBtn" hidden title="what the sleep and time records say about tonight, in plain words">Tonight, from my records</button>
       <button class="tbtn" data-rs="coach" title="a question to answer on the page">Ask me something</button>
       <button class="tbtn" data-rs="bands" title="lay the page out by how soon each thing matters">Horizons</button>
@@ -177,12 +179,13 @@ function rescueStrings(root){
 function rescueBindPage(root){
   const canvas = rescueQ('#rsCanvas', root), stage = rescueQ('#rsStage', root);
   const sheetNow = () => {
-    if(_rs.sheet._virtual){ const real = rescueNewSheet(); Object.assign(real, {boxes: _rs.sheet.boxes}); _rs.sheet = real; history.replaceState(history.state, '', location.pathname + location.search + '#/rescue/' + real.id);
+    if(_rs.sheet._virtual){ const real = rescueNewSheet(); Object.assign(real, {boxes: _rs.sheet.boxes, ready: (_rs.readyLog || []).slice(), readyDismissed: !!_rs.sheet.readyDismissed}); _rs.sheet = real; history.replaceState(history.state, '', location.pathname + location.search + '#/rescue/' + real.id);
       root.querySelectorAll('#rsTitle, [data-rs="land"]').forEach(n => n.disabled = false); rescueStartClock(real); }
     return _rs.sheet; };
   const newBox = (x, y, text) => {
     const s = sheetNow(); const b = rescueBoxNew(s, x, y, text || ''); const el = rescueBoxEl(b);
     canvas.appendChild(el); const ta = el.querySelector('.rs-ta'); rescueFit(ta); ta.focus();
+    if(root.querySelector('.rs-ready')){ root.querySelectorAll('.rs-ready').forEach(n => n.remove()); rescueReadyPill(root); }
     rescueQ('.rs-hint', root).hidden = true; rescueSizeCanvas(root); return {b, el, ta}; };
   _rs.newBox = newBox; _rs.sheetNow = sheetNow;
 
@@ -296,6 +299,7 @@ function rescueBindPage(root){
     else if(a === 'rail'){ const r = rescueQ('#rsRail', root); r.hidden = !r.hidden; S.settings.rescueRail = !r.hidden; save(); b.classList.toggle('on', !r.hidden); if(!r.hidden) rescueRailPaint(root); }
     else if(a === 'coach') rescueCoachOpen(root);
     else if(a === 'tonight') rescueTonightFrame(root);
+    else if(a === 'ready') rescueReadyShow(root, true);
   });
   const railBtn = root.querySelector('[data-rs="rail"]'); if(railBtn && !rescueQ('#rsRail', root).hidden) railBtn.classList.add('on');
   document.addEventListener('mousedown', rescueOutside, true);
