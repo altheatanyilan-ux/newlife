@@ -34,6 +34,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
 
   console.log('\n1. the weekly review');
   await p.evaluate(() => { S.settings.weeklyNumbers = true; flowWeekly(); }); await p.waitForTimeout(500);
+  await p.click('#fwNext'); await p.waitForTimeout(300);   /* the first step is now the week as written; the tape is the second */
   const W0 = await head();
   is('it opens on this week', W0.head, await wk(T));
   await press('[data-tapeweek]:first-of-type');
@@ -41,7 +42,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   is('‹ goes to the week before', W1.head, await wk(await p.evaluate(d => addDays(d, -7), T)));
   const onStep = await p.evaluate(() => { const b = document.querySelector('#flowBody'); let n = b; while(n && n.parentElement && !/step \d+ of/i.test(n.textContent)) n = n.parentElement;
     return n ? (/step (\d+) of/i.exec(n.textContent) || [])[1] : null; });
-  yes('  and the review is still open, on its first step', W1.open && onStep === '1', [W1.open, onStep]);
+  yes('  and the review is still open, on the same step', W1.open && onStep === '2', [W1.open, onStep]);
   await press('[data-tapeweek]:first-of-type');
   is('  ‹ again, the week before that', (await head()).head, await wk(await p.evaluate(d => addDays(d, -14), T)));
   await press('[data-tapeweek]:last-of-type');
