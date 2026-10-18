@@ -21,7 +21,7 @@ const CYCLES = [
   {key:'weekly',    flow:'lastWeekly',   name:'Weekly review',    len:'15 minutes',
    isEnd: d => parseDay(d).getDay() === 0,
    from:  d => addDays(d, -6),
-   blurb: 'Seven days, before Monday takes them.'},
+   blurb: 'What you wrote down for the week, and whether it happened.'},
   {key:'monthly',   flow:'lastMonthly',  name:'Monthly review',   len:'15 minutes',
    isEnd: d => monthEnd(d),
    from:  d => d.slice(0,8) + '01',

@@ -1074,42 +1074,8 @@ function renderReviewPanel(box, d){
   $('#revMonth').onclick = () => openMonthlyReview(d);
   attachDictationIn(box);
 }
-function openWeeklyReview(d = today()){
-  const days = planDaysFrom(d); const T = today();
-  const tasks = days.flatMap(x => tasksForDay(x)); const tDone = tasks.filter(t=>t.done).length;
-  const plans = days.map(x => S.plans?.[x]).filter(Boolean);
-  const planned = []; const pDone = 0;
-  const revs = days.map(x => S.reviewLog?.[x]).filter(r => r && (r.energy || r.moods?.length));
-  const energies = revs.map(r => r.energy).filter(Boolean);
-  const moodCount = {}; revs.forEach(r => (r.moods||[]).forEach(m => moodCount[m] = (moodCount[m]||0)+1));
-  const habitsAll = S.habits.filter(h => !h.archived && !h.negative);
-  const hDue = sum(days.map(x => habitsAll.filter(h => habitDue(h,x)).length));
-  const hDone = sum(days.map(x => habitsAll.filter(h => habitDue(h,x) && habitDone(h,x)).length));
-  const intentions = plans.flatMap(p => (p.intentions||[]).filter(Boolean));
-  const m = openModal(`<h2>The week of ${fmtDate(days[0],'med')}</h2>
-    <div class="income-strip" style="margin:12px 0 18px">
-      <div><div class="k">tasks finished</div><div class="num">${tDone}<span class="mono"> / ${tasks.length}</span></div></div>
-      <div><div class="k">plan items</div><div class="num">${pDone}<span class="mono"> / ${planned.length}</span></div></div>
-      <div><div class="k">habits kept</div><div class="num">${hDue?Math.round(hDone/hDue*100):0}<span class="mono">%</span></div></div>
-      <div><div class="k">average energy</div><div class="num">${energies.length?avg(energies).toFixed(1):'—'}<span class="mono"> / 5</span></div></div>
-    </div>
-    <div class="grid c2" style="gap:14px;align-items:start">
-      <div><span class="sc">Planned versus done</span>
-        <div class="stack" style="gap:4px;margin-top:8px;max-height:30vh;overflow:auto">${
-          [...tasks, ...planned.map(i=>({text:i.text, done:i.done}))].map(x=>`<div class="row between"><span class="${x.done?'':'faint'}" style="${x.done?'text-decoration:line-through':''}">${esc(x.text)}</span><span class="mono">${x.done?'✓':'—'}</span></div>`).join('') || '<div class="empty">Nothing was planned.</div>'}</div></div>
-      <div><span class="sc">How it felt</span>
-        ${Object.keys(moodCount).length ? `<div class="mood-bars">${Object.entries(moodCount).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<div class="row between"><span>${esc(t)}</span><span class="bar" style="flex:1;--c:var(--page-accent)"><i style="width:${Math.round(n/revs.length*100)}%"></i></span><span class="mono">${n}</span></div>`).join('')}</div>` : '<div class="empty">No days were closed this week.</div>'}
-        ${intentions.length ? `<div class="sc" style="margin-top:14px">What you said mattered</div><ul class="ch-goals">${intentions.slice(0,8).map(t=>`<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-      </div>
-    </div>
-    <div class="field" style="margin-top:16px"><label>What is the focus for next week?</label><textarea class="ta" id="wkFocus" placeholder="One sentence. It becomes the first thing you see when you plan Monday.">${esc(S.reviews.nextWeekFocus||'')}</textarea></div>
-    <div class="row between" style="margin-top:14px"><span class="faint" style="font-size:.78rem">${daysSince(S.reviews.lastWeekly)===Infinity?'first weekly review':`last one ${relDays(daysSince(S.reviews.lastWeekly))}`}</span><button class="btn primary" id="wkSave">Mark the week reviewed</button></div>`, 'wide');
-  attachDictationIn(m);
-  m.querySelector('#wkSave').onclick = () => {
-    S.reviews.nextWeekFocus = m.querySelector('#wkFocus').value.trim();
-    S.reviews.lastWeekly = today(); saveNow(); m.remove(); sound('success'); toast('Week reviewed.'); rerender();
-  };
-}
+/* the day's "Weekly review" button opens the same review as the Review page: the week as it was written */
+function openWeeklyReview(d = today()){ if(typeof flowWeekly === 'function') flowWeekly(); }
 
 /* ---------- forward-looking planning: the week and the month, before they happen ---------- */
 /* THE WEEK, BEFORE IT HAPPENS.

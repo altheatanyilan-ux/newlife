@@ -189,7 +189,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   console.log('\n9. the same numbers elsewhere');
   const rv = await p.evaluate(() => { const h = planStatsHTML(); return {focus: /How the focus went/.test(h) && /tmv-fqs/.test(h), wins: /Started when the block said|Estimates held/.test(h)}; });
   is('the Review’s statistics carry the focus panel and the wins', rv, {focus: true, wins: true});
-  await p.evaluate(() => { flowWeekly(); }); await p.waitForTimeout(700);
+  await p.evaluate(() => { S.settings.weeklyNumbers = true; flowWeekly(); }); await p.waitForTimeout(700);
   let found = false;
   for(let i = 0; i < 14 && !found; i++){
     found = await p.evaluate(() => /Where the hours went/.test(document.body.innerText) && !!document.querySelector('.tmv-glance'));

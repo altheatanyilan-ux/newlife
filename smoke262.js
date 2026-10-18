@@ -33,7 +33,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   const wk = d => p.evaluate(d => 'Week of ' + fmtDate(planDaysFrom(d)[0], 'med'), d);
 
   console.log('\n1. the weekly review');
-  await p.evaluate(() => flowWeekly()); await p.waitForTimeout(500);
+  await p.evaluate(() => { S.settings.weeklyNumbers = true; flowWeekly(); }); await p.waitForTimeout(500);
   const W0 = await head();
   is('it opens on this week', W0.head, await wk(T));
   await press('[data-tapeweek]:first-of-type');

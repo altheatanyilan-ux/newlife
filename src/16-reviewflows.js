@@ -233,7 +233,9 @@ function flowWeekly(opts = {}){
     body: () => `<div class="stack" style="gap:6px">${typeof timeGlanceHTML === 'function' ? timeGlanceHTML(timeRange('week', days[0]), null, {noRings: false}) + `<div class="rev-summary">${esc(timeNarrative(timeRange('week', days[0])))}</div>` + timeBreakdownHTML(timeRange('week', days[0]), null, {lens: 'category', second: '', max: 6}) : ''}
       ${tmSaid.map(l => `<div class="rev-summary">${esc(l)}</div>`).join('')}
       <div class="row"><button class="btn sm ghost" data-flowgo="#/time/week">open the week</button></div></div>`}] : [];
-  guidedFlow('Weekly review', [
+  /* what the review is: the week as it was written, and a word on each thing. The numbers are the
+     optional part, behind a switch on the first step. */
+  const numberSteps = [
     {title:'The week, in shape.', hint:'Which days were full? Which were quiet? Is there a pattern you did not choose?',
      ...flowTapeStep({view: 'week', day: T})},
     {title:'The habits held, or they did not.',
@@ -264,6 +266,12 @@ function flowWeekly(opts = {}){
     ...(typeof resistanceWeekStep === 'function' ? resistanceWeekStep(days[0], days[6]) : []),
     ...(typeof betWeekStep === 'function' ? betWeekStep() : []),
     ...(typeof happinessWeekStep === 'function' ? happinessWeekStep(days[0], days[6]) : []),
+  ];
+  const lean = !(opts.numbers || (S.settings || {}).weeklyNumbers);
+  guidedFlow('Weekly review', [
+    weekWrittenStep(),
+    ...(lean ? [] : numberSteps),
+    weekReflectStep(),
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',
      body: () => captureStepHTML(days[0], days[6]), bind: b => bindCaptureStep(b, days[0], days[6])},
     {title:"Next week's one intention.",
@@ -433,7 +441,7 @@ function flowHalf(){
 const REVIEW_FLOWS = [
   ['lastMorning',  'Morning practice',  '30 minutes', 'Maltz, Hill and Hicks, in the order they work: script, visualise, aim, set-point, intention, mark.', flowMorning],
   ['lastEvening',  'Evening review',    '5 minutes',  'Close the day honestly: the rings, what actually happened, the energy it ended on, and tomorrow.', flowEvening],
-  ['lastWeekly',   'Weekly review',     '15 minutes', "The week's shape, the habits, a congruence snapshot, current reality on the tension that carries most.", flowWeekly],
+  ['lastWeekly',   'Weekly review',     '15 minutes', "What you wrote down for the week — its goals, wins and threads — and whether each happened. The numbers are optional.", flowWeekly],
   ['lastMonthly',  'Monthly review',    '15 minutes', 'The month at once: the milestones you named, the habits across thirty days, which rooms got used, and what carries over.', flowMonthly],
   ['lastSeasonal', 'Quarterly review',  '30 minutes', 'A season: values re-ranked, confidence rungs, what is going quiet, the five closest, the money.', flowSeasonal],
   ['lastHalf',     'Half-year review',  '45 minutes', 'Six months side by side: what actually moved, who moved rings, the compass, and what the next six are for.', flowHalf],
