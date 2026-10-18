@@ -1,9 +1,9 @@
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */
-function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false, focusPeople=false}={}){
+function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', body='', occurredAt='', allowedTypes=null, heading='', openLinks=false, focusPeople=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
-  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
+  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:body || '',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
   /* Writing something down is not filing a record. Every kind of entry opens
      on a painting of its own, in the same brush the rooms are drawn with, so a

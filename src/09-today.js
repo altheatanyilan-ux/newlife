@@ -549,7 +549,8 @@ routes.today = function(root, params = []){
                where it is. -->
           ${seasonName?`<div class="mono faint today-cycle" id="todayCycle" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
         </div>
-        <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
+        <div class="today-corner"><div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
+          <a class="rs-door" href="#/rescue" title="a blank page to think on (Alt+R)">Overwhelmed? A space to think \u2192</a></div>
       </div>
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
       <!-- A dream is gone within minutes of opening your eyes, so it is asked

@@ -83,12 +83,13 @@ const DECISION_OUTCOME = [
 ];
 function decisions(){ return S.entries.filter(e => e.type === 'decision'); }
 function decisionsDue(){ const T = today(); return decisions().filter(e => !e.extra?.reviewedAt && e.extra?.reviewOn && e.extra.reviewOn <= T); }
-function openDecisionModal(){
+function openDecisionModal(pre){
+  pre = pre || {};
   const m = openModal(`<h2>A decision worth remembering</h2>
     <p class="muted" style="font-size:.88rem">Written now, read later. The gap between why you thought something and what actually happened is where self-knowledge lives — but only if you write the reasoning down before you know the answer.</p>
     <div class="stack">
-      <input class="inp serif-lg" id="dTitle" placeholder="The decision, in a few words" autofocus>
-      ${DECISION_FIELDS.map(([k,l,h])=>`<div class="field"><label>${l}</label>${h?`<div class="faint" style="font-size:.78rem;margin-bottom:4px">${h}</div>`:''}<textarea class="ta" data-df="${k}" style="min-height:${k==='chosen'?60:84}px"></textarea></div>`).join('')}
+      <input class="inp serif-lg" id="dTitle" placeholder="The decision, in a few words" autofocus value="${esc(pre.title || '')}">
+      ${DECISION_FIELDS.map(([k,l,h])=>`<div class="field"><label>${l}</label>${h?`<div class="faint" style="font-size:.78rem;margin-bottom:4px">${h}</div>`:''}<textarea class="ta" data-df="${k}" style="min-height:${k==='chosen'?60:84}px">${k === 'situation' ? esc(pre.situation || '') : ''}</textarea></div>`).join('')}
       ${typeof decisionRiskHTML === 'function' ? decisionRiskHTML() : ''}
       <div class="grid c2" style="gap:10px">
         <div class="field"><label>How sure am I?</label><select class="sel" id="dConf">${['a coin flip','leaning','fairly sure','confident','certain'].map(c=>`<option ${c==='leaning'?'selected':''}>${c}</option>`).join('')}</select></div>

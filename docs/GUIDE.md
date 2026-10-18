@@ -48,6 +48,7 @@ It is long because the house is large. You do not need to read it in order. Star
 21. [Knowledge Tree](#21-knowledge-tree)
 22. [Study Deck](#22-study-deck)
 23. [Learning Studio](#23-learning-studio)
+    - [The Overwhelm rescue space](#the-overwhelm-rescue-space)
 
 **Part V — Settings and tools**
 24. [Settings](#24-settings)
@@ -1047,6 +1048,24 @@ Signals are dismissable for the day; "why" buttons explain the rule behind each 
 
 # Part V — Settings and tools
 
+## The Overwhelm rescue space
+
+For the hours when everything is a tangle — long-term and short-term, a deadline, something that wants a little thought each day, a tired body, a promise you made yourself, people waiting on you. Every other room asks you to say what a thing *is* before you know what you think; this one asks nothing first. Open it from **Today** (*Overwhelmed? A space to think →*), the sidebar (*Overwhelm rescue*), or **Alt+R** from anywhere.
+
+**The page.** A blank, calm page. **Click anywhere** and a box appears, in a face chosen at random and kept for that box; write; click somewhere else and write something unrelated. **Enter** makes the next box underneath, **Tab** the next beside it, **Esc** puts the pen down, **Backspace** on an empty box takes it away. Drag a box by its grip (⠿). Keywords are enough; nothing is sorted, scored or required. No page exists until you write on it; the clock in the corner of the page counts how long you have been here, and a sitting is logged to Time tracking as *overwhelm rescue*.
+
+**Afterwards: what is it?** Select some words (or press ⋯ on a box) and a menu says what to do with them: **a task** (the planner’s shorthand works), **under a goal** of this week, **a thread** (to do or to contemplate, on chosen days of this week or next), **a journal entry**, **a decision** (the decision form opens with it in), **a question to live with**, **a person** (log what happened, reach out as a task, or open their page), **a reminder**, **park it**, **a line to keep** (joins the lines that lean in), or **let it go** (it fades from the page and stays in the record). Every one says what it made and has an undo, and the box keeps a small mark of where it went. **It matters:** set a horizon on a box — right now, tonight, this week, later, a way of being — or press **Horizons** to lay the page out in columns and drop boxes into them.
+
+**The site is in the page.** A box that names a person, a list, a date, a task, a skill or a habit gets a thread to it, with one plain line on what the house holds (*last in touch 12 days ago*, *Viva in 12 days*, *due Fri · ~45m*); press it to go there. Boxes that name the same thing are joined by a faint string. **On my plate** is a rail of what is live — today’s load against the hours you have, what has gone by, this week, dates ahead, today’s threads, people waiting — and pressing one brings it onto the page as a box.
+
+**Tonight, from my records.** When a page is about being tired or a promise you made yourself (or it is late), a button reads the sleep and time records back in plain words — how many recent nights ran past half past midnight, and how the days after compared — and offers three choices as things that can be made: *sleep now* (the thing becomes tomorrow’s first move), *thirty minutes, then bed* (a stop reminder is set) or *change the promise, out loud* (a journal entry opens). No verdict.
+
+**You as the coach.** **Ask me something** puts one question on the page as a box, and you answer by writing. Which question is chosen by rule and the reason is shown (*you wrote “tired” · it is late*): the scenario you name (or the ones the page’s words point to), words a question waits for, the hour, how far into the sitting you are, what you have been asked, and follow-ups. *Another* and *go deeper* replace it (what you wrote stays); *not this one* retires it for good. A question that suggests where the answer should go offers that door. A starter bank of about seventy questions ships with the house; **the question bank** (Settings → *Overwhelm rescue space*, or inside *Ask me something*) holds more. To make it far better, **Write the questions with my AI** builds a prompt from what the house is and offers *now* (its rooms, the doors out, the scenarios, what the bank already covers, optionally the names of your lists, values and habits); give it to your strongest AI, then **paste what it wrote**. The import checks it, lists what it left out, and keeps each reply as a batch you can switch off or remove.
+
+**Landing.** **Land it** asks for three small things — one thing decided for tonight, one next action (it becomes a task), something you are putting down — and a word for how you feel. A page does not have to be finished. If things on it were never sorted, the next morning offers them once (in the prompts on Today).
+
+**Every page is kept** by the day it was made, and listed in the **Review** under that date; **Pages** inside the space opens any of them again. A line may lean in at the edge of the page now and then — from the starters and from the lines you keep — and can be turned off in Settings.
+
 ## 23. Settings
 
 Open with **⚙** (top right). The cards, top to bottom:
@@ -1183,6 +1202,7 @@ Nothing fires while you are typing into a field.
 | `N` | make something new (the ＋ speed dial) |
 | `Z` | focus mode — this page full screen |
 | `P` | park a thought, for after (focus mode, and Today) |
+| `Alt+R` | the Overwhelm rescue space: a blank page to think on |
 | `D` | note a distraction on the cheat sheet |
 | `Esc` | close what is open; leave focus mode |
 | `E` | on a skill or a Library work: switch Living / Workshop view |

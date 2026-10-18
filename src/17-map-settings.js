@@ -122,6 +122,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Photo size on upload</b><div class="d">Long edge in pixels. Larger keeps more detail and uses more space.</div></div><select class="sel" style="width:auto" id="sPhotoMax">${[1200,1600,2400,4000].map(n=>`<option value="${n}" ${(S.settings.photoMax||1600)===n?'selected':''}>${n}px${n===1600?' (default)':''}</option>`).join('')}</select></div>
       <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
+    ${typeof rescueSettingsHTML === 'function' ? rescueSettingsHTML() : ''}
     ${typeof cloudSectionHTML === 'function' ? cloudSectionHTML() : ''}
     ${syncSectionHTML()}
     <div class="card rv"><h3>About</h3><div class="prose muted" style="font-size:.9rem">
@@ -260,6 +261,7 @@ routes.settings = function(root){
   bindZoneEditor($('#zoneEditor').parentElement);
   bindSyncSection(document);
   if(typeof bindCloudSection === 'function') bindCloudSection(document);
+  if(typeof bindRescueSettings === 'function') bindRescueSettings(document);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;

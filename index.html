@@ -39,7 +39,7 @@
      promises for the faces themselves. There is no noscript fallback: with
      scripting off this page renders nothing at all, so a second copy of the
      stylesheet would only be one more blocking request serving nobody. -->
-<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=Caveat:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all';this.onload=null" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Noto+Serif+SC:wght@400;600&family=Lora:ital,wght@0,400;1,400;1,500&family=Caveat:wght@400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Kalam:wght@400&family=Patrick+Hand&family=Dancing+Script:wght@500&display=swap">
 <style>
 /* ============================================================
    0. DESIGN SYSTEM
@@ -13436,6 +13436,102 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .studio-deck-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
 .studio-deck-f{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
 /* end studio synergy */
+
+/* ===== the Overwhelm rescue space ===== */
+.today-corner{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.rs-door{font-size:.74rem;color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--line-2,var(--line));padding-bottom:1px;white-space:nowrap}
+.rs-door:hover{color:var(--page-accent);border-bottom-color:var(--page-accent)}
+.rs-page{max-width:none;padding-bottom:0}
+.rs-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:2px 0 10px}
+.rs-title{font-family:var(--serif);font-size:1.25rem;background:transparent;border:0;border-bottom:1px dashed transparent;color:var(--text);min-width:12rem;max-width:26rem;padding:2px 2px}
+.rs-title:hover,.rs-title:focus{outline:0;border-bottom-color:var(--line-2,var(--line))}
+.rs-title::placeholder{color:var(--muted)}
+.rs-top .tbtn.on{background:color-mix(in srgb,var(--page-accent) 14%,transparent);border-color:var(--page-accent)}
+.rs-body{display:flex;gap:14px;align-items:stretch}
+.rs-stage{flex:1;min-width:0;height:calc(100dvh - 170px);min-height:420px;overflow:auto;border-radius:18px;position:relative;
+  background:
+    radial-gradient(1200px 600px at 20% 0%,color-mix(in srgb,var(--page-accent) 7%,transparent),transparent 70%),
+    radial-gradient(900px 500px at 100% 100%,color-mix(in srgb,var(--sage) 8%,transparent),transparent 70%),
+    color-mix(in srgb,var(--surface) 82%,transparent);
+  border:1px solid var(--line);box-shadow:inset 0 1px 18px rgba(0,0,0,.03)}
+.rs-canvas{position:relative;min-height:100%;cursor:text;outline:0}
+.rs-canvas.bands{cursor:default}
+.rs-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;gap:2px;opacity:.7}
+.rs-hint p{margin:0;max-width:30ch}.rs-hint .serif{font-size:1.5rem;font-style:italic}
+.rs-bands{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr);pointer-events:none}
+.rs-bands[hidden]{display:none}
+.rs-band{border-left:1px dashed var(--line);padding:8px 10px;display:flex;flex-direction:column;gap:1px;font-size:.78rem;color:var(--muted)}
+.rs-band:first-child{border-left:0}.rs-band b{font-family:var(--serif);font-weight:500;font-size:.95rem;color:var(--text);opacity:.7}.rs-band span{font-size:.68rem;opacity:.7}
+.rs-strings{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+.rs-strings path{fill:none;stroke:var(--page-accent);stroke-width:1.2;stroke-dasharray:3 4;opacity:.45}
+.rs-box{position:absolute;max-width:460px;padding:4px 10px 6px 18px;border-radius:12px;border:1px solid transparent;transition:background .15s,border-color .15s,opacity .5s,transform .4s;color:var(--ink,var(--text))}
+.rs-box:hover,.rs-box:focus-within{background:color-mix(in srgb,var(--surface) 70%,transparent);border-color:var(--line);box-shadow:0 4px 16px rgba(0,0,0,.05)}
+.rs-box.dragging{box-shadow:0 10px 28px rgba(0,0,0,.14);z-index:5;cursor:grabbing}
+.rs-grip{position:absolute;left:2px;top:6px;width:14px;opacity:0;cursor:grab;color:var(--muted);font-size:.8rem;line-height:1;touch-action:none;user-select:none}
+.rs-box:hover .rs-grip,.rs-box:focus-within .rs-grip{opacity:.7}
+.rs-ta{display:block;border:0;background:transparent;resize:none;overflow:hidden;color:var(--ink,var(--text));padding:2px 0;line-height:1.35;outline:0;min-height:1.4em;caret-color:var(--page-accent)}
+.rs-ta::placeholder{color:var(--faint)}
+.rs-ta::selection{background:color-mix(in srgb,var(--page-accent) 30%,transparent)}
+.rs-more{position:absolute;right:-6px;top:-8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;width:22px;height:22px;line-height:1;font-size:.9rem;cursor:pointer;opacity:0;transition:opacity .15s}
+.rs-box:hover .rs-more,.rs-box:focus-within .rs-more{opacity:1}.rs-more:hover{color:var(--text);border-color:var(--page-accent)}
+.rs-hz{position:absolute;left:18px;top:-9px;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface);padding:0 6px;border-radius:6px}
+.rs-hz:empty{display:none}
+.rs-marks{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}.rs-mark{font-size:.68rem;color:var(--sage);border:1px solid color-mix(in srgb,var(--sage) 40%,transparent);border-radius:999px;padding:0 7px}
+.rs-box.handled .rs-ta{opacity:.55}
+.rs-box.gone{display:none}
+.rs-canvas.showgone .rs-box.gone{display:block;opacity:.3}
+.rs-refs{display:flex;flex-direction:column;gap:2px;margin-top:3px;max-width:340px}
+.rs-ref{display:inline-flex;align-items:baseline;gap:4px;text-align:left;border:0;background:transparent;color:var(--muted);font-size:.72rem;cursor:pointer;padding:0;line-height:1.3}
+.rs-ref i{font-style:normal;color:var(--page-accent)}.rs-ref span{color:var(--faint)}.rs-ref:hover{color:var(--text)}
+.rs-box.q{padding:12px 16px 10px 20px;background:color-mix(in srgb,var(--page-accent) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--page-accent) 40%,var(--line));border-radius:16px;max-width:380px}
+.rs-q .mono{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--page-accent)}
+.rs-q p{margin:3px 0 6px;font-family:var(--serif);font-style:italic;font-size:1.12rem;line-height:1.4;color:var(--text)}
+.rs-qwhy{font-size:.7rem;margin-bottom:6px}.rs-qacts{display:flex;gap:4px;margin-top:6px;opacity:.75}
+.rs-box.q .rs-ta{border-top:1px dashed var(--line);padding-top:6px;font-size:1rem}
+.rs-rail{width:260px;flex:none;height:calc(100dvh - 170px);min-height:420px;overflow:auto;border:1px solid var(--line);border-radius:16px;padding:12px;background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.rs-rail[hidden]{display:none}
+.rs-rail-h{display:flex;flex-direction:column;margin-bottom:8px}
+.rs-cap{font-size:.8rem;padding:6px 8px;border-radius:9px;background:color-mix(in srgb,var(--sage) 12%,transparent);margin-bottom:8px}.rs-cap.over{background:color-mix(in srgb,var(--rose) 14%,transparent)}
+.rs-rg{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}.rs-rg > .mono{font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.rs-ri{display:flex;justify-content:space-between;gap:8px;text-align:left;border:0;background:transparent;color:var(--text);font-size:.82rem;padding:4px 6px;border-radius:8px;cursor:pointer}
+.rs-ri:hover{background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.rs-ri span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rs-ri em{font-style:normal;color:var(--faint);font-size:.7rem;white-space:nowrap}
+.rs-note{margin-top:8px;font-size:.84rem;color:var(--muted);text-align:center}
+.rs-whisper{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;max-width:min(560px,86vw);text-align:center;pointer-events:none;opacity:0;transition:opacity 1.6s ease}
+.rs-whisper.on{opacity:1;pointer-events:auto}
+.rs-w{font-family:var(--serif);font-style:italic;font-size:1.05rem;color:var(--muted);background:color-mix(in srgb,var(--surface) 78%,transparent);padding:6px 16px;border-radius:999px;backdrop-filter:blur(6px)}
+.rs-w.own{color:var(--text)}.rs-wx{border:0;background:transparent;color:var(--faint);cursor:pointer;margin-left:2px}
+.rs-measure{position:fixed;left:-9999px;top:-9999px;white-space:pre;visibility:hidden;pointer-events:none}
+/* the menu */
+.rs-menu{position:fixed;z-index:1100;width:330px;max-width:92vw;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.22);padding:10px;animation:sxUp .15s ease-out}
+.rs-m-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.rs-m-h q{font-family:var(--serif);font-style:italic;font-size:.92rem;color:var(--text);flex-basis:100%}
+.rs-m-back{margin-right:2px}
+.rs-m-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.rs-m-b{display:flex;align-items:center;gap:8px;text-align:left;border:1px solid transparent;background:color-mix(in srgb,var(--surface-2) 70%,transparent);border-radius:10px;padding:7px 9px;cursor:pointer;color:var(--text);font-size:.82rem}
+.rs-m-b:hover{border-color:var(--page-accent);background:color-mix(in srgb,var(--page-accent) 8%,transparent)}.rs-m-b i{font-style:normal;width:1.2em;text-align:center;color:var(--page-accent)}
+.rs-m-hz{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--line)}
+.rs-m-hz .mono{font-size:.64rem;margin-right:4px}
+.rs-m-row{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--text);padding:7px 8px;border-radius:8px;cursor:pointer;font-size:.86rem}
+.rs-m-row:hover{background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
+.rs-m-seg{display:flex;gap:4px;margin:6px 0}.rs-m-seg.wrap{flex-wrap:wrap}
+.rs-m-days{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 10px}
+.rs-pgs{display:flex;flex-direction:column;gap:4px;max-height:60vh;overflow:auto}
+.rs-pg{display:flex;align-items:center;gap:6px}.rs-pg-o{flex:1;text-align:left;border:1px solid var(--line);background:transparent;border-radius:10px;padding:8px 10px;cursor:pointer;color:var(--text);display:flex;flex-direction:column;gap:1px}
+.rs-pg-o:hover{border-color:var(--page-accent)}
+.rs-rv-list{display:flex;flex-direction:column;gap:3px;margin-top:8px}
+.rs-rv-row{display:grid;grid-template-columns:7rem minmax(0,1fr);gap:2px 12px;text-align:left;border:0;background:transparent;color:var(--text);padding:7px 6px;border-radius:9px;cursor:pointer}
+.rs-rv-row:hover{background:color-mix(in srgb,var(--page-accent) 8%,transparent)}
+.rs-rv-row .mono{grid-row:span 2;font-size:.74rem;color:var(--muted)}.rs-rv-row .faint{font-size:.8rem}
+@media (max-width:900px){.rs-body{flex-direction:column}.rs-rail{width:auto;height:auto;max-height:300px}.rs-stage{height:calc(100dvh - 240px)}}
+.rs-qsug{border:0;background:transparent;color:var(--page-accent);font-size:.74rem;cursor:pointer;padding:0;text-align:left}.rs-qsug:hover{text-decoration:underline}
+.rs-cover{display:flex;flex-wrap:wrap;gap:4px}.rs-cover .chip.warn{border-color:var(--rose)}
+.rs-bt{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.rs-frame{position:fixed;left:244px;bottom:18px;z-index:40;width:360px;max-width:92vw;max-height:70vh;overflow:auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 16px 44px rgba(0,0,0,.22);animation:sxUp .2s ease-out}
+.rs-frame h3{margin:0 0 2px;font-family:var(--serif);font-size:1.1rem}.rs-frame ul{margin:8px 0 10px;padding-left:1.1em;font-size:.86rem;line-height:1.45}
+.rs-frame-x{position:absolute;right:10px;top:8px;border:0;background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer}
+.rs-frame-opts{display:flex;flex-direction:column;gap:4px;margin-top:8px}.rs-frame-opts .rs-m-row{border:1px solid var(--line);line-height:1.35}
+@media (max-width:900px){.rs-frame{left:12px}}
+/* ===== end the Overwhelm rescue space ===== */
 </style>
 
 </head>
@@ -18170,6 +18266,8 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
   treeMistakes:      'id, pageId, retestDue',
   treePageRevisions: 'id, pageId, savedAt',
   treeKolb:          'id, date, weekOf',
+  rescueSheets:      'id, day, createdAt',      // the Overwhelm rescue space: one page each, kept for good
+  rescueBank:        'id, source, batch',       // coach questions a stronger AI wrote ahead of time (imported)
   /* Score Study, the analysis layer of the Repertoire room (19-score-a*.js).
      An analysis row carries its key spans, chord labels, cadences, units,
      sections, schemata, structural line and tension as nested arrays — one
@@ -18242,7 +18340,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
   'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','cloud','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview','purpose','purposeImprint','valuesImprint','museState','zogTarget','journeyOverride','zogStreak','studio'];
-const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','treeChunks','treeQuestions','treeRetrievals','treeMistakes','treePageRevisions','treeKolb','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals','practiceLog','strengths','strengthSnapshots','strengthRankHistory','affirmations','beliefs','bets','retreats','negativeValues','masterValues','zoneItems','flowClues','breaks','habitsToDrop','alignmentChecks','convergence'];
+const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','treeChunks','treeQuestions','treeRetrievals','treeMistakes','treePageRevisions','treeKolb','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals','practiceLog','strengths','strengthSnapshots','strengthRankHistory','affirmations','beliefs','bets','retreats','negativeValues','masterValues','zoneItems','flowClues','breaks','habitsToDrop','alignmentChecks','convergence','rescueSheets','rescueBank'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
 class MiniTable {
@@ -18330,7 +18428,7 @@ const usingRealDexie = DexieImpl !== MiniDexie;
 
 /* ---------- the database ---------- */
 const db = new DexieImpl(DB_NAME);
-db.version(25).stores(DB_SCHEMA);   // v25 the iCanStudy layer of the Knowledge Tree (new stores only), v24 the purpose spine (new stores only), v23 timeIntentions + perfGoals (new stores only), v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
+db.version(26).stores(DB_SCHEMA);   // v26 the Overwhelm rescue space (new stores only), v25 the iCanStudy layer of the Knowledge Tree (new stores only), v24 the purpose spine (new stores only), v23 timeIntentions + perfGoals (new stores only), v22 timeBlocks (new store only), v21 Learning Studio (new stores only), v20 Score Study (new stores only), v19 Knowledge Tree (new stores only), v18 Study Deck on Anki's model (new stores only), v8 finance rebuild, v9 chronicle chapters/turns/threads + interactions, v10 library + writing studio stores, v11 income streams + spend categories, v12 scores, v13 time entries, v14 speaking recordings, v15 jazz recordings, v16 repertoire recordings, v17 songwriting voice memos (new stores only; nothing existing changes)
 
 /* ---------- S <-> stores ---------- */
 function stateToStores(state){
@@ -23404,7 +23502,8 @@ routes.today = function(root, params = []){
                where it is. -->
           ${seasonName?`<div class="mono faint today-cycle" id="todayCycle" style="font-size:.72rem;margin-top:2px">${seasonName} · day ${Math.round(moon.age)} of the lunar cycle</div>`:''}
         </div>
-        <div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
+        <div class="today-corner"><div class="moon row" style="gap:6px;align-items:center">${moonSVG(moon.p)} <span class="mono faint">${moon.name}</span></div>
+          <a class="rs-door" href="#/rescue" title="a blank page to think on (Alt+R)">Overwhelmed? A space to think \u2192</a></div>
       </div>
       ${cyest?.intention ? `<div class="mono faint" style="margin-top:8px;font-size:.78rem">Yesterday you set out to: <em>${esc(cyest.intention)}</em></div>` : ''}
       <!-- A dream is gone within minutes of opening your eyes, so it is asked
@@ -27184,10 +27283,12 @@ function todayReviewRender(box){
     ${typeof planStatsHTML === 'function' ? `<section class="section rv rv-stats" id="rvStats">
       <span class="sc">Tasks and focus</span>${planStatsHTML()}</section>` : ''}
     ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
+    ${typeof rescueReviewHTML === 'function' ? rescueReviewHTML() : ''}
     ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
   if(typeof bindCompassBody === 'function') bindCompassBody(box, () => rerender());
   if(typeof bindMuseCard === 'function') bindMuseCard(box);
   if(typeof bindReviewList === 'function') bindReviewList(box);
+  if(typeof bindRescueReview === 'function') bindRescueReview(box);
   if(typeof bindDayArchive === 'function') bindDayArchive(box);
 }
 routes.journals = function(root, params){
@@ -27381,12 +27482,13 @@ const DECISION_OUTCOME = [
 ];
 function decisions(){ return S.entries.filter(e => e.type === 'decision'); }
 function decisionsDue(){ const T = today(); return decisions().filter(e => !e.extra?.reviewedAt && e.extra?.reviewOn && e.extra.reviewOn <= T); }
-function openDecisionModal(){
+function openDecisionModal(pre){
+  pre = pre || {};
   const m = openModal(`<h2>A decision worth remembering</h2>
     <p class="muted" style="font-size:.88rem">Written now, read later. The gap between why you thought something and what actually happened is where self-knowledge lives — but only if you write the reasoning down before you know the answer.</p>
     <div class="stack">
-      <input class="inp serif-lg" id="dTitle" placeholder="The decision, in a few words" autofocus>
-      ${DECISION_FIELDS.map(([k,l,h])=>`<div class="field"><label>${l}</label>${h?`<div class="faint" style="font-size:.78rem;margin-bottom:4px">${h}</div>`:''}<textarea class="ta" data-df="${k}" style="min-height:${k==='chosen'?60:84}px"></textarea></div>`).join('')}
+      <input class="inp serif-lg" id="dTitle" placeholder="The decision, in a few words" autofocus value="${esc(pre.title || '')}">
+      ${DECISION_FIELDS.map(([k,l,h])=>`<div class="field"><label>${l}</label>${h?`<div class="faint" style="font-size:.78rem;margin-bottom:4px">${h}</div>`:''}<textarea class="ta" data-df="${k}" style="min-height:${k==='chosen'?60:84}px">${k === 'situation' ? esc(pre.situation || '') : ''}</textarea></div>`).join('')}
       ${typeof decisionRiskHTML === 'function' ? decisionRiskHTML() : ''}
       <div class="grid c2" style="gap:10px">
         <div class="field"><label>How sure am I?</label><select class="sel" id="dConf">${['a coin flip','leaning','fairly sure','confident','certain'].map(c=>`<option ${c==='leaning'?'selected':''}>${c}</option>`).join('')}</select></div>
@@ -42939,7 +43041,7 @@ function pqSystem(T){
 /* ---------- the queue ---------- */
 function promptQueue(T = today()){
   let all = [];
-  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews, pqSystem, typeof pqPurpose === 'function' ? pqPurpose : null, typeof pqBets === 'function' ? pqBets : null, typeof pqMuse === 'function' ? pqMuse : null].filter(Boolean).forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
+  [pqBlocks, pqReminders, pqDuties, pqNudges, pqMissing, pqFlags, pqReviews, pqSystem, typeof pqPurpose === 'function' ? pqPurpose : null, typeof pqBets === 'function' ? pqBets : null, typeof pqMuse === 'function' ? pqMuse : null, typeof pqRescue === 'function' ? pqRescue : null].filter(Boolean).forEach(f => { try { all = all.concat(f(T)); } catch(e){ console.warn('a prompt source failed', f.name, e); } });
   all = all.filter(it => !pqSuppressed(it));
   const seen = new Set(); all = all.filter(it => seen.has(it.id) ? false : (seen.add(it.id), true));
   return all.sort((a, b) => a.rank - b.rank || String(a.id).localeCompare(String(b.id)));
@@ -43011,7 +43113,7 @@ setInterval(pqHabitNotify, 60000);
 /* ---------- Settings: what can be turned off ---------- */
 const PQ_KINDS = [['unlabelled', 'Unlabelled time'], ['commit', 'A list behind its pace'], ['skill-idle', 'An in-focus skill with no time'], ['list-idle', 'A list with no time for a fortnight'],
   ['drift', 'Estimates running well over'], ['overruns', 'Break overruns rising'], ['top-two-missed', 'The top two missed three days'], ['protect-used', 'Protected time used for something else'],
-  ['ms', 'A milestone overdue or slipping'], ['hab-mile', 'A habit near a milestone'], ['tomorrow-unplanned', 'Tomorrow not planned'], ['person', 'A person named in a time label'], ['kolb', 'A reflection put off'], ['intent', 'A time intention slipping or over'], ['sysreview', 'The system review'], ['muse', 'The muse prescription'], ['belief', 'A belief check that has come due'], ['bet', 'A small bet with no verdict']];
+  ['ms', 'A milestone overdue or slipping'], ['hab-mile', 'A habit near a milestone'], ['tomorrow-unplanned', 'Tomorrow not planned'], ['person', 'A person named in a time label'], ['kolb', 'A reflection put off'], ['rescue', 'Unsorted things from an overwhelm page'], ['intent', 'A time intention slipping or over'], ['sysreview', 'The system review'], ['muse', 'The muse prescription'], ['belief', 'A belief check that has come due'], ['bet', 'A small bet with no verdict']];
 function pqSettingsHTML(){
   const st = pqState();
   return `<div class="card rv"><h3>Prompts</h3>
@@ -50314,6 +50416,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Photo size on upload</b><div class="d">Long edge in pixels. Larger keeps more detail and uses more space.</div></div><select class="sel" style="width:auto" id="sPhotoMax">${[1200,1600,2400,4000].map(n=>`<option value="${n}" ${(S.settings.photoMax||1600)===n?'selected':''}>${n}px${n===1600?' (default)':''}</option>`).join('')}</select></div>
       <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
+    ${typeof rescueSettingsHTML === 'function' ? rescueSettingsHTML() : ''}
     ${typeof cloudSectionHTML === 'function' ? cloudSectionHTML() : ''}
     ${syncSectionHTML()}
     <div class="card rv"><h3>About</h3><div class="prose muted" style="font-size:.9rem">
@@ -50452,6 +50555,7 @@ routes.settings = function(root){
   bindZoneEditor($('#zoneEditor').parentElement);
   bindSyncSection(document);
   if(typeof bindCloudSection === 'function') bindCloudSection(document);
+  if(typeof bindRescueSettings === 'function') bindRescueSettings(document);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;
@@ -109237,6 +109341,1249 @@ function maybeOfferHandoff(){
     22000, {label: 'go to Settings', fn: () => navigate('#/settings')});
 }
 /* ============================================================
+   THE OVERWHELM RESCUE SPACE — the data and the doors out of it
+
+   When the day is a tangle — long-term and short-term, a deadline, something
+   that wants a little thought every day, a body that is tired, people who are
+   waiting — every room of the house asks you to say what a thing IS before you
+   know what you think. This is the room that asks nothing first: a blank page,
+   click anywhere and write. What it is can be decided afterwards, by selecting
+   it, and sent to wherever it belongs: a task, a thread of the week, a journal,
+   a decision, a person, a reminder, a parking place — or let go.
+
+   A page is kept for good, by the day it was made, and is listed in the Review.
+   Nothing here is scored: no streak, no overdue, nothing that goes red.
+
+   Stored in S.rescueSheets (one row a page). The boxes on a page are never
+   removed by letting one go — it fades, and stays in the record.
+   ============================================================ */
+
+/* ---------- the faces a box can be written in: chosen at random, kept per box ---------- */
+const RESCUE_FONTS = [
+  {id: 'garamond',  css: "'EB Garamond',Georgia,serif",            size: 1.22, style: 'italic'},
+  {id: 'cormorant', css: "'Cormorant Garamond','EB Garamond',serif", size: 1.34, style: 'italic'},
+  {id: 'playfair',  css: "'Playfair Display',Georgia,serif",       size: 1.08, style: 'italic'},
+  {id: 'lora',      css: "'Lora',Georgia,serif",                   size: 1.1,  style: 'italic'},
+  {id: 'caveat',    css: "'Caveat','Kalam',cursive",               size: 1.5,  style: 'normal'},
+  {id: 'kalam',     css: "'Kalam','Caveat',cursive",               size: 1.12, style: 'normal'},
+  {id: 'patrick',   css: "'Patrick Hand','Kalam',cursive",         size: 1.2,  style: 'normal'},
+  {id: 'dancing',   css: "'Dancing Script','Caveat',cursive",      size: 1.42, style: 'normal'},
+  {id: 'nunito',    css: "'Nunito Sans',system-ui,sans-serif",     size: 1.02, style: 'normal'},
+  {id: 'plex',      css: "'IBM Plex Mono',ui-monospace,monospace", size: .92,  style: 'normal'},
+];
+/* soft inks, mixed into the page's own text colour so they sit in light and dark alike */
+const RESCUE_INKS = ['var(--text)', 'var(--terra)', 'var(--sage)', 'var(--rose)', 'var(--gold)', 'var(--page-accent)'];
+const rescueFontOf = id => RESCUE_FONTS.find(f => f.id === id) || RESCUE_FONTS[0];
+const rescuePick = list => list[Math.floor(Math.random() * list.length)];
+
+/* ---------- the horizons a thought can sit on ---------- */
+const RESCUE_HORIZONS = [
+  {id: 'now',     name: 'right now',     hint: 'the next hour'},
+  {id: 'tonight', name: 'tonight',       hint: 'before you sleep'},
+  {id: 'week',    name: 'this week',     hint: 'a few days'},
+  {id: 'later',   name: 'later',         hint: 'weeks, months'},
+  {id: 'always',  name: 'a way of being', hint: 'not a task: a stance'},
+];
+
+/* ---------- what a tangle is made of: used to find a question, and to say what a page is about ---------- */
+const RESCUE_SCENARIOS = [
+  {id: 'too-much',   name: 'too many inputs',            words: ['too much', 'overwhelm', 'everything', 'so many', 'cant keep', "can't keep", 'swamped', 'tangle', 'scattered', 'all at once', 'drowning']},
+  {id: 'deadline',   name: 'a pressing deadline',        words: ['deadline', 'due', 'submit', 'by friday', 'by monday', 'tomorrow', 'application', 'exam', 'hand in', 'cutoff']},
+  {id: 'decide',     name: 'stuck on a decision',        words: ['should i', 'or should', 'whether', 'decide', 'decision', 'torn', 'indecis', 'choose', 'either', 'not sure if']},
+  {id: 'tired-sleep', name: 'tired — sleep or push on',  words: ['tired', 'sleepy', 'sleep', 'stay up', 'late', 'exhaust', 'bed', 'awake', 'nap', 'knackered']},
+  {id: 'broken-promise', name: 'a promise to myself',    words: ['i said i would', 'promised', 'however late', 'i planned', 'supposed to', 'told myself', 'i will do tonight']},
+  {id: 'people',     name: 'a person, a relationship',   words: ['reply', 'text back', 'call', 'mum', 'mom', 'dad', 'friend', 'partner', 'colleague', 'boss', 'argument', 'awkward', 'miss', 'owe']},
+  {id: 'long-term',  name: 'the long term, drifting',    words: ['career', 'future', 'years', 'direction', 'purpose', 'life', 'where am i', 'long term', 'long-term', 'goal', 'someday', 'dream']},
+  {id: 'daily-thread', name: 'something to think on daily', words: ['every day', 'daily', 'keep thinking', 'need to think about', 'mull', 'sit with', 'ponder']},
+  {id: 'feeling',    name: 'a feeling I cannot place',   words: ['anxious', 'anxiety', 'sad', 'angry', 'numb', 'flat', 'restless', 'dread', 'guilty', 'guilt', 'shame', 'afraid', 'scared', 'irritable']},
+  {id: 'stuck',      name: 'stuck, avoiding',            words: ['avoid', 'procrastinat', "can't start", 'cant start', 'stuck', 'putting off', 'dont want to', "don't want to", 'resist']},
+  {id: 'perfection', name: 'perfectionism, standards',   words: ['perfect', 'not good enough', 'redo', 'again', 'proper', 'should be better', 'behind', 'falling behind']},
+  {id: 'money-admin', name: 'money, admin, logistics',   words: ['rent', 'bill', 'pay', 'visa', 'tax', 'forms', 'paperwork', 'budget', 'appointment', 'booking']},
+  {id: 'body',       name: 'body, health, energy',       words: ['headache', 'sick', 'ill', 'pain', 'hungry', 'skipped meal', 'energy', 'sore', 'unwell', 'eyes']},
+  {id: 'priorities', name: 'what matters most',          words: ['priorit', 'first', 'important', 'urgent', 'which one', 'what matters', 'trade-off', 'tradeoff', 'balance']},
+  {id: 'liminal',    name: 'stuck in the in-between',    words: ['limbo', 'liminal', "don't know what to do", 'dont know what to do', 'unfocused', 'wasting time', 'drifting', 'zoning']},
+];
+
+/* ---------- gentle lines, offered one at a time at the edge of the page ----------
+   Never a command and never twice running. `tags` are the scenarios they lean toward. */
+const RESCUE_WHISPERS = [
+  {t: 'This page does not have to be solved by the end of it.', tags: ['too-much', 'liminal']},
+  {t: 'A rough next step is still a step.', tags: ['stuck', 'too-much', 'perfection']},
+  {t: 'Tired is information, not a verdict.', tags: ['tired-sleep', 'body']},
+  {t: 'The plan was made by a rested you. Ask the one who is here.', tags: ['tired-sleep', 'broken-promise']},
+  {t: 'What would make tonight enough?', tags: ['tired-sleep', 'deadline', 'too-much']},
+  {t: 'Some of this is not yours to carry tonight.', tags: ['too-much', 'people', 'feeling']},
+  {t: 'The smallest honest version still counts.', tags: ['perfection', 'stuck', 'deadline']},
+  {t: 'One thread at a time. The others will keep.', tags: ['too-much', 'daily-thread', 'liminal']},
+  {t: 'Changing a promise to yourself is not breaking it, if you say so out loud.', tags: ['broken-promise', 'tired-sleep']},
+  {t: 'You are allowed to be unfinished on this.', tags: ['perfection', 'deadline', 'long-term']},
+  {t: 'The feeling is allowed to arrive before the answer.', tags: ['feeling', 'decide']},
+  {t: 'Waiting to feel ready is also a decision. Is it the one you want?', tags: ['decide', 'stuck']},
+  {t: 'Not everything that is important is urgent, and not everything urgent is yours.', tags: ['priorities', 'deadline']},
+  {t: 'A short message sent is lighter than a long one planned.', tags: ['people']},
+  {t: 'You can move on from this page without having finished it.', tags: ['liminal', 'too-much']},
+  {t: 'What would you say to a friend who wrote this page?', tags: ['feeling', 'perfection', 'broken-promise', 'tired-sleep']},
+];
+
+/* ---------- the pages ---------- */
+const rescueSheets = () => lifeArray('rescueSheets');
+const RESCUE_FRESH_HOURS = 4;     /* a page last touched inside this is carried on rather than started over */
+function rescueNewSheet(){
+  const now = new Date();
+  const s = {id: uid(), createdAt: now.toISOString(), updatedAt: now.toISOString(), day: today(), title: '', boxes: [],
+    startedAt: now.toISOString(), endedAt: null, landing: null, scenario: '', coach: {asked: [], skipped: []}, seen: {}};
+  rescueSheets().push(s); saveNow();
+  return s;
+}
+/* the page in hand: the latest one that was not landed and is still fresh, or a new one if asked */
+function rescueCurrent(create){
+  const all = rescueSheets().filter(s => !s.landing).sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  const s = all[0];
+  if(s && (Date.now() - Date.parse(s.updatedAt)) / 36e5 < RESCUE_FRESH_HOURS) return s;
+  return create ? rescueNewSheet() : null;
+}
+const rescueSheetById = id => rescueSheets().find(s => s.id === id) || null;
+function rescueTouch(s){ s.updatedAt = new Date().toISOString(); save(); }
+const rescueLive = s => (s.boxes || []).filter(b => b.fate !== 'letgo');
+function rescueTitle(s){
+  if(s.title) return s.title;
+  const b = (s.boxes || []).find(x => (x.text || '').trim());
+  const t = b ? b.text.trim().split('\n')[0] : '';
+  return t ? (t.length > 46 ? t.slice(0, 44) + '…' : t) : 'A page, ' + fmtDate(s.day, 'short');
+}
+/* boxes with words on them that nothing has been done with yet */
+const rescueUnhandled = s => (s.boxes || []).filter(b => b.kind !== 'question' && (b.text || '').trim() && !b.fate && !(b.exits || []).length);
+const rescueText = s => (s.boxes || []).map(b => (b.text || '') + ' ' + (b.q ? b.q.text || '' : '')).join(' \n ');
+function rescueBoxNew(s, x, y, text = ''){
+  const f = rescuePick(RESCUE_FONTS);
+  const b = {id: uid(), x: Math.max(8, Math.round(x)), y: Math.max(8, Math.round(y)), text, font: f.id, ink: rescuePick(RESCUE_INKS),
+    horizon: '', fate: '', exits: [], refs: [], kind: 'text', at: new Date().toISOString()};
+  s.boxes.push(b); rescueTouch(s);
+  return b;
+}
+/* what a page is about, from its own words: the scenarios whose words it uses, most first */
+function rescueScenarios(s){
+  const t = rescueText(s).toLowerCase(); if(!t.trim()) return [];
+  return RESCUE_SCENARIOS.map(sc => ({sc, n: sc.words.filter(w => t.includes(w)).length})).filter(x => x.n).sort((a, b) => b.n - a.n).map(x => x.sc);
+}
+
+/* ---------- the pages by day, for the Review ---------- */
+function rescueByDay(){
+  const out = {};
+  rescueSheets().slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt))).forEach(s => { (out[s.day] = out[s.day] || []).push(s); });
+  return out;
+}
+function rescueMinutes(s){
+  const a = Date.parse(s.startedAt || s.createdAt), z = Date.parse(s.endedAt || s.updatedAt);
+  return isFinite(a) && isFinite(z) ? Math.max(1, Math.round((z - a) / 60000)) : 0;
+}
+
+/* ---------- what the site knows about the words on a page ----------
+   A box that names a person, a list, a milestone, a task, a skill or a habit gets a
+   thread to it. Matched by name, whole words, and said plainly — nothing here guesses
+   beyond a name. */
+const _rsEsc = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const _rsHas = (text, name) => { const n = String(name || '').trim(); if(n.length < 3) return false;
+  try { return new RegExp('(^|[^\\p{L}\\p{N}])' + _rsEsc(n) + '($|[^\\p{L}\\p{N}])', 'iu').test(text); } catch(e){ return false; } };
+function rescueMentions(text){
+  const t = String(text || ''); if(t.trim().length < 3) return [];
+  const out = [], push = r => { if(!out.some(x => x.type === r.type && x.id === r.id)) out.push(r); };
+  try { (S.people || []).forEach(p => {
+    const first = String(p.name || '').split(/\s+/)[0];
+    if(_rsHas(t, p.name) || _rsHas(t, p.nickname) || (first.length >= 3 && _rsHas(t, first))) push({type: 'person', id: p.id, label: p.nickname || first || p.name}); }); } catch(e){}
+  try { planLists().filter(l => !l.archivedAt && l.id !== 'inbox').forEach(l => {
+    if(_rsHas(t, l.name)) push({type: 'list', id: l.id, label: l.name});
+    (l.milestones || []).forEach(m => { if(!m.done && m.name && _rsHas(t, m.name)) push({type: 'milestone', id: m.id, label: m.name}); }); }); } catch(e){}
+  try { (S.habits || []).filter(h => !h.archived).forEach(h => { if(_rsHas(t, h.name)) push({type: 'habit', id: h.id, label: h.name}); }); } catch(e){}
+  try { (S.skills || []).forEach(sk => { if(_rsHas(t, sk.name)) push({type: 'skill', id: sk.id, label: sk.name}); }); } catch(e){}
+  try {
+    const low = t.toLowerCase(), words = new Set(low.split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 3));
+    allTaskRefs().filter(r => !r.done && (r.text || '').trim().length >= 6).forEach(r => {
+      const tt = r.text.toLowerCase(); if(low.includes(tt)){ push({type: 'task', id: r.id, label: r.text}); return; }
+      const ws = tt.split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 4);
+      if(ws.length >= 2 && ws.every(w => words.has(w))) push({type: 'task', id: r.id, label: r.text}); });
+  } catch(e){}
+  const order = {person: 0, milestone: 1, list: 2, task: 3, skill: 4, habit: 5};
+  return out.sort((a, b) => order[a.type] - order[b.type]).slice(0, 6);
+}
+/* one plain line on what the site holds for it, and where it lives */
+function rescueKnows(ref){
+  const T = today();
+  try {
+    if(ref.type === 'person'){
+      const p = byId(S.people, ref.id); if(!p) return null;
+      const last = typeof lastInteractionDate === 'function' ? lastInteractionDate(p.id) : null;
+      const nm = typeof peopleNeedingAttention === 'function' ? peopleNeedingAttention() : [];
+      return {line: last ? `last in touch ${daysBetween(last, T) === 0 ? 'today' : daysBetween(last, T) + ' days ago'}${nm.some(x => x.id === p.id) ? ' · due a word' : ''}` : 'no contact logged yet', go: () => navigate('#/people/' + p.id)};
+    }
+    if(ref.type === 'list'){
+      const l = planList(ref.id); if(!l) return null;
+      const open = (S.tasks || []).filter(t => t.listId === l.id && !t.done).length;
+      const ms = (l.milestones || []).filter(m => !m.done && m.date).sort((a, b) => a.date.localeCompare(b.date))[0];
+      return {line: `${open} open${ms ? ` · ${ms.name} ${planWhenAway(ms.date)}` : ''}`, go: () => pqOpenList(l.id)};
+    }
+    if(ref.type === 'milestone'){
+      const hit = typeof planFindMilestone === 'function' ? planFindMilestone(ref.id) : null; if(!hit) return null;
+      return {line: `${hit.list.name} · ${hit.m.date ? planWhenAway(hit.m.date) : 'no date'}`, go: () => openMilestoneInTasks(ref.id)};
+    }
+    if(ref.type === 'task'){
+      const r = findTaskRef(ref.id); if(!r) return null;
+      const est = typeof pbdEstOf === 'function' ? pbdEstOf(r.task) : 0;
+      return {line: `${r.day ? 'due ' + fmtDate(r.day, 'short') : 'no day'}${est ? ' · ~' + (typeof pbdSay === 'function' ? pbdSay(est) : est + 'm') : ''}${r.day && r.day < T ? ' · late' : ''}`, go: () => (r.kind === 'own' && typeof openPlanTask === 'function') ? openPlanTask(r.id) : (r.go && navigate(r.go))};
+    }
+    if(ref.type === 'skill') return {line: 'in your skills', go: () => { navigate('#/identity/skills'); setTimeout(() => { try { openSkillPanel(ref.id); } catch(e){} }, 120); }};
+    if(ref.type === 'habit'){
+      const h = byId(S.habits, ref.id); if(!h) return null; const st = typeof habStreak === 'function' ? habStreak(h) : null;
+      return {line: st ? `a run of ${st.cur}` : 'a habit', go: () => openHabitPanel(ref.id)};
+    }
+  } catch(e){}
+  return null;
+}
+
+/* ---------- what is on the plate: the live things a thought can be pinned to ---------- */
+function rescuePlate(){
+  const T = today(), out = {capacity: null, groups: []};
+  const own = (typeof allTaskRefs === 'function' ? allTaskRefs() : []).filter(r => !r.done);
+  try {
+    const todays = own.filter(r => r.day === T || r.doDay === T);
+    const mins = todays.reduce((n, r) => n + (typeof pbdEstOf === 'function' ? (pbdEstOf(r.task) || 0) : 0), 0);
+    const hrs = +(S.settings || {}).availableHoursPerDay || 8;
+    out.capacity = {tasks: todays.length, mins, hrs, over: mins > hrs * 60};
+  } catch(e){}
+  const item = (kind, id, label, detail) => ({kind, id, label, detail: detail || ''});
+  const late = own.filter(r => r.day && r.day < T).sort((a, b) => a.day.localeCompare(b.day)).slice(0, 6);
+  if(late.length) out.groups.push({name: 'gone by', items: late.map(r => item('task', r.id, r.text, 'due ' + fmtDate(r.day, 'short')))});
+  const soon = own.filter(r => r.day && r.day >= T && r.day <= addDays(T, 6)).sort((a, b) => a.day.localeCompare(b.day)).slice(0, 6);
+  if(soon.length) out.groups.push({name: 'this week', items: soon.map(r => item('task', r.id, r.text, r.day === T ? 'today' : fmtDate(r.day, 'short')))});
+  try { const ms = planMilestonesAhead({within: 30, limit: 6});
+    if(ms.length) out.groups.push({name: 'dates ahead', items: ms.map(({m, list}) => item('milestone', m.id, m.name, planWhenAway(m.date) + ' · ' + list.name))}); } catch(e){}
+  try { const th = weekThreadsOn(weekPlanSeen(weekStart(T)), T);
+    if(th.length) out.groups.push({name: 'threads on today', items: th.map(t => ({kind: 'thread', id: t.id, label: t.text, detail: WEEK_THREAD_KIND[t.kind] || ''}))}); } catch(e){}
+  try { const pp = peopleNeedingAttention().slice(0, 5);
+    if(pp.length) out.groups.push({name: 'people waiting', items: pp.map(p => item('person', p.id, p.nickname || p.name, 'due a word'))}); } catch(e){}
+  return out;
+}
+
+/* ---------- tonight: what the record can say about staying up or sleeping ----------
+   Plain readings from the sleep and time records, with no verdict in them. */
+function rescueSleepFacts(){
+  const T = today(), nights = [];
+  try {
+    for(let i = 1; i <= 14; i++){
+      const d = addDays(T, -i), n = typeof timeSleepNight === 'function' ? timeSleepNight(d) : null; if(!n) continue;
+      const late = !n.crossed && n.from >= 30 && n.from < 8 * 60;
+      const tracked = Math.round((typeof timeOnDay === 'function' ? timeOnDay(d) : []).filter(e => e.kind !== 'break').reduce((a, e) => a + timeMinutes(e), 0));
+      const done = typeof tasksDoneBetween === 'function' ? tasksDoneBetween(d, d).length : 0;
+      nights.push({day: d, hours: +(n.minutes / 60).toFixed(1), bed: n.from, late, tracked, done});
+    }
+  } catch(e){}
+  const avg = (a, k) => a.length ? Math.round(a.reduce((n, x) => n + x[k], 0) / a.length) : null;
+  const late = nights.filter(n => n.late), early = nights.filter(n => !n.late);
+  return {nights, late: late.length, total: nights.length, bedGoal: (S.settings || {}).sleepTime || '',
+    afterLate: late.length >= 2 ? {n: late.length, tracked: avg(late, 'tracked'), done: avg(late, 'done'), hours: +(late.reduce((n, x) => n + x.hours, 0) / late.length).toFixed(1)} : null,
+    afterEarly: early.length >= 2 ? {n: early.length, tracked: avg(early, 'tracked'), done: avg(early, 'done'), hours: +(early.reduce((n, x) => n + x.hours, 0) / early.length).toFixed(1)} : null,
+    tomorrow: (() => { try { const d = addDays(T, 1), ts = allTaskRefs().filter(r => !r.done && (r.day === d || r.doDay === d)); return {tasks: ts.length}; } catch(e){ return {tasks: 0}; } })()};
+}
+
+/* ---------- the doors out ----------
+   Each makes the real thing in the real room and says where it went. `undo` puts it back. */
+const RESCUE_EXITS = [
+  {id: 'task',     glyph: '☐', name: 'a task',            hint: 'into the Inbox, in the planner’s shorthand'},
+  {id: 'goal',     glyph: '◎', name: 'under a goal',      hint: 'work under one of this week’s goals'},
+  {id: 'thread',   glyph: '⌁', name: 'a thread',          hint: 'something to do or turn over on chosen days'},
+  {id: 'journal',  glyph: '✎', name: 'a journal entry',   hint: 'kept, in the Lived Record'},
+  {id: 'decision', glyph: '⚖', name: 'a decision',        hint: 'open the decision form with this in it'},
+  {id: 'question', glyph: '?', name: 'a question to live with', hint: 'an open question that waits for answers'},
+  {id: 'person',   glyph: '☺', name: 'a person',          hint: 'log, reach out, or open their page'},
+  {id: 'remind',   glyph: '⏰', name: 'a reminder',       hint: 'comes back on a day you choose'},
+  {id: 'park',     glyph: '☁', name: 'park it',           hint: 'to the parking place, sorted later'},
+  {id: 'mindset',  glyph: '❝', name: 'a line to keep',    hint: 'joins the lines that lean in gently'},
+  {id: 'letgo',    glyph: '·', name: 'let it go',         hint: 'fades from the page, stays in the record'},
+];
+const rescueFirstLine = text => { const t = String(text || '').trim().split('\n')[0].trim(); return t.length > 80 ? t.slice(0, 78).replace(/\s+\S*$/, '') + '…' : t; };
+
+function rescueMakeTasks(text, {listId = 'inbox', outcome = null} = {}){
+  const lines = String(text || '').split('\n').map(x => x.trim()).filter(Boolean).slice(0, 12);
+  const made = lines.map(l => commitQuickTask(l, {listId})).filter(Boolean);
+  if(outcome){ outcome.taskIds = outcome.taskIds || []; made.forEach(t => { if(!outcome.taskIds.includes(t.id)) outcome.taskIds.push(t.id); }); }
+  saveNow();
+  return {made, label: made.length === 1 ? 'a task' : made.length + ' tasks', undo: () => {
+    made.forEach(t => { spliceOut(S.tasks, x => x.id === t.id); if(outcome) spliceOut(outcome.taskIds, id => id === t.id); }); saveNow(); }};
+}
+function rescueMakeThread(text, kind, days, weekOf){
+  const p = weekPlan(weekOf || weekStart(today()));
+  const t = {id: uid(), text: String(text).trim(), kind: kind === 'turn' ? 'turn' : 'do', days: days.slice(), done: {}};
+  p.threads.push(t); saveNow();
+  return {made: [t], label: 'a thread', undo: () => { spliceOut(p.threads, x => x.id === t.id); saveNow(); }};
+}
+function rescueMakeEntry(text, type = 'reflection'){
+  const body = String(text).trim(), title = rescueFirstLine(body);
+  const e = lifeEntryNew({type, title, body: body.length > title.length + 3 ? body : '', extra: type === 'question' ? {status: 'open', answers: []} : {}});
+  saveNow();
+  return {made: [e], label: type === 'question' ? 'a question' : 'a ' + typeName(type).toLowerCase() + ' entry', go: '#/journals/' + type, undo: () => { spliceOut(S.entries, x => x.id === e.id); saveNow(); }};
+}
+function rescueMakeReminder(text, day, time){
+  const t = planAddReminder({text: String(text).trim().split('\n')[0], day, time}); if(!t) return null;
+  return {made: [t], label: 'a reminder', undo: () => { spliceOut(S.tasks, x => x.id === t.id); saveNow(); }};
+}
+function rescuePark(text, kind){
+  const x = parkThought(String(text).trim(), kind || 'todo'); if(!x) return null;
+  return {made: [x], label: 'the parking place', undo: () => { parkDrop(x); }};
+}
+function rescueKeepLine(text){
+  const a = affirmationNew(String(text).trim().split('\n')[0].slice(0, 160), 'rescue'); if(!a) return null;
+  return {made: [a], label: 'the lines to keep', undo: () => { spliceOut(S.affirmations, x => x.id === a.id); saveNow(); }};
+}
+/* the days of the week from today on, or the whole of next week */
+function rescueWeekDays(which){
+  const wk = weekStart(today()), start = which === 'next' ? addDays(wk, 7) : today(), end = addDays(which === 'next' ? addDays(wk, 7) : wk, 6);
+  const out = []; for(let d = start; d <= end; d = addDays(d, 1)) out.push(d);
+  return {weekOf: which === 'next' ? addDays(wk, 7) : wk, days: out};
+}
+/* the lines of a bank of lines that lean: the owner's own first, then the starters that fit the page */
+function rescueWhisperFor(s, avoid){
+  const sc = new Set(rescueScenarios(s).map(x => x.id));
+  const mine = (typeof affirmationsAll === 'function' ? affirmationsAll() : []).map(a => ({t: a.text, tags: [], own: true}));
+  const pool = RESCUE_WHISPERS.map(w => Object.assign({own: false}, w)).concat(mine).filter(w => w.t && !(avoid || []).includes(w.t));
+  if(!pool.length) return null;
+  const score = w => (w.tags || []).filter(t => sc.has(t)).length * 3 + (w.own ? 1.2 : 0) + Math.random();
+  return pool.sort((a, b) => score(b) - score(a))[0];
+}
+/* ============================================================
+   THE OVERWHELM RESCUE SPACE — the page
+
+   #/rescue          the page in hand (or a fresh one)
+   #/rescue/new      a fresh page
+   #/rescue/<id>     an earlier page, to carry on or read
+
+   A blank page. Click anywhere and a box appears; write; click somewhere else
+   and write something unrelated. Enter makes the next box underneath, Tab the next
+   beside it, Esc puts the pen down. Nothing asks what a thing is.
+
+   Afterwards, select words (or press ⋯ on a box) and say what they are: a task,
+   a thread, a journal entry, a decision, a person, a reminder, a parked thought,
+   a line to keep — or let them go. A box that names something the site holds
+   (a person, a list, a date, a task) shows a thread to it and one plain line on
+   what the site knows.
+
+   Nothing moves by itself. Nothing is scored.
+   ============================================================ */
+
+NAV_ICONS.rescue = '<svg viewBox="0 0 24 24"><path d="M4 18c3-1 4-4 8-4s5 3 8 4"/><circle cx="12" cy="8" r="3"/><path d="M12 2v1.5M5 5l1 1M19 5l-1 1"/></svg>';
+NAV_PAGES.rescue = {label: 'Overwhelm rescue', short: 'Rescue', ico: NAV_ICONS.rescue, route: '#/rescue'};
+if(NAV_DEFAULT.identity && !NAV_DEFAULT.identity.includes('rescue')) NAV_DEFAULT.identity.splice(Math.min(3, NAV_DEFAULT.identity.length), 0, 'rescue');
+
+let _rs = null;     /* the page that is open: {sheet, visitAt, timers, ui} */
+
+routes.rescue = function(root, params){
+  let s = null;
+  if(params[0] === 'new') s = rescueNewSheet();
+  else if(params[0]) s = rescueSheetById(params[0]);
+  if(!s) s = rescueCurrent(false) || null;
+  const fresh = !s;
+  if(fresh) s = {id: '', boxes: [], day: today(), createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), startedAt: new Date().toISOString(), landing: null, _virtual: true};
+  rescueLeave();
+  _rs = {sheet: s, visitAt: Date.now(), timers: [], ui: {bands: false, rail: !!(S.settings || {}).rescueRail, showGone: false, nudged: false, whispered: []}};
+  root.innerHTML = rescuePageHTML(s);
+  rescueBindPage(root);
+  rescuePaintAll(root);
+  if(!s._virtual && !s.landing) rescueStartClock(s);
+  rescueTickClock(root);
+  _rs.timers.push(setInterval(() => rescueTickClock(root), 20000));
+  rescueWhisperLater(root, 40000);
+  const first = root.querySelector('.rs-hint'); if(first && !rescueLive(s).length) first.hidden = false;
+  if(!rescueLive(s).length) { const c = root.querySelector('#rsCanvas'); if(c) c.focus(); }
+};
+function rescueLeave(){
+  if(!_rs) return;
+  _rs.timers.forEach(t => { if(t && t.off) t.off(); else clearInterval(t); }); _rs.timers = [];
+  document.querySelectorAll('.rs-menu, .rs-whisper-live').forEach(n => n.remove());
+  try { if(typeof timeAutoStop === 'function') timeAutoStop('rescue'); } catch(e){}
+  _rs = null;
+}
+window.addEventListener('hashchange', () => { if(_rs && parseHash().name !== 'rescue') rescueLeave(); });
+
+function rescueStartClock(s){
+  try { if(typeof timeAutoStart === 'function') timeAutoStart({feature: 'rescue', what: 'overwhelm rescue', linkedType: 'rescue', linkedId: s.id, linkedLabel: 'a page to think'}); } catch(e){}
+}
+
+/* ---------- the page ---------- */
+function rescuePageHTML(s){
+  return `<div class="page rs-page" data-rs-page>
+    <header class="rs-top">
+      <input class="rs-title" id="rsTitle" value="${esc(s.title || '')}" placeholder="${esc(s._virtual ? 'a page to think' : rescueTitle(s))}" aria-label="the page's name" ${s._virtual ? 'disabled' : ''}>
+      <span class="rs-clock mono faint" id="rsClock"></span>
+      <span class="grow"></span>
+      <button class="tbtn" data-rs="tonight" id="rsTonightBtn" hidden title="what the sleep and time records say about tonight, in plain words">Tonight, from my records</button>
+      <button class="tbtn" data-rs="coach" title="a question to answer on the page">Ask me something</button>
+      <button class="tbtn" data-rs="bands" title="lay the page out by how soon each thing matters">Horizons</button>
+      <button class="tbtn" data-rs="rail" title="what is on my plate, to bring onto the page">On my plate</button>
+      <button class="tbtn" data-rs="pages">Pages</button>
+      <button class="tbtn" data-rs="new">New page</button>
+      <button class="btn sm primary" data-rs="land" ${s._virtual ? 'disabled' : ''}>Land it</button>
+    </header>
+    <div class="rs-body">
+      <div class="rs-stage" id="rsStage">
+        <div class="rs-canvas" id="rsCanvas" tabindex="-1" aria-label="the page: click anywhere and write">
+          <div class="rs-bands" id="rsBands" hidden>${RESCUE_HORIZONS.map(h => `<div class="rs-band" data-hz="${h.id}"><b>${esc(h.name)}</b><span>${esc(h.hint)}</span></div>`).join('')}</div>
+          <svg class="rs-strings" id="rsStrings" aria-hidden="true"></svg>
+          <div class="rs-hint" hidden><p class="serif">Click anywhere and write.</p><p class="faint">Don’t sort it. Keywords are enough. Afterwards, select what you want to do something with.</p></div>
+        </div>
+      </div>
+      <aside class="rs-rail" id="rsRail" ${(S.settings || {}).rescueRail ? '' : 'hidden'} aria-label="what is on my plate"></aside>
+    </div>
+    <div class="rs-note" id="rsNote" hidden></div>
+    <div class="rs-whisper" id="rsWhisper" aria-live="polite"></div>
+  </div>`;
+}
+const rescueQ = (sel, root) => (root || document).querySelector(sel);
+
+/* ---------- boxes ---------- */
+function rescueBoxEl(b){
+  const f = rescueFontOf(b.font);
+  const d = document.createElement('div');
+  d.className = 'rs-box' + (b.kind === 'question' ? ' q' : '') + (b.fate ? ' handled' : '') + (b.fate === 'letgo' ? ' gone' : '');
+  d.dataset.rsb = b.id;
+  d.style.left = b.x + 'px'; d.style.top = b.y + 'px';
+  d.style.setProperty('--ink', b.ink || 'var(--text)');
+  d.innerHTML = `<span class="rs-grip" title="drag" aria-hidden="true">⠓</span>
+    ${b.kind === 'question' ? `<div class="rs-q"><span class="mono">a question for you</span><p>${esc((b.q && b.q.text) || '')}</p><div class="rs-qwhy faint"></div></div>` : ''}
+    <textarea class="rs-ta" rows="1" spellcheck="false" placeholder="${b.kind === 'question' ? 'your answer…' : ''}" aria-label="${b.kind === 'question' ? 'your answer' : 'a thought'}"></textarea>
+    <button class="rs-more" title="what to do with this (or select some words)" aria-label="what to do with this">⋯</button>
+    <div class="rs-hz"></div><div class="rs-marks"></div><div class="rs-refs"></div>
+    ${b.kind === 'question' ? '<div class="rs-qacts"><button class="tbtn" data-rsq="another">another</button><button class="tbtn" data-rsq="deeper">go deeper</button><button class="tbtn" data-rsq="skip">not this one</button></div>' : ''}`;
+  const ta = d.querySelector('.rs-ta');
+  ta.value = b.text || '';
+  ta.style.fontFamily = f.css; ta.style.fontSize = f.size + 'rem'; ta.style.fontStyle = f.style;
+  return d;
+}
+/* the box is as wide as its longest line (within reason) and as tall as its words */
+let _rsMeasure = null;
+function rescueFit(ta){
+  if(!_rsMeasure){ _rsMeasure = document.createElement('div'); _rsMeasure.className = 'rs-measure'; document.body.appendChild(_rsMeasure); }
+  const cs = getComputedStyle(ta), m = _rsMeasure;
+  m.style.font = cs.font; m.style.fontStyle = cs.fontStyle; m.style.fontFamily = cs.fontFamily; m.style.fontSize = cs.fontSize;
+  const lines = (ta.value || ta.placeholder || ' ').split('\n');
+  let w = 0; lines.forEach(l => { m.textContent = l || ' '; w = Math.max(w, m.getBoundingClientRect().width); });
+  ta.style.width = Math.min(440, Math.max(ta.closest('.rs-box').classList.contains('q') ? 260 : 96, Math.ceil(w) + 26)) + 'px';
+  ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
+}
+function rescueMarksHTML(b){
+  return (b.exits || []).map(x => `<span class="rs-mark" title="${esc(x.snippet || '')}">→ ${esc(x.label)}</span>`).join('');
+}
+function rescueRefsPaint(el, b){
+  const box = el.querySelector('.rs-refs'); if(!box) return;
+  const refs = rescueMentions(b.text); b._refs = refs;
+  box.innerHTML = refs.map((r, i) => { const k = rescueKnows(r);
+    return `<button class="rs-ref ${esc(r.type)}" data-rsref="${i}" title="${esc(k ? k.line : r.type)}"><i>⌁</i> ${esc(r.label)}${k ? `<span> · ${esc(k.line)}</span>` : ''}</button>`; }).join('');
+  if(b.kind === 'question' && b.q && b.q.exit && b.q.exit !== 'none' && (b.text || '').trim().length > 12 && !(b.exits || []).length){
+    const x = RESCUE_EXITS.find(e => e.id === b.q.exit);
+    if(x) box.insertAdjacentHTML('beforeend', `<button class="rs-qsug" data-rssug="${x.id}" title="${esc(x.hint)}">${x.glyph} send this to ${esc(x.name)}?</button>`);
+  }
+  const hz = el.querySelector('.rs-hz'); const h = RESCUE_HORIZONS.find(x => x.id === b.horizon);
+  if(hz) hz.textContent = h ? h.name : '';
+  const mk = el.querySelector('.rs-marks'); if(mk) mk.innerHTML = rescueMarksHTML(b);
+  el.classList.toggle('handled', !!b.fate); el.classList.toggle('gone', b.fate === 'letgo' && !(_rs && _rs.ui.showGone));
+}
+function rescuePaintAll(root){
+  const s = _rs.sheet, canvas = rescueQ('#rsCanvas', root);
+  canvas.querySelectorAll('.rs-box').forEach(n => n.remove());
+  (s.boxes || []).forEach(b => { const el = rescueBoxEl(b); canvas.appendChild(el); });
+  canvas.querySelectorAll('.rs-box').forEach(el => { const b = rescueBoxOf(el.dataset.rsb); if(!b) return; rescueFit(el.querySelector('.rs-ta')); rescueRefsPaint(el, b); });
+  rescueSizeCanvas(root); rescueStrings(root); rescueRailPaint(root);
+}
+const rescueBoxOf = id => _rs ? (_rs.sheet.boxes || []).find(b => b.id === id) : null;
+function rescueSizeCanvas(root){
+  const c = rescueQ('#rsCanvas', root), st = rescueQ('#rsStage', root); if(!c || !st) return;
+  let maxY = 0, maxX = 0;
+  c.querySelectorAll('.rs-box').forEach(el => { maxY = Math.max(maxY, el.offsetTop + el.offsetHeight); maxX = Math.max(maxX, el.offsetLeft + el.offsetWidth); });
+  c.style.minHeight = Math.max(st.clientHeight, maxY + 360) + 'px';
+  c.style.minWidth = Math.max(st.clientWidth - 2, maxX + 120) + 'px';
+}
+/* a thread between boxes that name the same thing the site holds */
+function rescueStrings(root){
+  const svg = rescueQ('#rsStrings', root), c = rescueQ('#rsCanvas', root); if(!svg || !c) return;
+  const els = [...c.querySelectorAll('.rs-box:not(.gone)')], byRef = {};
+  els.forEach(el => { const b = rescueBoxOf(el.dataset.rsb); if(!b) return;
+    (b._refs || rescueMentions(b.text)).forEach(r => { (byRef[r.type + ':' + r.id] = byRef[r.type + ':' + r.id] || []).push(el); }); });
+  const W = c.scrollWidth, H = c.scrollHeight; svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const ctr = el => [el.offsetLeft + el.offsetWidth / 2, el.offsetTop + el.offsetHeight / 2];
+  let d = '';
+  Object.values(byRef).forEach(list => { for(let i = 0; i < list.length - 1; i++){
+    const [x1, y1] = ctr(list[i]), [x2, y2] = ctr(list[i + 1]), mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - Math.min(80, Math.abs(x2 - x1) * .25 + 24);
+    d += `<path d="M${x1.toFixed(0)},${y1.toFixed(0)} Q${mx.toFixed(0)},${my.toFixed(0)} ${x2.toFixed(0)},${y2.toFixed(0)}" />`; } });
+  svg.innerHTML = d;
+}
+
+/* ---------- the page's own behaviour ---------- */
+function rescueBindPage(root){
+  const canvas = rescueQ('#rsCanvas', root), stage = rescueQ('#rsStage', root);
+  const sheetNow = () => {
+    if(_rs.sheet._virtual){ const real = rescueNewSheet(); Object.assign(real, {boxes: _rs.sheet.boxes}); _rs.sheet = real; history.replaceState(history.state, '', location.pathname + location.search + '#/rescue/' + real.id);
+      root.querySelectorAll('#rsTitle, [data-rs="land"]').forEach(n => n.disabled = false); rescueStartClock(real); }
+    return _rs.sheet; };
+  const newBox = (x, y, text) => {
+    const s = sheetNow(); const b = rescueBoxNew(s, x, y, text || ''); const el = rescueBoxEl(b);
+    canvas.appendChild(el); const ta = el.querySelector('.rs-ta'); rescueFit(ta); ta.focus();
+    rescueQ('.rs-hint', root).hidden = true; rescueSizeCanvas(root); return {b, el, ta}; };
+  _rs.newBox = newBox; _rs.sheetNow = sheetNow;
+
+  /* click on bare paper: a box there */
+  canvas.addEventListener('mousedown', ev => {
+    if(ev.target !== canvas && !ev.target.classList.contains('rs-hint') && ev.target.tagName !== 'svg' && !ev.target.classList.contains('rs-bands') && !ev.target.classList.contains('rs-band') && !ev.target.closest('.rs-hint')) return;
+    if(ev.button !== 0) return;
+    const r = canvas.getBoundingClientRect();
+    ev.preventDefault();
+    /* an empty box left standing is taken away rather than collected */
+    canvas.querySelectorAll('.rs-box .rs-ta').forEach(t => { if(!t.value.trim() && document.activeElement === t) t.blur(); });
+    rescueCloseMenu();
+    newBox(ev.clientX - r.left - 6, ev.clientY - r.top - 10);
+  });
+  /* typing */
+  canvas.addEventListener('input', ev => {
+    const ta = ev.target.closest('.rs-ta'); if(!ta) return;
+    const el = ta.closest('.rs-box'), b = rescueBoxOf(el.dataset.rsb); if(!b) return;
+    b.text = ta.value; rescueFit(ta); rescueTouch(_rs.sheet); rescueSizeCanvas(root);
+    clearTimeout(el._rt); el._rt = setTimeout(() => { rescueRefsPaint(el, b); rescueStrings(root); rescueRailPaint(root); rescueTonightShow(root); }, 500);
+  });
+  canvas.addEventListener('keydown', ev => {
+    const ta = ev.target.closest && ev.target.closest('.rs-ta'); if(!ta) return;
+    const el = ta.closest('.rs-box'), b = rescueBoxOf(el.dataset.rsb); if(!b) return;
+    if(ev.key === 'Escape'){ ta.blur(); rescueCloseMenu(); return; }
+    if(ev.key === 'Enter' && !ev.shiftKey && !ev.ctrlKey && !ev.metaKey && b.kind !== 'question'){
+      ev.preventDefault(); if(!ta.value.trim()) return;
+      const n = newBox(el.offsetLeft, el.offsetTop + el.offsetHeight + 10); return; }
+    if(ev.key === 'Tab' && !ev.shiftKey && b.kind !== 'question'){
+      ev.preventDefault(); if(!ta.value.trim()) return;
+      newBox(el.offsetLeft + el.offsetWidth + 26, el.offsetTop + 4); return; }
+    if(ev.key === 'Backspace' && !ta.value && b.kind !== 'question'){
+      ev.preventDefault(); const prev = rescuePrevBox(el); rescueRemoveBox(b, el);
+      if(prev){ const pt = prev.querySelector('.rs-ta'); pt.focus(); pt.setSelectionRange(pt.value.length, pt.value.length); } return; }
+    if((ev.ctrlKey || ev.metaKey) && ev.key === 'Enter'){ ev.preventDefault(); rescueOpenMenu(b, el, ta); }
+  });
+  canvas.addEventListener('focusout', ev => {
+    const ta = ev.target.closest && ev.target.closest('.rs-ta'); if(!ta) return;
+    const el = ta.closest('.rs-box'), b = rescueBoxOf(el.dataset.rsb);
+    setTimeout(() => { if(b && !ta.value.trim() && b.kind !== 'question' && document.activeElement !== ta && !(b.exits || []).length) rescueRemoveBox(b, el); }, 120);
+  });
+  /* selecting words offers what to do with them */
+  const selected = ta => ta.selectionEnd > ta.selectionStart ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : '';
+  canvas.addEventListener('mouseup', ev => {
+    const ta = ev.target.closest && ev.target.closest('.rs-ta'); if(!ta) return;
+    setTimeout(() => { const t = selected(ta).trim(); if(t.length >= 2){ const el = ta.closest('.rs-box'); rescueOpenMenu(rescueBoxOf(el.dataset.rsb), el, ta, t); } }, 0);
+  });
+  canvas.addEventListener('keyup', ev => {
+    const ta = ev.target.closest && ev.target.closest('.rs-ta'); if(!ta || !ev.shiftKey) return;
+    const t = selected(ta).trim(); if(t.length >= 2){ const el = ta.closest('.rs-box'); rescueOpenMenu(rescueBoxOf(el.dataset.rsb), el, ta, t); } });
+  canvas.addEventListener('click', ev => {
+    const more = ev.target.closest('.rs-more');
+    if(more){ const el = more.closest('.rs-box'), ta = el.querySelector('.rs-ta'); rescueOpenMenu(rescueBoxOf(el.dataset.rsb), el, ta, selected(ta).trim() || ''); return; }
+    const ref = ev.target.closest('[data-rsref]');
+    if(ref){ const el = ref.closest('.rs-box'), b = rescueBoxOf(el.dataset.rsb), r = (b._refs || [])[+ref.dataset.rsref], k = r && rescueKnows(r); if(k && k.go) k.go(); return; }
+    const sg = ev.target.closest('[data-rssug]');
+    if(sg){ const el = sg.closest('.rs-box'), b = rescueBoxOf(el.dataset.rsb); rescueOpenMenu(b, el, el.querySelector('.rs-ta'), '', sg.dataset.rssug); return; }
+    const q = ev.target.closest('[data-rsq]');
+    if(q){ const el = q.closest('.rs-box'); rescueCoachAct(root, rescueBoxOf(el.dataset.rsb), q.dataset.rsq); }
+  });
+  /* dragging a box by its grip, or by the paper round its words */
+  canvas.addEventListener('pointerdown', ev => {
+    const grip = ev.target.closest('.rs-grip'), el = ev.target.closest('.rs-box'); if(!grip || !el || ev.button !== 0) return;
+    const b = rescueBoxOf(el.dataset.rsb); if(!b) return;
+    ev.preventDefault(); grip.setPointerCapture(ev.pointerId);
+    const ox = ev.clientX - el.offsetLeft, oy = ev.clientY - el.offsetTop; el.classList.add('dragging');
+    const mv = e => { el.style.left = Math.max(0, e.clientX - ox) + 'px'; el.style.top = Math.max(0, e.clientY - oy) + 'px'; rescueStrings(root); };
+    const up = () => { grip.removeEventListener('pointermove', mv); grip.removeEventListener('pointerup', up); grip.removeEventListener('pointercancel', up);
+      el.classList.remove('dragging'); b.x = el.offsetLeft; b.y = el.offsetTop;
+      if(_rs.ui.bands){ const w = canvas.clientWidth / RESCUE_HORIZONS.length, i = Math.min(RESCUE_HORIZONS.length - 1, Math.max(0, Math.floor((b.x + el.offsetWidth / 2) / w))); b.horizon = RESCUE_HORIZONS[i].id; rescueRefsPaint(el, b); }
+      rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); };
+    grip.addEventListener('pointermove', mv); grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up);
+  });
+  /* the header */
+  const title = rescueQ('#rsTitle', root);
+  title.onchange = () => { _rs.sheet.title = title.value.trim(); rescueTouch(_rs.sheet); };
+  root.querySelectorAll('[data-rs]').forEach(b => b.onclick = () => {
+    const a = b.dataset.rs;
+    if(a === 'new') navigate('#/rescue/new');
+    else if(a === 'pages') rescuePagesDialog();
+    else if(a === 'land') rescueLand(root);
+    else if(a === 'bands'){ _rs.ui.bands = !_rs.ui.bands; rescueQ('#rsBands', root).hidden = !_rs.ui.bands; canvas.classList.toggle('bands', _rs.ui.bands); b.classList.toggle('on', _rs.ui.bands); }
+    else if(a === 'rail'){ const r = rescueQ('#rsRail', root); r.hidden = !r.hidden; S.settings.rescueRail = !r.hidden; save(); b.classList.toggle('on', !r.hidden); if(!r.hidden) rescueRailPaint(root); }
+    else if(a === 'coach') rescueCoachOpen(root);
+    else if(a === 'tonight') rescueTonightFrame(root);
+  });
+  const railBtn = root.querySelector('[data-rs="rail"]'); if(railBtn && !rescueQ('#rsRail', root).hidden) railBtn.classList.add('on');
+  document.addEventListener('mousedown', rescueOutside, true);
+  _rs.timers.push({off: () => document.removeEventListener('mousedown', rescueOutside, true)});
+}
+function rescuePrevBox(el){ const all = [...el.parentNode.querySelectorAll('.rs-box:not(.gone)')], i = all.indexOf(el); return i > 0 ? all[i - 1] : null; }
+function rescueRemoveBox(b, el){
+  if(!b || (b.text || '').trim() || (b.exits || []).length) return;
+  const s = _rs.sheet; const i = s.boxes.indexOf(b); if(i >= 0) s.boxes.splice(i, 1);
+  el.remove(); rescueTouch(s);
+  const root = document.querySelector('[data-rs-page]'); if(root){ rescueStrings(root); const h = rescueQ('.rs-hint', root); if(h && !rescueLive(s).length) h.hidden = false; }
+}
+function rescueClockSaid(){
+  const m = Math.round((Date.now() - _rs.visitAt) / 60000);
+  return m < 1 ? 'just begun' : m + ' min here';
+}
+function rescueTickClock(root){
+  if(!_rs) return; const c = rescueQ('#rsClock', root); if(c) c.textContent = rescueClockSaid();
+  rescueTonightShow(root);
+  const m = (Date.now() - _rs.visitAt) / 60000;
+  if(m >= 25 && !_rs.ui.nudged && !_rs.sheet.landing){ _rs.ui.nudged = true;
+    const n = rescueQ('#rsNote', root); if(n){ n.hidden = false; n.innerHTML = `Been here a while. No rush — but a page can be <button class="tbtn" id="rsNoteLand">landed</button> without being finished. <button class="tbtn" id="rsNoteX" aria-label="dismiss">×</button>`;
+      n.querySelector('#rsNoteLand').onclick = () => rescueLand(root); n.querySelector('#rsNoteX').onclick = () => { n.hidden = true; }; } }
+}
+
+/* ---------- the menu: what is this? ---------- */
+function rescueCloseMenu(){ document.querySelectorAll('.rs-menu').forEach(n => n.remove()); }
+function rescueOutside(ev){ if(!ev.target.closest('.rs-menu') && !ev.target.closest('.rs-more') && !ev.target.closest('.rs-ta')) rescueCloseMenu(); }
+function rescueOpenMenu(b, el, ta, sel, startExit){
+  if(!b) return;
+  rescueCloseMenu();
+  const whole = !sel, text = (sel || b.text || '').trim(); if(!text) { toast('Write something first.'); return; }
+  const m = document.createElement('div'); m.className = 'rs-menu'; m.setAttribute('role', 'menu');
+  document.body.appendChild(m);
+  const ctx = {b, el, text, whole, close: rescueCloseMenu, m};
+  const place = () => { const r = el.getBoundingClientRect(), h = m.offsetHeight || 300, w = m.offsetWidth || 320;
+    let top = r.top - h - 8; if(top < 56) top = Math.min(innerHeight - h - 12, r.bottom + 8);
+    m.style.left = Math.max(10, Math.min(innerWidth - w - 10, r.left)) + 'px'; m.style.top = Math.max(56, top) + 'px'; };
+  ctx.place = place; ctx.step = (html, bind) => { m.innerHTML = html; if(bind) bind(m); place(); };
+  if(startExit) rescueExitStep(ctx, startExit); else rescueMenuTop(ctx);
+  place(); return ctx;
+}
+function rescueMenuTop(ctx){
+  const {text, whole} = ctx, b = ctx.b;
+  ctx.step(`<div class="rs-m-h"><span class="mono faint">${whole ? 'this box' : 'these words'}</span><q>${esc(text.length > 70 ? text.slice(0, 68) + '…' : text)}</q></div>
+    <div class="rs-m-grid">${RESCUE_EXITS.map(x => `<button class="rs-m-b" data-x="${x.id}" title="${esc(x.hint)}"><i>${x.glyph}</i><span>${esc(x.name)}</span></button>`).join('')}</div>
+    <div class="rs-m-hz"><span class="mono faint">it matters</span>${RESCUE_HORIZONS.map(h => `<button class="chip sm${b.horizon === h.id ? ' on' : ''}" data-hz="${h.id}">${esc(h.name)}</button>`).join('')}</div>`, m => {
+    m.querySelectorAll('[data-x]').forEach(x => x.onclick = () => rescueExitStep(ctx, x.dataset.x));
+    m.querySelectorAll('[data-hz]').forEach(h => h.onclick = () => { b.horizon = b.horizon === h.dataset.hz ? '' : h.dataset.hz; rescueTouch(_rs.sheet); rescueRefsPaint(ctx.el, b); rescueCloseMenu(); });
+  });
+}
+/* success: note it on the box, say where it went, offer the undo */
+function rescueDone(ctx, kind, res, extraGo){
+  if(!res){ toast('That did not make anything.'); return; }
+  const b = ctx.b, rec = {kind, label: res.label, at: new Date().toISOString(), snippet: ctx.text.slice(0, 140)};
+  b.exits = b.exits || []; b.exits.push(rec);
+  const prevFate = b.fate; if(ctx.whole || kind === 'letgo') b.fate = kind;
+  rescueTouch(_rs.sheet); rescueRefsPaint(ctx.el, b); rescueCloseMenu();
+  const root = document.querySelector('[data-rs-page]'); if(root){ rescueRailPaint(root); rescueStrings(root); }
+  const go = res.go || extraGo;
+  toast(`${kind === 'letgo' ? 'Let go.' : 'Made ' + res.label + '.'}`, 7000, {label: 'undo', fn: () => {
+    try { res.undo && res.undo(); } catch(e){}
+    const i = b.exits.indexOf(rec); if(i >= 0) b.exits.splice(i, 1); b.fate = prevFate;
+    rescueTouch(_rs.sheet); const el = document.querySelector(`[data-rsb="${b.id}"]`); if(el) rescueRefsPaint(el, b); }});
+  void go;
+}
+function rescueExitStep(ctx, id){
+  const {text} = ctx, back = '<button class="tbtn rs-m-back" data-back2>‹ back</button>';
+  const bindBack = m => { const bk = m.querySelector('[data-back2]'); if(bk) bk.onclick = () => rescueMenuTop(ctx); };
+  const head = t => `<div class="rs-m-h">${back}<span class="mono faint">${esc(t)}</span></div>`;
+  if(id === 'letgo'){ rescueDone(ctx, 'letgo', {label: 'let go', undo: () => {}}); return; }
+  if(id === 'task') return rescueDone(ctx, 'task', rescueMakeTasks(text));
+  if(id === 'question') return rescueDone(ctx, 'question', rescueMakeEntry(text, 'question'));
+  if(id === 'mindset') return rescueDone(ctx, 'mindset', rescueKeepLine(text));
+  if(id === 'goal'){
+    const wk = weekStart(today()), p = weekPlanSeen(wk), goals = typeof weekGoalsNamed === 'function' ? weekGoalsNamed(p) : [];
+    ctx.step(`${head('under which goal?')}${goals.length ? goals.map((o, i) => `<button class="rs-m-row" data-g="${i}">${esc(o.text)}</button>`).join('') : '<p class="faint sm">No goals are written for this week. Plan the week first, then come back.</p><button class="btn sm" id="rsPlanWk">Plan the week</button>'}`, m => {
+      bindBack(m);
+      m.querySelectorAll('[data-g]').forEach(bn => bn.onclick = () => { const o = goals[+bn.dataset.g];
+        const listId = (o.linkType === 'list' || o.linkType === 'project') && planList(o.linkId) ? o.linkId : 'inbox';
+        const real = (S.weekPlans || {})[wk] ? (S.weekPlans[wk].outcomes || []).find(x => x.id === o.id) : o;
+        rescueDone(ctx, 'goal', rescueMakeTasks(text, {listId, outcome: real})); });
+      const pw = m.querySelector('#rsPlanWk'); if(pw) pw.onclick = () => { rescueCloseMenu(); openWeeklyPlan(today()); }; });
+    return;
+  }
+  if(id === 'thread'){
+    let kind = 'turn', which = 'this';
+    const draw = () => { const wd = rescueWeekDays(which);
+      ctx.step(`${head('a thread through the week')}
+        <div class="rs-m-seg"><button class="chip sm${kind === 'turn' ? ' on' : ''}" data-k="turn">to contemplate</button><button class="chip sm${kind === 'do' ? ' on' : ''}" data-k="do">to do</button></div>
+        <div class="rs-m-seg"><button class="chip sm${which === 'this' ? ' on' : ''}" data-w="this">this week</button><button class="chip sm${which === 'next' ? ' on' : ''}" data-w="next">next week</button></div>
+        <div class="rs-m-days">${wd.days.map(d => `<label class="wp-dchip on"><input type="checkbox" value="${d}" checked>${esc(wpDayShort(d))}</label>`).join('')}</div>
+        <button class="btn sm primary" id="rsMk">Make the thread</button>`, m => {
+        bindBack(m);
+        m.querySelectorAll('[data-k]').forEach(x => x.onclick = () => { kind = x.dataset.k; draw(); });
+        m.querySelectorAll('[data-w]').forEach(x => x.onclick = () => { which = x.dataset.w; draw(); });
+        m.querySelectorAll('.wp-dchip input').forEach(c => c.onchange = () => c.parentNode.classList.toggle('on', c.checked));
+        m.querySelector('#rsMk').onclick = () => { const days = [...m.querySelectorAll('.wp-dchip input:checked')].map(c => c.value); if(!days.length){ toast('Pick at least one day.'); return; }
+          rescueDone(ctx, 'thread', rescueMakeThread(text, kind, days, wd.weekOf)); }; }); };
+    draw(); return;
+  }
+  if(id === 'journal'){
+    const types = ['reflection', 'memory', 'gratitude', 'dream', 'intuition', 'synchronicity', 'lifeevent'];
+    ctx.step(`${head('which journal?')}<div class="rs-m-seg wrap">${types.map(t => `<button class="chip sm" data-t="${t}">${typeIcon(t)} ${esc(typeName(t))}</button>`).join('')}</div>
+      <button class="tbtn" id="rsFull">Open the full form instead</button>`, m => {
+      bindBack(m);
+      m.querySelectorAll('[data-t]').forEach(x => x.onclick = () => rescueDone(ctx, 'journal', rescueMakeEntry(text, x.dataset.t)));
+      m.querySelector('#rsFull').onclick = () => { rescueCloseMenu(); openEntryModal({type: 'reflection', title: rescueFirstLine(text), body: text}); }; });
+    return;
+  }
+  if(id === 'decision'){ rescueCloseMenu(); const rec = {kind: 'decision', label: 'a decision form', at: new Date().toISOString(), snippet: text.slice(0, 140)};
+    ctx.b.exits = ctx.b.exits || []; ctx.b.exits.push(rec); if(ctx.whole) ctx.b.fate = 'decision'; rescueTouch(_rs.sheet); rescueRefsPaint(ctx.el, ctx.b);
+    openDecisionModal({title: rescueFirstLine(text), situation: text}); return; }
+  if(id === 'person'){
+    const hits = rescueMentions(text).filter(r => r.type === 'person').map(r => byId(S.people, r.id)).filter(Boolean);
+    const rest = (S.people || []).filter(p => !hits.includes(p));
+    const row = p => `<button class="rs-m-row" data-p="${p.id}">${esc(p.name)}</button>`;
+    ctx.step(`${head('who is this about?')}${hits.length ? `<div class="faint sm">named here</div>${hits.map(row).join('')}` : ''}
+      <input class="inp sm" id="rsPF" placeholder="find a name…"><div id="rsPL">${rest.slice(0, 8).map(row).join('')}</div>`, m => {
+      bindBack(m);
+      const pick = pid => { const p = byId(S.people, pid); if(!p) return;
+        ctx.step(`${head(p.name)}<button class="rs-m-row" data-a="log">Log what happened</button><button class="rs-m-row" data-a="reach">Reach out — make a task</button><button class="rs-m-row" data-a="open">Open their page</button>`, mm => {
+          bindBack(mm);
+          mm.querySelector('[data-a="log"]').onclick = () => { rescueCloseMenu(); openInteractionModal(null, p.id); const d = document.querySelector('#inDesc'); if(d) d.value = text;
+            const rec = {kind: 'person', label: 'a note on ' + (p.nickname || p.name.split(' ')[0]), at: new Date().toISOString(), snippet: text.slice(0, 140)}; ctx.b.exits = ctx.b.exits || []; ctx.b.exits.push(rec); if(ctx.whole) ctx.b.fate = 'person'; rescueTouch(_rs.sheet); rescueRefsPaint(ctx.el, ctx.b); };
+          mm.querySelector('[data-a="reach"]').onclick = () => rescueDone(ctx, 'person', rescueMakeTasks(`Reach out to ${p.nickname || p.name.split(' ')[0]}: ${rescueFirstLine(text)}`));
+          mm.querySelector('[data-a="open"]').onclick = () => { rescueCloseMenu(); navigate('#/people/' + p.id); }; }); };
+      m.querySelectorAll('[data-p]').forEach(x => x.onclick = () => pick(x.dataset.p));
+      const f = m.querySelector('#rsPF'), l = m.querySelector('#rsPL');
+      f.oninput = () => { const q = f.value.toLowerCase(); l.innerHTML = (S.people || []).filter(p => (p.name + ' ' + (p.nickname || '')).toLowerCase().includes(q)).slice(0, 10).map(row).join('');
+        l.querySelectorAll('[data-p]').forEach(x => x.onclick = () => pick(x.dataset.p)); ctx.place(); }; });
+    return;
+  }
+  if(id === 'remind'){
+    const T = today(), opts = [['tonight, 9pm', T, '21:00'], ['tomorrow morning', addDays(T, 1), '09:00'], ['tomorrow', addDays(T, 1), ''], ['in three days', addDays(T, 3), ''], ['next week', addDays(weekStart(T), 7), '']];
+    ctx.step(`${head('remind me…')}${opts.map((o, i) => `<button class="rs-m-row" data-o="${i}">${esc(o[0])}</button>`).join('')}
+      <div class="row" style="gap:6px;margin-top:6px"><input class="inp sm" type="date" id="rsRD" value="${addDays(T, 1)}"><input class="inp sm" type="time" id="rsRT"><button class="btn sm" id="rsRG">Set</button></div>`, m => {
+      bindBack(m);
+      m.querySelectorAll('[data-o]').forEach(x => x.onclick = () => { const o = opts[+x.dataset.o]; rescueDone(ctx, 'remind', rescueMakeReminder(text, o[1], o[2])); });
+      m.querySelector('#rsRG').onclick = () => rescueDone(ctx, 'remind', rescueMakeReminder(text, m.querySelector('#rsRD').value || addDays(T, 1), m.querySelector('#rsRT').value)); });
+    return;
+  }
+  if(id === 'park'){
+    ctx.step(`${head('park it as…')}<div class="rs-m-seg wrap">${PARK_KINDS.map(k => `<button class="chip sm" data-k="${k.id}">${k.glyph} ${esc(k.name)}</button>`).join('')}</div>`, m => {
+      bindBack(m); m.querySelectorAll('[data-k]').forEach(x => x.onclick = () => rescueDone(ctx, 'park', rescuePark(text, x.dataset.k))); });
+    return;
+  }
+}
+
+/* ---------- what is on my plate ---------- */
+function rescueRailPaint(root){
+  const r = rescueQ('#rsRail', root || document); if(!r || r.hidden) return;
+  const p = rescuePlate(), cap = p.capacity;
+  r.innerHTML = `<div class="rs-rail-h"><span class="sc" style="margin:0">On my plate</span><span class="faint sm">press one to bring it onto the page</span></div>
+    ${cap ? `<div class="rs-cap${cap.over ? ' over' : ''}"><b class="mono">${cap.tasks}</b> thing${cap.tasks === 1 ? '' : 's'} on today · ${cap.mins ? (typeof pbdSay === 'function' ? pbdSay(cap.mins) : cap.mins + 'm') : 'no estimates'} of about ${cap.hrs}h${cap.over ? ' — more than the day holds' : ''}</div>` : ''}
+    ${p.groups.map(g => `<div class="rs-rg"><span class="mono faint">${esc(g.name)}</span>${g.items.map(i => `<button class="rs-ri" data-ri="${esc(i.kind)}|${esc(i.id)}" title="${esc(i.label)}"><span>${esc(i.label)}</span><em>${esc(i.detail)}</em></button>`).join('')}</div>`).join('') || '<p class="faint sm">Nothing pressing is on the plate.</p>'}`;
+  r.querySelectorAll('[data-ri]').forEach(b => b.onclick = () => {
+    const [kind, ...rest] = b.dataset.ri.split('|'), id = rest.join('|');
+    const it = p.groups.flatMap(g => g.items).find(i => i.kind === kind && i.id === id); if(!it || !_rs.newBox) return;
+    const canvas = rescueQ('#rsCanvas', document), st = rescueQ('#rsStage', document);
+    const n = _rs.newBox(st.scrollLeft + 40 + Math.random() * 120, st.scrollTop + 60 + Math.random() * (st.clientHeight - 200));
+    n.ta.value = it.label; n.b.text = it.label; n.b.ref = {type: kind, id}; rescueFit(n.ta); rescueTouch(_rs.sheet); rescueRefsPaint(n.el, n.b); rescueStrings(document); n.ta.blur(); });
+}
+
+/* ---------- landing: three small things, and out ---------- */
+function rescueLand(root){
+  const s = _rs.sheet; if(s._virtual) return;
+  const un = rescueUnhandled(s), tonight = (s.boxes || []).filter(b => b.horizon === 'tonight' && (b.text || '').trim());
+  const sleep = (s.boxes || []).some(b => /\b(sleep|stay up|tired|late)\b/i.test(b.text || ''));
+  const m = openModal(`<h2>Land it</h2>
+    <p class="muted" style="font-size:.9rem">A page does not have to be finished to be put down. Three small things, and you are out.</p>
+    <div class="stack">
+      <label class="pd-q"><span class="k">One thing decided for tonight</span>
+        <textarea class="ta" id="rlDecide" style="min-height:56px" placeholder="e.g. sleep by 11:30; the abstract is the first thing tomorrow">${esc(s.landing && s.landing.decide || '')}</textarea></label>
+      ${tonight.length ? `<div class="chip-row">${tonight.map(b => `<button type="button" class="chip sm" data-pickd="${b.id}">${esc(rescueFirstLine(b.text))}</button>`).join('')}</div>` : ''}
+      <label class="pd-q"><span class="k">One next action (it becomes a task)</span>
+        <input class="inp" id="rlNext" placeholder="e.g. write the first paragraph ~25m"></label>
+      <label class="pd-q"><span class="k">Something I am putting down</span>
+        <textarea class="ta" id="rlDown" style="min-height:48px" placeholder="what can wait, or was never mine">${esc(s.landing && s.landing.putDown || '')}</textarea></label>
+      <label class="pd-q"><span class="k">How I feel now, in a word (optional)</span><input class="inp" id="rlFeel" style="max-width:14rem"></label>
+      ${un.length ? `<p class="faint sm">${un.length} thing${un.length === 1 ? ' is' : 's are'} not sorted yet. They stay on the page, and the next morning you will be offered them once.</p>` : ''}
+      ${sleep ? `<p class="faint sm">Tonight’s question about sleeping is on this page — if it is still open, the first box above is a good place to settle it.</p>` : ''}
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn ghost" id="rlNo">Not yet</button><button class="btn primary" id="rlGo">Land</button></div>`, 'narrow');
+  m.querySelectorAll('[data-pickd]').forEach(b => b.onclick = () => { const x = rescueBoxOf(b.dataset.pickd); if(x) m.querySelector('#rlDecide').value = x.text; });
+  m.querySelector('#rlNo').onclick = () => m.remove();
+  m.querySelector('#rlGo').onclick = () => {
+    const nextText = m.querySelector('#rlNext').value.trim();
+    const t = nextText ? commitQuickTask(nextText, {listId: 'inbox'}) : null;
+    s.landing = {at: new Date().toISOString(), decide: m.querySelector('#rlDecide').value.trim(), next: nextText, nextTaskId: t ? t.id : null,
+      putDown: m.querySelector('#rlDown').value.trim(), feel: m.querySelector('#rlFeel').value.trim()};
+    s.endedAt = new Date().toISOString(); rescueTouch(s); saveNow();
+    try { if(typeof timeAutoStop === 'function') timeAutoStop('rescue'); } catch(e){}
+    m.remove(); sound('success');
+    toast('Landed. The page is kept, and it is in the Review under today.', 6000);
+    navigate('#/today');
+  };
+}
+
+/* ---------- the pages, all of them ---------- */
+function rescuePagesDialog(){
+  const days = rescueByDay(), keys = Object.keys(days).sort().reverse();
+  const row = s => `<div class="rs-pg" data-pg="${s.id}"><button class="rs-pg-o" data-open="${s.id}"><b>${esc(rescueTitle(s))}</b>
+      <span class="mono faint">${esc(fmtDate(s.day, 'med'))} · ${rescueLive(s).length} thing${rescueLive(s).length === 1 ? '' : 's'} · ${rescueMinutes(s)} min${s.landing ? ' · landed' : ''}</span></button>
+      <button class="tbtn danger" data-del="${s.id}" title="delete this page">×</button></div>`;
+  const m = openModal(`<h2>Pages</h2><p class="muted sm">Every page is kept, by the day it was made.</p>
+    <div class="rs-pgs">${keys.length ? keys.map(k => days[k].map(row).join('')).join('') : '<p class="faint">No pages yet.</p>'}</div>`, 'narrow');
+  m.querySelectorAll('[data-open]').forEach(b => b.onclick = () => { m.remove(); navigate('#/rescue/' + b.dataset.open); });
+  m.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    const s = rescueSheetById(b.dataset.del); if(!s) return;
+    const undo = spliceOut(rescueSheets(), x => x.id === s.id); saveNow(); m.querySelector(`[data-pg="${s.id}"]`).remove();
+    toast('Page deleted.', 8000, {label: 'undo', fn: () => { undo(); saveNow(); if(parseHash().name === 'rescue') rerender(); }});
+    if(_rs && _rs.sheet.id === s.id) navigate('#/rescue/new'); });
+}
+
+/* ---------- the Review: every page, by the day it was made ---------- */
+function rescueReviewHTML(){
+  const days = rescueByDay(), keys = Object.keys(days).sort().reverse();
+  if(!keys.length) return '';
+  const n = rescueSheets().length;
+  return `<section class="section rv rs-review"><div class="row between" style="align-items:baseline"><span class="sc" style="margin:0">Overwhelm rescue pages</span>
+      <span class="mono faint">${n} page${n === 1 ? '' : 's'}, kept</span></div>
+    <div class="rs-rv-list">${keys.slice(0, 40).map(k => days[k].map(s => `<button class="rs-rv-row" data-rsopen="${s.id}"><span class="mono">${esc(fmtDate(k, 'med'))}</span>
+      <b>${esc(rescueTitle(s))}</b><span class="faint">${rescueLive(s).length} thing${rescueLive(s).length === 1 ? '' : 's'}${s.landing ? ' · landed' + (s.landing.decide ? ': ' + esc(s.landing.decide.slice(0, 60)) : '') : ''}</span></button>`).join('')).join('')}</div>
+    ${keys.length > 40 ? '<p class="faint sm">Older pages are in Pages, inside the rescue space.</p>' : ''}</section>`;
+}
+function bindRescueReview(box){ box.querySelectorAll('[data-rsopen]').forEach(b => b.onclick = () => navigate('#/rescue/' + b.dataset.rsopen)); }
+
+/* ---------- the morning after: what was left unsorted, offered once ---------- */
+function pqRescue(T){
+  const out = [];
+  rescueSheets().filter(s => s.day < T && s.day >= addDays(T, -2) && !(s.seen || {}).morning).forEach(s => {
+    const n = rescueUnhandled(s).length; if(!n) return;
+    out.push(pqItem({id: 'rescue:' + s.id, source: 'new', category: 'nudge', rank: PQ_RANK.nudge + 8, period: 'day',
+      msg: `${n} thing${n === 1 ? '' : 's'} from ${s.day === addDays(T, -1) ? 'last night’s' : fmtDate(s.day, 'short') + '’s'} page ${n === 1 ? 'is' : 'are'} still unsorted.`,
+      rule: 'you wrote them on an overwhelm page and sent none of them anywhere',
+      go: ['open the page', () => { s.seen = Object.assign({}, s.seen, {morning: true}); saveNow(); navigate('#/rescue/' + s.id); }]}));
+  });
+  return out;
+}
+
+/* ---------- a line that leans in, once in a while ---------- */
+function rescueWhisperLater(root, ms){
+  if(!_rs) return;
+  _rs.timers.push(setTimeout(() => rescueWhisperShow(root), ms));
+}
+function rescueWhisperShow(root){
+  if(!_rs || (S.settings || {}).rescueWhispers === false || document.hidden) { rescueWhisperLater(root, 120000); return; }
+  const w = rescueWhisperFor(_rs.sheet, _rs.ui.whispered); if(!w){ return; }
+  _rs.ui.whispered.push(w.t); if(_rs.ui.whispered.length > 10) _rs.ui.whispered.shift();
+  const box = rescueQ('#rsWhisper', root); if(!box) return;
+  box.innerHTML = `<span class="rs-w${w.own ? ' own' : ''}">${esc(w.t)}</span><button class="rs-wx" aria-label="not now" title="not now">×</button>`;
+  box.classList.add('on'); const hide = () => { box.classList.remove('on'); };
+  box.querySelector('.rs-wx').onclick = () => { hide(); };
+  const t = setTimeout(hide, 14000); _rs.timers.push(t);
+  rescueWhisperLater(root, 150000 + Math.random() * 90000);
+}
+
+/* Alt+R from anywhere (not while typing in a field): the door to the space */
+document.addEventListener('keydown', ev => {
+  if(!ev.altKey || ev.ctrlKey || ev.metaKey || ev.code !== 'KeyR') return;
+  const t = ev.target; if(t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  if(typeof S === 'undefined' || !S) return;
+  ev.preventDefault(); navigate('#/rescue');
+});
+
+/* ---------- tonight: stay up, or sleep ----------
+   Offered only when the page is about being tired or a promise to yourself (or it is
+   late). It reads the sleep and time records back in plain words and puts the choices
+   as things that can be made — never as a verdict. */
+function rescueTonightShow(root){
+  const btn = rescueQ('#rsTonightBtn', root); if(!btn || !_rs) return;
+  const sc = rescueScenarios(_rs.sheet).map(x => x.id), late = new Date().getHours() >= 22 || new Date().getHours() < 4;
+  btn.hidden = !(sc.includes('tired-sleep') || sc.includes('broken-promise') || (late && rescueLive(_rs.sheet).length > 1));
+}
+function rescueTonightFacts(f){
+  const out = [], say = m => typeof pbdSay === 'function' ? pbdSay(m) : m + 'm';
+  if(f.total >= 3) out.push(`Of the last ${f.total} nights with a log, ${f.late} ended after half past midnight.${f.bedGoal ? ` Your bedtime setting is ${esc(f.bedGoal)}.` : ''}`);
+  else out.push('There are not enough nights logged yet to say much about your pattern.');
+  if(f.afterLate && f.afterEarly){
+    out.push(`On the days after the late nights you tracked about ${say(f.afterLate.tracked)} and finished ${f.afterLate.done} task${f.afterLate.done === 1 ? '' : 's'} a day, on ${f.afterLate.hours}h of sleep; after the earlier ones, about ${say(f.afterEarly.tracked)} and ${f.afterEarly.done}, on ${f.afterEarly.hours}h.`);
+  } else if(f.total >= 3) out.push('Not enough late and early nights on both sides yet to compare the days that followed.');
+  out.push(f.tomorrow.tasks ? `Tomorrow already has ${f.tomorrow.tasks} thing${f.tomorrow.tasks === 1 ? '' : 's'} planned.` : 'Nothing is planned yet for tomorrow.');
+  return out;
+}
+function rescueTonightFrame(root){
+  const s = _rs.sheet, f = rescueSleepFacts(), box = (s.boxes || []).find(b => /\b(stay up|sleep|tired|finish|tonight|however late)\b/i.test(b.text || '') && (b.text || '').trim());
+  const thing = box ? rescueFirstLine(box.text) : '';
+  document.querySelectorAll('.rs-frame').forEach(n => n.remove());
+  const d = document.createElement('div'); d.className = 'rs-frame';
+  d.innerHTML = `<button class="rs-frame-x" aria-label="close">\u00d7</button><h3>Tonight, from my records</h3>
+    <p class="faint sm">No verdict here \u2014 only what the record says, then three ways to make a choice real.</p>
+    <ul>${rescueTonightFacts(f).map(t => `<li>${t}</li>`).join('')}</ul>
+    <label class="pd-q"><span class="k">the thing in question</span><input class="inp sm" id="rfThing" value="${esc(thing)}" placeholder="e.g. finish the application"></label>
+    <div class="rs-frame-opts">
+      <button class="rs-m-row" data-fo="sleep"><b>Sleep now</b><br><span class="faint sm">it becomes the first thing tomorrow, as a task</span></button>
+      <button class="rs-m-row" data-fo="min"><b>Thirty minutes, then bed</b><br><span class="faint sm">a stop reminder is set, and the thing is a task for tomorrow too</span></button>
+      <button class="rs-m-row" data-fo="promise"><b>Change the promise, out loud</b><br><span class="faint sm">written in the journal so it is a decision, not a lapse</span></button>
+    </div>`;
+  rescueQ('#rsStage', root).parentNode.appendChild(d);
+  const say = () => d.querySelector('#rfThing').value.trim() || 'the thing from tonight';
+  d.querySelector('.rs-frame-x').onclick = () => d.remove();
+  d.querySelector('[data-fo="sleep"]').onclick = () => { const r = rescueMakeTasks(`${say()} tomorrow !high`); toast('Made it tomorrow\u2019s first move. Good night, when you are ready.', 7000, {label: 'undo', fn: () => r.undo()}); d.remove(); };
+  d.querySelector('[data-fo="min"]').onclick = () => { const n = new Date(Date.now() + 30 * 60000), hm = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+    const a = rescueMakeTasks(`${say()} tomorrow`), r = rescueMakeReminder('Stop. Save where you are. Bed.', today(), hm);
+    toast(`Stop reminder set for ${hm}; the rest is waiting tomorrow.`, 7000, {label: 'undo', fn: () => { a.undo(); r && r.undo(); }}); d.remove(); };
+  d.querySelector('[data-fo="promise"]').onclick = () => { d.remove(); openEntryModal({type: 'reflection', title: 'Changing a promise to myself', body: `I told myself I would: ${say()}\n\nWhat I am changing it to, and why:\n\n`}); };
+  s.seen = Object.assign({}, s.seen, {tonight: true}); rescueTouch(s);
+}
+/* ============================================================
+   THE COACH, FOR YOURSELF — questions you ask you
+
+   In the rescue space you are your own coach: a question appears on the page as
+   a box, and you answer it by writing. Which question is chosen by rule, and the
+   rule is shown ("you wrote 'tired' · it is late"): the scenario you name (or
+   the ones the page's own words point to), the words a question is waiting for,
+   the hour, how far into the sitting you are, and what you have already been
+   asked. Nothing is generated while you wait.
+
+   The questions come from a bank. A starter bank ships here. A far stronger AI can
+   write a much larger one AHEAD of time: "Write the questions…" builds a prompt
+   from what this site is and offers now (its rooms, its doors, its scenarios, what
+   the bank already covers), and what comes back is pasted in and checked. At use
+   time a very specific question is simply looked up for the very specific moment.
+   ============================================================ */
+
+const RS_STAGES = ['open', 'explore', 'decide', 'close'];
+const RS_KINDS = ['open', 'choose', 'scale', 'body', 'reframe', 'action', 'name-it'];
+const RS_TONES = ['plain', 'warm', 'playful', 'firm'];
+const RS_BANK_FORMAT = 'overwhelm-rescue-questions';
+
+/* the starter bank: [id, text, scenarios, {triggers, stage, depth, kind, exit, time, followups, use}] */
+const _Q = (id, text, scenarios, o = {}) => Object.assign({id, text, scenarios, triggers: [], stage: 'explore', depth: 1, kind: 'open', horizon: 'any', tone: 'plain', followups: [], use_when: '', suggest_exit: 'none', time_of_day: ['any'], source: 'builtin'}, o);
+const RESCUE_STARTER = [
+  _Q('b-tm-1', 'If only three of these were allowed to be real tonight, which three?', ['too-much'], {stage: 'open', kind: 'choose', followups: ['b-tm-3'], use_when: 'the page has a lot on it'}),
+  _Q('b-tm-2', 'Which of these are facts about the world, and which are things your mind keeps replaying?', ['too-much', 'feeling'], {kind: 'name-it', use_when: 'a lot of it may be noise'}),
+  _Q('b-tm-3', 'Which one of these, if handled, would make two others easier or unnecessary?', ['too-much', 'priorities'], {depth: 2, kind: 'choose', followups: ['b-tm-5'], use_when: 'looking for the knot'}),
+  _Q('b-tm-4', 'Which of these have a real date on them, and which only feel urgent?', ['too-much', 'deadline'], {triggers: ['urgent', 'asap', 'everything'], kind: 'name-it'}),
+  _Q('b-tm-5', 'What is the smallest slice of all this you could finish in the next twenty-five minutes?', ['too-much', 'stuck'], {stage: 'decide', kind: 'action', suggest_exit: 'task', use_when: 'time to choose a first move'}),
+  _Q('b-tm-6', 'What are you willing to leave exactly as it is until tomorrow?', ['too-much', 'tired-sleep'], {stage: 'close', kind: 'choose', suggest_exit: 'letgo', time_of_day: ['evening', 'night']}),
+  _Q('b-tm-7', 'Which of these belong to someone else to decide, or to carry?', ['too-much', 'people'], {depth: 2, kind: 'name-it', suggest_exit: 'letgo'}),
+  _Q('b-li-1', 'What were you about to do before this in-between feeling started?', ['liminal'], {stage: 'open', triggers: ['limbo', 'wasting'], use_when: 'the limbo itself is the problem'}),
+  _Q('b-li-2', 'What is the gentlest thing you could start in the next two minutes, just to be out of the in-between?', ['liminal', 'stuck'], {stage: 'decide', kind: 'action', suggest_exit: 'task'}),
+  _Q('b-li-3', 'What is this limbo protecting you from having to begin?', ['liminal', 'stuck'], {depth: 2, tone: 'warm'}),
+  _Q('b-li-4', 'How long are you willing to stay in the in-between — and what happens when that time is up?', ['liminal'], {stage: 'close', kind: 'choose', suggest_exit: 'remind'}),
+  _Q('b-dl-1', 'What exactly is due, to whom, and what would "good enough to hand in" look like?', ['deadline'], {stage: 'open', triggers: ['deadline', 'due', 'submit'], use_when: 'a deadline is pressing'}),
+  _Q('b-dl-2', 'What part of this can only be done by you, and what part is only habit that it is you?', ['deadline', 'too-much'], {depth: 2, kind: 'name-it'}),
+  _Q('b-dl-3', 'If the deadline were an hour earlier, what would you cut?', ['deadline', 'perfection'], {depth: 2, tone: 'firm', kind: 'choose'}),
+  _Q('b-dl-4', 'Working backwards from the due time: what has to be true by tonight, and what can wait for tomorrow morning?', ['deadline', 'tired-sleep'], {stage: 'decide', horizon: 'tonight', kind: 'choose', suggest_exit: 'task'}),
+  _Q('b-dl-5', 'If it were late, what would that actually cost you, in plain terms — and how likely is it?', ['deadline', 'feeling'], {kind: 'scale', tone: 'plain', use_when: 'the stakes may be inflated'}),
+  _Q('b-dl-6', 'What is the very first physical action — which file open, which sentence typed?', ['deadline', 'stuck'], {stage: 'close', kind: 'action', suggest_exit: 'task'}),
+  _Q('b-ts-1', 'If a friend told you they were this tired and wanted to push on, what would you say to them?', ['tired-sleep', 'broken-promise'], {stage: 'open', triggers: ['tired', 'stay up', 'sleepy'], tone: 'warm', time_of_day: ['evening', 'night'], use_when: 'you are tired and weighing staying up'}),
+  _Q('b-ts-2', 'What does finishing it tonight buy you that tomorrow morning could not, in concrete terms?', ['tired-sleep', 'deadline'], {triggers: ['tonight', 'stay up', 'finish'], kind: 'name-it'}),
+  _Q('b-ts-3', 'How would you expect the work to go at this level of tiredness — and what would you have to redo?', ['tired-sleep', 'perfection'], {depth: 2, kind: 'scale', time_of_day: ['evening', 'night']}),
+  _Q('b-ts-4', 'Is there a version of tonight that honours both: say, thirty minutes on the first step, then bed?', ['tired-sleep', 'broken-promise'], {stage: 'decide', kind: 'choose', suggest_exit: 'decision', time_of_day: ['evening', 'night']}),
+  _Q('b-ts-5', 'What did the last late night like this cost you the next day?', ['tired-sleep', 'body'], {depth: 2, kind: 'reframe', use_when: 'your own records can answer it'}),
+  _Q('b-ts-6', 'What would you need to set up now so that going to bed feels like a plan and not a failure?', ['tired-sleep', 'broken-promise'], {stage: 'close', kind: 'action', suggest_exit: 'remind', time_of_day: ['evening', 'night']}),
+  _Q('b-ts-7', 'The sleep schedule you are building: what is it worth to you, set beside this one task?', ['tired-sleep', 'long-term'], {depth: 2, kind: 'reframe', tone: 'firm'}),
+  _Q('b-bp-1', 'When you said "however late", who were you speaking to — and is that the person sitting here now?', ['broken-promise', 'tired-sleep'], {stage: 'open', triggers: ['however late', 'i said i would', 'promised', 'i will do tonight'], tone: 'warm'}),
+  _Q('b-bp-2', 'What did you want the promise to protect — the task, or your sense of being someone who follows through?', ['broken-promise', 'perfection'], {depth: 2, kind: 'name-it'}),
+  _Q('b-bp-3', 'How could you change the promise out loud, in a way you would respect, rather than just breaking it?', ['broken-promise'], {stage: 'decide', kind: 'action', suggest_exit: 'journal', use_when: 'a promise to yourself is in the way'}),
+  _Q('b-bp-4', 'If you kept this promise tonight at the cost of tomorrow, would you be keeping faith with yourself, or with the plan?', ['broken-promise', 'tired-sleep'], {depth: 2, kind: 'reframe'}),
+  _Q('b-pe-1', 'Who is waiting on you, and what is the one sentence they actually need from you?', ['people'], {stage: 'open', triggers: ['reply', 'text back', 'owe'], kind: 'name-it', suggest_exit: 'person'}),
+  _Q('b-pe-2', 'What are you imagining they will think if you answer late — and what do you actually know?', ['people', 'feeling'], {kind: 'name-it', tone: 'warm'}),
+  _Q('b-pe-3', 'What is the shortest message that would be honest and kind?', ['people'], {stage: 'decide', kind: 'action', suggest_exit: 'person'}),
+  _Q('b-pe-4', 'Is there a conversation you are avoiding that is making everything else heavier?', ['people', 'stuck'], {depth: 2, tone: 'warm'}),
+  _Q('b-pe-5', 'Which relationship on this page needs a decision, and which just needs a little time?', ['people', 'decide'], {depth: 2, kind: 'choose'}),
+  _Q('b-lt-1', 'If nothing changed for a year, what would you most regret not having started?', ['long-term'], {stage: 'open', depth: 2, tone: 'warm', horizon: 'later'}),
+  _Q('b-lt-2', 'Which of these long-term things is a direction, and which is a to-do in disguise?', ['long-term', 'priorities'], {kind: 'name-it'}),
+  _Q('b-lt-3', 'What is the smallest thing you could do this week that points the right way?', ['long-term'], {stage: 'decide', kind: 'action', suggest_exit: 'goal'}),
+  _Q('b-lt-4', 'What would you do with this part of your life if no one were watching?', ['long-term', 'feeling'], {depth: 3, tone: 'warm'}),
+  _Q('b-lt-5', 'Which long-term thing do you want to think about on a schedule — for how long a day, and when?', ['long-term', 'daily-thread'], {stage: 'close', kind: 'choose', suggest_exit: 'thread'}),
+  _Q('b-dt-1', 'What is the question you keep returning to every day, in its simplest form?', ['daily-thread'], {stage: 'open', triggers: ['every day', 'keep thinking'], suggest_exit: 'question'}),
+  _Q('b-dt-2', 'What would "a little thought a day" look like: ten minutes, at what time, with what in front of you?', ['daily-thread'], {stage: 'decide', kind: 'action', suggest_exit: 'thread'}),
+  _Q('b-dt-3', 'What has changed in how you see it since the last time you gave it real thought?', ['daily-thread', 'long-term'], {depth: 2}),
+  _Q('b-dt-4', 'What is today’s one sentence of progress on it?', ['daily-thread'], {stage: 'close', kind: 'action', suggest_exit: 'journal'}),
+  _Q('b-fe-1', 'If this feeling had a shape, or a kind of weather, what would it be?', ['feeling'], {stage: 'open', kind: 'name-it', tone: 'warm'}),
+  _Q('b-fe-2', 'Where do you feel it in your body, right now?', ['feeling', 'body'], {kind: 'body', tone: 'warm'}),
+  _Q('b-fe-3', 'What might the feeling be protecting you from, or warning you about?', ['feeling'], {depth: 2, tone: 'warm'}),
+  _Q('b-fe-4', 'Is this feeling about now, or an old pattern wearing a new date?', ['feeling'], {depth: 3, kind: 'reframe'}),
+  _Q('b-fe-5', 'Given that you feel this way, what would be kind to do for the next hour?', ['feeling', 'body'], {stage: 'close', kind: 'action', tone: 'warm'}),
+  _Q('b-st-1', 'What is it about starting this that you are avoiding — the work, or what it might say about you?', ['stuck'], {stage: 'open', depth: 2, triggers: ['avoid', 'putting off', 'procrastinat']}),
+  _Q('b-st-2', 'What is the tiniest version that still counts — and could you do it badly, on purpose?', ['stuck', 'perfection'], {stage: 'decide', kind: 'action', suggest_exit: 'task'}),
+  _Q('b-st-3', 'If you had to start in the next two minutes, with a timer, what would you open first?', ['stuck'], {stage: 'close', kind: 'action', suggest_exit: 'task'}),
+  _Q('b-st-4', 'What would make starting easier: a different place, a different hour, someone beside you?', ['stuck'], {kind: 'choose'}),
+  _Q('b-pf-1', 'Whose standard is this — and would they set it that high for a friend?', ['perfection'], {stage: 'open', triggers: ['perfect', 'not good enough'], kind: 'reframe'}),
+  _Q('b-pf-2', 'What does done look like at eighty per cent — and what would the missing twenty cost?', ['perfection', 'deadline'], {kind: 'scale'}),
+  _Q('b-pf-3', 'What is one thing you could deliberately leave imperfect today?', ['perfection'], {stage: 'decide', kind: 'action', suggest_exit: 'letgo'}),
+  _Q('b-ma-1', 'Which one admin item, if done, would lift the most weight — and how long would it truly take?', ['money-admin'], {stage: 'open', kind: 'choose', suggest_exit: 'task'}),
+  _Q('b-ma-2', 'Which of these could be batched into a single forty-minute sitting?', ['money-admin', 'too-much'], {stage: 'decide', kind: 'choose', suggest_exit: 'task'}),
+  _Q('b-ma-3', 'What are you afraid you might find out when you open it?', ['money-admin', 'stuck', 'feeling'], {depth: 2, tone: 'warm'}),
+  _Q('b-bo-1', 'Before the work: have you eaten, had water, moved, and had a real break today?', ['body'], {stage: 'open', kind: 'body', tone: 'warm', triggers: ['tired', 'headache', 'hungry']}),
+  _Q('b-bo-2', 'What does your body need that today’s plan has not made room for?', ['body', 'tired-sleep'], {kind: 'body', depth: 2}),
+  _Q('b-bo-3', 'What is the least you could do for your body in the next ten minutes?', ['body', 'feeling'], {stage: 'close', kind: 'action', suggest_exit: 'task'}),
+  _Q('b-pr-1', 'If you could keep only one thing from this week, what would it be?', ['priorities'], {stage: 'open', kind: 'choose'}),
+  _Q('b-pr-2', 'What would you be proud to have done by Friday — and is today’s plan heading there?', ['priorities', 'long-term'], {depth: 2, horizon: 'week'}),
+  _Q('b-pr-3', 'What are you saying yes to, by saying no to this?', ['priorities', 'decide'], {stage: 'decide', kind: 'reframe'}),
+  _Q('b-pr-4', 'What is urgent only because someone else decided it was?', ['priorities', 'people'], {depth: 2, kind: 'name-it', suggest_exit: 'letgo'}),
+  _Q('b-de-1', 'What are the real options, including the one you rejected fastest?', ['decide'], {stage: 'open', triggers: ['should i', 'or should', 'whether'], suggest_exit: 'decision'}),
+  _Q('b-de-2', 'What do you know, and what are you assuming?', ['decide'], {kind: 'name-it'}),
+  _Q('b-de-3', 'Can this be undone? If you chose wrong, what would it cost, and how soon would you find out?', ['decide'], {kind: 'scale', depth: 2}),
+  _Q('b-de-4', 'What would you choose if you were not afraid of what people would think?', ['decide', 'feeling'], {depth: 3, tone: 'warm'}),
+  _Q('b-de-5', 'What does not deciding cost you by tomorrow?', ['decide', 'tired-sleep'], {stage: 'decide', kind: 'scale'}),
+  _Q('b-de-6', 'What do you need to know before deciding — and who or what could tell you, by when?', ['decide'], {stage: 'close', kind: 'action', suggest_exit: 'decision'}),
+];
+RESCUE_STARTER.forEach(q => { q.scenarios.forEach(sc => { /* a typo here would be a question nothing can reach */ if(!RESCUE_SCENARIOS.some(x => x.id === sc)) console.warn('starter question', q.id, 'names an unknown scenario', sc); }); });
+
+/* ---------- the bank: the starter, and whatever has been imported ---------- */
+const rescueBankRows = () => lifeArray('rescueBank');
+function rescueBankAll(){
+  const off = new Set(((S.settings || {}).rescueCoach || {}).off || []);
+  const mine = rescueBankRows().filter(r => r.enabled !== false && !off.has(r.batch)).map(r => Object.assign({}, r, {id: r.id}));
+  return RESCUE_STARTER.concat(mine);
+}
+function rescueCoachState(){
+  const s = S.settings = S.settings || {};
+  const c = s.rescueCoach = s.rescueCoach || {};
+  c.skip = Array.isArray(c.skip) ? c.skip : []; c.recent = Array.isArray(c.recent) ? c.recent : []; c.off = Array.isArray(c.off) ? c.off : [];
+  return c;
+}
+function rescueDayPeriod(){ const h = new Date().getHours(); return h >= 23 || h < 5 ? 'night' : h < 11 ? 'morning' : h < 17 ? 'afternoon' : 'evening'; }
+
+/* ---------- choosing: a rule, and the reason shown ---------- */
+function rescuePickQuestion(s, o = {}){
+  const bank = rescueBankAll(), c = rescueCoachState(), text = rescueText(s).toLowerCase();
+  const asked = new Set(((s.coach || {}).asked || []).map(x => x.id)), skippedHere = new Set(((s.coach || {}).skipped || []));
+  const inferred = rescueScenarios(s).slice(0, 3).map(x => x.id);
+  const want = o.scenario ? [o.scenario] : inferred;
+  const per = rescueDayPeriod(), n = asked.size;
+  const stageNow = n < 2 ? 'open' : n < 4 ? 'explore' : n < 6 ? 'decide' : 'close';
+  const wantStage = o.stage || stageNow;
+  const lastId = o.after || null, last = lastId ? bank.find(q => q.id === lastId) : null;
+  const hzs = new Set((s.boxes || []).map(b => b.horizon).filter(Boolean));
+  const scored = bank.filter(q => !asked.has(q.id) && !skippedHere.has(q.id) && !c.skip.includes(q.id)).map(q => {
+    let sc = 0; const why = [];
+    const hit = (q.scenarios || []).filter(x => want.includes(x));
+    if(hit.length){ sc += hit.length * 4; const nm = RESCUE_SCENARIOS.find(x => x.id === hit[0]); why.push(o.scenario ? `you said it is about ${nm ? nm.name : hit[0]}` : `the page reads as ${nm ? nm.name : hit[0]}`); }
+    else if(want.length) sc -= 3;
+    const tr = (q.triggers || []).filter(t => t && text.includes(String(t).toLowerCase()));
+    if(tr.length){ sc += tr.length * 2.5; why.push(`you wrote “${tr[0]}”`); }
+    if((q.time_of_day || ['any']).includes(per)){ sc += 2; why.push(per === 'night' ? 'it is late' : per === 'morning' ? 'it is morning' : per === 'evening' ? 'it is evening' : 'it is afternoon'); }
+    else if(!(q.time_of_day || ['any']).includes('any')) sc -= 4;
+    if(q.stage === wantStage){ sc += 1.6; } else if(o.stage) sc -= 2;
+    const depthWant = o.deeper ? Math.min(3, (last ? last.depth : 1) + 1) : (n >= 3 ? 2 : 1);
+    sc += q.depth === depthWant ? 1.2 : q.depth > depthWant + 1 ? -2 : 0;
+    if(q.horizon && q.horizon !== 'any' && hzs.has(q.horizon)){ sc += 1.2; }
+    if(last && (last.followups || []).includes(q.id)){ sc += 6; why.unshift('it follows the last one'); }
+    if(c.recent.includes(q.id)) sc -= 3;
+    sc += Math.random() * .8;
+    return {q, sc, why};
+  }).sort((a, b) => b.sc - a.sc);
+  const top = scored[0]; if(!top) return null;
+  return {q: top.q, why: top.why.slice(0, 3).join(' · ') || 'it fits where the page is'};
+}
+
+/* ---------- on the page ---------- */
+function rescueCoachOpen(root){
+  if(!_rs) return;
+  const found = rescueScenarios(_rs.sheet).slice(0, 3);
+  const m = openModal(`<h2>Ask me something</h2>
+    <p class="muted" style="font-size:.9rem">One question, on the page, for you to answer by writing. Say what this is mostly about, or let the page’s own words decide.</p>
+    <div class="chip-row" id="rcSc">${RESCUE_SCENARIOS.map(sc => `<button class="chip click${found.some(f => f.id === sc.id) ? ' on' : ''}" data-sc="${sc.id}">${esc(sc.name)}</button>`).join('')}</div>
+    <div class="row" style="gap:8px;margin-top:14px;justify-content:space-between;flex-wrap:wrap">
+      <button class="tbtn" id="rcBank">The question bank…</button>
+      <span class="row" style="gap:8px"><button class="btn ghost" id="rcAuto">Let the page decide</button></span></div>
+    ${found.length ? `<p class="faint sm">The page reads as: ${found.map(f => esc(f.name)).join(' · ')}.</p>` : '<p class="faint sm">The page has too few words to read yet; pick one above.</p>'}`, 'narrow');
+  const go = sc => { m.remove(); rescueAskOnPage(root, {scenario: sc || ''}); };
+  m.querySelectorAll('[data-sc]').forEach(b => b.onclick = () => go(b.dataset.sc));
+  m.querySelector('#rcAuto').onclick = () => go('');
+  m.querySelector('#rcBank').onclick = () => { m.remove(); rescueBankDialog(); };
+}
+function rescueAskOnPage(root, o = {}, replaceBox = null){
+  if(!_rs) return;
+  if(_rs.sheet._virtual && _rs.sheetNow) _rs.sheetNow();
+  const s = _rs.sheet;
+  const pick = rescuePickQuestion(s, o);
+  if(!pick){ toast('No more questions fit this page — import more, or start a fresh page.'); return; }
+  const st = rescueQ('#rsStage', root), mx = Math.max(0, ...rescueLive(s).map(b => b.y + 70));
+  let b = replaceBox;
+  if(b){ b.q = {id: pick.q.id, text: pick.q.text, why: pick.why, exit: pick.q.suggest_exit}; }
+  else {
+    b = rescueBoxNew(s, 60 + Math.random() * 120, Math.max(st.scrollTop + 90, Math.min(mx + 30, st.scrollTop + st.clientHeight - 240)), '');
+    b.kind = 'question'; b.font = 'garamond'; b.q = {id: pick.q.id, text: pick.q.text, why: pick.why, exit: pick.q.suggest_exit};
+  }
+  s.coach = s.coach || {asked: [], skipped: []};
+  s.coach.asked.push({id: pick.q.id, at: new Date().toISOString(), boxId: b.id});
+  const c = rescueCoachState(); c.recent = [pick.q.id].concat(c.recent).slice(0, 40);
+  rescueTouch(s);
+  rescuePaintAll(root);
+  const el = root.querySelector(`[data-rsb="${b.id}"]`);
+  if(el){ const w = el.querySelector('.rs-qwhy'); if(w) w.textContent = pick.why; el.scrollIntoView({block: 'nearest', behavior: 'smooth'}); el.querySelector('.rs-ta').focus(); }
+  save();
+}
+function rescueCoachAct(root, b, act){
+  if(!b || !_rs) return;
+  const s = _rs.sheet, was = b.q && b.q.id;
+  s.coach = s.coach || {asked: [], skipped: []};
+  if(act === 'skip'){ const c = rescueCoachState(); if(was) c.skip.push(was); }
+  if(was && (act === 'another' || act === 'skip')) s.coach.skipped.push(was);
+  rescueAskOnPage(root, {after: was, deeper: act === 'deeper', scenario: ''}, b);
+  if(act === 'deeper' || act === 'another') { /* keep the answer written so far where it is: it is the user's */ }
+}
+
+/* ---------- the bank, as a room of its own ---------- */
+function rescueBankDialog(){
+  const rows = rescueBankRows(), c = rescueCoachState();
+  const batches = {}; rows.forEach(r => { (batches[r.batch] = batches[r.batch] || {id: r.batch, label: r.batchLabel || 'an import', at: r.at, n: 0}).n++; });
+  const cover = RESCUE_SCENARIOS.map(sc => ({sc, n: rescueBankAll().filter(q => (q.scenarios || []).includes(sc.id)).length}));
+  const m = openModal(`<h2>The question bank</h2>
+    <p class="muted" style="font-size:.88rem"><b>${rescueBankAll().length}</b> questions in use: ${RESCUE_STARTER.length} that ship with the house, and ${rows.length} imported. The coach picks from all of them by rule and says why.</p>
+    <div class="rs-cover">${cover.map(x => `<span class="chip sm${x.n < 5 ? ' warn' : ''}" title="${esc(x.sc.name)}">${esc(x.sc.name)} <b class="mono">${x.n}</b></span>`).join('')}</div>
+    <h3 style="margin:14px 0 4px;font-size:.95rem">Imported batches</h3>
+    ${Object.values(batches).length ? Object.values(batches).sort((a, b) => String(b.at).localeCompare(String(a.at))).map(b => `<div class="rs-bt"><span><b>${esc(b.label)}</b> <span class="faint">${b.n} questions · ${esc(fmtDate((b.at || '').slice(0, 10), 'med'))}</span></span>
+      <span><label class="row" style="gap:4px"><input type="checkbox" data-on="${esc(b.id)}" ${c.off.includes(b.id) ? '' : 'checked'}><span class="faint sm">in use</span></label> <button class="tbtn danger" data-del="${esc(b.id)}">remove</button></span></div>`).join('') : '<p class="faint sm">None yet.</p>'}
+    <div class="row" style="gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn primary" id="rbPrompt">Write the questions with my AI…</button><button class="btn" id="rbImport">Paste what it wrote…</button></div>`, 'wide');
+  m.querySelectorAll('[data-on]').forEach(x => x.onchange = () => { const id = x.dataset.on; c.off = c.off.filter(y => y !== id); if(!x.checked) c.off.push(id); save(); });
+  m.querySelectorAll('[data-del]').forEach(x => x.onclick = () => { const id = x.dataset.del, mine = rescueBankRows().filter(r => r.batch === id);
+    const keep = S.rescueBank.filter(r => r.batch !== id), was = S.rescueBank.slice(); S.rescueBank = keep; const undo = () => { S.rescueBank = was; }; saveNow(); m.remove(); toast(`Removed ${mine.length} questions.`, 8000, {label: 'undo', fn: () => { undo(); saveNow(); }}); });
+  m.querySelector('#rbPrompt').onclick = () => { m.remove(); rescuePromptDialog(); };
+  m.querySelector('#rbImport').onclick = () => { m.remove(); rescueImportDialog(); };
+}
+
+/* ---------- the prompt for a stronger AI ----------
+   Built from what is true of this house now, so it never goes stale: the rooms,
+   the doors out of the space, the scenarios, the schema, and what the bank already
+   covers (so the AI fills the gaps rather than repeating). Personal names go in only
+   if you ask. */
+function rescuePromptText(o = {}){
+  const rooms = Object.values(typeof NAV_PAGES !== 'undefined' ? NAV_PAGES : {}).map(p => p.label).filter(Boolean);
+  const cover = RESCUE_SCENARIOS.map(sc => `- ${sc.id} — ${sc.name} (${rescueBankAll().filter(q => (q.scenarios || []).includes(sc.id)).length} questions so far)`).join('\n');
+  const lists = [];
+  if(o.names){
+    try { const ls = planLists().filter(l => !l.archivedAt && l.id !== 'inbox').map(l => l.name); if(ls.length) lists.push('Task lists / projects: ' + ls.join('; ')); } catch(e){}
+    try { const vs = (S.valueOrder || []).map(id => (byId(S.values, id) || {}).name).filter(Boolean); if(vs.length) lists.push('Values: ' + vs.join('; ')); } catch(e){}
+    try { const hs = (S.habits || []).filter(h => !h.archived).map(h => h.name); if(hs.length) lists.push('Habits: ' + hs.join('; ')); } catch(e){}
+    try { const sk = (S.skills || []).map(x => x.name); if(sk.length) lists.push('Skills: ' + sk.join('; ')); } catch(e){}
+    try { const gs = (typeof perfGoals === 'function' ? perfGoals() : []).filter(g => g.status === 'active').map(g => g.text || g.title || g.name); if(gs.length) lists.push('Active goals: ' + gs.join('; ')); } catch(e){}
+  }
+  const sample = JSON.stringify({format: RS_BANK_FORMAT, version: 1, questions: [
+    {id: 'tired-promise-1', text: 'When you said you would finish this however late, who were you speaking to — and is that the person sitting here now?', scenarios: ['broken-promise', 'tired-sleep'],
+     triggers: ['however late', 'stay up', 'i said i would'], stage: 'open', depth: 2, kind: 'reframe', horizon: 'tonight', tone: 'warm', followups: ['tired-promise-2'],
+     use_when: 'a promise made to yourself collides with being tired', avoid_when: 'a real external deadline is hours away', suggest_exit: 'decision', time_of_day: ['evening', 'night']},
+    {id: 'tired-promise-2', text: 'What is the smallest version of the promise you could keep tonight and still be kind to tomorrow’s you?', scenarios: ['broken-promise', 'tired-sleep'],
+     triggers: [], stage: 'decide', depth: 1, kind: 'action', horizon: 'tonight', tone: 'plain', followups: [], use_when: 'after the first question, when it is time to choose', avoid_when: '', suggest_exit: 'task', time_of_day: ['evening', 'night']}]}, null, 1);
+  return `You are helping me build a bank of QUESTIONS for a feature of my personal life-management web app. I will paste your output into the app, which checks it and uses the questions later, one at a time, at the right moment. Please do the thinking now, once, as well as you can.
+
+# What the app is
+A private, single-user, offline-first "life instrument". Its rooms: ${rooms.join(', ') || 'Today, Planning, Journals, Habits, People, Time tracking, Study Deck, Knowledge Tree'}. I live in it daily: tasks and lists with estimates and dates, milestones, a weekly plan with goals and "threads" (things to do or contemplate on chosen days), habits, time tracking, a journal (reflections, decisions, open questions), people with contact rhythms, values, purpose, sleep and wake logs.
+
+# The feature the questions are for: the Overwhelm Rescue Space
+I use it when my head is a tangle: long-term worries, short-term tasks, a pressing deadline, something that needs a little thought every day, tiredness, a promise I made to myself, people I owe a reply. It is a blank page where I write loose keywords in boxes. I want to be MY OWN LIFE COACH there. When I ask, one question appears as a box on the page and I answer it by writing. Afterwards I can send any words to a task, a thread of the week, a journal entry, a decision, a person, a reminder, a parked thought, a line to keep, or let them go.
+
+# What I need from you
+Questions a very good coach would ask a thoughtful adult in that exact moment — specific, concrete and varied. NOT generic self-help, NOT advice, NOT cheerleading, NOT preachy, NOT therapy-speak, NOT diagnosing. Each question is for me to answer in writing, so it should be answerable in a few lines. Use the second person. Prefer concrete wording over abstract ("which file would you open?" beats "what is your next step?"). Mix: names-it, choose-between, reframe, scale 0–10, body check-in, one tiny action, and the occasional playful one. Use techniques from GROW, motivational interviewing, ACT, solution-focused and CBT questioning, the Eisenhower matrix, premortem, "what would you tell a friend", etc., but never name the technique. Chain them: a question can list follow-up ids that deepen it.
+
+Write for these scenarios (use exactly these ids). Aim for at least ${o.perScenario || 10} questions per scenario, across all four stages and all three depths, plus questions that sit across two scenarios:
+${cover}
+
+Stages: open (first, loosening), explore (understanding), decide (choosing), close (landing a next step or putting something down).
+Depth: 1 light · 2 more searching · 3 hard, only when asked to go deeper.
+Kinds: ${RS_KINDS.join(' | ')}. Tones: ${RS_TONES.join(' | ')}. Horizons: now | tonight | week | later | always | any.
+Doors the answer can go to (suggest_exit): task, goal, thread, journal, decision, question, person, remind, park, mindset, letgo, none.
+time_of_day: any of morning, afternoon, evening, night, or "any".
+
+# Output format (strict)
+Return ONLY one JSON object, no commentary, no markdown fences:
+{ "format": "${RS_BANK_FORMAT}", "version": 1, "questions": [ ... ] }
+Each question has: id (short unique slug), text (one question, ≤ 220 characters), scenarios (1–3 ids from the list), triggers (0–6 lowercase words or phrases that, if they appear on my page, make this question fit better), stage, depth, kind, horizon, tone, followups (ids of other questions in this output, or []), use_when (one sentence the app shows as the reason it chose this), avoid_when (when NOT to use it; may be ""), suggest_exit, time_of_day (array).
+If you cannot fit them all in one reply, give complete valid JSON with up to ${o.perMessage || 60} questions, then wait; I will say "next" and you continue with new questions (never repeat one).
+
+Example of two linked questions (do not copy them):
+${sample}
+${o.context ? `\n# About me (use this to be specific, never to flatter)\n${o.context.trim()}\n` : ''}${lists.length ? `\n# What is on my plate in the app (names only)\n${lists.join('\n')}\n` : ''}
+Total wanted this time: about ${o.total || 120} questions. Begin.`;
+}
+function rescuePromptDialog(){
+  const m = openModal(`<h2>Write the questions with my AI</h2>
+    <p class="muted" style="font-size:.88rem">This builds a prompt from what the house is and offers <em>now</em> — its rooms, the doors out of the space, the scenarios, and which scenarios the bank is thin on. Copy it into your strongest AI, then paste what it writes back.</p>
+    <div class="grid c2" style="gap:10px"><label class="pd-q"><span class="k">how many in total</span><input class="inp" id="rpTotal" type="number" min="20" max="400" value="120"></label>
+      <label class="pd-q"><span class="k">at least, per scenario</span><input class="inp" id="rpPer" type="number" min="3" max="30" value="10"></label></div>
+    <label class="pd-q"><span class="k">about me, for the AI (optional — what is hard, what helps, how I think)</span><textarea class="ta" id="rpCtx" style="min-height:70px" placeholder="e.g. I overthink and then lose the evening; I respond to blunt, short questions; I'm a law student with an application due; I want to fix my sleep schedule…"></textarea></label>
+    <label class="row" style="gap:8px;margin:8px 0"><input type="checkbox" id="rpNames"> <span class="faint sm">include the names of my lists, values, habits, skills and goals, so the questions can be about my real life</span></label>
+    <textarea class="ta mono" id="rpOut" readonly style="min-height:240px;font-size:.78rem"></textarea>
+    <div class="row" style="gap:8px;margin-top:10px;justify-content:space-between;flex-wrap:wrap"><span class="faint sm" id="rpMeta"></span>
+      <span class="row" style="gap:8px"><button class="btn" id="rpDl">Save as a file</button><button class="btn primary" id="rpCopy">Copy the prompt</button><button class="btn" id="rpNext">I have the answer →</button></span></div>`, 'wide');
+  const draw = () => { const t = rescuePromptText({total: +m.querySelector('#rpTotal').value || 120, perScenario: +m.querySelector('#rpPer').value || 10,
+      context: m.querySelector('#rpCtx').value, names: m.querySelector('#rpNames').checked});
+    m.querySelector('#rpOut').value = t; m.querySelector('#rpMeta').textContent = `${t.length.toLocaleString()} characters`; return t; };
+  ['#rpTotal', '#rpPer', '#rpCtx', '#rpNames'].forEach(s => { m.querySelector(s).oninput = draw; m.querySelector(s).onchange = draw; });
+  draw();
+  m.querySelector('#rpCopy').onclick = async () => { const t = draw(); try { await navigator.clipboard.writeText(t); toast('Copied. Paste it into your AI.'); } catch(e){ m.querySelector('#rpOut').select(); toast('Select all and copy.'); } };
+  m.querySelector('#rpDl').onclick = () => { const t = draw(), a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], {type: 'text/markdown'})); a.download = 'rescue-questions-prompt.md'; document.body.appendChild(a); a.click(); a.remove(); };
+  m.querySelector('#rpNext').onclick = () => { m.remove(); rescueImportDialog(); };
+}
+
+/* ---------- reading what came back ---------- */
+function rescueParseBank(raw){
+  let t = String(raw || '').trim(); if(!t) return {error: 'Nothing was pasted.'};
+  t = t.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
+  const a = t.indexOf('{'), z = t.lastIndexOf('}'), b0 = t.indexOf('['), b1 = t.lastIndexOf(']');
+  let obj = null;
+  try { obj = JSON.parse(t); } catch(e){
+    try { obj = JSON.parse(a >= 0 && z > a && (b0 < 0 || a < b0) ? t.slice(a, z + 1) : t.slice(b0, b1 + 1)); } catch(e2){ return {error: 'That is not valid JSON. Ask the AI to return only the JSON object.'}; } }
+  const list = Array.isArray(obj) ? obj : Array.isArray(obj && obj.questions) ? obj.questions : null;
+  if(!list) return {error: 'No "questions" list was found.'};
+  const known = new Set(RESCUE_SCENARIOS.map(x => x.id)), warn = [], ok = [];
+  const existing = new Set(rescueBankAll().map(q => String(q.text).toLowerCase().replace(/\W+/g, ' ').trim()));
+  const ids = new Set(); const seenText = new Set();
+  list.forEach((q, i) => {
+    const at = `#${i + 1}`;
+    if(!q || typeof q !== 'object'){ warn.push(`${at}: not an object`); return; }
+    const text = String(q.text || '').trim().replace(/\s+/g, ' ');
+    if(text.length < 12){ warn.push(`${at}: no real question text`); return; }
+    if(text.length > 400){ warn.push(`${at}: too long (${text.length} chars)`); return; }
+    const norm = text.toLowerCase().replace(/\W+/g, ' ').trim();
+    if(existing.has(norm) || seenText.has(norm)){ warn.push(`${at}: already in the bank`); return; }
+    const sc = (Array.isArray(q.scenarios) ? q.scenarios : [q.scenarios]).map(x => String(x || '').trim()).filter(Boolean);
+    const good = sc.filter(x => known.has(x)); if(sc.length !== good.length) warn.push(`${at}: unknown scenario ${sc.filter(x => !known.has(x)).join(', ')} dropped`);
+    if(!good.length){ warn.push(`${at}: no known scenario`); return; }
+    let id = String(q.id || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48) || ('q' + (i + 1));
+    while(ids.has(id)) id += '-x'; ids.add(id); seenText.add(norm);
+    const pickOne = (v, list, d) => list.includes(v) ? v : d;
+    ok.push({qid: id, text, scenarios: good.slice(0, 3), triggers: (Array.isArray(q.triggers) ? q.triggers : []).map(x => String(x).toLowerCase().trim()).filter(x => x && x.length <= 40).slice(0, 8),
+      stage: pickOne(q.stage, RS_STAGES, 'explore'), depth: Math.min(3, Math.max(1, Math.round(+q.depth || 1))), kind: pickOne(q.kind, RS_KINDS, 'open'),
+      horizon: pickOne(q.horizon, ['now', 'tonight', 'week', 'later', 'always', 'any'], 'any'), tone: pickOne(q.tone, RS_TONES, 'plain'),
+      followups: (Array.isArray(q.followups) ? q.followups : []).map(x => String(x).toLowerCase().replace(/[^a-z0-9_-]+/g, '-')).slice(0, 4),
+      use_when: String(q.use_when || '').slice(0, 160), avoid_when: String(q.avoid_when || '').slice(0, 160),
+      suggest_exit: [...RESCUE_EXITS.map(x => x.id), 'none'].includes(q.suggest_exit) ? q.suggest_exit : 'none',
+      time_of_day: (Array.isArray(q.time_of_day) && q.time_of_day.length ? q.time_of_day : ['any']).filter(x => ['any', 'morning', 'afternoon', 'evening', 'night'].includes(x)).concat([]).slice(0, 4)});
+  });
+  ok.forEach(q => { if(!q.time_of_day.length) q.time_of_day = ['any']; });
+  return {ok, warn, total: list.length};
+}
+function rescueImportDialog(){
+  const m = openModal(`<h2>Paste what the AI wrote</h2>
+    <p class="muted" style="font-size:.88rem">The JSON it returned. It is checked before anything is added; duplicates and anything unreadable are left out and listed. Paste several replies one after another — each is its own batch.</p>
+    <textarea class="ta mono" id="riIn" style="min-height:220px;font-size:.78rem" placeholder='{"format":"${RS_BANK_FORMAT}","version":1,"questions":[ … ]}'></textarea>
+    <input class="inp" id="riLabel" placeholder="a name for this batch (optional)" style="margin-top:8px">
+    <div id="riRep" class="faint sm" style="margin-top:8px"></div>
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn ghost" id="riCheck">Check</button><button class="btn primary" id="riGo" disabled>Add them</button></div>`, 'wide');
+  let parsed = null;
+  const check = () => { parsed = rescueParseBank(m.querySelector('#riIn').value); const rep = m.querySelector('#riRep'), go = m.querySelector('#riGo');
+    if(parsed.error){ rep.innerHTML = `<span style="color:var(--rose)">${esc(parsed.error)}</span>`; go.disabled = true; return; }
+    const by = {}; parsed.ok.forEach(q => q.scenarios.forEach(s => { by[s] = (by[s] || 0) + 1; }));
+    rep.innerHTML = `<b>${parsed.ok.length}</b> of ${parsed.total} are good to add. ${Object.entries(by).map(([k, n]) => `${esc((RESCUE_SCENARIOS.find(x => x.id === k) || {}).name || k)} ${n}`).join(' · ')}
+      ${parsed.total - parsed.ok.length ? ` ${parsed.total - parsed.ok.length} left out.` : ''}
+      ${parsed.warn.length ? `<details style="margin-top:6px"><summary>${parsed.warn.length} note${parsed.warn.length === 1 ? '' : 's'}</summary><div class="mono" style="font-size:.74rem">${parsed.warn.slice(0, 60).map(esc).join('<br>')}</div></details>` : ''}`;
+    go.disabled = !parsed.ok.length; };
+  m.querySelector('#riCheck').onclick = check; m.querySelector('#riIn').oninput = () => { m.querySelector('#riGo').disabled = true; };
+  m.querySelector('#riGo').onclick = () => { if(!parsed || !parsed.ok) return; const r = rescueAddBatch(parsed.ok, m.querySelector('#riLabel').value.trim()); m.remove(); toast(`Added ${r.n} questions.`, 6000); rescueBankDialog(); };
+}
+function rescueAddBatch(list, label){
+  const batch = uid(), at = new Date().toISOString(), lab = label || ('import ' + fmtDate(today(), 'short'));
+  const rows = list.map(q => Object.assign({}, q, {id: batch + ':' + q.qid, batch, batchLabel: lab, at, source: 'import', enabled: true}));
+  /* a question's follow-ups name other imported ids; they are re-pointed at this batch's rows */
+  rows.forEach(r => { r.followups = (r.followups || []).map(f => batch + ':' + f); });
+  rescueBankRows().push(...rows); saveNow();
+  return {n: rows.length, batch};
+}
+
+/* ---------- Settings ---------- */
+function rescueSettingsHTML(){
+  const on = (S.settings || {}).rescueWhispers !== false;
+  return `<div class="card rv" id="rescueCard"><h3>Overwhelm rescue space</h3>
+    <div class="opt"><div><b>A line that leans in</b><div class="d">Once in a while a short, gentle line fades in at the edge of the page \u2014 chosen by what the page is about, from the starters and from the lines you have kept. Never twice running, never a command, gone after a few seconds.</div></div>
+      <label class="toggle ${on ? 'on' : ''}" id="sRescueW"><span class="sw"></span></label></div>
+    <div class="opt"><div><b>The question bank</b><div class="d">${rescueBankAll().length} questions (${RESCUE_STARTER.length} that ship with the house). Have a stronger AI write many more ahead of time from a prompt built from this house, and paste them in.</div></div>
+      <button class="btn sm" id="sRescueBank">Open the bank</button></div></div>`;
+}
+function bindRescueSettings(root){
+  const w = (root || document).querySelector('#sRescueW'); if(w) w.onclick = () => { S.settings.rescueWhispers = !(S.settings.rescueWhispers !== false); w.classList.toggle('on', S.settings.rescueWhispers !== false); saveNow(); };
+  const b = (root || document).querySelector('#sRescueBank'); if(b) b.onclick = () => rescueBankDialog();
+}
+/* ============================================================
    SCORE STUDY — the model. The analysis layer of the Repertoire room.
 
    It reads the score rows the room already has (S.scores, x.musicXml) and
@@ -129284,7 +130631,8 @@ const SYNC_UNIT_NAMES = {
   timeEntries:'tracked time', scores:'scores', tasks:'tasks', projects:'projects',
   people:'people', skills:'skills', entries:'journal entries', nods:'nods',
   habits:'habits', visions:'visions', values:'values', ideas:'ideas',
-  txns:'transactions', events:'events', interactions:'interactions'};
+  txns:'transactions', events:'events', interactions:'interactions',
+  rescueSheets:'overwhelm rescue pages', rescueBank:'coach questions'};
 function syncUnitName(k){
   if(k.indexOf('meta:') === 0) return SYNC_UNIT_NAMES[k.slice(5)] || k.slice(5);
   return SYNC_UNIT_NAMES[k] || k;
@@ -135619,9 +136967,9 @@ async function removeTutorial(){
 /* ============================================================
    11. GLOBAL ADD ENTRY MODAL
    ============================================================ */
-function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', occurredAt='', allowedTypes=null, heading='', openLinks=false, focusPeople=false}={}){
+function openEntryModal({type='reflection', links={}, entryId=null, after=null, title='', body='', occurredAt='', allowedTypes=null, heading='', openLinks=false, focusPeople=false}={}){
   const existing = entryId ? byId(S.entries, entryId) : null;
-  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:'',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
+  const e = existing ? JSON.parse(JSON.stringify(existing)) : {id:uid(),type,title,body:body || '',occurredAt:occurredAt||today(),createdAt:new Date().toISOString(),media:[],links:Object.assign({stages:[],substages:[],threads:[],values:[],visions:[],skills:[],projects:[],people:[]}, links),people:[],places:[],emotions:[],tags:[],confidence:'',extra:{}};
   const types = (allowedTypes && !existing) ? ENTRY_TYPES.filter(([t]) => allowedTypes.includes(t)) : ENTRY_TYPES;
   /* Writing something down is not filing a record. Every kind of entry opens
      on a painting of its own, in the same brush the rooms are drawn with, so a

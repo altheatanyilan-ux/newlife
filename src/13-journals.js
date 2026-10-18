@@ -75,10 +75,12 @@ function todayReviewRender(box){
     ${typeof planStatsHTML === 'function' ? `<section class="section rv rv-stats" id="rvStats">
       <span class="sc">Tasks and focus</span>${planStatsHTML()}</section>` : ''}
     ${typeof reviewListHTML === 'function' ? reviewListHTML() : ''}
+    ${typeof rescueReviewHTML === 'function' ? rescueReviewHTML() : ''}
     ${typeof dayArchiveHTML === 'function' ? dayArchiveHTML() : ''}</div>`;
   if(typeof bindCompassBody === 'function') bindCompassBody(box, () => rerender());
   if(typeof bindMuseCard === 'function') bindMuseCard(box);
   if(typeof bindReviewList === 'function') bindReviewList(box);
+  if(typeof bindRescueReview === 'function') bindRescueReview(box);
   if(typeof bindDayArchive === 'function') bindDayArchive(box);
 }
 routes.journals = function(root, params){

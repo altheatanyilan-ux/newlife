@@ -214,7 +214,8 @@ const SYNC_UNIT_NAMES = {
   timeEntries:'tracked time', scores:'scores', tasks:'tasks', projects:'projects',
   people:'people', skills:'skills', entries:'journal entries', nods:'nods',
   habits:'habits', visions:'visions', values:'values', ideas:'ideas',
-  txns:'transactions', events:'events', interactions:'interactions'};
+  txns:'transactions', events:'events', interactions:'interactions',
+  rescueSheets:'overwhelm rescue pages', rescueBank:'coach questions'};
 function syncUnitName(k){
   if(k.indexOf('meta:') === 0) return SYNC_UNIT_NAMES[k.slice(5)] || k.slice(5);
   return SYNC_UNIT_NAMES[k] || k;
