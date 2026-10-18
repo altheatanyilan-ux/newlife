@@ -40,7 +40,8 @@ routes.rescue = function(root, params){
   rescueTickClock(root);
   _rs.timers.push(setInterval(() => rescueTickClock(root), 20000));
   rescueWhisperLater(root, 40000);
-  if(typeof rescueReadyShow === 'function'){ rescueReadyShow(root); rescueCareLater(root, (24 + Math.random() * 8) * 60000); }
+  const gated = typeof rescueGateInit === 'function' && rescueGateInit(root);
+  if(typeof rescueReadyShow === 'function'){ if(!gated){ _rs.gateReadyDone = true; rescueReadyShow(root); } rescueCareLater(root, (24 + Math.random() * 8) * 60000); }
   const first = root.querySelector('.rs-hint'); if(first && !rescueLive(s).length) first.hidden = false;
   if(!rescueLive(s).length) { const c = root.querySelector('#rsCanvas'); if(c) c.focus(); }
 };
@@ -64,6 +65,7 @@ function rescuePageHTML(s){
       <input class="rs-title" id="rsTitle" value="${esc(s.title || '')}" placeholder="${esc(s._virtual ? 'a page to think' : rescueTitle(s))}" aria-label="the page's name" ${s._virtual ? 'disabled' : ''}>
       <span class="rs-clock mono faint" id="rsClock"></span>
       <span class="grow"></span>
+      <button class="tbtn" data-rs="gate" title="name the one thing this page must not replace">The one thing</button>
       <button class="tbtn" data-rs="ready" title="small things the room can do for you before a hard hour">Ready the room</button>
       <button class="tbtn" data-rs="tonight" id="rsTonightBtn" hidden title="what the sleep and time records say about tonight, in plain words">Tonight, from my records</button>
       <button class="tbtn" data-rs="coach" title="a question to answer on the page">Ask me something</button>
@@ -337,6 +339,7 @@ function rescueBindPage(root){
     else if(a === 'coach') rescueCoachOpen(root);
     else if(a === 'tonight') rescueTonightFrame(root);
     else if(a === 'ready') rescueReadyShow(root, true);
+    else if(a === 'gate' && typeof rescueGateScreen === 'function'){ const g = _rs.sheet.gate; rescueGateScreen(root, g && g.pick ? 'shrink' : 'pick', {keep: !!(g && g.step)}); }
   });
   const railBtn = root.querySelector('[data-rs="rail"]'); if(railBtn && !rescueQ('#rsRail', root).hidden) railBtn.classList.add('on');
   document.addEventListener('mousedown', rescueOutside, true);
@@ -509,6 +512,7 @@ function rescueLand(root){
   const sleep = (s.boxes || []).some(b => /\b(sleep|stay up|tired|late)\b/i.test(b.text || ''));
   const m = openModal(`<h2>Land it</h2>
     <p class="muted" style="font-size:.9rem">A page does not have to be finished to be put down. Three small things, and you are out.</p>
+    ${typeof rescueGateLandHTML === 'function' ? rescueGateLandHTML(s) : ''}
     <div class="stack">
       <label class="pd-q"><span class="k">One thing decided for tonight</span>
         <textarea class="ta" id="rlDecide" style="min-height:56px" placeholder="e.g. sleep by 11:30; the abstract is the first thing tomorrow">${esc(s.landing && s.landing.decide || '')}</textarea></label>
@@ -524,7 +528,9 @@ function rescueLand(root){
     <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn ghost" id="rlNo">Not yet</button><button class="btn primary" id="rlGo">Land</button></div>`, 'narrow');
   m.querySelectorAll('[data-pickd]').forEach(b => b.onclick = () => { const x = rescueBoxOf(b.dataset.pickd); if(x) m.querySelector('#rlDecide').value = x.text; });
   m.querySelector('#rlNo').onclick = () => m.remove();
+  if(typeof rescueGateLandBind === 'function') rescueGateLandBind(m, s, root);
   m.querySelector('#rlGo').onclick = () => {
+    if(typeof rescueGateLandCheck === 'function' && !rescueGateLandCheck(m, s)) return;
     const nextText = m.querySelector('#rlNext').value.trim();
     const t = nextText ? commitQuickTask(nextText, {listId: 'inbox'}) : null;
     s.landing = {at: new Date().toISOString(), decide: m.querySelector('#rlDecide').value.trim(), next: nextText, nextTaskId: t ? t.id : null,
@@ -561,7 +567,7 @@ function rescueReviewHTML(){
   return `<section class="section rv rs-review"><div class="row between" style="align-items:baseline"><span class="sc" style="margin:0">Overwhelm rescue pages</span>
       <span class="mono faint">${n} page${n === 1 ? '' : 's'}, kept</span></div>
     <div class="rs-rv-list">${keys.slice(0, 40).map(k => days[k].map(s => `<button class="rs-rv-row" data-rsopen="${s.id}"><span class="mono">${esc(fmtDate(k, 'med'))}</span>
-      <b>${esc(rescueTitle(s))}</b><span class="faint">${rescueLive(s).length} thing${rescueLive(s).length === 1 ? '' : 's'}${s.landing ? ' · landed' + (s.landing.decide ? ': ' + esc(s.landing.decide.slice(0, 60)) : '') : ''}</span></button>`).join('')).join('')}</div>
+      <b>${esc(rescueTitle(s))}</b><span class="faint">${rescueLive(s).length} thing${rescueLive(s).length === 1 ? '' : 's'}${s.landing ? ' · landed' + (s.landing.decide ? ': ' + esc(s.landing.decide.slice(0, 60)) : '') : ''}${typeof rescueGateReviewBit === 'function' ? rescueGateReviewBit(s) : ''}</span></button>`).join('')).join('')}</div>
     ${keys.length > 40 ? '<p class="faint sm">Older pages are in Pages, inside the rescue space.</p>' : ''}</section>`;
 }
 function bindRescueReview(box){ box.querySelectorAll('[data-rsopen]').forEach(b => b.onclick = () => navigate('#/rescue/' + b.dataset.rsopen)); }

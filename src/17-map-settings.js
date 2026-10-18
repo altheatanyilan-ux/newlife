@@ -123,6 +123,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
     ${typeof rescueSettingsHTML === 'function' ? rescueSettingsHTML() : ''}
+    ${typeof rescueGateSettingsHTML === 'function' ? rescueGateSettingsHTML() : ''}
     ${typeof cloudSectionHTML === 'function' ? cloudSectionHTML() : ''}
     ${syncSectionHTML()}
     <div class="card rv"><h3>About</h3><div class="prose muted" style="font-size:.9rem">
@@ -262,6 +263,7 @@ routes.settings = function(root){
   bindSyncSection(document);
   if(typeof bindCloudSection === 'function') bindCloudSection(document);
   if(typeof bindRescueSettings === 'function') bindRescueSettings(document);
+  if(typeof bindRescueGateSettings === 'function') bindRescueGateSettings(document);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
   $('#sRestoreInfo').onclick = showRecoveryInfo;
