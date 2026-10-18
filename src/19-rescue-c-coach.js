@@ -185,6 +185,14 @@ function rescueAskOnPage(root, o = {}, replaceBox = null){
 function rescueCoachAct(root, b, act){
   if(!b || !_rs) return;
   const s = _rs.sheet, was = b.q && b.q.id;
+  /* taking the box away: nothing replaces it. What was written in it goes with it, and comes back with the undo. */
+  if(act === 'remove'){
+    const i = s.boxes.indexOf(b); if(i < 0) return;
+    s.boxes.splice(i, 1); rescueTouch(s); rescuePaintAll(root);
+    const h = root.querySelector('.rs-hint'); if(h && !rescueLive(s).length) h.hidden = false;
+    toast('Question removed.', 7000, {label: 'undo', fn: () => { s.boxes.splice(Math.min(i, s.boxes.length), 0, b); rescueTouch(s); if(_rs && _rs.sheet === s) rescuePaintAll(root); }});
+    return;
+  }
   s.coach = s.coach || {asked: [], skipped: []};
   if(act === 'skip'){ const c = rescueCoachState(); if(was) c.skip.push(was); }
   if(was && (act === 'another' || act === 'skip')) s.coach.skipped.push(was);

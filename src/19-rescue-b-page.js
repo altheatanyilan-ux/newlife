@@ -79,7 +79,7 @@ function rescuePageHTML(s){
           <div class="rs-hint" hidden><p class="serif">Click anywhere and write.</p><p class="faint">Don’t sort it. Keywords are enough. Afterwards, select what you want to do something with.</p></div>
         </div>
       </div>
-      <aside class="rs-rail" id="rsRail" ${(S.settings || {}).rescueRail ? '' : 'hidden'} aria-label="what is on my plate"></aside>
+      <aside class="rs-rail" id="rsRail" ${(S.settings || {}).rescueRail ? '' : 'hidden'} aria-label="what is on my plate" style="width:${Math.min(640, Math.max(200, +(S.settings || {}).rescueRailW || 300))}px"><span class="rs-rail-grip" title="drag to change the width \u00b7 double-click to reset" aria-hidden="true"></span><div class="rs-rail-in" id="rsRailIn"></div></aside>
     </div>
     <div class="rs-note" id="rsNote" hidden></div>
     <div class="rs-whisper" id="rsWhisper" aria-live="polite"></div>
@@ -99,8 +99,9 @@ function rescueBoxEl(b){
     ${b.kind === 'question' ? `<div class="rs-q"><span class="mono">a question for you</span><p>${esc((b.q && b.q.text) || '')}</p><div class="rs-qwhy faint"></div></div>` : ''}
     <textarea class="rs-ta" rows="1" spellcheck="false" placeholder="${b.kind === 'question' ? 'your answer…' : ''}" aria-label="${b.kind === 'question' ? 'your answer' : 'a thought'}"></textarea>
     <button class="rs-more" title="what to do with this (or select some words)" aria-label="what to do with this">⋯</button>
+    <span class="rs-size" title="drag to resize · double-click to let it fit its words again" aria-hidden="true"></span>
     <div class="rs-hz"></div><div class="rs-marks"></div><div class="rs-refs"></div>
-    ${b.kind === 'question' ? '<div class="rs-qacts"><button class="tbtn" data-rsq="another">another</button><button class="tbtn" data-rsq="deeper">go deeper</button><button class="tbtn" data-rsq="skip">not this one</button></div>' : ''}`;
+    ${b.kind === 'question' ? '<div class="rs-qacts"><button class="tbtn" data-rsq="another">another</button><button class="tbtn" data-rsq="deeper">go deeper</button><button class="tbtn" data-rsq="skip">not this one</button><button class="tbtn" data-rsq="remove" title="take this question box off the page">remove</button></div>' : ''}`;
   const ta = d.querySelector('.rs-ta');
   ta.value = b.text || '';
   ta.style.fontFamily = f.css; ta.style.fontSize = f.size + 'rem'; ta.style.fontStyle = f.style;
@@ -109,13 +110,21 @@ function rescueBoxEl(b){
 /* the box is as wide as its longest line (within reason) and as tall as its words */
 let _rsMeasure = null;
 function rescueFit(ta){
+  const el = ta.closest('.rs-box'), b = el && rescueBoxOf(el.dataset.rsb), q = el && el.classList.contains('q');
+  /* a size you drew is kept; until then the box fits its words (as wide as its longest line, within reason) */
+  if(b && b.w){
+    el.style.width = b.w + 'px'; el.style.maxWidth = 'none'; ta.style.width = '100%';
+    if(b.h){ ta.style.height = b.h + 'px'; ta.style.overflowY = 'auto'; } else { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.style.overflowY = 'hidden'; }
+    return;
+  }
+  if(el){ el.style.width = ''; el.style.maxWidth = ''; }
   if(!_rsMeasure){ _rsMeasure = document.createElement('div'); _rsMeasure.className = 'rs-measure'; document.body.appendChild(_rsMeasure); }
   const cs = getComputedStyle(ta), m = _rsMeasure;
   m.style.font = cs.font; m.style.fontStyle = cs.fontStyle; m.style.fontFamily = cs.fontFamily; m.style.fontSize = cs.fontSize;
   const lines = (ta.value || ta.placeholder || ' ').split('\n');
   let w = 0; lines.forEach(l => { m.textContent = l || ' '; w = Math.max(w, m.getBoundingClientRect().width); });
-  ta.style.width = Math.min(440, Math.max(ta.closest('.rs-box').classList.contains('q') ? 260 : 96, Math.ceil(w) + 26)) + 'px';
-  ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
+  ta.style.width = Math.min(440, Math.max(q ? 260 : 96, Math.ceil(w) + 26)) + 'px';
+  if(b && b.h){ ta.style.height = b.h + 'px'; ta.style.overflowY = 'auto'; } else { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.style.overflowY = 'hidden'; }
 }
 function rescueMarksHTML(b){
   return (b.exits || []).map(x => `<span class="rs-mark" title="${esc(x.snippet || '')}">→ ${esc(x.label)}</span>`).join('');
@@ -247,6 +256,34 @@ function rescueBindPage(root){
       rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); };
     grip.addEventListener('pointermove', mv); grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up);
   });
+  /* resizing a box by its corner: its width and the height of its writing area, kept on the box */
+  canvas.addEventListener('pointerdown', ev => {
+    const h = ev.target.closest('.rs-size'), el = h && h.closest('.rs-box'); if(!h || ev.button !== 0) return;
+    const b = rescueBoxOf(el.dataset.rsb), ta = el.querySelector('.rs-ta'); if(!b) return;
+    ev.preventDefault(); ev.stopPropagation(); h.setPointerCapture(ev.pointerId); el.classList.add('resizing');
+    const w0 = el.offsetWidth, h0 = ta.offsetHeight, x0 = ev.clientX, y0 = ev.clientY, minW = el.classList.contains('q') ? 220 : 110;
+    const mv = e => { b.w = Math.max(minW, Math.round(w0 + e.clientX - x0)); b.h = Math.max(30, Math.round(h0 + e.clientY - y0)); rescueFit(ta); rescueStrings(root); };
+    const up = () => { h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+      el.classList.remove('resizing'); rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); };
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  });
+  canvas.addEventListener('dblclick', ev => {
+    const h = ev.target.closest('.rs-size'); if(!h) return; const el = h.closest('.rs-box'), b = rescueBoxOf(el.dataset.rsb); if(!b) return;
+    delete b.w; delete b.h; const ta = el.querySelector('.rs-ta'); ta.style.height = ''; ta.style.width = ''; rescueFit(ta); rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); });
+  /* the plate's width is yours: drag its left edge; double-click puts it back */
+  const rail = rescueQ('#rsRail', root);
+  if(rail){
+    rail.addEventListener('pointerdown', ev => {
+      const g = ev.target.closest('.rs-rail-grip'); if(!g || ev.button !== 0) return;
+      ev.preventDefault(); g.setPointerCapture(ev.pointerId); rail.classList.add('resizing');
+      const x0 = ev.clientX, w0 = rail.offsetWidth;
+      const mv = e => { rail.style.width = Math.min(Math.max(200, innerWidth - 360), Math.max(200, Math.round(w0 - (e.clientX - x0)))) + 'px'; };
+      const up = () => { g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up);
+        rail.classList.remove('resizing'); S.settings.rescueRailW = rail.offsetWidth; save(); };
+      g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+    });
+    rail.addEventListener('dblclick', ev => { if(!ev.target.closest('.rs-rail-grip')) return; rail.style.width = '300px'; S.settings.rescueRailW = 300; save(); });
+  }
   /* the header */
   const title = rescueQ('#rsTitle', root);
   title.onchange = () => { _rs.sheet.title = title.value.trim(); rescueTouch(_rs.sheet); };
@@ -410,7 +447,8 @@ function rescueExitStep(ctx, id){
 
 /* ---------- what is on my plate ---------- */
 function rescueRailPaint(root){
-  const r = rescueQ('#rsRail', root || document); if(!r || r.hidden) return;
+  const rail = rescueQ('#rsRail', root || document); if(!rail || rail.hidden) return;
+  const r = rail.querySelector('#rsRailIn') || rail;
   const p = rescuePlate(), cap = p.capacity;
   r.innerHTML = `<div class="rs-rail-h"><span class="sc" style="margin:0">On my plate</span><span class="faint sm">press one to bring it onto the page</span></div>
     ${cap ? `<div class="rs-cap${cap.over ? ' over' : ''}"><b class="mono">${cap.tasks}</b> thing${cap.tasks === 1 ? '' : 's'} on today · ${cap.mins ? (typeof pbdSay === 'function' ? pbdSay(cap.mins) : cap.mins + 'm') : 'no estimates'} of about ${cap.hrs}h${cap.over ? ' — more than the day holds' : ''}</div>` : ''}

@@ -66,8 +66,43 @@ const yes = (n, c, g = '') => c ? console.log('  ok   ' + n) : (bad++, console.l
   await sel('Mira reply'); await menu(); await p.click('.rs-m-b[data-x="letgo"]'); await p.waitForTimeout(400);
   yes('let go fades the box from the page, and keeps it in the record', await p.evaluate(() => { const b = S.rescueSheets[0].boxes.find(x => /Mira reply/.test(x.text)); return b.fate === 'letgo' && [...document.querySelectorAll('.rs-box')].find(e => /Mira reply/.test(e.querySelector('.rs-ta').value)).classList.contains('gone'); }));
 
+  console.log('\n3b. boxes and the plate can be resized');
+  const geo = async () => p.evaluate(() => { const el = [...document.querySelectorAll('.rs-box')].find(e => /Thesis viva prep/.test(e.querySelector('.rs-ta').value)); const r = el.getBoundingClientRect(), h = el.querySelector('.rs-size').getBoundingClientRect(); return {w: r.width, hh: el.querySelector('.rs-ta').offsetHeight, hx: h.left + h.width / 2, hy: h.top + h.height / 2}; });
+  await p.evaluate(() => { const el = [...document.querySelectorAll('.rs-box')].find(e => /Thesis viva prep/.test(e.querySelector('.rs-ta').value)); el.scrollIntoView({block: 'center'}); el.dispatchEvent(new MouseEvent('mouseover', {bubbles: true})); el.querySelector('.rs-ta').focus(); });
+  let g0 = await geo();
+  await p.mouse.move(g0.hx, g0.hy); await p.mouse.down(); await p.mouse.move(g0.hx + 120, g0.hy + 60, {steps: 5}); await p.mouse.up(); await p.waitForTimeout(300);
+  const g1 = await geo();
+  yes('dragging the corner makes the box wider and taller', g1.w > g0.w + 90 && g1.hh > g0.hh + 40, [g0, g1]);
+  yes('the size is kept on the box', await p.evaluate(() => { const b = S.rescueSheets[0].boxes.find(x => /viva/.test(x.text)); return b.w > 0 && b.h > 0; }));
+  await p.evaluate(() => { location.hash = '#/rescue/' + S.rescueSheets[0].id; }); await p.waitForTimeout(900);
+  yes('and it is the same after the page is opened again', await p.evaluate(g => { const el = [...document.querySelectorAll('.rs-box')].find(e => /Thesis viva prep/.test(e.querySelector('.rs-ta').value)); return Math.abs(el.getBoundingClientRect().width - g) < 4; }, g1.w));
+  await p.evaluate(() => { const el = [...document.querySelectorAll('.rs-box')].find(e => /Thesis viva prep/.test(e.querySelector('.rs-ta').value)); const h = el.querySelector('.rs-size'); h.dispatchEvent(new MouseEvent('dblclick', {bubbles: true})); });
+  await p.waitForTimeout(200);
+  yes('double-clicking the corner lets it fit its words again', await p.evaluate(() => { const b = S.rescueSheets[0].boxes.find(x => /viva/.test(x.text)); return b.w === undefined && b.h === undefined; }));
+  /* a question box can be resized too */
+  await p.evaluate(() => rescueAskOnPage(document, {scenario: 'stuck'})); await p.waitForTimeout(500);
+  const qg = await p.evaluate(() => { const el = document.querySelector('.rs-box.q'); el.scrollIntoView({block: 'center'}); const r = el.getBoundingClientRect(), h = el.querySelector('.rs-size').getBoundingClientRect(); return {w: r.width, hx: h.left + h.width / 2, hy: h.top + h.height / 2}; });
+  await p.mouse.move(qg.hx, qg.hy); await p.mouse.down(); await p.mouse.move(qg.hx + 100, qg.hy + 30, {steps: 4}); await p.mouse.up(); await p.waitForTimeout(300);
+  yes('the question box widens', await p.evaluate(w => document.querySelector('.rs-box.q').getBoundingClientRect().width > w + 70, qg.w));
+  await p.evaluate(() => { document.querySelector('[data-rs="rail"]').click(); }); await p.waitForTimeout(300);
+  await p.evaluate(() => { S.tasks.push(newPlanTask('prepare the long and thoroughly detailed written submission for the committee review panel on Friday', today(), {})); saveNow(); rescueRailPaint(document); });
+  const rl = await p.evaluate(() => { const sp = [...document.querySelectorAll('.rs-ri span')].find(x => /committee review panel/.test(x.textContent)); const r = document.querySelector('#rsRail'); return sp && {wraps: sp.getBoundingClientRect().height > 24, fits: sp.scrollWidth <= sp.clientWidth + 1, w: r.offsetWidth}; });
+  yes('a long task wraps in the plate and is read in full', rl && rl.wraps && rl.fits, rl);
+  const gr = await p.evaluate(() => { const g = document.querySelector('.rs-rail-grip').getBoundingClientRect(); return {x: g.left + g.width / 2, y: g.top + g.height / 2}; });
+  await p.mouse.move(gr.x, gr.y); await p.mouse.down(); await p.mouse.move(gr.x - 140, gr.y, {steps: 5}); await p.mouse.up(); await p.waitForTimeout(300);
+  const rw = await p.evaluate(() => ({w: document.querySelector('#rsRail').offsetWidth, saved: S.settings.rescueRailW}));
+  yes('dragging its left edge widens the plate, and the width is kept', rw.w > rl.w + 100 && rw.saved === rw.w, [rl.w, rw]);
+
+  console.log('\n3c. a question box can be taken off the page');
+  const nq = await p.evaluate(() => S.rescueSheets[0].boxes.filter(b => b.kind === 'question').length);
+  await p.evaluate(() => { document.querySelector('.rs-box.q [data-rsq="remove"]').click(); }); await p.waitForTimeout(400);
+  yes('"remove" takes the question box away, with nothing put in its place', await p.evaluate(n => S.rescueSheets[0].boxes.filter(b => b.kind === 'question').length === n - 1 && !document.querySelector('.rs-box.q'), nq));
+  await p.evaluate(() => { const a = [...document.querySelectorAll('.toast')].filter(t => /Question removed/.test(t.textContent)).map(t => t.querySelector('.toast-act')).filter(Boolean); a.length && a[a.length - 1].click(); }); await p.waitForTimeout(400);
+  yes('and the undo brings it back', await p.evaluate(n => document.querySelectorAll('.rs-box.q').length === 1 && S.rescueSheets[0].boxes.filter(b => b.kind === 'question').length === n, nq));
+  await p.evaluate(() => { document.querySelector('.rs-box.q [data-rsq="remove"]').click(); }); await p.waitForTimeout(300);
+
   console.log('\n4. the plate, landing, the Review, the morning after');
-  await p.click('[data-rs="rail"]'); await p.waitForTimeout(400);
+  await p.evaluate(() => { if(document.querySelector('#rsRail').hidden) document.querySelector('[data-rs="rail"]').click(); }); await p.waitForTimeout(400);
   yes('the plate lists what is live and brings one onto the page', await p.evaluate(() => !!document.querySelector('.rs-ri')) );
   const n0 = await p.evaluate(() => document.querySelectorAll('.rs-box').length); await p.click('.rs-ri'); await p.waitForTimeout(300);
   yes('pressing one makes a box with it', await p.evaluate(n => document.querySelectorAll('.rs-box').length === n + 1, n0));

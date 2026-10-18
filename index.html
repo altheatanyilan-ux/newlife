@@ -13488,14 +13488,18 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .rs-q p{margin:3px 0 6px;font-family:var(--serif);font-style:italic;font-size:1.12rem;line-height:1.4;color:var(--text)}
 .rs-qwhy{font-size:.7rem;margin-bottom:6px}.rs-qacts{display:flex;gap:4px;margin-top:6px;opacity:.75}
 .rs-box.q .rs-ta{border-top:1px dashed var(--line);padding-top:6px;font-size:1rem}
-.rs-rail{width:260px;flex:none;height:calc(100dvh - 170px);min-height:420px;overflow:auto;border:1px solid var(--line);border-radius:16px;padding:12px;background:color-mix(in srgb,var(--surface) 80%,transparent)}
+.rs-rail{position:relative;width:300px;flex:none;height:calc(100dvh - 170px);min-height:420px;overflow:visible;border:1px solid var(--line);border-radius:16px;padding:12px;background:color-mix(in srgb,var(--surface) 80%,transparent)}
 .rs-rail[hidden]{display:none}
 .rs-rail-h{display:flex;flex-direction:column;margin-bottom:8px}
 .rs-cap{font-size:.8rem;padding:6px 8px;border-radius:9px;background:color-mix(in srgb,var(--sage) 12%,transparent);margin-bottom:8px}.rs-cap.over{background:color-mix(in srgb,var(--rose) 14%,transparent)}
 .rs-rg{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}.rs-rg > .mono{font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
-.rs-ri{display:flex;justify-content:space-between;gap:8px;text-align:left;border:0;background:transparent;color:var(--text);font-size:.82rem;padding:4px 6px;border-radius:8px;cursor:pointer}
+.rs-ri{display:flex;flex-direction:column;gap:1px;align-items:flex-start;width:100%;text-align:left;border:0;background:transparent;color:var(--text);font-size:.82rem;padding:4px 6px;border-radius:8px;cursor:pointer}
 .rs-ri:hover{background:color-mix(in srgb,var(--page-accent) 10%,transparent)}
-.rs-ri span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rs-ri em{font-style:normal;color:var(--faint);font-size:.7rem;white-space:nowrap}
+.rs-ri span{white-space:normal;overflow-wrap:anywhere;line-height:1.3}.rs-ri em{font-style:normal;color:var(--faint);font-size:.7rem;white-space:normal}
+.rs-rail-in{height:100%;overflow:auto;border-radius:inherit}
+.rs-rail-grip{position:absolute;left:-6px;top:10%;bottom:10%;width:12px;cursor:ew-resize;z-index:2;touch-action:none}
+.rs-rail-grip::after{content:"";position:absolute;left:5px;top:0;bottom:0;width:2px;border-radius:2px;background:var(--line-2,var(--line));opacity:0;transition:opacity .15s}
+.rs-rail:hover .rs-rail-grip::after,.rs-rail.resizing .rs-rail-grip::after{opacity:1}.rs-rail-grip:hover::after{background:var(--page-accent)}
 .rs-note{margin-top:8px;font-size:.84rem;color:var(--muted);text-align:center}
 .rs-whisper{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;max-width:min(560px,86vw);text-align:center;pointer-events:none;opacity:0;transition:opacity 1.6s ease}
 .rs-whisper.on{opacity:1;pointer-events:auto}
@@ -13531,6 +13535,11 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .rs-frame-x{position:absolute;right:10px;top:8px;border:0;background:transparent;color:var(--muted);font-size:1.1rem;cursor:pointer}
 .rs-frame-opts{display:flex;flex-direction:column;gap:4px;margin-top:8px}.rs-frame-opts .rs-m-row{border:1px solid var(--line);line-height:1.35}
 @media (max-width:900px){.rs-frame{left:12px}}
+.rs-size{position:absolute;right:-3px;bottom:-3px;width:16px;height:16px;cursor:nwse-resize;opacity:0;touch-action:none;transition:opacity .15s;
+  background:linear-gradient(135deg,transparent 0 52%,var(--muted) 52% 58%,transparent 58% 70%,var(--muted) 70% 76%,transparent 76%)}
+.rs-box:hover .rs-size,.rs-box:focus-within .rs-size,.rs-box.resizing .rs-size{opacity:.7}.rs-size:hover{opacity:1!important}
+.rs-box.resizing{box-shadow:0 8px 24px rgba(0,0,0,.12);background:color-mix(in srgb,var(--surface) 70%,transparent);border-color:var(--line)}
+.rs-box.q .rs-q p{overflow-wrap:anywhere}
 /* ===== end the Overwhelm rescue space ===== */
 </style>
 
@@ -109730,7 +109739,7 @@ function rescuePageHTML(s){
           <div class="rs-hint" hidden><p class="serif">Click anywhere and write.</p><p class="faint">Don’t sort it. Keywords are enough. Afterwards, select what you want to do something with.</p></div>
         </div>
       </div>
-      <aside class="rs-rail" id="rsRail" ${(S.settings || {}).rescueRail ? '' : 'hidden'} aria-label="what is on my plate"></aside>
+      <aside class="rs-rail" id="rsRail" ${(S.settings || {}).rescueRail ? '' : 'hidden'} aria-label="what is on my plate" style="width:${Math.min(640, Math.max(200, +(S.settings || {}).rescueRailW || 300))}px"><span class="rs-rail-grip" title="drag to change the width \u00b7 double-click to reset" aria-hidden="true"></span><div class="rs-rail-in" id="rsRailIn"></div></aside>
     </div>
     <div class="rs-note" id="rsNote" hidden></div>
     <div class="rs-whisper" id="rsWhisper" aria-live="polite"></div>
@@ -109750,8 +109759,9 @@ function rescueBoxEl(b){
     ${b.kind === 'question' ? `<div class="rs-q"><span class="mono">a question for you</span><p>${esc((b.q && b.q.text) || '')}</p><div class="rs-qwhy faint"></div></div>` : ''}
     <textarea class="rs-ta" rows="1" spellcheck="false" placeholder="${b.kind === 'question' ? 'your answer…' : ''}" aria-label="${b.kind === 'question' ? 'your answer' : 'a thought'}"></textarea>
     <button class="rs-more" title="what to do with this (or select some words)" aria-label="what to do with this">⋯</button>
+    <span class="rs-size" title="drag to resize · double-click to let it fit its words again" aria-hidden="true"></span>
     <div class="rs-hz"></div><div class="rs-marks"></div><div class="rs-refs"></div>
-    ${b.kind === 'question' ? '<div class="rs-qacts"><button class="tbtn" data-rsq="another">another</button><button class="tbtn" data-rsq="deeper">go deeper</button><button class="tbtn" data-rsq="skip">not this one</button></div>' : ''}`;
+    ${b.kind === 'question' ? '<div class="rs-qacts"><button class="tbtn" data-rsq="another">another</button><button class="tbtn" data-rsq="deeper">go deeper</button><button class="tbtn" data-rsq="skip">not this one</button><button class="tbtn" data-rsq="remove" title="take this question box off the page">remove</button></div>' : ''}`;
   const ta = d.querySelector('.rs-ta');
   ta.value = b.text || '';
   ta.style.fontFamily = f.css; ta.style.fontSize = f.size + 'rem'; ta.style.fontStyle = f.style;
@@ -109760,13 +109770,21 @@ function rescueBoxEl(b){
 /* the box is as wide as its longest line (within reason) and as tall as its words */
 let _rsMeasure = null;
 function rescueFit(ta){
+  const el = ta.closest('.rs-box'), b = el && rescueBoxOf(el.dataset.rsb), q = el && el.classList.contains('q');
+  /* a size you drew is kept; until then the box fits its words (as wide as its longest line, within reason) */
+  if(b && b.w){
+    el.style.width = b.w + 'px'; el.style.maxWidth = 'none'; ta.style.width = '100%';
+    if(b.h){ ta.style.height = b.h + 'px'; ta.style.overflowY = 'auto'; } else { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.style.overflowY = 'hidden'; }
+    return;
+  }
+  if(el){ el.style.width = ''; el.style.maxWidth = ''; }
   if(!_rsMeasure){ _rsMeasure = document.createElement('div'); _rsMeasure.className = 'rs-measure'; document.body.appendChild(_rsMeasure); }
   const cs = getComputedStyle(ta), m = _rsMeasure;
   m.style.font = cs.font; m.style.fontStyle = cs.fontStyle; m.style.fontFamily = cs.fontFamily; m.style.fontSize = cs.fontSize;
   const lines = (ta.value || ta.placeholder || ' ').split('\n');
   let w = 0; lines.forEach(l => { m.textContent = l || ' '; w = Math.max(w, m.getBoundingClientRect().width); });
-  ta.style.width = Math.min(440, Math.max(ta.closest('.rs-box').classList.contains('q') ? 260 : 96, Math.ceil(w) + 26)) + 'px';
-  ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px';
+  ta.style.width = Math.min(440, Math.max(q ? 260 : 96, Math.ceil(w) + 26)) + 'px';
+  if(b && b.h){ ta.style.height = b.h + 'px'; ta.style.overflowY = 'auto'; } else { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.style.overflowY = 'hidden'; }
 }
 function rescueMarksHTML(b){
   return (b.exits || []).map(x => `<span class="rs-mark" title="${esc(x.snippet || '')}">→ ${esc(x.label)}</span>`).join('');
@@ -109898,6 +109916,34 @@ function rescueBindPage(root){
       rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); };
     grip.addEventListener('pointermove', mv); grip.addEventListener('pointerup', up); grip.addEventListener('pointercancel', up);
   });
+  /* resizing a box by its corner: its width and the height of its writing area, kept on the box */
+  canvas.addEventListener('pointerdown', ev => {
+    const h = ev.target.closest('.rs-size'), el = h && h.closest('.rs-box'); if(!h || ev.button !== 0) return;
+    const b = rescueBoxOf(el.dataset.rsb), ta = el.querySelector('.rs-ta'); if(!b) return;
+    ev.preventDefault(); ev.stopPropagation(); h.setPointerCapture(ev.pointerId); el.classList.add('resizing');
+    const w0 = el.offsetWidth, h0 = ta.offsetHeight, x0 = ev.clientX, y0 = ev.clientY, minW = el.classList.contains('q') ? 220 : 110;
+    const mv = e => { b.w = Math.max(minW, Math.round(w0 + e.clientX - x0)); b.h = Math.max(30, Math.round(h0 + e.clientY - y0)); rescueFit(ta); rescueStrings(root); };
+    const up = () => { h.removeEventListener('pointermove', mv); h.removeEventListener('pointerup', up); h.removeEventListener('pointercancel', up);
+      el.classList.remove('resizing'); rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); };
+    h.addEventListener('pointermove', mv); h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+  });
+  canvas.addEventListener('dblclick', ev => {
+    const h = ev.target.closest('.rs-size'); if(!h) return; const el = h.closest('.rs-box'), b = rescueBoxOf(el.dataset.rsb); if(!b) return;
+    delete b.w; delete b.h; const ta = el.querySelector('.rs-ta'); ta.style.height = ''; ta.style.width = ''; rescueFit(ta); rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root); });
+  /* the plate's width is yours: drag its left edge; double-click puts it back */
+  const rail = rescueQ('#rsRail', root);
+  if(rail){
+    rail.addEventListener('pointerdown', ev => {
+      const g = ev.target.closest('.rs-rail-grip'); if(!g || ev.button !== 0) return;
+      ev.preventDefault(); g.setPointerCapture(ev.pointerId); rail.classList.add('resizing');
+      const x0 = ev.clientX, w0 = rail.offsetWidth;
+      const mv = e => { rail.style.width = Math.min(Math.max(200, innerWidth - 360), Math.max(200, Math.round(w0 - (e.clientX - x0)))) + 'px'; };
+      const up = () => { g.removeEventListener('pointermove', mv); g.removeEventListener('pointerup', up); g.removeEventListener('pointercancel', up);
+        rail.classList.remove('resizing'); S.settings.rescueRailW = rail.offsetWidth; save(); };
+      g.addEventListener('pointermove', mv); g.addEventListener('pointerup', up); g.addEventListener('pointercancel', up);
+    });
+    rail.addEventListener('dblclick', ev => { if(!ev.target.closest('.rs-rail-grip')) return; rail.style.width = '300px'; S.settings.rescueRailW = 300; save(); });
+  }
   /* the header */
   const title = rescueQ('#rsTitle', root);
   title.onchange = () => { _rs.sheet.title = title.value.trim(); rescueTouch(_rs.sheet); };
@@ -110061,7 +110107,8 @@ function rescueExitStep(ctx, id){
 
 /* ---------- what is on my plate ---------- */
 function rescueRailPaint(root){
-  const r = rescueQ('#rsRail', root || document); if(!r || r.hidden) return;
+  const rail = rescueQ('#rsRail', root || document); if(!rail || rail.hidden) return;
+  const r = rail.querySelector('#rsRailIn') || rail;
   const p = rescuePlate(), cap = p.capacity;
   r.innerHTML = `<div class="rs-rail-h"><span class="sc" style="margin:0">On my plate</span><span class="faint sm">press one to bring it onto the page</span></div>
     ${cap ? `<div class="rs-cap${cap.over ? ' over' : ''}"><b class="mono">${cap.tasks}</b> thing${cap.tasks === 1 ? '' : 's'} on today · ${cap.mins ? (typeof pbdSay === 'function' ? pbdSay(cap.mins) : cap.mins + 'm') : 'no estimates'} of about ${cap.hrs}h${cap.over ? ' — more than the day holds' : ''}</div>` : ''}
@@ -110406,6 +110453,14 @@ function rescueAskOnPage(root, o = {}, replaceBox = null){
 function rescueCoachAct(root, b, act){
   if(!b || !_rs) return;
   const s = _rs.sheet, was = b.q && b.q.id;
+  /* taking the box away: nothing replaces it. What was written in it goes with it, and comes back with the undo. */
+  if(act === 'remove'){
+    const i = s.boxes.indexOf(b); if(i < 0) return;
+    s.boxes.splice(i, 1); rescueTouch(s); rescuePaintAll(root);
+    const h = root.querySelector('.rs-hint'); if(h && !rescueLive(s).length) h.hidden = false;
+    toast('Question removed.', 7000, {label: 'undo', fn: () => { s.boxes.splice(Math.min(i, s.boxes.length), 0, b); rescueTouch(s); if(_rs && _rs.sheet === s) rescuePaintAll(root); }});
+    return;
+  }
   s.coach = s.coach || {asked: [], skipped: []};
   if(act === 'skip'){ const c = rescueCoachState(); if(was) c.skip.push(was); }
   if(was && (act === 'another' || act === 'skip')) s.coach.skipped.push(was);
