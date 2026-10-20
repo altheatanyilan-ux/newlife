@@ -13709,6 +13709,51 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .bb-mode span{font-size:.8rem;color:var(--muted)}.bb-mode:hover{border-color:var(--muted)}.bb-mode.on{border-color:var(--terra);background:color-mix(in srgb,var(--terra) 9%,transparent)}
 .rs-canvas.gathering .rs-box{transition:left .55s cubic-bezier(.3,.9,.3,1),top .55s cubic-bezier(.3,.9,.3,1),background .15s,border-color .15s,opacity .5s}
 .pf-banner{border:1px solid var(--line);border-left:4px solid var(--gold,#d4a44c);border-radius:12px;padding:12px 16px;margin:0 0 12px;background:color-mix(in srgb,var(--gold,#d4a44c) 8%,transparent)}.pf-banner p{margin:0 0 8px;font-size:1.05rem}
+/* What I want, read every day: two opposite voices */
+.wn-sec{margin:14px 0 18px}.wn-sec-h{margin-bottom:10px;gap:10px;flex-wrap:wrap}.wn-done{color:var(--sage,#7f916a)}
+.wn-reads{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px;margin-top:10px}
+.wn-read{border:1px solid color-mix(in srgb,var(--c) 40%,var(--line));border-radius:18px;padding:18px 20px 16px;background:color-mix(in srgb,var(--surface) 88%,var(--c) 12%);display:flex;flex-direction:column;gap:12px}
+.wn-read header{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.wn-read h3{margin:0;font-size:1.45rem;font-weight:500}
+.wn-read .wn-worth{margin:0;font-size:1.02rem;font-style:italic;color:var(--muted)}
+.wn-tag{display:block;font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+/* what I want: large, warm, bold, lit */
+.wn-want{padding:12px 16px;border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--gold,#d4a44c) 26%,transparent),color-mix(in srgb,var(--c) 10%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gold,#d4a44c) 40%,transparent),0 6px 22px color-mix(in srgb,var(--gold,#d4a44c) 16%,transparent)}
+.wn-want .wn-tag{color:color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--text))}
+.wn-want ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.wn-want li{font-family:var(--serif);font-size:1.28rem;font-weight:600;line-height:1.3;color:var(--text);padding-left:1.5em;position:relative}
+.wn-want li::before{content:'✦';position:absolute;left:0;top:.05em;color:var(--gold,#d4a44c);font-size:.9em}
+.wn-give{margin:0;font-size:.86rem;color:var(--muted)}.wn-give .wn-tag{display:inline;margin:0 8px 0 0}
+/* what I don't bother with: small, cool, pale, crossed out, receding */
+.wn-let{padding:9px 14px;border-radius:12px;background:color-mix(in srgb,#6f7f99 9%,transparent);border:1px dashed color-mix(in srgb,#6f7f99 28%,transparent);filter:saturate(.35)}
+.wn-let .wn-tag{color:#7d8aa1}
+.wn-let ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.wn-let li{font-size:.84rem;font-weight:300;font-style:italic;color:color-mix(in srgb,var(--muted) 75%,transparent);display:flex;gap:10px;align-items:baseline;justify-content:space-between}
+.wn-let li s{text-decoration-thickness:1px;text-decoration-color:color-mix(in srgb,#6f7f99 70%,transparent)}.wn-let li em{font-size:.72rem;font-style:normal;opacity:.75;white-space:nowrap}
+.wn-own{margin:0;font-size:.74rem;color:var(--faint)}
+/* the slow read */
+.wn-reader{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 22px 90px;background:radial-gradient(ellipse at 50% 35%,color-mix(in srgb,var(--bg) 92%,transparent),color-mix(in srgb,var(--bg) 98%,transparent));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);cursor:default}
+.wn-rx{position:absolute;right:22px;top:18px;width:38px;height:38px;border-radius:50%;border:0;background:color-mix(in srgb,var(--surface) 80%,transparent);color:var(--muted);font-size:1.3rem;cursor:pointer}
+.wn-stage{width:min(760px,100%);max-height:100%;overflow:auto;text-align:center}
+.wn-slide{--g:var(--gold,#d4a44c)}.wn-slide h2{font-size:clamp(2rem,6vw,3.2rem);font-weight:500;margin:.1em 0 .25em}.wn-rpct{color:var(--faint);letter-spacing:.14em;text-transform:uppercase;font-size:.7rem}
+.wn-rworth{font-size:1.2rem;font-style:italic;color:var(--muted);margin:0 0 20px}
+.wn-rwlead{font-family:var(--mono);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:color-mix(in srgb,var(--g) 65%,var(--text));margin:18px 0 8px}
+.wn-rwant{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.wn-rwant li{font-family:var(--serif);font-size:clamp(1.45rem,4.2vw,2.2rem);font-weight:600;line-height:1.25;color:var(--text);text-shadow:0 0 28px color-mix(in srgb,var(--g) 45%,transparent)}
+.wn-rgive{font-size:.95rem;color:var(--muted);margin:22px 0 0}
+.wn-rlead{font-size:.82rem;letter-spacing:.08em;color:#7d8aa1;margin:30px 0 8px;font-style:italic}
+.wn-rlet{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.wn-rlet li{font-size:1rem;font-weight:300;font-style:italic;color:#7d8aa1}
+.wn-rlet s{text-decoration:none;background:linear-gradient(currentColor,currentColor) 0 56%/0% 1.5px no-repeat}
+.wn-stage.go .wn-slide [style*="--i"]{opacity:0;animation:wnIn 1.1s ease forwards;animation-delay:calc(var(--i) * 1.25s)}
+.wn-stage.go .wn-rlet li{animation:wnIn 1.1s ease forwards,wnFade 1.6s ease forwards;animation-delay:calc(var(--i) * 1.25s),calc(var(--i) * 1.25s + 1.4s)}
+.wn-stage.go .wn-rlet s{animation:wnStrike .9s ease forwards;animation-delay:calc(var(--i) * 1.25s + .9s)}
+.wn-slide-end h2{margin-top:0}
+.wn-rnav{position:absolute;bottom:26px;display:flex;align-items:center;gap:16px}.wn-rb{width:40px;height:40px;border-radius:50%;border:0;cursor:pointer;color:var(--text);background:color-mix(in srgb,var(--surface) 80%,transparent);font-size:1.3rem;box-shadow:0 6px 14px rgba(0,0,0,.1)}
+.wn-rdots{display:flex;gap:7px}.wn-rdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.wn-rdots i.past{background:color-mix(in srgb,var(--gold,#d4a44c) 60%,var(--line))}.wn-rdots i.on{width:20px;border-radius:6px;background:var(--gold,#d4a44c)}
+@keyframes wnIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes wnFade{to{opacity:.5}}
+@keyframes wnStrike{to{background-size:100% 1.5px}}
+@media (prefers-reduced-motion:reduce){.wn-stage.go .wn-slide [style*="--i"],.wn-stage.go .wn-rlet li,.wn-stage.go .wn-rlet s{animation:none;opacity:1}.wn-rlet s{background-size:100% 1.5px}}
 </style>
 
 </head>
@@ -24089,6 +24134,7 @@ routes.today = function(root, params = []){
 
     <section class="today-view" data-view="in"${view === 'in' ? '' : ' hidden'}>
     ${typeof purposeText === 'function' && purposeText('statement') ? `<a class="pp-today mono-soft serif" href="#/purpose" title="the purpose sheet">${esc(purposeText('statement'))}</a>` : ''}
+    ${typeof wantsSectionHTML === 'function' ? wantsSectionHTML() : ''}
 
     <div class="daybox daybox-solo">
 
@@ -24263,6 +24309,7 @@ routes.today = function(root, params = []){
 
   /* morning theatre */
   bindTheatre(root);
+  if(typeof bindWantsSection === 'function') bindWantsSection(root);
   /* and the stillness practice under it — without this the section drew
      perfectly and every button in it was dead */
   if(typeof bindStillness === 'function') bindStillness(root);
@@ -109879,7 +109926,8 @@ function sheetsToQuestions(){
   m.querySelector('#shqYes').onclick = () => { fresh.forEach(q => lifeEntryNew({type: 'question', title: q, body: '', tags: ['purpose'], extra: {status: 'open', answers: [], source: 'assessment'}})); saveNow(); m.remove(); sound('success'); toast(fresh.length + ' questions added.'); };
 }
 /* ============================================================
-   WHAT I WANT — the deal for each thing in my life (#/purpose/wants)
+   WHAT I WANT — the deal for each thing in my life, read every day
+   (Today → Looking inward; #/purpose/wants goes there)
 
    Most of what takes a share of a life is taken without being chosen. This is
    where each thing — a club role, a class you teach, a job, a project — is
@@ -109906,7 +109954,10 @@ function sheetsToQuestions(){
    leave is named as such, and a thought about a thing with its own time can be
    saved for it), and Today (a line on the days a thing has its time).
    ============================================================ */
-purposeTabAdd({id: 'wants', label: 'What I want', order: 45, render: (body, rest) => wantsRender(body, rest)});
+/* It lives on Today's Looking inward page now, read once a day. The old Purpose address goes there. */
+(function(){ const was = routes.purpose; routes.purpose = function(root, params){
+  if(params && params[0] === 'wants'){ if(params[1]) _wantsOpen = params[1]; _wantsEdit = !!params[1]; navigate('#/today/in'); return; }
+  return was.apply(this, arguments); }; })();
 
 const WANTS_DAYS = [[1, 'Mon'], [2, 'Tue'], [3, 'Wed'], [4, 'Thu'], [5, 'Fri'], [6, 'Sat'], [0, 'Sun']];
 const WANTS_HOW = {others: 'leave it to others', no: 'I won’t do it'};
@@ -109989,11 +110040,11 @@ function wantsKnows(ref){
   if(ref.type === 'want'){
     const t = wantsThing(ref.id); if(!t) return null;
     const slot = wantsSlotSay(t);
-    return {line: `${wantsPct(t.id)}% of my care${slot ? ' · its time: ' + slot : ' · no time of its own yet'}`, go: () => navigate('#/purpose/wants/' + t.id)};
+    return {line: `${wantsPct(t.id)}% of my care${slot ? ' · its time: ' + slot : ' · no time of its own yet'}`, go: () => wantsGo(t.id)};
   }
   if(ref.type === 'letgo'){
     const [tid, iid] = String(ref.id).split(':'), t = wantsThing(tid), i = t && t.letgo.find(x => x.id === iid); if(!i) return null;
-    return {line: `you decided: ${WANTS_HOW[i.how] || WANTS_HOW.others} (${t.name})`, go: () => navigate('#/purpose/wants/' + t.id)};
+    return {line: `you decided: ${WANTS_HOW[i.how] || WANTS_HOW.others} (${t.name})`, go: () => wantsGo(t.id)};
   }
   return null;
 }
@@ -110143,6 +110194,87 @@ function weekWantsStep(){
           const bar = b.querySelector('.wn-bar'), live = wantsShares(); if(bar && bar.children.length === live.length) [...bar.children].forEach((c, i) => { c.style.flex = live[i].pct; }); };
         x.onchange = () => saveNow(); });
     }};
+}
+
+
+/* ============================================================
+   READ EVERY DAY
+   The thing is meant to be read, not filled in: once a day, slowly, the same
+   words, so that what I want and what I do not need to bother with are simply
+   what I already know. The two are shown in opposite voices on purpose — what
+   I want large, warm and bold; what I do not bother with small, cool, pale and
+   crossed out — so the eye learns which is which without reading.
+   ============================================================ */
+let _wantsEdit = false;
+function wantsGo(id){ _wantsOpen = id || ''; _wantsEdit = !!id; navigate('#/today/in'); }
+const wantsReads = () => { const w = wantsState(); if(!Array.isArray(w.reads)) w.reads = []; return w.reads; };
+const wantsReadToday = () => wantsReads().includes(today());
+function wantsMarkRead(){ const r = wantsReads(), T = today(); if(!r.includes(T)){ r.push(T); if(r.length > 400) r.splice(0, r.length - 400); saveNow(); } }
+function wantsReadCardHTML(t){
+  const slot = wantsSlotSay(t);
+  return `<article class="wn-read" data-wnrd="${esc(t.id)}" style="--c:${esc(t.color)}">
+    <header><h3 class="serif">${esc(t.name)}</h3><span class="mono">${wantsPct(t.id)}% of my care</span></header>
+    ${t.worth ? `<p class="wn-worth serif">${esc(t.worth)}</p>` : ''}
+    ${t.gets.length ? `<div class="wn-want"><span class="wn-tag">I want</span><ul>${t.gets.map(i => `<li>${esc(i.text)}</li>`).join('')}</ul></div>` : ''}
+    ${t.gives.length ? `<p class="wn-give"><span class="wn-tag">the price I accept</span>${t.gives.map(i => esc(i.text)).join(' · ')}</p>` : ''}
+    ${t.letgo.length ? `<div class="wn-let"><span class="wn-tag">I don’t bother with</span><ul>${t.letgo.map(i => `<li><s>${esc(i.text)}</s><em>${i.how === 'no' ? 'I say no' : 'others decide'}</em></li>`).join('')}</ul></div>` : ''}
+    ${slot || t.slot.note ? `<p class="wn-own mono">${slot ? 'its own time · ' + esc(slot) : ''}${t.slot.note ? (slot ? ' · ' : '') + esc(t.slot.note) : ''}</p>` : ''}
+  </article>`;
+}
+function wantsSectionHTML(){
+  const things = wantsThings().slice().sort((a, b) => b.share - a.share), read = wantsReadToday();
+  const head = `<div class="row between wn-sec-h"><span class="sc" style="margin:0">What I want</span><span class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+    <span class="mono ${read ? 'wn-done' : 'faint'}">${read ? 'read today ✓' : 'read it once a day'}</span>
+    ${things.length && !_wantsEdit ? '<button class="btn sm primary" data-wnread>Read it slowly</button>' : ''}
+    <button class="btn sm ghost" data-wnedit>${_wantsEdit ? 'done editing' : things.length ? 'edit' : 'write it'}</button></span></div>`;
+  if(_wantsEdit) return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}<div id="wnEditHost"></div></section>`;
+  if(!things.length) return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}<p class="muted" style="max-width:62ch">Write down, once, what you actually want from each thing in your life — and what you do not need to bother with. Then it is here every day to be read, until it is simply what you know.</p></section>`;
+  return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}${wantsBarHTML()}<div class="wn-reads">${things.map(wantsReadCardHTML).join('')}</div></section>`;
+}
+function bindWantsSection(root){
+  const sec = root.querySelector('#t-wants'); if(!sec) return;
+  const redraw = () => { const y = window.scrollY; sec.outerHTML = wantsSectionHTML(); const n = root.querySelector('#t-wants'); n && n.classList.add('in'); bindWantsSection(root); window.scrollTo(0, y); };
+  const ed = sec.querySelector('[data-wnedit]'); if(ed) ed.onclick = () => { _wantsEdit = !_wantsEdit; if(!_wantsEdit) _wantsOpen = ''; redraw(); };
+  const rd = sec.querySelector('[data-wnread]'); if(rd) rd.onclick = () => wantsReadOpen(() => { const n = root.querySelector('#t-wants'); if(n){ const h = n.querySelector('.wn-sec-h .mono'); if(h){ h.textContent = 'read today ✓'; h.className = 'mono wn-done'; } } });
+  sec.querySelectorAll('.wn-seg').forEach(b => b.onclick = () => { const c = sec.querySelector(`[data-wnrd="${b.dataset.wnopen}"]`); if(c) c.scrollIntoView({block: 'center', behavior: 'smooth'}); });
+  const host = sec.querySelector('#wnEditHost'); if(host) wantsRender(host, []);
+  /* the editor redraws only itself; the reading cards are redrawn when editing is done */
+}
+/* the slow read: one thing at a time, its lines arriving at a reading pace; what I want large and warm,
+   what I do not bother with arriving small and pale and then being crossed out */
+function wantsReadOpen(done){
+  const things = wantsThings().slice().sort((a, b) => b.share - a.share);
+  if(!things.length){ toast('Write something first.'); return; }
+  document.querySelectorAll('.wn-reader').forEach(n => n.remove());
+  const slides = things.map(t => { let i = 0; const k = () => i++;
+    const wants = t.gets.map(g => `<li style="--i:${k()}">${esc(g.text)}</li>`).join('');
+    const gives = t.gives.length ? `<p class="wn-rgive" style="--i:${k()}">The price I accept: ${t.gives.map(g => esc(g.text)).join(' · ')}.</p>` : '';
+    const lead = t.letgo.length ? `<p class="wn-rlead" style="--i:${k()}">And I don’t bother with</p>` : '';
+    const lets = t.letgo.map(g => `<li style="--i:${k()}"><s>${esc(g.text)}</s></li>`).join('');
+    return `<div class="wn-slide" style="--c:${esc(t.color)}"><p class="mono wn-rpct">${wantsPct(t.id)}% of my care</p><h2 class="serif">${esc(t.name)}</h2>
+      ${t.worth ? `<p class="wn-rworth serif">${esc(t.worth)}</p>` : ''}
+      ${wants ? `<p class="wn-rwlead">I want</p><ul class="wn-rwant">${wants}</ul>` : ''}${gives}${lead}${lets ? `<ul class="wn-rlet">${lets}</ul>` : ''}</div>`; });
+  slides.push(`<div class="wn-slide wn-slide-end"><h2 class="serif">That is what I want.</h2><p class="wn-rworth serif" style="--i:1">The rest is not mine to carry.</p></div>`);
+  const ov = document.createElement('div'); ov.className = 'wn-reader'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'what I want, read slowly');
+  ov.innerHTML = `<button class="wn-rx" aria-label="close" title="close (Esc)">×</button><div class="wn-stage"></div>
+    <div class="wn-rnav"><button class="wn-rb" data-d="-1" aria-label="back">‹</button><span class="wn-rdots"></span><button class="wn-rb" data-d="1" aria-label="next">›</button></div>`;
+  document.body.appendChild(ov);
+  let n = 0; const stage = ov.querySelector('.wn-stage'), dots = ov.querySelector('.wn-rdots');
+  const show = k => { n = Math.max(0, Math.min(slides.length - 1, k)); stage.innerHTML = slides[n]; stage.classList.remove('go'); void stage.offsetWidth; stage.classList.add('go');
+    dots.innerHTML = slides.map((_, j) => `<i class="${j === n ? 'on' : j < n ? 'past' : ''}"></i>`).join('');
+    if(n === slides.length - 1){ wantsMarkRead(); if(done) done(); } };
+  const close = () => { document.removeEventListener('keydown', key, true); ov.remove(); };
+  const key = ev => { if(!ov.isConnected) return; if(ev.key === 'Escape'){ ev.preventDefault(); ev.stopPropagation(); close(); } else if(['ArrowRight', ' ', 'Enter', 'PageDown'].includes(ev.key)){ ev.preventDefault(); ev.stopPropagation(); if(n === slides.length - 1) close(); else show(n + 1); } else if(['ArrowLeft', 'PageUp'].includes(ev.key)){ ev.preventDefault(); ev.stopPropagation(); show(n - 1); } };
+  document.addEventListener('keydown', key, true);
+  ov.querySelector('.wn-rx').onclick = close;
+  ov.querySelectorAll('.wn-rb').forEach(b => b.onclick = () => { const d = +b.dataset.d; if(d > 0 && n === slides.length - 1) close(); else show(n + d); });
+  ov.addEventListener('click', ev => { if(ev.target.closest('button')) return; if(n === slides.length - 1) close(); else show(n + 1); });
+  show(0);
+}
+if(typeof registerDuty === 'function'){
+  registerDuty({id: 'wants_read', label: 'Read what I want', anchor: '#t-wants', route: '#/today', windowDef: {type: 'anytime'},
+    recurrence: {type: 'daily-conditional', check: () => wantsThings().length > 0}, skipDone: true, notify: false, defaultOn: true, doneCheck: T => wantsReads().includes(T),
+    rule: 'something is written on the What I want sheet; done when you have read it today'});
 }
 /* ============================================================
    INSTALLING THE HOUSE

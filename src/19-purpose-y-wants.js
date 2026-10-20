@@ -1,5 +1,6 @@
 /* ============================================================
-   WHAT I WANT — the deal for each thing in my life (#/purpose/wants)
+   WHAT I WANT — the deal for each thing in my life, read every day
+   (Today → Looking inward; #/purpose/wants goes there)
 
    Most of what takes a share of a life is taken without being chosen. This is
    where each thing — a club role, a class you teach, a job, a project — is
@@ -26,7 +27,10 @@
    leave is named as such, and a thought about a thing with its own time can be
    saved for it), and Today (a line on the days a thing has its time).
    ============================================================ */
-purposeTabAdd({id: 'wants', label: 'What I want', order: 45, render: (body, rest) => wantsRender(body, rest)});
+/* It lives on Today's Looking inward page now, read once a day. The old Purpose address goes there. */
+(function(){ const was = routes.purpose; routes.purpose = function(root, params){
+  if(params && params[0] === 'wants'){ if(params[1]) _wantsOpen = params[1]; _wantsEdit = !!params[1]; navigate('#/today/in'); return; }
+  return was.apply(this, arguments); }; })();
 
 const WANTS_DAYS = [[1, 'Mon'], [2, 'Tue'], [3, 'Wed'], [4, 'Thu'], [5, 'Fri'], [6, 'Sat'], [0, 'Sun']];
 const WANTS_HOW = {others: 'leave it to others', no: 'I won’t do it'};
@@ -109,11 +113,11 @@ function wantsKnows(ref){
   if(ref.type === 'want'){
     const t = wantsThing(ref.id); if(!t) return null;
     const slot = wantsSlotSay(t);
-    return {line: `${wantsPct(t.id)}% of my care${slot ? ' · its time: ' + slot : ' · no time of its own yet'}`, go: () => navigate('#/purpose/wants/' + t.id)};
+    return {line: `${wantsPct(t.id)}% of my care${slot ? ' · its time: ' + slot : ' · no time of its own yet'}`, go: () => wantsGo(t.id)};
   }
   if(ref.type === 'letgo'){
     const [tid, iid] = String(ref.id).split(':'), t = wantsThing(tid), i = t && t.letgo.find(x => x.id === iid); if(!i) return null;
-    return {line: `you decided: ${WANTS_HOW[i.how] || WANTS_HOW.others} (${t.name})`, go: () => navigate('#/purpose/wants/' + t.id)};
+    return {line: `you decided: ${WANTS_HOW[i.how] || WANTS_HOW.others} (${t.name})`, go: () => wantsGo(t.id)};
   }
   return null;
 }
@@ -263,4 +267,85 @@ function weekWantsStep(){
           const bar = b.querySelector('.wn-bar'), live = wantsShares(); if(bar && bar.children.length === live.length) [...bar.children].forEach((c, i) => { c.style.flex = live[i].pct; }); };
         x.onchange = () => saveNow(); });
     }};
+}
+
+
+/* ============================================================
+   READ EVERY DAY
+   The thing is meant to be read, not filled in: once a day, slowly, the same
+   words, so that what I want and what I do not need to bother with are simply
+   what I already know. The two are shown in opposite voices on purpose — what
+   I want large, warm and bold; what I do not bother with small, cool, pale and
+   crossed out — so the eye learns which is which without reading.
+   ============================================================ */
+let _wantsEdit = false;
+function wantsGo(id){ _wantsOpen = id || ''; _wantsEdit = !!id; navigate('#/today/in'); }
+const wantsReads = () => { const w = wantsState(); if(!Array.isArray(w.reads)) w.reads = []; return w.reads; };
+const wantsReadToday = () => wantsReads().includes(today());
+function wantsMarkRead(){ const r = wantsReads(), T = today(); if(!r.includes(T)){ r.push(T); if(r.length > 400) r.splice(0, r.length - 400); saveNow(); } }
+function wantsReadCardHTML(t){
+  const slot = wantsSlotSay(t);
+  return `<article class="wn-read" data-wnrd="${esc(t.id)}" style="--c:${esc(t.color)}">
+    <header><h3 class="serif">${esc(t.name)}</h3><span class="mono">${wantsPct(t.id)}% of my care</span></header>
+    ${t.worth ? `<p class="wn-worth serif">${esc(t.worth)}</p>` : ''}
+    ${t.gets.length ? `<div class="wn-want"><span class="wn-tag">I want</span><ul>${t.gets.map(i => `<li>${esc(i.text)}</li>`).join('')}</ul></div>` : ''}
+    ${t.gives.length ? `<p class="wn-give"><span class="wn-tag">the price I accept</span>${t.gives.map(i => esc(i.text)).join(' · ')}</p>` : ''}
+    ${t.letgo.length ? `<div class="wn-let"><span class="wn-tag">I don’t bother with</span><ul>${t.letgo.map(i => `<li><s>${esc(i.text)}</s><em>${i.how === 'no' ? 'I say no' : 'others decide'}</em></li>`).join('')}</ul></div>` : ''}
+    ${slot || t.slot.note ? `<p class="wn-own mono">${slot ? 'its own time · ' + esc(slot) : ''}${t.slot.note ? (slot ? ' · ' : '') + esc(t.slot.note) : ''}</p>` : ''}
+  </article>`;
+}
+function wantsSectionHTML(){
+  const things = wantsThings().slice().sort((a, b) => b.share - a.share), read = wantsReadToday();
+  const head = `<div class="row between wn-sec-h"><span class="sc" style="margin:0">What I want</span><span class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+    <span class="mono ${read ? 'wn-done' : 'faint'}">${read ? 'read today ✓' : 'read it once a day'}</span>
+    ${things.length && !_wantsEdit ? '<button class="btn sm primary" data-wnread>Read it slowly</button>' : ''}
+    <button class="btn sm ghost" data-wnedit>${_wantsEdit ? 'done editing' : things.length ? 'edit' : 'write it'}</button></span></div>`;
+  if(_wantsEdit) return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}<div id="wnEditHost"></div></section>`;
+  if(!things.length) return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}<p class="muted" style="max-width:62ch">Write down, once, what you actually want from each thing in your life — and what you do not need to bother with. Then it is here every day to be read, until it is simply what you know.</p></section>`;
+  return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}${wantsBarHTML()}<div class="wn-reads">${things.map(wantsReadCardHTML).join('')}</div></section>`;
+}
+function bindWantsSection(root){
+  const sec = root.querySelector('#t-wants'); if(!sec) return;
+  const redraw = () => { const y = window.scrollY; sec.outerHTML = wantsSectionHTML(); const n = root.querySelector('#t-wants'); n && n.classList.add('in'); bindWantsSection(root); window.scrollTo(0, y); };
+  const ed = sec.querySelector('[data-wnedit]'); if(ed) ed.onclick = () => { _wantsEdit = !_wantsEdit; if(!_wantsEdit) _wantsOpen = ''; redraw(); };
+  const rd = sec.querySelector('[data-wnread]'); if(rd) rd.onclick = () => wantsReadOpen(() => { const n = root.querySelector('#t-wants'); if(n){ const h = n.querySelector('.wn-sec-h .mono'); if(h){ h.textContent = 'read today ✓'; h.className = 'mono wn-done'; } } });
+  sec.querySelectorAll('.wn-seg').forEach(b => b.onclick = () => { const c = sec.querySelector(`[data-wnrd="${b.dataset.wnopen}"]`); if(c) c.scrollIntoView({block: 'center', behavior: 'smooth'}); });
+  const host = sec.querySelector('#wnEditHost'); if(host) wantsRender(host, []);
+  /* the editor redraws only itself; the reading cards are redrawn when editing is done */
+}
+/* the slow read: one thing at a time, its lines arriving at a reading pace; what I want large and warm,
+   what I do not bother with arriving small and pale and then being crossed out */
+function wantsReadOpen(done){
+  const things = wantsThings().slice().sort((a, b) => b.share - a.share);
+  if(!things.length){ toast('Write something first.'); return; }
+  document.querySelectorAll('.wn-reader').forEach(n => n.remove());
+  const slides = things.map(t => { let i = 0; const k = () => i++;
+    const wants = t.gets.map(g => `<li style="--i:${k()}">${esc(g.text)}</li>`).join('');
+    const gives = t.gives.length ? `<p class="wn-rgive" style="--i:${k()}">The price I accept: ${t.gives.map(g => esc(g.text)).join(' · ')}.</p>` : '';
+    const lead = t.letgo.length ? `<p class="wn-rlead" style="--i:${k()}">And I don’t bother with</p>` : '';
+    const lets = t.letgo.map(g => `<li style="--i:${k()}"><s>${esc(g.text)}</s></li>`).join('');
+    return `<div class="wn-slide" style="--c:${esc(t.color)}"><p class="mono wn-rpct">${wantsPct(t.id)}% of my care</p><h2 class="serif">${esc(t.name)}</h2>
+      ${t.worth ? `<p class="wn-rworth serif">${esc(t.worth)}</p>` : ''}
+      ${wants ? `<p class="wn-rwlead">I want</p><ul class="wn-rwant">${wants}</ul>` : ''}${gives}${lead}${lets ? `<ul class="wn-rlet">${lets}</ul>` : ''}</div>`; });
+  slides.push(`<div class="wn-slide wn-slide-end"><h2 class="serif">That is what I want.</h2><p class="wn-rworth serif" style="--i:1">The rest is not mine to carry.</p></div>`);
+  const ov = document.createElement('div'); ov.className = 'wn-reader'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'what I want, read slowly');
+  ov.innerHTML = `<button class="wn-rx" aria-label="close" title="close (Esc)">×</button><div class="wn-stage"></div>
+    <div class="wn-rnav"><button class="wn-rb" data-d="-1" aria-label="back">‹</button><span class="wn-rdots"></span><button class="wn-rb" data-d="1" aria-label="next">›</button></div>`;
+  document.body.appendChild(ov);
+  let n = 0; const stage = ov.querySelector('.wn-stage'), dots = ov.querySelector('.wn-rdots');
+  const show = k => { n = Math.max(0, Math.min(slides.length - 1, k)); stage.innerHTML = slides[n]; stage.classList.remove('go'); void stage.offsetWidth; stage.classList.add('go');
+    dots.innerHTML = slides.map((_, j) => `<i class="${j === n ? 'on' : j < n ? 'past' : ''}"></i>`).join('');
+    if(n === slides.length - 1){ wantsMarkRead(); if(done) done(); } };
+  const close = () => { document.removeEventListener('keydown', key, true); ov.remove(); };
+  const key = ev => { if(!ov.isConnected) return; if(ev.key === 'Escape'){ ev.preventDefault(); ev.stopPropagation(); close(); } else if(['ArrowRight', ' ', 'Enter', 'PageDown'].includes(ev.key)){ ev.preventDefault(); ev.stopPropagation(); if(n === slides.length - 1) close(); else show(n + 1); } else if(['ArrowLeft', 'PageUp'].includes(ev.key)){ ev.preventDefault(); ev.stopPropagation(); show(n - 1); } };
+  document.addEventListener('keydown', key, true);
+  ov.querySelector('.wn-rx').onclick = close;
+  ov.querySelectorAll('.wn-rb').forEach(b => b.onclick = () => { const d = +b.dataset.d; if(d > 0 && n === slides.length - 1) close(); else show(n + d); });
+  ov.addEventListener('click', ev => { if(ev.target.closest('button')) return; if(n === slides.length - 1) close(); else show(n + 1); });
+  show(0);
+}
+if(typeof registerDuty === 'function'){
+  registerDuty({id: 'wants_read', label: 'Read what I want', anchor: '#t-wants', route: '#/today', windowDef: {type: 'anytime'},
+    recurrence: {type: 'daily-conditional', check: () => wantsThings().length > 0}, skipDone: true, notify: false, defaultOn: true, doneCheck: T => wantsReads().includes(T),
+    rule: 'something is written on the What I want sheet; done when you have read it today'});
 }

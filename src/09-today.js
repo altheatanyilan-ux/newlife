@@ -736,6 +736,7 @@ routes.today = function(root, params = []){
 
     <section class="today-view" data-view="in"${view === 'in' ? '' : ' hidden'}>
     ${typeof purposeText === 'function' && purposeText('statement') ? `<a class="pp-today mono-soft serif" href="#/purpose" title="the purpose sheet">${esc(purposeText('statement'))}</a>` : ''}
+    ${typeof wantsSectionHTML === 'function' ? wantsSectionHTML() : ''}
 
     <div class="daybox daybox-solo">
 
@@ -910,6 +911,7 @@ routes.today = function(root, params = []){
 
   /* morning theatre */
   bindTheatre(root);
+  if(typeof bindWantsSection === 'function') bindWantsSection(root);
   /* and the stillness practice under it — without this the section drew
      perfectly and every button in it was dead */
   if(typeof bindStillness === 'function') bindStillness(root);

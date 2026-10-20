@@ -23,7 +23,7 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   yes('the form opens as a floating cloud over the page, with the dialog out of sight', a.free && a.gone && a.cloudInStage && a.modalBox <= 2 && /title/.test(a.cur), a);
   yes('and Save waits until the end', a.saveHidden, a);
   await p.keyboard.type('A quiet morning'); await p.keyboard.press('Enter'); await p.waitForTimeout(600);
-  const b2 = await q(() => ({cur: document.querySelector('.bb-cur label').textContent, chip: [...document.querySelectorAll('.bb-chip')].find(c => /A quiet morning/.test(c.textContent)), pos: (() => { const c = [...document.querySelectorAll('.bb-chip')].find(c => /A quiet morning/.test(c.textContent)); return c ? [c.style.left, c.style.top] : null; })(), entries: S.entries.length}));
+  const b2 = await q(() => ({cur: document.querySelector('.bb-cur label').textContent, chip: [...document.querySelectorAll('.bb-chip')].find(c => /A quiet morning/.test(c.textContent)), pos: (() => { const c = [...document.querySelectorAll('.bb-chip')].find(c => /A quiet morning/.test(c.textContent)); return c ? [c.style.getPropertyValue('--x'), c.style.top] : null; })(), entries: S.entries.length}));
   yes('Enter answers it: the next cloud forms and the answer drifts to the edge as a bubble; nothing is saved yet', /put down/.test(b2.cur) && b2.pos && b2.pos[0], b2);
   await p.keyboard.type('Slept well, and the light was good.'); await p.keyboard.press('Control+Enter'); await p.waitForTimeout(500);
   await p.click('[data-bb="end"]'); await p.waitForTimeout(600);

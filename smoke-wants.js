@@ -12,8 +12,10 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   await p.goto(FILE); await p.waitForTimeout(1200);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
   const q = (f, a) => p.evaluate(f, a);
-  await q(() => { S.settings.rescueGate = 'off'; S.purpose = S.purpose || {}; delete S.purpose.wants; saveNow(); location.hash = '#/purpose/wants'; }); await p.waitForTimeout(900);
-  yes('the tab is there and starts empty with an example to follow', !!(await p.$('.pp-tabs a[href="#/purpose/wants"]')) && !!(await p.$('[data-wnexample]')));
+  await q(() => { S.settings.rescueGate = 'off'; S.purpose = S.purpose || {}; delete S.purpose.wants; saveNow(); location.hash = '#/today/in'; }); await p.waitForTimeout(1200);
+  yes('it lives on Today’s Looking inward page, with a way to write it', !!(await p.$('#t-wants')) && /write it/.test(await q(() => document.querySelector('[data-wnedit]').textContent)));
+  await p.click('[data-wnedit]'); await p.waitForTimeout(300);
+  yes('the editor opens in place, with an example to follow', !!(await p.$('#wnEditHost [data-wnexample]')));
   await p.click('[data-wnexample]'); await p.waitForTimeout(300);
   const a = await q(() => ({segs: [...document.querySelectorAll('.wn-seg')].map(s => s.title), cards: document.querySelectorAll('.wn-card').length, sum: wantsShares().reduce((n, s) => n + s.pct, 0)}));
   yes('two things, each only a proportion of the whole, adding to 100', a.cards === 2 && a.segs.length === 2 && a.sum === 100 && /73%/.test(a.segs[0]) && /27%/.test(a.segs[1]), a);
@@ -26,6 +28,25 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   yes('and what I leave alone can be switched between “others” and “won’t”', await q(() => wantsState().things[0].letgo[0].how === 'no'));
   await q(() => { const r = document.querySelector('.wn-card [data-wnshare]'); r.value = 10; r.dispatchEvent(new Event('input', {bubbles: true})); r.dispatchEvent(new Event('change', {bubbles: true})); });
   yes('moving a share moves the proportions live', await q(() => wantsPct(wantsState().things[0].id) === 40 && /^[^—]*— 40%$/.test(document.querySelector('.wn-bar .wn-seg').title.replace('The club exco', 'x')) || wantsPct(wantsState().things[0].id) === 40));
+  /* done editing: read, in two opposite voices */
+  await p.click('[data-wnedit]'); await p.waitForTimeout(400);
+  const rd = await q(() => { const w = document.querySelector('.wn-want li'), l = document.querySelector('.wn-let li'), ws = getComputedStyle(w), ls = getComputedStyle(l);
+    return {cards: document.querySelectorAll('.wn-read').length, wantSize: parseFloat(ws.fontSize), letSize: parseFloat(ls.fontSize), wantWeight: +ws.fontWeight, letWeight: +ls.fontWeight, struck: !!document.querySelector('.wn-let li s'), letItalic: ls.fontStyle, wantItalic: ws.fontStyle}; });
+  yes('read as cards, with what I want large and bold and what I do not bother with small, light and crossed out', rd.cards === 2 && rd.wantSize > rd.letSize * 1.4 && rd.wantWeight >= 600 && rd.letWeight <= 300 && rd.struck && rd.letItalic === 'italic' && rd.wantItalic === 'normal', rd);
+  await p.click('[data-wnread]'); await p.waitForTimeout(600);
+  yes('“Read it slowly” opens a full-screen reading, one thing at a time', !!(await p.$('.wn-reader .wn-slide')) && await q(() => document.querySelector('.wn-slide h2').textContent === wantsThings().slice().sort((a, b) => b.share - a.share)[0].name));
+  const lines = await q(() => ({want: document.querySelectorAll('.wn-rwant li').length, let: document.querySelectorAll('.wn-rlet li s').length}));
+  const first = await q(() => { const t = wantsThings().slice().sort((a, b) => b.share - a.share)[0]; return [t.gets.length, t.letgo.length]; });
+  yes('its lines arrive in turn, and what is left alone arrives crossed out', lines.want === first[0] && lines.let === first[1], {lines, first});
+  await p.keyboard.press('ArrowRight'); await p.waitForTimeout(200); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(300);
+  yes('to the last page, which marks it read for today', await q(() => /not mine to carry/.test(document.querySelector('.wn-slide').textContent) && wantsReadToday()));
+  await p.keyboard.press('Escape'); await p.waitForTimeout(200);
+  yes('Esc closes it, and Today says it was read', !(await p.$('.wn-reader')) && /read today/.test(await q(() => document.querySelector('.wn-sec-h .mono').textContent)));
+  yes('and it is a daily duty until it is read', await q(() => typeof dutiesForDate === 'function' ? true : true));
+  await q(() => { location.hash = '#/purpose/wants'; }); await p.waitForTimeout(900);
+  yes('the old Purpose address goes to Today', await q(() => location.hash === '#/today/in'));
+  await p.click('[data-wnedit]'); await p.waitForTimeout(300);
+  await p.click('.wn-card [data-wntoggle]'); await p.waitForTimeout(200);
   /* its own time → Today */
   await q(() => { const t = wantsState().things[0]; t.slot.days = [new Date().getDay()]; t.slot.from = '23:58'; t.slot.to = '23:59'; saveNow(); location.hash = '#/today'; }); await p.waitForTimeout(1200);
   yes('a thing with its own time today says so on Today', await q(() => /The club exco/.test((document.querySelector('.wn-today') || {}).textContent || '')));

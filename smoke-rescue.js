@@ -43,7 +43,7 @@ const yes = (n, c, g = '') => c ? console.log('  ok   ' + n) : (bad++, console.l
   const sel = async text => p.evaluate(t => { const ta = [...document.querySelectorAll('.rs-ta')].find(x => x.value.includes(t)); ta.focus(); const i = ta.value.indexOf(t); ta.setSelectionRange(i, i + t.length); ta.dispatchEvent(new MouseEvent('mouseup', {bubbles: true})); }, text);
   const menu = () => p.waitForSelector('.rs-menu', {timeout: 3000});
   await sel('too many deadlines'); await menu();
-  yes('selecting words opens the menu on those words', await p.evaluate(() => /these words/.test(document.querySelector('.rs-menu').textContent) && document.querySelectorAll('.rs-m-b').length === 11));
+  yes('selecting words opens the menu on those words', await p.evaluate(() => /these words/.test(document.querySelector('.rs-menu').textContent) && document.querySelectorAll(".rs-m-b").length === RESCUE_EXITS.length));
   await p.click('.rs-m-b[data-x="task"]'); await p.waitForTimeout(500);
   yes('a task is made from the selection, in the Inbox, and the box says so', await p.evaluate(() => S.tasks.some(t => (t.text || t.title) === 'too many deadlines') && /task/.test(document.querySelector('.rs-marks').textContent)));
   await p.evaluate(() => document.querySelector('.toast .tbtn, .toast button') && document.querySelector('.toast .tbtn, .toast button').click()); await p.waitForTimeout(300);
