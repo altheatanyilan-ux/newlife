@@ -536,6 +536,7 @@ routes.today = function(root, params = []){
   root.innerHTML = `<div class="page today-page">
 
     ${todayMilestonesHTML()}
+    ${typeof wantsTodayHTML === 'function' ? wantsTodayHTML() : ''}
 
     <!-- header -->
     <header class="rv today-head">

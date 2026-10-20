@@ -167,6 +167,12 @@ function rescueRefsPaint(el, b){
     const x = RESCUE_EXITS.find(e => e.id === b.q.exit);
     if(x) box.insertAdjacentHTML('beforeend', `<button class="rs-qsug" data-rssug="${x.id}" title="${esc(x.hint)}">${x.glyph} send this to ${esc(x.name)}?</button>`);
   }
+  /* a thought about something decided to be left alone, or about a thing that has its own time */
+  if(!(b.exits || []).length && (b.text || '').trim().length > 6){
+    if(refs.some(r => r.type === 'letgo')) box.insertAdjacentHTML('beforeend', `<button class="rs-qsug" data-rssug="letgo" title="you decided this was not yours to carry">· you decided to let this go — let it go?</button>`);
+    const w = refs.find(r => r.type === 'want'), th = w && typeof wantsThing === 'function' ? wantsThing(w.id) : null, nx = th ? wantsSlotNext(th) : null;
+    if(nx) box.insertAdjacentHTML('beforeend', `<button class="rs-qsug" data-rssug="slot:${esc(th.id)}" title="a reminder at its time — it waits there">⏰ save it for ${esc(th.name)}’s time (${esc(nx.label)})</button>`);
+  }
   const hz = el.querySelector('.rs-hz'); const h = RESCUE_HORIZONS.find(x => x.id === b.horizon);
   if(hz) hz.textContent = h ? h.name : '';
   const mk = el.querySelector('.rs-marks'); if(mk) mk.innerHTML = rescueMarksHTML(b);
@@ -411,6 +417,11 @@ function rescueExitStep(ctx, id){
   const bindBack = m => { const bk = m.querySelector('[data-back2]'); if(bk) bk.onclick = () => rescueMenuTop(ctx); };
   const head = t => `<div class="rs-m-h">${back}<span class="mono faint">${esc(t)}</span></div>`;
   if(id === 'letgo'){ rescueDone(ctx, 'letgo', {label: 'let go', undo: () => {}}); return; }
+  if(id.startsWith('slot:')){
+    const th = typeof wantsThing === 'function' ? wantsThing(id.slice(5)) : null, nx = th ? wantsSlotNext(th) : null;
+    if(!nx){ toast('That thing has no time of its own set.'); return; }
+    return rescueDone(ctx, 'remind', rescueMakeReminder(`${th.name}: ${rescueFirstLine(text)}`, nx.day, nx.time));
+  }
   if(id === 'task') return rescueDone(ctx, 'task', rescueMakeTasks(text));
   if(id === 'question') return rescueDone(ctx, 'question', rescueMakeEntry(text, 'question'));
   if(id === 'mindset') return rescueDone(ctx, 'mindset', rescueKeepLine(text));

@@ -1071,6 +1071,19 @@ For the hours when everything is a tangle — long-term and short-term, a deadli
 
 **Every page is kept** by the day it was made, and listed in the **Review** under that date; **Pages** inside the space opens any of them again. A line may lean in at the edge of the page now and then — from the starters and from the lines you keep — and can be turned off in Settings.
 
+## What I want (Purpose → What I want)
+
+For the things that take a share of a life — a club committee, a class you teach, a job — and the question *what do I actually want from this?* Each **thing** is written down once, as a deal, so it does not have to be worked out again on every anxious evening. Open it from **Purpose → What I want** (or press a thing's name from the rescue page's plate).
+
+- **Its share** — a slider, shown as a **proportion only**: a bar of every active thing as a part of the whole (the numbers are weights; what is shown always adds to 100%). Not hours, not tasks, not a target.
+- **What I want from it** — what I actually get, and why I am in it (a place to live, programming the concert, a say in the repertoire, a stage, a teacher's time…).
+- **What I give for it** — the price, said plainly (the admin, the evenings).
+- **What I leave alone** — everything else about it that I do not need to care about, decided once: each line is either **left to others** (they decide, and I let them — the programme booklet) or **I won't do it** (the bonding suppers). Press the grey tag to switch which. The foot of the page gathers them all in two lists.
+- **If this goes well, what will have been worth it?** — one line. And **its own time**: the days (and hours) when I think about it, with the rule in my own words — *only think about it then*; the rest of the week a thought about it can wait.
+- Things can be **active, resting or ended**; only active ones count in the bar. *Other words I use for it* (exco, the concert…) are how the rescue page recognises it.
+
+**Where it is read.** *The weekly review* has a step after the week as written — for each thing its bar, what I wanted and what I left alone, a word (*I got what I wanted · partly · not really*), a line (*did something I had decided to leave alone creep back? did I keep to its time?*) and a slider if the share is no longer right. *The rescue page*: a box that talks about something on a *leave alone* list is named as such (*you decided: leave it to others — the club exco*) with one press to let it go; a box about a thing with its own time offers **save it for its time**, which makes a reminder at the next one; the plate lists each thing with its share. *Today* shows a chip on the days a thing has its time. Nothing here is scored, trended or a duty.
+
 ## 23. Settings
 
 Open with **⚙** (top right). The cards, top to bottom:

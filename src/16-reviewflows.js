@@ -270,6 +270,7 @@ function flowWeekly(opts = {}){
   const lean = !(opts.numbers || (S.settings || {}).weeklyNumbers);
   guidedFlow('Weekly review', [
     weekWrittenStep(),
+    ...(typeof weekWantsStep === 'function' && typeof wantsThings === 'function' && wantsThings().length ? [weekWantsStep()] : []),
     ...(lean ? [] : numberSteps),
     weekReflectStep(),
     {title:'Anything else from this week?', hint:'Anything that happened and never got written down. Add it here and the review stays where it is.',

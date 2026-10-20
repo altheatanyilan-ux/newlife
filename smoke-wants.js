@@ -1,0 +1,60 @@
+/* smoke-wants — Purpose → What I want: proportions, the deal, what is left alone, its own time */
+const {chromium} = require('playwright');
+const path = require('path');
+const FILE = 'file://' + path.resolve(__dirname, 'index.html');
+let bad = 0;
+const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; console.log('  FAIL ' + n + '  — ' + JSON.stringify(g)); } };
+(async () => {
+  const b = await chromium.launch({executablePath: '/opt/pw-browsers/chromium'});
+  const errs = [];
+  const p = await (await b.newContext({viewport: {width: 1300, height: 950}})).newPage();
+  p.on('pageerror', e => errs.push(e.message));
+  await p.goto(FILE); await p.waitForTimeout(1200);
+  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
+  const q = (f, a) => p.evaluate(f, a);
+  await q(() => { S.settings.rescueGate = 'off'; S.purpose = S.purpose || {}; delete S.purpose.wants; saveNow(); location.hash = '#/purpose/wants'; }); await p.waitForTimeout(900);
+  yes('the tab is there and starts empty with an example to follow', !!(await p.$('.pp-tabs a[href="#/purpose/wants"]')) && !!(await p.$('[data-wnexample]')));
+  await p.click('[data-wnexample]'); await p.waitForTimeout(300);
+  const a = await q(() => ({segs: [...document.querySelectorAll('.wn-seg')].map(s => s.title), cards: document.querySelectorAll('.wn-card').length, sum: wantsShares().reduce((n, s) => n + s.pct, 0)}));
+  yes('two things, each only a proportion of the whole, adding to 100', a.cards === 2 && a.segs.length === 2 && a.sum === 100 && /73%/.test(a.segs[0]) && /27%/.test(a.segs[1]), a);
+  await p.click('.wn-card [data-wntoggle]'); await p.waitForTimeout(200);
+  const e = await q(() => ({gets: document.querySelectorAll('.wn-card.open .wn-col')[0].querySelectorAll('li').length, gives: document.querySelectorAll('.wn-card.open .wn-col')[1].querySelectorAll('li').length, left: [...document.querySelectorAll('.wn-card.open .wn-col')[2].querySelectorAll('li')].map(l => l.textContent)}));
+  yes('the deal is there: what I want, what I give, what I leave alone', e.gets === 5 && e.gives === 1 && e.left.length === 2 && /leave it to others/.test(e.left[0]) && /won’t do it/.test(e.left[1]), e);
+  await p.fill('.wn-card.open [data-wnadd="gets"]', 'a say in the repertoire'); await p.press('.wn-card.open [data-wnadd="gets"]', 'Enter'); await p.waitForTimeout(200);
+  yes('a want can be added', await q(() => wantsState().things[0].gets.length === 6));
+  await p.click('.wn-card.open [data-wnhow]:first-of-type'); await p.waitForTimeout(150);
+  yes('and what I leave alone can be switched between “others” and “won’t”', await q(() => wantsState().things[0].letgo[0].how === 'no'));
+  await q(() => { const r = document.querySelector('.wn-card [data-wnshare]'); r.value = 10; r.dispatchEvent(new Event('input', {bubbles: true})); r.dispatchEvent(new Event('change', {bubbles: true})); });
+  yes('moving a share moves the proportions live', await q(() => wantsPct(wantsState().things[0].id) === 40 && /^[^—]*— 40%$/.test(document.querySelector('.wn-bar .wn-seg').title.replace('The club exco', 'x')) || wantsPct(wantsState().things[0].id) === 40));
+  /* its own time → Today */
+  await q(() => { const t = wantsState().things[0]; t.slot.days = [new Date().getDay()]; t.slot.from = '23:58'; t.slot.to = '23:59'; saveNow(); location.hash = '#/today'; }); await p.waitForTimeout(1200);
+  yes('a thing with its own time today says so on Today', await q(() => /The club exco/.test((document.querySelector('.wn-today') || {}).textContent || '')));
+
+  console.log('\nthe rescue page knows the deal');
+  await q(() => { location.hash = '#/rescue/new'; }); await p.waitForTimeout(1500);
+  if(await p.$('.rs-ready-x')) await p.click('.rs-ready-x');
+  const r = await q(() => { const n = _rs.newBox(100, 100); n.ta.value = 'need to sort out the programme booklet for the exco'; n.b.text = n.ta.value; rescueRefsPaint(n.el, n.b);
+    return {refs: n.b._refs.map(x => x.type), sugg: [...n.el.querySelectorAll('.rs-qsug')].map(x => x.textContent), knows: [...n.el.querySelectorAll('.rs-ref')].map(x => x.textContent)}; });
+  yes('a thought about something decided as not mine is named as such', r.refs.includes('letgo') && r.refs.includes('want') && r.knows.some(t => /you decided/.test(t)) && r.sugg.some(t => /let it go/.test(t)), r);
+  yes('and one about a thing with its own time can be saved for it', r.sugg.some(t => /save it for/.test(t)), r);
+  const r2 = await q(() => { const el = document.querySelector('.rs-box [data-rssug="letgo"]'); el.click(); const b = _rs.sheet.boxes[0]; return {fate: b.fate}; });
+  yes('one press lets it go', r2.fate === 'letgo', r2);
+  await q(() => { const n = _rs.newBox(100, 260); n.ta.value = 'ideas for the exco concert'; n.b.text = n.ta.value; rescueRefsPaint(n.el, n.b); });
+  const before = await q(() => S.tasks.filter(t => t.remind).length);
+  await q(() => { document.querySelectorAll('.rs-box')[1].querySelector('[data-rssug^="slot:"]').click(); }); await p.waitForTimeout(300);
+  const rm = await q(() => { const m = document.querySelector('.rs-menu'); return {menu: !!m, rem: S.tasks.filter(t => t.remind && /The club exco/.test(t.text)).length}; });
+  yes('saving it for its time makes a reminder there', rm.rem === 1, rm);
+  yes('the plate lists what I want, with each share', await q(() => rescuePlate().groups.some(g => g.name === 'what I want from each' && g.items.length === 2)));
+
+  console.log('\nthe weekly review');
+  await q(() => { location.hash = '#/today'; }); await p.waitForTimeout(500);
+  await q(() => { flowWeekly(); }); await p.waitForTimeout(500);
+  await p.click('#fwNext'); await p.waitForTimeout(300);
+  const wk = await q(() => ({t: document.querySelector('.modal h2').textContent, cards: document.querySelectorAll('.wn-rcard').length}));
+  yes('the review asks about each thing, after the week as written', /What I want from each thing/.test(wk.t) && wk.cards === 2, wk);
+  await p.click('.wn-rcard:first-child [data-wnrv$="|part"]'); await p.fill('.wn-rcard:first-child [data-wnrn]', 'the booklet crept back on Wednesday');
+  const kept = await q(() => { const n = wantsWeekNotes(_ww.wk, false), id = wantsState().things[0].id; return n[id]; });
+  yes('a word and a line are kept with the week', kept && kept.v === 'part' && /booklet/.test(kept.note), kept);
+  yes('no page errors', !errs.length, errs);
+  await b.close(); process.exit(bad ? 1 : 0);
+})();

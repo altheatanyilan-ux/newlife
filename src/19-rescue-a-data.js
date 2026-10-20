@@ -154,6 +154,7 @@ function rescueMentions(text){
     (l.milestones || []).forEach(m => { if(!m.done && m.name && _rsHas(t, m.name)) push({type: 'milestone', id: m.id, label: m.name}); }); }); } catch(e){}
   try { (S.habits || []).filter(h => !h.archived).forEach(h => { if(_rsHas(t, h.name)) push({type: 'habit', id: h.id, label: h.name}); }); } catch(e){}
   try { (S.skills || []).forEach(sk => { if(_rsHas(t, sk.name)) push({type: 'skill', id: sk.id, label: sk.name}); }); } catch(e){}
+  try { if(typeof wantsMentions === 'function') wantsMentions(t).forEach(push); } catch(e){}
   try {
     const low = t.toLowerCase(), words = new Set(low.split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 3));
     allTaskRefs().filter(r => !r.done && (r.text || '').trim().length >= 6).forEach(r => {
@@ -161,7 +162,7 @@ function rescueMentions(text){
       const ws = tt.split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 4);
       if(ws.length >= 2 && ws.every(w => words.has(w))) push({type: 'task', id: r.id, label: r.text}); });
   } catch(e){}
-  const order = {person: 0, milestone: 1, list: 2, task: 3, skill: 4, habit: 5};
+  const order = {letgo: -1, person: 0, milestone: 1, want: 1.5, list: 2, task: 3, skill: 4, habit: 5};
   return out.sort((a, b) => order[a.type] - order[b.type]).slice(0, 6);
 }
 /* one plain line on what the site holds for it, and where it lives */
@@ -189,6 +190,7 @@ function rescueKnows(ref){
       const est = typeof pbdEstOf === 'function' ? pbdEstOf(r.task) : 0;
       return {line: `${r.day ? 'due ' + fmtDate(r.day, 'short') : 'no day'}${est ? ' · ~' + (typeof pbdSay === 'function' ? pbdSay(est) : est + 'm') : ''}${r.day && r.day < T ? ' · late' : ''}`, go: () => (r.kind === 'own' && typeof openPlanTask === 'function') ? openPlanTask(r.id) : (r.go && navigate(r.go))};
     }
+    if((ref.type === 'want' || ref.type === 'letgo') && typeof wantsKnows === 'function') return wantsKnows(ref);
     if(ref.type === 'skill') return {line: 'in your skills', go: () => { navigate('#/identity/skills'); setTimeout(() => { try { openSkillPanel(ref.id); } catch(e){} }, 120); }};
     if(ref.type === 'habit'){
       const h = byId(S.habits, ref.id); if(!h) return null; const st = typeof habStreak === 'function' ? habStreak(h) : null;
@@ -217,6 +219,8 @@ function rescuePlate(){
     if(ms.length) out.groups.push({name: 'dates ahead', items: ms.map(({m, list}) => item('milestone', m.id, m.name, planWhenAway(m.date) + ' · ' + list.name))}); } catch(e){}
   try { const th = weekThreadsOn(weekPlanSeen(weekStart(T)), T);
     if(th.length) out.groups.push({name: 'threads on today', items: th.map(t => ({kind: 'thread', id: t.id, label: t.text, detail: WEEK_THREAD_KIND[t.kind] || ''}))}); } catch(e){}
+  try { if(typeof wantsThings === 'function'){ const sh = wantsShares();
+    if(sh.length) out.groups.push({name: 'what I want from each', items: sh.map(s => item('want', s.t.id, s.t.name, s.pct + '%'))}); } } catch(e){}
   try { const pp = peopleNeedingAttention().slice(0, 5);
     if(pp.length) out.groups.push({name: 'people waiting', items: pp.map(p => item('person', p.id, p.nickname || p.name, 'due a word'))}); } catch(e){}
   return out;
