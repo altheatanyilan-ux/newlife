@@ -220,7 +220,7 @@ function rescuePlate(){
   try { const th = weekThreadsOn(weekPlanSeen(weekStart(T)), T);
     if(th.length) out.groups.push({name: 'threads on today', items: th.map(t => ({kind: 'thread', id: t.id, label: t.text, detail: WEEK_THREAD_KIND[t.kind] || ''}))}); } catch(e){}
   try { if(typeof wantsThings === 'function'){ const sh = wantsShares();
-    if(sh.length) out.groups.push({name: 'what I want from each', items: sh.map(s => item('want', s.t.id, s.t.name, s.pct + '%'))}); } } catch(e){}
+    if(sh.length) out.groups.push({name: 'my life right now', items: sh.map(s => item('want', s.t.id, s.t.name, s.pct + '%'))}); } } catch(e){}
   try { const pp = peopleNeedingAttention().slice(0, 5);
     if(pp.length) out.groups.push({name: 'people waiting', items: pp.map(p => item('person', p.id, p.nickname || p.name, 'due a word'))}); } catch(e){}
   return out;

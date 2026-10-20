@@ -1,5 +1,6 @@
 /* ============================================================
-   WHAT I WANT — the deal for each thing in my life, read every day
+   MY LIFE RIGHT NOW — each thing it is made of, by the share of my time it gets, and the deal I have with it;
+   read every day
    (Today → Looking inward; #/purpose/wants goes there)
 
    Most of what takes a share of a life is taken without being chosen. This is
@@ -7,7 +8,7 @@
    written down as a *deal*, once, so that it does not have to be worked out
    again on every anxious evening:
 
-     its share       how much of my care it gets, as a proportion only. Not hours,
+     its share       how much of my time it gets, as a proportion only. Not hours,
                      not tasks, not a target. Shares are weights; what is shown is
                      each as a part of the whole.
      what I want     the things I actually get from it, and are why I am in it.
@@ -113,7 +114,7 @@ function wantsKnows(ref){
   if(ref.type === 'want'){
     const t = wantsThing(ref.id); if(!t) return null;
     const slot = wantsSlotSay(t);
-    return {line: `${wantsPct(t.id)}% of my care${slot ? ' · its time: ' + slot : ' · no time of its own yet'}`, go: () => wantsGo(t.id)};
+    return {line: `${wantsPct(t.id)}% of my time${slot ? ' · its time: ' + slot : ' · no time of its own yet'}`, go: () => wantsGo(t.id)};
   }
   if(ref.type === 'letgo'){
     const [tid, iid] = String(ref.id).split(':'), t = wantsThing(tid), i = t && t.letgo.find(x => x.id === iid); if(!i) return null;
@@ -162,7 +163,7 @@ function wantsCardHTML(t, open){
     <div class="wn-head"><button class="wn-name" data-wntoggle="${esc(t.id)}" aria-expanded="${open}"><i></i><b>${esc(t.name || 'a new thing')}</b>${t.status !== 'active' ? `<span class="mono faint"> · ${esc(t.status)}</span>` : ''}</button>
       <span class="wn-sum faint sm">${t.gets.length} wanted · ${t.letgo.length} left alone${wantsSlotSay(t) ? ' · ' + esc(wantsSlotSay(t)) : ''}</span>
       <span class="grow"></span>
-      ${t.status === 'active' ? `<input type="range" class="wn-range" min="0" max="100" step="1" value="${t.share}" data-wnshare="${esc(t.id)}" aria-label="its share of my care"><b class="mono wn-pct" data-wnpct="${esc(t.id)}">${pct}%</b>` : ''}</div>
+      ${t.status === 'active' ? `<input type="range" class="wn-range" min="0" max="100" step="1" value="${t.share}" data-wnshare="${esc(t.id)}" aria-label="its share of my time"><b class="mono wn-pct" data-wnpct="${esc(t.id)}">${pct}%</b>` : ''}</div>
     ${open ? wantsEditorHTML(t) : (t.worth ? `<p class="wn-worth serif">${esc(t.worth)}</p>` : '')}</article>`;
 }
 function wantsLeftHTML(){
@@ -175,7 +176,7 @@ function wantsLeftHTML(){
 function wantsHTML(){
   const w = wantsState(), things = w.things, live = things.filter(t => t.status === 'active'), other = things.filter(t => t.status !== 'active');
   return `<div class="wn-wrap">
-    <p class="muted" style="max-width:64ch;line-height:1.55;margin:4px 0 0">Everything that takes a share of your life, and what you want from it — so that the rest can be let go of. Each thing is only a <b>proportion</b> here: a part of the whole, not hours, not a target.</p>
+    <p class="muted" style="max-width:64ch;line-height:1.55;margin:4px 0 0">Everything my life is made of right now, by the share of my time each one gets — and what I want from it, so that the rest can be let go of. Each thing is only a <b>proportion</b> here: a part of the whole, not hours, not a target.</p>
     ${wantsBarHTML()}
     ${things.length ? '' : `<div class="wn-empty"><p class="serif">Nothing written yet.</p><p class="muted sm">Start with one thing that takes a share of you — a role, a class, a job — and say what you want from it, what it costs, and what you do not need to care about. For example: a club committee you ran for — <i>want</i>: a room to live in, programming the concert, choosing the pieces and partners, a stage, coaching on my pieces; <i>give</i>: the admin; <i>leave to others</i>: the programme booklet; <i>won’t do</i>: the bonding suppers.</p>
       <div class="row" style="gap:8px"><button class="btn primary" data-wnnew>＋ the first thing</button><button class="btn" data-wnexample title="the club exco and the GP tuition, as described — editable">fill in my two examples</button></div></div>`}
@@ -254,7 +255,7 @@ function wantsReviewHTML(wk){
       <label class="wn-rshare"><span class="faint sm">is this still the right share?</span><input type="range" min="0" max="100" value="${t.share}" data-wnrs="${esc(t.id)}"></label></div>`; }).join('')}</div>`;
 }
 function weekWantsStep(){
-  return {title: 'What I want from each thing.', hint: 'Not how much you did — whether each thing gave you what you took it on for, and whether you stayed out of what you decided to leave alone.',
+  return {title: 'My life right now, thing by thing.', hint: 'Not how much you did — whether each thing gave you what you took it on for, and whether you stayed out of what you decided to leave alone.',
     body: () => wantsReviewHTML(_ww ? _ww.wk : wwDefaultWeek()),
     bind: b => {
       const wk = () => _ww ? _ww.wk : wwDefaultWeek();
@@ -286,7 +287,7 @@ function wantsMarkRead(){ const r = wantsReads(), T = today(); if(!r.includes(T)
 function wantsReadCardHTML(t){
   const slot = wantsSlotSay(t);
   return `<article class="wn-read" data-wnrd="${esc(t.id)}" style="--c:${esc(t.color)}">
-    <header><h3 class="serif">${esc(t.name)}</h3><span class="mono">${wantsPct(t.id)}% of my care</span></header>
+    <header><h3 class="serif">${esc(t.name)}</h3><span class="mono">${wantsPct(t.id)}% of my time</span></header>
     ${t.worth ? `<p class="wn-worth serif">${esc(t.worth)}</p>` : ''}
     ${t.gets.length ? `<div class="wn-want"><span class="wn-tag">I want</span><ul>${t.gets.map(i => `<li>${esc(i.text)}</li>`).join('')}</ul></div>` : ''}
     ${t.gives.length ? `<p class="wn-give"><span class="wn-tag">the price I accept</span>${t.gives.map(i => esc(i.text)).join(' · ')}</p>` : ''}
@@ -296,12 +297,12 @@ function wantsReadCardHTML(t){
 }
 function wantsSectionHTML(){
   const things = wantsThings().slice().sort((a, b) => b.share - a.share), read = wantsReadToday();
-  const head = `<div class="row between wn-sec-h"><span class="sc" style="margin:0">What I want</span><span class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+  const head = `<div class="row between wn-sec-h"><span class="sc" style="margin:0">My life right now</span><span class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
     <span class="mono ${read ? 'wn-done' : 'faint'}">${read ? 'read today ✓' : 'read it once a day'}</span>
     ${things.length && !_wantsEdit ? '<button class="btn sm primary" data-wnread>Read it slowly</button>' : ''}
     <button class="btn sm ghost" data-wnedit>${_wantsEdit ? 'done editing' : things.length ? 'edit' : 'write it'}</button></span></div>`;
   if(_wantsEdit) return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}<div id="wnEditHost"></div></section>`;
-  if(!things.length) return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}<p class="muted" style="max-width:62ch">Write down, once, what you actually want from each thing in your life — and what you do not need to bother with. Then it is here every day to be read, until it is simply what you know.</p></section>`;
+  if(!things.length) return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}<p class="muted" style="max-width:62ch">Write down, once, the things your life is made of right now — each by the share of your time it gets — what you want from it, and what you do not need to bother with. Then it is here every day to be read, until it is simply what you know.</p></section>`;
   return `<section class="section rv wn-sec" id="t-wants" data-duty-id="wants_read">${head}${wantsBarHTML()}<div class="wn-reads">${things.map(wantsReadCardHTML).join('')}</div></section>`;
 }
 function bindWantsSection(root){
@@ -324,11 +325,11 @@ function wantsReadOpen(done){
     const gives = t.gives.length ? `<p class="wn-rgive" style="--i:${k()}">The price I accept: ${t.gives.map(g => esc(g.text)).join(' · ')}.</p>` : '';
     const lead = t.letgo.length ? `<p class="wn-rlead" style="--i:${k()}">And I don’t bother with</p>` : '';
     const lets = t.letgo.map(g => `<li style="--i:${k()}"><s>${esc(g.text)}</s></li>`).join('');
-    return `<div class="wn-slide" style="--c:${esc(t.color)}"><p class="mono wn-rpct">${wantsPct(t.id)}% of my care</p><h2 class="serif">${esc(t.name)}</h2>
+    return `<div class="wn-slide" style="--c:${esc(t.color)}"><p class="mono wn-rpct">${wantsPct(t.id)}% of my time</p><h2 class="serif">${esc(t.name)}</h2>
       ${t.worth ? `<p class="wn-rworth serif">${esc(t.worth)}</p>` : ''}
       ${wants ? `<p class="wn-rwlead">I want</p><ul class="wn-rwant">${wants}</ul>` : ''}${gives}${lead}${lets ? `<ul class="wn-rlet">${lets}</ul>` : ''}</div>`; });
-  slides.push(`<div class="wn-slide wn-slide-end"><h2 class="serif">That is what I want.</h2><p class="wn-rworth serif" style="--i:1">The rest is not mine to carry.</p></div>`);
-  const ov = document.createElement('div'); ov.className = 'wn-reader'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'what I want, read slowly');
+  slides.push(`<div class="wn-slide wn-slide-end"><h2 class="serif">That is my life right now.</h2><p class="wn-rworth serif" style="--i:1">The rest is not mine to carry.</p></div>`);
+  const ov = document.createElement('div'); ov.className = 'wn-reader'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'my life right now, read slowly');
   ov.innerHTML = `<button class="wn-rx" aria-label="close" title="close (Esc)">×</button><div class="wn-stage"></div>
     <div class="wn-rnav"><button class="wn-rb" data-d="-1" aria-label="back">‹</button><span class="wn-rdots"></span><button class="wn-rb" data-d="1" aria-label="next">›</button></div>`;
   document.body.appendChild(ov);
@@ -345,7 +346,7 @@ function wantsReadOpen(done){
   show(0);
 }
 if(typeof registerDuty === 'function'){
-  registerDuty({id: 'wants_read', label: 'Read what I want', anchor: '#t-wants', route: '#/today', windowDef: {type: 'anytime'},
+  registerDuty({id: 'wants_read', label: 'Read my life right now', anchor: '#t-wants', route: '#/today', windowDef: {type: 'anytime'},
     recurrence: {type: 'daily-conditional', check: () => wantsThings().length > 0}, skipDone: true, notify: false, defaultOn: true, doneCheck: T => wantsReads().includes(T),
-    rule: 'something is written on the What I want sheet; done when you have read it today'});
+    rule: 'something is written on the My life right now sheet; done when you have read it today'});
 }

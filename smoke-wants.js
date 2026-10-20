@@ -1,4 +1,4 @@
-/* smoke-wants — Purpose → What I want: proportions, the deal, what is left alone, its own time */
+/* smoke-wants — Today → Looking inward → My life right now: proportions, the deal, what is left alone, its own time */
 const {chromium} = require('playwright');
 const path = require('path');
 const FILE = 'file://' + path.resolve(__dirname, 'index.html');
@@ -65,14 +65,14 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   await q(() => { document.querySelectorAll('.rs-box')[1].querySelector('[data-rssug^="slot:"]').click(); }); await p.waitForTimeout(300);
   const rm = await q(() => { const m = document.querySelector('.rs-menu'); return {menu: !!m, rem: S.tasks.filter(t => t.remind && /The club exco/.test(t.text)).length}; });
   yes('saving it for its time makes a reminder there', rm.rem === 1, rm);
-  yes('the plate lists what I want, with each share', await q(() => rescuePlate().groups.some(g => g.name === 'what I want from each' && g.items.length === 2)));
+  yes('the plate lists what I want, with each share', await q(() => rescuePlate().groups.some(g => g.name === 'my life right now' && g.items.length === 2)));
 
   console.log('\nthe weekly review');
   await q(() => { location.hash = '#/today'; }); await p.waitForTimeout(500);
   await q(() => { flowWeekly(); }); await p.waitForTimeout(500);
   await p.click('#fwNext'); await p.waitForTimeout(300);
   const wk = await q(() => ({t: document.querySelector('.modal h2').textContent, cards: document.querySelectorAll('.wn-rcard').length}));
-  yes('the review asks about each thing, after the week as written', /What I want from each thing/.test(wk.t) && wk.cards === 2, wk);
+  yes('the review asks about each thing, after the week as written', /My life right now/.test(wk.t) && wk.cards === 2, wk);
   await p.click('.wn-rcard:first-child [data-wnrv$="|part"]'); await p.fill('.wn-rcard:first-child [data-wnrn]', 'the booklet crept back on Wednesday');
   const kept = await q(() => { const n = wantsWeekNotes(_ww.wk, false), id = wantsState().things[0].id; return n[id]; });
   yes('a word and a line are kept with the week', kept && kept.v === 'part' && /booklet/.test(kept.note), kept);
