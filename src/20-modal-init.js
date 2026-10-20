@@ -12,8 +12,8 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
     <h2 class="entry-h">${existing?'Edit entry':esc(heading || 'New '+typeName(e.type).toLowerCase())}</h2>
     <div class="typerow" id="typeRow" ${types.length<=1?'hidden':''}>${types.map(([t,n,i])=>`<button class="${e.type===t?'on':''}" data-t="${t}">${i} ${n}</button>`).join('')}</div>
     <div class="stack">
-      <input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}">
-      <textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea>
+      <div class="field"><label>Does it have a title?</label><input class="inp serif-lg" id="eTitle" placeholder="Title (optional)" value="${esc(e.title)}"></div>
+      <div class="field"><label>What would you like to put down?</label><textarea class="ta" id="eBody" placeholder="Body — markdown welcome. **bold**, *italic*, > quote, - list" style="min-height:120px">${esc(e.body)}</textarea></div>
       <div id="extraFields"></div>
       <div class="field add-field"><label>${ADDITIONAL_LABEL}</label><div class="faint" style="font-size:.76rem;margin-bottom:4px">${esc(ADDITIONAL_HINT)}</div>
         <textarea class="ta" data-x="additional" style="min-height:60px" placeholder="Anything else.">${esc((e.extra && e.extra.additional) || '')}</textarea></div>

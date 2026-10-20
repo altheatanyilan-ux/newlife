@@ -1071,6 +1071,12 @@ For the hours when everything is a tangle — long-term and short-term, a deadli
 
 **Every page is kept** by the day it was made, and listed in the **Review** under that date; **Pages** inside the space opens any of them again. A line may lean in at the edge of the page now and then — from the starters and from the lines you keep — and can be turned off in Settings.
 
+## Entering things as clouds
+
+A form is a rectangle that asks for everything at once. By default the site asks **one question at a time instead**, as **floating clouds over the page with no dialog at all**: a question forms as a soft cloud in the middle of the screen, you answer it and press **Enter** (**Ctrl/⌘+Enter** in a long writing box), and your answer drifts to the edge of the page as a small bubble while the next cloud forms. Questions you skipped wait there as faint outlined bubbles — touch one to go back to it. **That's enough** goes to the end at any time; there the dialog's own **Save** appears (everything it saved before, it saves now), with **×** in the corner to close without saving. The type picker of a journal entry stays at the top. It works for journal entries (all of them), people, habits, events, reminders, time entries, time intentions, performance goals, lists, rules, commitments, letters and any other dialog that is a plain set of questions; a dialog that is a table, a review flow or a page of controls is left as it was.
+
+**Settings → Entering things** chooses the style: **Floating clouds** (default), **One at a time, in the dialog** (the same asking inside the dialog's rectangle), or **Plain form**. **Plain form** at the corner of any cloud puts just that dialog back as an ordinary form.
+
 ## What I want (Purpose → What I want)
 
 For the things that take a share of a life — a club committee, a class you teach, a job — and the question *what do I actually want from this?* Each **thing** is written down once, as a deal, so it does not have to be worked out again on every anxious evening. Open it from **Purpose → What I want** (or press a thing's name from the rescue page's plate).
