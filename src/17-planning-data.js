@@ -246,8 +246,29 @@ function planNewList(name, {folderId = null, color = null} = {}){
   l.milestones = [];
   p.lists.push(l); return l;
 }
+/* A finished list can be put away rather than deleted: it keeps its tasks, its
+   milestones and its history, and is out of every picker and the sidebar until it is brought back. */
+const planListArchived = l => !!(l && l.archivedAt);
+const planListsLive = () => planLists().filter(l => !l.archivedAt);
+/* a list with something done in it and nothing left open: the moment to offer putting it away */
+function planListFinished(id){
+  if(!id || id === 'inbox') return false;
+  const own = (S.tasks || []).filter(t => t.listId === id && !taskIsAside(t));
+  return own.length > 0 && own.every(t => t.done);
+}
+function planArchiveList(l, {openToInbox = false} = {}){
+  if(!l || l.isDefault || l.archivedAt) return null;
+  const moved = openToInbox ? (S.tasks || []).filter(t => t.listId === l.id && !t.done && !taskIsAside(t)) : [];
+  moved.forEach(t => t.listId = 'inbox');
+  l.archivedAt = new Date().toISOString();
+  if(planSel().id === l.id) S._planSel = {kind:'smart', id:'today'};
+  saveNow();
+  return () => { delete l.archivedAt; moved.forEach(t => t.listId = l.id); saveNow(); };
+}
+function planRestoreList(l){ if(!l || !l.archivedAt) return; delete l.archivedAt; saveNow(); }
 function planListActive(l){
   if(!l) return false;
+  if(l.archivedAt) return false;
   if(!l.activeFrom) return true;
   return l.activeFrom <= today();
 }
@@ -512,7 +533,7 @@ function planSpanWindow(id){
 }
 function planMilestonesFor(sel){
   if(!sel) return [];
-  const all = () => planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
+  const all = () => planListsLive().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
   const sorted = xs => xs.sort((a, b) => (a.m.date || '9999-12-31').localeCompare(b.m.date || '9999-12-31'));
   /* Today, Tomorrow and the next seven days are not a list, so they have no
      milestones of their own — they have every list's, narrowed to the days
@@ -570,7 +591,7 @@ function planMilestoneProgress(id){
    order they press on you. */
 function planMilestonesAhead({within = 60, limit = 6} = {}){
   const T = today(), to = addDays(T, within);
-  return planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+  return planListsLive().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
     .filter(({m}) => !['on-track','prepared'].includes(m.status) && !m.done && m.date && m.date <= to)
     .sort((a, b) => (a.m.date || '').localeCompare(b.m.date || ''))
     .slice(0, limit);

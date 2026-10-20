@@ -86,7 +86,8 @@ function planSidebarHTML(){
      when you have not said where it goes, so it belongs on the line that puts
      things there — up beside the box you type into — not filed in the middle
      of the column of the lists you made on purpose. */
-  const allLists = planLists().filter(l => !l.folderId && l.id !== 'inbox');
+  const allLists = planLists().filter(l => !l.folderId && l.id !== 'inbox' && !l.archivedAt);
+  const archived = planLists().filter(l => l.archivedAt).sort((a, b) => String(b.archivedAt).localeCompare(String(a.archivedAt)));
   const loose = allLists.filter(l => planListActive(l));
   const future = allLists.filter(l => !planListActive(l));
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
@@ -139,6 +140,9 @@ function planSidebarHTML(){
         ${future.length ? `<div class="pl-future${future.some(l => l === planList(planSel().id)) ? ' has-sel' : ''}" id="plFuture">
           <button class="pl-future-toggle" id="plFutureToggle" title="lists not yet active">${S._planFutureOpen ? '▾' : '▸'} Future <span class="mono faint">${future.length}</span></button>
           ${S._planFutureOpen ? `<div class="pl-fkids">${future.map(l => `${listRow(l)}<span class="pl-future-date mono faint" style="font-size:.72rem;padding-left:24px">from ${esc(l.activeFrom)}</span>`).join('')}</div>` : ''}</div>` : ''}
+        ${archived.length ? `<div class="pl-future pl-arch${archived.some(l => sel.kind === 'list' && l.id === sel.id) ? ' has-sel' : ''}" id="plArch">
+          <button class="pl-future-toggle" id="plArchToggle" title="lists you have finished and put away">${S._planArchOpen || archived.some(l => sel.kind === 'list' && l.id === sel.id) ? '▾' : '▸'} Archived <span class="mono faint">${archived.length}</span></button>
+          ${S._planArchOpen || archived.some(l => sel.kind === 'list' && l.id === sel.id) ? `<div class="pl-fkids">${archived.map(listRow).join('')}</div>` : ''}</div>` : ''}
       </div>
       <button class="pl-mini-row" id="plNewFolder">＋ folder</button>
 
@@ -652,6 +656,9 @@ function planHeaderHTML(sel){
       <div class="row" style="align-items:baseline;gap:8px;flex:1">
         <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
         ${sel.kind === 'list' && sel.id !== 'inbox' ? `<button class="pl-mini pl-commit-btn" data-plcommit="${esc(sel.id)}" title="commitment overview">ⓘ</button>` : ''}
+        ${(() => { const l = sel.kind === 'list' ? planList(sel.id) : null; if(!l || l.isDefault || l.id === 'inbox') return '';
+          if(l.archivedAt) return `<span class="pl-archtag mono">archived ${esc(fmtDate(l.archivedAt.slice(0, 10), 'short'))}</span><button class="btn sm" data-plrestore="${esc(l.id)}">Bring it back</button>`;
+          return planListFinished(l.id) ? `<button class="btn sm pl-archbtn" data-plarchive="${esc(l.id)}" title="put this finished list away — it is kept, not deleted">✓ All done — archive</button>` : ''; })()}
       </div>
       ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map((x, i) => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view (${i + 1})">${x.icon}</button>`).join('')}</div>`}
     </div>

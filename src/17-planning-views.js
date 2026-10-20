@@ -192,7 +192,7 @@ function planMatrixHTML(tasks, sel){
 
   /* most imminent undone milestone across all lists */
   const now = today();
-  const imminentMilestone = planLists()
+  const imminentMilestone = planListsLive()
     .flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
     .filter(x => !x.m.done && x.m.date)
     .sort((a, b) => a.m.date.localeCompare(b.m.date))[0] || null;

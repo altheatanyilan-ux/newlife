@@ -838,7 +838,7 @@ function planStatsHTML(){
     </div>
 
     ${(() => {
-      const allMs = planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
+      const allMs = planListsLive().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
       if(!allMs.length) return '';
       const T = today();
       const thisMonth = T.slice(0, 7);
@@ -846,7 +846,7 @@ function planStatsHTML(){
       const prepThisMonth = allMs.filter(({m}) => m.done && m.doneAt && m.doneAt.slice(0, 7) === thisMonth).length ||
         allMs.filter(({m}) => m.done && m.date && m.date.slice(0, 7) === thisMonth).length;
       const prepLastMonth = allMs.filter(({m}) => m.done && m.date && m.date.slice(0, 7) === lastMonthStart).length;
-      const listMs = planLists().map(l => {
+      const listMs = planListsLive().map(l => {
         const ms = planListMilestones(l);
         if(!ms.length) return null;
         const prepared = ms.filter(m => m.done).length;

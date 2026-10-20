@@ -79,7 +79,7 @@ const habCountsLabel = link => link ? `${(HAB_COUNT_TYPES.find(t => t[0] === lin
 function habCountsChoices(type){
   try {
     if(type === 'category') return timeCategories().map(c => [c.id, `${c.emoji} ${c.name}`]);
-    if(type === 'list') return planLists().filter(l => !l.archived).map(l => [l.id, l.name]);
+    if(type === 'list') return planLists().filter(l => !l.archivedAt).map(l => [l.id, l.name]);
     if(type === 'skill') return (S.skills || []).map(s => [s.id, s.name]);
     if(type === 'project') return (S.projects || []).map(p => [p.id, p.name]);
     if(type === 'task') return (S.tasks || []).filter(t => !t.done && !t.isCompleted).slice(0, 200).map(t => [t.id, t.title || t.text || '(untitled)']);

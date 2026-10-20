@@ -7,8 +7,30 @@ function planRedraw(){ rerender(); }
 
 /* completing a task is a small ceremony: the box fills, the line draws itself
    through the title, and only then does the row leave */
+/* Put a finished list away, not out: it is kept, with its tasks, under Archived. Anything still open in it
+   can stay where it is (hidden with the list) or go to the Inbox. */
+function planArchiveListFlow(id){
+  const l = planList(id); if(!l || l.isDefault) return;
+  const open = (S.tasks || []).filter(t => t.listId === l.id && !t.done && !taskIsAside(t));
+  const go = toInbox => { const undo = planArchiveList(l, {openToInbox: toInbox}); if(!undo) return;
+    sound('success'); toast(`“${esc(l.name)}” is archived. It is kept under Archived in the lists.`, 7000, {label: 'undo', fn: () => { undo(); rerender(); }}); rerender(); };
+  if(!open.length) return go(false);
+  const m = openModal(`<h2>Archive “${esc(l.name)}”?</h2>
+    <p class="muted" style="font-size:.9rem">It is kept — with its tasks, milestones and history — and can be brought back any time. ${open.length} task${open.length === 1 ? ' is' : 's are'} still open in it.</p>
+    <div class="stack" style="gap:8px"><button class="btn primary" id="plaInbox">Archive it, and move the ${open.length} open to the Inbox</button>
+      <button class="btn" id="plaKeep">Archive it with the open ones inside (they are hidden until it is back)</button>
+      <button class="btn ghost" id="plaNo">Not yet</button></div>`, 'narrow');
+  m.querySelector('#plaInbox').onclick = () => { m.remove(); go(true); };
+  m.querySelector('#plaKeep').onclick = () => { m.remove(); go(false); };
+  m.querySelector('#plaNo').onclick = () => m.remove();
+}
 function planCompleteRow(row, t, done){
   const rolled = planSetDone(t, done);
+  /* the last open task of a list ticked: say so, and offer to put the list away */
+  if(done && t.listId && planListFinished(t.listId) && !(planList(t.listId) || {}).archivedAt){
+    const l = planList(t.listId), lid = t.listId;
+    if(l && !l.isDefault) setTimeout(() => toast(`“${esc(l.name)}” is all done.`, 9000, {label: 'archive it', fn: () => planArchiveListFlow(lid)}), 700);
+  }
   sound(done ? 'success' : 'click');
   if(!row){ planRedraw(); return; }
   row.classList.toggle('done', done);
@@ -54,6 +76,9 @@ function bindPlanning(root, sel, tasks){
   $$('[data-plnewin]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation(); openPlanListModal(null, {folderId: b.dataset.plnewin});
   });
+  const at = $('#plArchToggle'); if(at) at.onclick = () => { S._planArchOpen = !S._planArchOpen; rerender(); };
+  $$('[data-plarchive]', root).forEach(b => b.onclick = () => planArchiveListFlow(b.dataset.plarchive));
+  $$('[data-plrestore]', root).forEach(b => b.onclick = () => { const l = planList(b.dataset.plrestore); if(!l) return; planRestoreList(l); sound('success'); toast(`“${esc(l.name)}” is back in the lists.`, 3500); rerender(); });
   const ft = $('#plFutureToggle'); if(ft) ft.onclick = () => { S._planFutureOpen = !S._planFutureOpen; rerender(); };
   const nf = $('#plNewFolder'); if(nf) nf.onclick = () => {
     const f = planNewFolder('New folder'); saveNow(); rerender();
@@ -316,7 +341,7 @@ function bindPlanBatch(root){
       remove: () => { const ids = new Set(ts.map(t => t.id)); const kept = S.tasks.filter(t => !ids.has(t.id));
         const gone = S.tasks.filter(t => ids.has(t.id)); S.tasks = kept; S._planPick = null;
         return () => { S.tasks.push(...gone); }; }}); return; }
-    if(k === 'move'){ planChoose('Move to list', planLists().map(l => [l.id, l.name]),
+    if(k === 'move'){ planChoose('Move to list', planListsLive().map(l => [l.id, l.name]),
       v => { ts.forEach(t => { t.listId = v; t.sectionId = null; }); done(); }); return; }
     if(k === 'prio'){ planChoose('Set priority', PLAN_PRIORITY.map(x => [String(x.n), x.name]),
       v => { ts.forEach(t => t.priority = +v); done(); }); return; }
@@ -365,7 +390,7 @@ function openPlanRowMenu(ev, id){
     if(k === 'open') return openPlanTask(id);
     if(k === 'prio') return planChoose('Priority', PLAN_PRIORITY.map(x => [String(x.n), x.name]),
       v => { t.priority = +v; saveNow(); rerender(); });
-    if(k === 'move') return planChoose('Move to list', planLists().map(l => [l.id, l.name]),
+    if(k === 'move') return planChoose('Move to list', planListsLive().map(l => [l.id, l.name]),
       v => { t.listId = v; t.sectionId = null; saveNow(); rerender(); });
     if(k === 'del') return requestDelete({label:t.text || 'Task', after:planRedraw,
       remove: () => spliceOut(S.tasks, x => x.id === t.id)});
@@ -416,9 +441,9 @@ function openPlanListModal(id, {folderId = null} = {}){
       ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || PLAN_VIEW_DEFAULT) === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
     <div class="row between" style="margin-top:8px">
       ${/* the project's page and "make this a project" went with the Projects
-            page; a list that carries a project record keeps it, untouched */
-        l && l.projectId ? '<span></span>'
-        : l && !l.isDefault ? `<span class="row" style="gap:6px"><button class="btn sm ghost danger" id="plnDel">delete list</button></span>` : '<span></span>'}
+            page; a list that carries a project record keeps it, untouched. Archiving is the gentle way out for
+            any list that is finished; deleting is the other one. */
+        l && !l.isDefault ? `<span class="row" style="gap:6px">${l.archivedAt ? '<button class="btn sm" id="plnRestore">bring it back</button>' : '<button class="btn sm" id="plnArchive" title="put it away, kept — not deleted">archive list</button>'}${l.projectId ? '' : '<button class="btn sm ghost danger" id="plnDel">delete list</button>'}</span>` : '<span></span>'}
       <button class="btn primary" id="plnSave">${l ? 'Save' : 'Create'}</button></div></div>`, 'narrow');
   let color = l?.color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length];
   let listType = l?.listType || 'task';
@@ -468,6 +493,8 @@ function openPlanListModal(id, {folderId = null} = {}){
   };
   const mk = m.querySelector('#plnProj');
   if(mk) mk.onclick = () => { const pr = planListMakeProject(l.id); m.remove(); if(pr){ sound('success'); toast(`“${esc(pr.name)}” is a project now; its sections are its phases.`); } rerender(); };
+  const arc = m.querySelector('#plnArchive'); if(arc) arc.onclick = () => { m.remove(); planArchiveListFlow(l.id); };
+  const rst = m.querySelector('#plnRestore'); if(rst) rst.onclick = () => { planRestoreList(l); m.remove(); sound('success'); toast('Back in the lists.', 3000); rerender(); };
   const del = m.querySelector('#plnDel');
   if(del) del.onclick = () => { m.remove();
     requestDelete({label:l.name, after:planRedraw, remove: () => {

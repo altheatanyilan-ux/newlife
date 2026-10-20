@@ -13611,6 +13611,8 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .ww-days{display:inline-flex;gap:3px}.ww-days i{font-style:normal;font-size:.7rem;padding:1px 6px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}.ww-days i.on{background:color-mix(in srgb,var(--sage) 22%,transparent);border-color:var(--sage);color:var(--text)}
 .ww-none{padding:18px 4px}.ww-none p{margin:0 0 6px}
 .ww-numbers{display:flex;align-items:center;gap:8px;margin-top:14px}
+.pl-archtag{font-size:.72rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px}.pl-archbtn{margin-left:6px}
+.pl-arch .pl-item{opacity:.78}
 </style>
 
 </head>
@@ -49365,7 +49367,7 @@ const habCountsLabel = link => link ? `${(HAB_COUNT_TYPES.find(t => t[0] === lin
 function habCountsChoices(type){
   try {
     if(type === 'category') return timeCategories().map(c => [c.id, `${c.emoji} ${c.name}`]);
-    if(type === 'list') return planLists().filter(l => !l.archived).map(l => [l.id, l.name]);
+    if(type === 'list') return planLists().filter(l => !l.archivedAt).map(l => [l.id, l.name]);
     if(type === 'skill') return (S.skills || []).map(s => [s.id, s.name]);
     if(type === 'project') return (S.projects || []).map(p => [p.id, p.name]);
     if(type === 'task') return (S.tasks || []).filter(t => !t.done && !t.isCompleted).slice(0, 200).map(t => [t.id, t.title || t.text || '(untitled)']);
@@ -50741,8 +50743,30 @@ function planRedraw(){ rerender(); }
 
 /* completing a task is a small ceremony: the box fills, the line draws itself
    through the title, and only then does the row leave */
+/* Put a finished list away, not out: it is kept, with its tasks, under Archived. Anything still open in it
+   can stay where it is (hidden with the list) or go to the Inbox. */
+function planArchiveListFlow(id){
+  const l = planList(id); if(!l || l.isDefault) return;
+  const open = (S.tasks || []).filter(t => t.listId === l.id && !t.done && !taskIsAside(t));
+  const go = toInbox => { const undo = planArchiveList(l, {openToInbox: toInbox}); if(!undo) return;
+    sound('success'); toast(`“${esc(l.name)}” is archived. It is kept under Archived in the lists.`, 7000, {label: 'undo', fn: () => { undo(); rerender(); }}); rerender(); };
+  if(!open.length) return go(false);
+  const m = openModal(`<h2>Archive “${esc(l.name)}”?</h2>
+    <p class="muted" style="font-size:.9rem">It is kept — with its tasks, milestones and history — and can be brought back any time. ${open.length} task${open.length === 1 ? ' is' : 's are'} still open in it.</p>
+    <div class="stack" style="gap:8px"><button class="btn primary" id="plaInbox">Archive it, and move the ${open.length} open to the Inbox</button>
+      <button class="btn" id="plaKeep">Archive it with the open ones inside (they are hidden until it is back)</button>
+      <button class="btn ghost" id="plaNo">Not yet</button></div>`, 'narrow');
+  m.querySelector('#plaInbox').onclick = () => { m.remove(); go(true); };
+  m.querySelector('#plaKeep').onclick = () => { m.remove(); go(false); };
+  m.querySelector('#plaNo').onclick = () => m.remove();
+}
 function planCompleteRow(row, t, done){
   const rolled = planSetDone(t, done);
+  /* the last open task of a list ticked: say so, and offer to put the list away */
+  if(done && t.listId && planListFinished(t.listId) && !(planList(t.listId) || {}).archivedAt){
+    const l = planList(t.listId), lid = t.listId;
+    if(l && !l.isDefault) setTimeout(() => toast(`“${esc(l.name)}” is all done.`, 9000, {label: 'archive it', fn: () => planArchiveListFlow(lid)}), 700);
+  }
   sound(done ? 'success' : 'click');
   if(!row){ planRedraw(); return; }
   row.classList.toggle('done', done);
@@ -50788,6 +50812,9 @@ function bindPlanning(root, sel, tasks){
   $$('[data-plnewin]', root).forEach(b => b.onclick = ev => {
     ev.stopPropagation(); openPlanListModal(null, {folderId: b.dataset.plnewin});
   });
+  const at = $('#plArchToggle'); if(at) at.onclick = () => { S._planArchOpen = !S._planArchOpen; rerender(); };
+  $$('[data-plarchive]', root).forEach(b => b.onclick = () => planArchiveListFlow(b.dataset.plarchive));
+  $$('[data-plrestore]', root).forEach(b => b.onclick = () => { const l = planList(b.dataset.plrestore); if(!l) return; planRestoreList(l); sound('success'); toast(`“${esc(l.name)}” is back in the lists.`, 3500); rerender(); });
   const ft = $('#plFutureToggle'); if(ft) ft.onclick = () => { S._planFutureOpen = !S._planFutureOpen; rerender(); };
   const nf = $('#plNewFolder'); if(nf) nf.onclick = () => {
     const f = planNewFolder('New folder'); saveNow(); rerender();
@@ -51050,7 +51077,7 @@ function bindPlanBatch(root){
       remove: () => { const ids = new Set(ts.map(t => t.id)); const kept = S.tasks.filter(t => !ids.has(t.id));
         const gone = S.tasks.filter(t => ids.has(t.id)); S.tasks = kept; S._planPick = null;
         return () => { S.tasks.push(...gone); }; }}); return; }
-    if(k === 'move'){ planChoose('Move to list', planLists().map(l => [l.id, l.name]),
+    if(k === 'move'){ planChoose('Move to list', planListsLive().map(l => [l.id, l.name]),
       v => { ts.forEach(t => { t.listId = v; t.sectionId = null; }); done(); }); return; }
     if(k === 'prio'){ planChoose('Set priority', PLAN_PRIORITY.map(x => [String(x.n), x.name]),
       v => { ts.forEach(t => t.priority = +v); done(); }); return; }
@@ -51099,7 +51126,7 @@ function openPlanRowMenu(ev, id){
     if(k === 'open') return openPlanTask(id);
     if(k === 'prio') return planChoose('Priority', PLAN_PRIORITY.map(x => [String(x.n), x.name]),
       v => { t.priority = +v; saveNow(); rerender(); });
-    if(k === 'move') return planChoose('Move to list', planLists().map(l => [l.id, l.name]),
+    if(k === 'move') return planChoose('Move to list', planListsLive().map(l => [l.id, l.name]),
       v => { t.listId = v; t.sectionId = null; saveNow(); rerender(); });
     if(k === 'del') return requestDelete({label:t.text || 'Task', after:planRedraw,
       remove: () => spliceOut(S.tasks, x => x.id === t.id)});
@@ -51150,9 +51177,9 @@ function openPlanListModal(id, {folderId = null} = {}){
       ${PLAN_VIEWS.map(v => `<option value="${v.id}" ${(l?.defaultView || PLAN_VIEW_DEFAULT) === v.id ? 'selected' : ''}>${v.name}</option>`).join('')}</select></div>
     <div class="row between" style="margin-top:8px">
       ${/* the project's page and "make this a project" went with the Projects
-            page; a list that carries a project record keeps it, untouched */
-        l && l.projectId ? '<span></span>'
-        : l && !l.isDefault ? `<span class="row" style="gap:6px"><button class="btn sm ghost danger" id="plnDel">delete list</button></span>` : '<span></span>'}
+            page; a list that carries a project record keeps it, untouched. Archiving is the gentle way out for
+            any list that is finished; deleting is the other one. */
+        l && !l.isDefault ? `<span class="row" style="gap:6px">${l.archivedAt ? '<button class="btn sm" id="plnRestore">bring it back</button>' : '<button class="btn sm" id="plnArchive" title="put it away, kept — not deleted">archive list</button>'}${l.projectId ? '' : '<button class="btn sm ghost danger" id="plnDel">delete list</button>'}</span>` : '<span></span>'}
       <button class="btn primary" id="plnSave">${l ? 'Save' : 'Create'}</button></div></div>`, 'narrow');
   let color = l?.color || PLAN_COLORS[p.lists.length % PLAN_COLORS.length];
   let listType = l?.listType || 'task';
@@ -51202,6 +51229,8 @@ function openPlanListModal(id, {folderId = null} = {}){
   };
   const mk = m.querySelector('#plnProj');
   if(mk) mk.onclick = () => { const pr = planListMakeProject(l.id); m.remove(); if(pr){ sound('success'); toast(`“${esc(pr.name)}” is a project now; its sections are its phases.`); } rerender(); };
+  const arc = m.querySelector('#plnArchive'); if(arc) arc.onclick = () => { m.remove(); planArchiveListFlow(l.id); };
+  const rst = m.querySelector('#plnRestore'); if(rst) rst.onclick = () => { planRestoreList(l); m.remove(); sound('success'); toast('Back in the lists.', 3000); rerender(); };
   const del = m.querySelector('#plnDel');
   if(del) del.onclick = () => { m.remove();
     requestDelete({label:l.name, after:planRedraw, remove: () => {
@@ -51642,8 +51671,29 @@ function planNewList(name, {folderId = null, color = null} = {}){
   l.milestones = [];
   p.lists.push(l); return l;
 }
+/* A finished list can be put away rather than deleted: it keeps its tasks, its
+   milestones and its history, and is out of every picker and the sidebar until it is brought back. */
+const planListArchived = l => !!(l && l.archivedAt);
+const planListsLive = () => planLists().filter(l => !l.archivedAt);
+/* a list with something done in it and nothing left open: the moment to offer putting it away */
+function planListFinished(id){
+  if(!id || id === 'inbox') return false;
+  const own = (S.tasks || []).filter(t => t.listId === id && !taskIsAside(t));
+  return own.length > 0 && own.every(t => t.done);
+}
+function planArchiveList(l, {openToInbox = false} = {}){
+  if(!l || l.isDefault || l.archivedAt) return null;
+  const moved = openToInbox ? (S.tasks || []).filter(t => t.listId === l.id && !t.done && !taskIsAside(t)) : [];
+  moved.forEach(t => t.listId = 'inbox');
+  l.archivedAt = new Date().toISOString();
+  if(planSel().id === l.id) S._planSel = {kind:'smart', id:'today'};
+  saveNow();
+  return () => { delete l.archivedAt; moved.forEach(t => t.listId = l.id); saveNow(); };
+}
+function planRestoreList(l){ if(!l || !l.archivedAt) return; delete l.archivedAt; saveNow(); }
 function planListActive(l){
   if(!l) return false;
+  if(l.archivedAt) return false;
   if(!l.activeFrom) return true;
   return l.activeFrom <= today();
 }
@@ -51908,7 +51958,7 @@ function planSpanWindow(id){
 }
 function planMilestonesFor(sel){
   if(!sel) return [];
-  const all = () => planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
+  const all = () => planListsLive().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
   const sorted = xs => xs.sort((a, b) => (a.m.date || '9999-12-31').localeCompare(b.m.date || '9999-12-31'));
   /* Today, Tomorrow and the next seven days are not a list, so they have no
      milestones of their own — they have every list's, narrowed to the days
@@ -51966,7 +52016,7 @@ function planMilestoneProgress(id){
    order they press on you. */
 function planMilestonesAhead({within = 60, limit = 6} = {}){
   const T = today(), to = addDays(T, within);
-  return planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
+  return planListsLive().flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
     .filter(({m}) => !['on-track','prepared'].includes(m.status) && !m.done && m.date && m.date <= to)
     .sort((a, b) => (a.m.date || '').localeCompare(b.m.date || ''))
     .slice(0, limit);
@@ -52116,7 +52166,7 @@ function planDetailHTML(t){
         ${t.doDay ? `min="${esc(addDays(t.doDay, 1))}"` : ''} title="the last day, if you mean to spread it over several"></label>
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
-        ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+        ${planLists().filter(l => !l.archivedAt || t.listId === l.id).map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}${l.archivedAt ? ' (archived)' : ''}</option>`).join('')}</select></label>
       <!-- something to buy: it goes on the shopping list (the 🛒 button on the
            top line), and stays in its own list as well -->
       <label class="pd-q pd-shop"><span class="k">to buy</span>
@@ -52579,7 +52629,8 @@ function planSidebarHTML(){
      when you have not said where it goes, so it belongs on the line that puts
      things there — up beside the box you type into — not filed in the middle
      of the column of the lists you made on purpose. */
-  const allLists = planLists().filter(l => !l.folderId && l.id !== 'inbox');
+  const allLists = planLists().filter(l => !l.folderId && l.id !== 'inbox' && !l.archivedAt);
+  const archived = planLists().filter(l => l.archivedAt).sort((a, b) => String(b.archivedAt).localeCompare(String(a.archivedAt)));
   const loose = allLists.filter(l => planListActive(l));
   const future = allLists.filter(l => !planListActive(l));
   return `<aside class="pl-side${p.prefs.sidebarCollapsed ? ' collapsed' : ''}" id="plSide">
@@ -52632,6 +52683,9 @@ function planSidebarHTML(){
         ${future.length ? `<div class="pl-future${future.some(l => l === planList(planSel().id)) ? ' has-sel' : ''}" id="plFuture">
           <button class="pl-future-toggle" id="plFutureToggle" title="lists not yet active">${S._planFutureOpen ? '▾' : '▸'} Future <span class="mono faint">${future.length}</span></button>
           ${S._planFutureOpen ? `<div class="pl-fkids">${future.map(l => `${listRow(l)}<span class="pl-future-date mono faint" style="font-size:.72rem;padding-left:24px">from ${esc(l.activeFrom)}</span>`).join('')}</div>` : ''}</div>` : ''}
+        ${archived.length ? `<div class="pl-future pl-arch${archived.some(l => sel.kind === 'list' && l.id === sel.id) ? ' has-sel' : ''}" id="plArch">
+          <button class="pl-future-toggle" id="plArchToggle" title="lists you have finished and put away">${S._planArchOpen || archived.some(l => sel.kind === 'list' && l.id === sel.id) ? '▾' : '▸'} Archived <span class="mono faint">${archived.length}</span></button>
+          ${S._planArchOpen || archived.some(l => sel.kind === 'list' && l.id === sel.id) ? `<div class="pl-fkids">${archived.map(listRow).join('')}</div>` : ''}</div>` : ''}
       </div>
       <button class="pl-mini-row" id="plNewFolder">＋ folder</button>
 
@@ -53145,6 +53199,9 @@ function planHeaderHTML(sel){
       <div class="row" style="align-items:baseline;gap:8px;flex:1">
         <h2 class="pl-title">${esc(planSelectionTitle(sel))}</h2>
         ${sel.kind === 'list' && sel.id !== 'inbox' ? `<button class="pl-mini pl-commit-btn" data-plcommit="${esc(sel.id)}" title="commitment overview">ⓘ</button>` : ''}
+        ${(() => { const l = sel.kind === 'list' ? planList(sel.id) : null; if(!l || l.isDefault || l.id === 'inbox') return '';
+          if(l.archivedAt) return `<span class="pl-archtag mono">archived ${esc(fmtDate(l.archivedAt.slice(0, 10), 'short'))}</span><button class="btn sm" data-plrestore="${esc(l.id)}">Bring it back</button>`;
+          return planListFinished(l.id) ? `<button class="btn sm pl-archbtn" data-plarchive="${esc(l.id)}" title="put this finished list away — it is kept, not deleted">✓ All done — archive</button>` : ''; })()}
       </div>
       ${special ? '' : `<div class="pl-viewsw">${PLAN_VIEWS.map((x, i) => `<button class="${v === x.id ? 'on' : ''}" data-plview="${x.id}" title="${esc(x.name)} view (${i + 1})">${x.icon}</button>`).join('')}</div>`}
     </div>
@@ -53547,8 +53604,8 @@ function commitQuickTask(raw, ctx = {}){
   if(!p.text) return null;
   let listId = ctx.listId || 'inbox';
   if(p.listName){
-    const hit = planLists().find(l => l.name.toLowerCase() === p.listName.toLowerCase())
-             || planLists().find(l => l.name.toLowerCase().startsWith(p.listName.toLowerCase()));
+    const hit = planListsLive().find(l => l.name.toLowerCase() === p.listName.toLowerCase())
+             || planListsLive().find(l => l.name.toLowerCase().startsWith(p.listName.toLowerCase()));
     listId = hit ? hit.id : planNewList(p.listName).id;
   }
   p.tags.forEach(planEnsureTag);
@@ -55050,7 +55107,7 @@ function planStatsHTML(){
     </div>
 
     ${(() => {
-      const allMs = planLists().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
+      const allMs = planListsLive().flatMap(l => planListMilestones(l).map(m => ({m, list: l})));
       if(!allMs.length) return '';
       const T = today();
       const thisMonth = T.slice(0, 7);
@@ -55058,7 +55115,7 @@ function planStatsHTML(){
       const prepThisMonth = allMs.filter(({m}) => m.done && m.doneAt && m.doneAt.slice(0, 7) === thisMonth).length ||
         allMs.filter(({m}) => m.done && m.date && m.date.slice(0, 7) === thisMonth).length;
       const prepLastMonth = allMs.filter(({m}) => m.done && m.date && m.date.slice(0, 7) === lastMonthStart).length;
-      const listMs = planLists().map(l => {
+      const listMs = planListsLive().map(l => {
         const ms = planListMilestones(l);
         if(!ms.length) return null;
         const prepared = ms.filter(m => m.done).length;
@@ -55394,7 +55451,7 @@ function planMatrixHTML(tasks, sel){
 
   /* most imminent undone milestone across all lists */
   const now = today();
-  const imminentMilestone = planLists()
+  const imminentMilestone = planListsLive()
     .flatMap(l => planListMilestones(l).map(m => ({m, list: l})))
     .filter(x => !x.m.done && x.m.date)
     .sort((a, b) => a.m.date.localeCompare(b.m.date))[0] || null;

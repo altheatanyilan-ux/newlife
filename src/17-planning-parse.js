@@ -128,8 +128,8 @@ function commitQuickTask(raw, ctx = {}){
   if(!p.text) return null;
   let listId = ctx.listId || 'inbox';
   if(p.listName){
-    const hit = planLists().find(l => l.name.toLowerCase() === p.listName.toLowerCase())
-             || planLists().find(l => l.name.toLowerCase().startsWith(p.listName.toLowerCase()));
+    const hit = planListsLive().find(l => l.name.toLowerCase() === p.listName.toLowerCase())
+             || planListsLive().find(l => l.name.toLowerCase().startsWith(p.listName.toLowerCase()));
     listId = hit ? hit.id : planNewList(p.listName).id;
   }
   p.tags.forEach(planEnsureTag);

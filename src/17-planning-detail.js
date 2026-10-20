@@ -59,7 +59,7 @@ function planDetailHTML(t){
         ${t.doDay ? `min="${esc(addDays(t.doDay, 1))}"` : ''} title="the last day, if you mean to spread it over several"></label>
       <label class="pd-q"><span class="k">starts</span><input type="date" class="inp" id="pdStart" value="${esc(t.startDate || '')}"></label>
       <label class="pd-q"><span class="k">list</span><select class="sel" id="pdList">
-        ${planLists().map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label>
+        ${planLists().filter(l => !l.archivedAt || t.listId === l.id).map(l => `<option value="${l.id}" ${t.listId === l.id ? 'selected' : ''}>${esc(l.name)}${l.archivedAt ? ' (archived)' : ''}</option>`).join('')}</select></label>
       <!-- something to buy: it goes on the shopping list (the 🛒 button on the
            top line), and stays in its own list as well -->
       <label class="pd-q pd-shop"><span class="k">to buy</span>
