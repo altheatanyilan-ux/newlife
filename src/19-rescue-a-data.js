@@ -253,6 +253,7 @@ const RESCUE_EXITS = [
   {id: 'task',     glyph: '☐', name: 'a task',            hint: 'into the Inbox, in the planner’s shorthand'},
   {id: 'goal',     glyph: '◎', name: 'under a goal',      hint: 'work under one of this week’s goals'},
   {id: 'thread',   glyph: '⌁', name: 'a thread',          hint: 'something to do or turn over on chosen days'},
+  {id: 'proof',    glyph: '✺', name: 'a win — keep as proof', hint: 'into Proof, the collection of what I have actually done'},
   {id: 'journal',  glyph: '✎', name: 'a journal entry',   hint: 'kept, in the Lived Record'},
   {id: 'decision', glyph: '⚖', name: 'a decision',        hint: 'open the decision form with this in it'},
   {id: 'question', glyph: '?', name: 'a question to live with', hint: 'an open question that waits for answers'},
@@ -306,7 +307,9 @@ function rescueWeekDays(which){
 function rescueWhisperFor(s, avoid){
   const sc = new Set(rescueScenarios(s).map(x => x.id));
   const mine = (typeof affirmationsAll === 'function' ? affirmationsAll() : []).map(a => ({t: a.text, tags: [], own: true}));
-  const pool = RESCUE_WHISPERS.map(w => Object.assign({own: false}, w)).concat(mine).filter(w => w.t && !(avoid || []).includes(w.t));
+  /* now and then, a piece of proof of what I have actually done leans in with the rest */
+  const proof = (typeof proofAll === 'function' ? proofAll() : []).map(e => ({t: 'You did this: ' + proofLine(e), tags: ['stuck', 'doubt'], own: true}));
+  const pool = RESCUE_WHISPERS.map(w => Object.assign({own: false}, w)).concat(mine, proof).filter(w => w.t && !(avoid || []).includes(w.t));
   if(!pool.length) return null;
   const score = w => (w.tags || []).filter(t => sc.has(t)).length * 3 + (w.own ? 1.2 : 0) + Math.random();
   return pool.sort((a, b) => score(b) - score(a))[0];

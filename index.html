@@ -13708,6 +13708,7 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .bb-modes{display:flex;flex-direction:column;gap:6px}.bb-mode{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;cursor:pointer;color:var(--text)}
 .bb-mode span{font-size:.8rem;color:var(--muted)}.bb-mode:hover{border-color:var(--muted)}.bb-mode.on{border-color:var(--terra);background:color-mix(in srgb,var(--terra) 9%,transparent)}
 .rs-canvas.gathering .rs-box{transition:left .55s cubic-bezier(.3,.9,.3,1),top .55s cubic-bezier(.3,.9,.3,1),background .15s,border-color .15s,opacity .5s}
+.pf-banner{border:1px solid var(--line);border-left:4px solid var(--gold,#d4a44c);border-radius:12px;padding:12px 16px;margin:0 0 12px;background:color-mix(in srgb,var(--gold,#d4a44c) 8%,transparent)}.pf-banner p{margin:0 0 8px;font-size:1.05rem}
 </style>
 
 </head>
@@ -14164,7 +14165,7 @@ function md(src){
 
 /* ---------- hashtags: any substantive entry can carry them ---------- */
 const TAG_RE = /(^|[\s(])#([\p{L}\p{N}][\p{L}\p{N}_-]{1,31})/gu;
-const TAGGABLE = ['reflection','memory','lifeevent','media','writing','synchronicity','manifestation','gratitude','dream','question','quote','letter','artifact','progress'];
+const TAGGABLE = ['reflection','memory','lifeevent','media','writing','synchronicity','manifestation','gratitude','dream','question','quote','letter','artifact','progress','proof'];
 function parseTags(text){ const out = []; if(!text) return out; for(const m of String(text).matchAll(TAG_RE)) out.push(m[2].toLowerCase()); return out; }
 function normTags(list){ return [...new Set((list||[]).map(t => String(t).replace(/^#/,'').trim().toLowerCase()).filter(Boolean))]; }
 function entryTags(e){ return normTags([...(e.tags||[]), ...parseTags(e.title), ...parseTags(e.body)]); }
@@ -27737,6 +27738,7 @@ routes.journals = function(root, params){
         ${otd.length?`<div class="otd rv"><div class="sc">On this day</div>${otd.slice(0,2).map(e=>`<div class="serif" style="font-size:1.05rem;margin-top:6px">${esc(fmtDate(e.occurredAt,'med'))} — ${esc(e.title||e.body.slice(0,120))}</div>`).join('')}</div>`:`<div class="otd rv"><div class="sc">On this day</div><div class="quote">No ${esc(j.name.toLowerCase())} from this day in earlier years. You're making them now.</div></div>`}
         <div class="jtools rv"><input class="inp" id="jq" placeholder="search title & body" value="${esc(S._jq||'')}"><input class="inp" type="date" id="jfrom" value="${from}" style="max-width:126px"><input class="inp" type="date" id="jto" value="${to}" style="max-width:126px"><select class="sel" id="jtag" style="max-width:158px"><option value="">any link</option>${dimOpts.map(([id,n])=>`<option value="${id}" ${tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="btn sm ghost" id="jRandom" title="random entry">🎲</button><span class="mono">${filtered.length} of ${all.length}</span><span class="jt-add" data-ctx-slot></span></div>
         ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates, or the framing turns out to have been wrong.</p>':''}
+        ${type==='proof' && typeof proofBannerHTML === 'function' ? proofBannerHTML() : ''}
         ${type==='dream'?dreamCalendarHTML() + dreamDictionaryHTML():''}
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
         ${type==='manifestation'?'<p class="quote">Ask → It Is Given → Allow. When an intention arrives, offer it to the Vision Tree as fruit.</p>':''}
@@ -27744,6 +27746,7 @@ routes.journals = function(root, params){
         <div id="jList">${special ? '' : filtered.map(e=>entryCard(e)).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
       </div>
     </div></div>`;
+  if(type === 'proof' && typeof bindProofBanner === 'function') bindProofBanner(root);
   const refilter = debounce(()=>{ S._jq = $('#jq').value; S._jfrom = $('#jfrom').value; S._jto = $('#jto').value; S._jtag = $('#jtag').value; rerender(); $('#jq')?.focus(); }, 300);
 
   if(special === 'letters') bindSealedLetters(root);
@@ -43531,6 +43534,57 @@ function pqSettingsBind(root){
   const all = (root || document).querySelector('#pqAllOn'); if(all) all.onclick = () => { pqState().off = {}; S.settings.nudgeDisabled = {}; saveNow(); rerender(); };
 }
 /* ============================================================
+   PROOF — the collection of wins
+
+   A journal kind for what has actually been done: finished, survived, got right,
+   was trusted with. Each entry is one piece of proof, said plainly — what
+   happened, what it shows about me, how big it was, who saw it or said so (so
+   it is outside my own head). Together they are the answer on the days the head
+   says otherwise.
+
+   It is a journal like any other (the sidebar has it, entries are written in the
+   same dialog), plus three small things:
+     read me some proof     one piece at a time, shuffled, on the Proof journal —
+                            for the moment of doubt
+     keep as proof          from the weekly review (a goal or a win that happened)
+                            and from the overwhelm rescue page (a card, "a win to keep")
+     in the rescue page     now and then one of the proofs is what leans in at the
+                            edge, in place of a line to keep
+
+   Nothing is scored or counted against anyone: there is no target number of wins.
+   ============================================================ */
+const PROOF_SIZES = [['small', 'small'], ['solid', 'solid'], ['big', 'big'], ['landmark', 'landmark']];
+const proofAll = () => (S.entries || []).filter(e => e.type === 'proof');
+function proofKeep({title = '', body = '', shows = '', saw = '', size = '', day = null, source = ''} = {}){
+  const t = String(title || '').trim(); if(!t && !String(body || '').trim()) return null;
+  const e = lifeEntryNew({type: 'proof', title: t.slice(0, 140), body: String(body || '').trim(), occurredAt: day || today(), tags: ['proof'],
+    extra: Object.assign({}, shows ? {proofShows: shows} : {}, saw ? {proofSaw: saw} : {}, size ? {proofSize: size} : {}, source ? {proofFrom: source} : {})});
+  saveNow(); return e;
+}
+function proofLine(e){ const x = e.extra || {}; return (e.title || (e.body || '').split('\n')[0] || 'a win').slice(0, 160) + (x.proofShows ? ' — ' + x.proofShows : ''); }
+/* the banner at the top of the Proof journal */
+function proofBannerHTML(){
+  const n = proofAll().length;
+  return `<div class="pf-banner rv"><p class="serif">Proof that I can. ${n ? `<b>${n}</b> piece${n === 1 ? '' : 's'} so far.` : 'Nothing yet — the first one is easy: what is something you did this week that you would have doubted a year ago?'}</p>
+    ${n ? `<div class="row" style="gap:8px"><button class="btn primary" data-proofread>Read me some proof</button></div>` : ''}</div>`;
+}
+function proofRead(){
+  const all = proofAll(); if(!all.length){ toast('No proof written yet.'); return; }
+  let order = all.slice().sort(() => Math.random() - 0.5), i = 0;
+  const m = openModal('<div id="pfCard"></div>', 'narrow');
+  const draw = () => { const e = order[i % order.length], x = e.extra || {};
+    m.querySelector('#pfCard').innerHTML = `<p class="mono faint">${esc(fmtDate(e.occurredAt, 'med'))}${x.proofSize ? ' · ' + esc(x.proofSize) : ''}</p>
+      <h2 class="serif" style="font-style:italic;font-weight:400">${esc(e.title || 'A win')}</h2>
+      ${e.body ? `<div class="prose">${md(e.body)}</div>` : ''}
+      ${x.proofShows ? `<p><span class="mono faint">what it shows about me</span><br>${esc(x.proofShows)}</p>` : ''}
+      ${x.proofSaw ? `<p class="muted"><span class="mono faint">who saw it, or said so</span><br>${esc(x.proofSaw)}</p>` : ''}
+      <div class="row between" style="margin-top:14px"><span class="faint sm">${(i % order.length) + 1} of ${order.length}</span><span class="row" style="gap:8px"><button class="btn ghost" id="pfOpen">open it</button><button class="btn primary" id="pfNext">another</button></span></div>`;
+    m.querySelector('#pfNext').onclick = () => { i++; sound('click'); draw(); };
+    m.querySelector('#pfOpen').onclick = () => { m.remove(); openEntryModal({entryId: e.id}); }; };
+  draw();
+}
+function bindProofBanner(root){ root.querySelectorAll('[data-proofread]').forEach(b => b.onclick = proofRead); }
+/* ============================================================
    THE REVIEW — reading the period before writing about it
 
    A review here is not a blank page headed "how was your week". It gathers
@@ -44136,11 +44190,12 @@ function weekWrittenHTML(wk){
     return `<div class="ww-goal"><div class="ww-t serif">${esc(o.text)}${where ? ` <span class="mono faint">· ${esc(where)}</span>` : ''}</div>
       ${refs.length ? `<ul class="ww-work">${refs.map(r => `<li class="${r.done ? 'done' : ''}"><button class="ww-tick" data-wwt="${esc(r.id)}" aria-label="${r.done ? 'not done' : 'done'}">${r.done ? '✓' : ''}</button><span>${esc(r.text)}</span></li>`).join('')}</ul>` : '<p class="faint sm" style="margin:2px 0">Nothing was put under it.</p>'}
       ${wwReflectHTML(n, 'g:' + o.id, 'what happened with this?')}
-      <div class="ww-carry">${carried ? '<span class="mono faint">carried to next week ✓</span>' : `<button class="tbtn" data-wwcarry="${esc(o.id)}">carry it to next week${open ? ` (${open} open)` : ''} →</button>`}</div></div>`;
+      <div class="ww-carry">${n.proofed && n.proofed['g:' + o.id] ? '<span class="mono faint">kept as proof ✓</span>' : `<button class="tbtn" data-wwproof="g:${esc(o.id)}">keep as proof ✺</button>`}${carried ? '<span class="mono faint">carried to next week ✓</span>' : `<button class="tbtn" data-wwcarry="${esc(o.id)}">carry it to next week${open ? ` (${open} open)` : ''} →</button>`}</div></div>`;
   }).join('');
   const winHTML = wins.map(w => `<div class="ww-goal"><div class="ww-t serif">${esc(w.text)}</div>${w.why ? `<p class="faint sm" style="margin:0">${esc(w.why)}</p>` : ''}
       ${(w.evidence || []).length ? `<div class="wk-ev">${w.evidence.map(ev => `<span class="wk-ev-b" title="${esc(fmtDate(ev.at, 'med'))}"><span class="wk-ev-t">${esc(ev.text)}</span></span>`).join('')}</div>` : '<p class="faint sm" style="margin:2px 0">No evidence was added.</p>'}
-      ${wwReflectHTML(n, 'w:' + (w.id || w.text), 'did this week turn out to be a win in this way?')}</div>`).join('');
+      ${wwReflectHTML(n, 'w:' + (w.id || w.text), 'did this week turn out to be a win in this way?')}
+      <div class="ww-carry">${n.proofed && n.proofed['w:' + (w.id || w.text)] ? '<span class="mono faint">kept as proof ✓</span>' : `<button class="tbtn" data-wwproof="w:${esc(w.id || w.text)}">keep as proof ✺</button>`}</div></div>`).join('');
   const riskHTML = risks.map(r => `<div class="ww-goal"><div class="ww-t">${esc(r.text)}</div>${r.prevent ? `<p class="faint sm" style="margin:0">You planned: ${esc(r.prevent)}</p>` : ''}
       <div class="ww-ref"><input class="inp sm ww-note" data-wwn="r:${esc(r.id || r.text)}" value="${esc(n.notes['r:' + (r.id || r.text)] || '')}" placeholder="did it come? did the plan hold?" maxlength="400"></div></div>`).join('');
   return bar + (p.theme && p.theme.trim() ? `<p class="ww-theme serif">“${esc(p.theme.trim())}”</p>` : '')
@@ -44178,6 +44233,13 @@ function weekWrittenStep(){
           n.verdicts[key] = n.verdicts[key] === v ? '' : v; save(); x.parentNode.querySelectorAll('[data-wwv]').forEach(c => c.classList.toggle('on', c === x && !!n.verdicts[key])); sound('click'); });
         body.querySelectorAll('[data-wwn]').forEach(x => x.oninput = () => { const n = wwNotes(_ww.wk, true); n.notes[x.dataset.wwn] = x.value; save(); });
         body.querySelectorAll('[data-wwt]').forEach(x => x.onclick = () => { const r = findTaskRef(x.dataset.wwt); if(!r) return; setTaskDone(r.id, !r.done); draw(); });
+        body.querySelectorAll('[data-wwproof]').forEach(x => x.onclick = () => {
+          const key = x.dataset.wwproof, pl = weekPlanSeen(_ww.wk), n = wwNotes(_ww.wk, true), gid = key.slice(2);
+          const g = key[0] === 'g' ? (pl.outcomes || []).find(o => o.id === gid) : weekWins(pl).find(w => (w.id || w.text) === gid);
+          if(!g) return; const done = key[0] === 'g' ? (g.taskIds || []).map(id => findTaskRef(id)).filter(r => r && r.done).map(r => r.text) : [];
+          const ev = key[0] === 'w' ? (g.evidence || []).map(e => e.text) : [];
+          const e = proofKeep({title: g.text, body: [done.length ? 'Done: ' + done.join('; ') : '', ev.length ? 'Evidence: ' + ev.join('; ') : '', n.notes[key] || ''].filter(Boolean).join('\n'), day: addDays(_ww.wk, 6) > today() ? today() : addDays(_ww.wk, 6), source: 'weekly review'});
+          if(e){ n.proofed = n.proofed || {}; n.proofed[key] = e.id; save(); toast('Kept as proof.', 3000); sound('success'); draw(); } });
         body.querySelectorAll('[data-wwcarry]').forEach(x => x.onclick = () => {
           const o = (weekPlanSeen(_ww.wk).outcomes || []).find(g => g.id === x.dataset.wwcarry); if(!o) return;
           const made = weekCarryGoal(_ww.wk, o), n = wwNotes(_ww.wk, true); n.carried[o.id] = true; save();
@@ -105503,7 +105565,7 @@ function migratePurpose(){
 }
 /* Affirmation and Memento are read in the Theatre and in the sacred space.
    Contemplation, Belief and Resistance (later modules) are journals. */
-const LIFE_KINDS = [['affirmation', 'Affirmation', '“'], ['memento', 'Memento', '⌛'],
+const LIFE_KINDS = [['proof', 'Proof', '✺'], ['affirmation', 'Affirmation', '“'], ['memento', 'Memento', '⌛'],
   ['contemplation', 'Contemplation', '◎'], ['belief', 'Belief', '⚓'], ['resistance', 'Resistance', '↺'], ['betlog', 'Bet log', '⚄']];
 ['affirmation', 'memento', 'betlog'].forEach(t => { if(typeof JOURNAL_HIDDEN !== 'undefined' && !JOURNAL_HIDDEN.includes(t)) JOURNAL_HIDDEN.push(t); });
 LIFE_KINDS.forEach(([t, n, ic]) => { if(!ENTRY_TYPES.some(x => x[0] === t)) ENTRY_TYPES.push([t, n, ic]); });
@@ -110409,6 +110471,7 @@ const RESCUE_EXITS = [
   {id: 'task',     glyph: '☐', name: 'a task',            hint: 'into the Inbox, in the planner’s shorthand'},
   {id: 'goal',     glyph: '◎', name: 'under a goal',      hint: 'work under one of this week’s goals'},
   {id: 'thread',   glyph: '⌁', name: 'a thread',          hint: 'something to do or turn over on chosen days'},
+  {id: 'proof',    glyph: '✺', name: 'a win — keep as proof', hint: 'into Proof, the collection of what I have actually done'},
   {id: 'journal',  glyph: '✎', name: 'a journal entry',   hint: 'kept, in the Lived Record'},
   {id: 'decision', glyph: '⚖', name: 'a decision',        hint: 'open the decision form with this in it'},
   {id: 'question', glyph: '?', name: 'a question to live with', hint: 'an open question that waits for answers'},
@@ -110462,7 +110525,9 @@ function rescueWeekDays(which){
 function rescueWhisperFor(s, avoid){
   const sc = new Set(rescueScenarios(s).map(x => x.id));
   const mine = (typeof affirmationsAll === 'function' ? affirmationsAll() : []).map(a => ({t: a.text, tags: [], own: true}));
-  const pool = RESCUE_WHISPERS.map(w => Object.assign({own: false}, w)).concat(mine).filter(w => w.t && !(avoid || []).includes(w.t));
+  /* now and then, a piece of proof of what I have actually done leans in with the rest */
+  const proof = (typeof proofAll === 'function' ? proofAll() : []).map(e => ({t: 'You did this: ' + proofLine(e), tags: ['stuck', 'doubt'], own: true}));
+  const pool = RESCUE_WHISPERS.map(w => Object.assign({own: false}, w)).concat(mine, proof).filter(w => w.t && !(avoid || []).includes(w.t));
   if(!pool.length) return null;
   const score = w => (w.tags || []).filter(t => sc.has(t)).length * 3 + (w.own ? 1.2 : 0) + Math.random();
   return pool.sort((a, b) => score(b) - score(a))[0];
@@ -110928,6 +110993,7 @@ function rescueExitStep(ctx, id){
   }
   if(id === 'task') return rescueDone(ctx, 'task', rescueMakeTasks(text));
   if(id === 'question') return rescueDone(ctx, 'question', rescueMakeEntry(text, 'question'));
+  if(id === 'proof') return rescueDone(ctx, 'proof', rescueMakeEntry(text, 'proof'));
   if(id === 'mindset') return rescueDone(ctx, 'mindset', rescueKeepLine(text));
   if(id === 'goal'){
     const wk = weekStart(today()), p = weekPlanSeen(wk), goals = typeof weekGoalsNamed === 'function' ? weekGoalsNamed(p) : [];
@@ -138948,6 +139014,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   const MOOD_SCALE = [['heavy','heavy'],['low','low'],['level','level'],['light','light'],['luminous','luminous']];
   const BODY_PROMPTS = {
     gratitude:'What am I grateful for?',
+    proof:'What happened? Say what you did, plainly — no modesty, no “just”.',
     reflection:'Thinking on paper. Nobody is reading this but you, later.',
     dream:'What happened, before it fades. Present tense helps.',
     question:'Put the question in the title. This is the room around it.',
@@ -138994,6 +139061,9 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       + pick('status','Status', [['open','open'],['evolving','evolving'],['settled','settled'],['dissolved','dissolved']], 'Some questions dissolve rather than resolve — the framing was wrong.')
       + `<div class="faint" style="font-size:.8rem">Put the question itself in the title. Answers accumulate over time, from the journal.</div>`;
     if(t==='progress'||t==='nod') html = f('duration','Duration (minutes)','45') + f('resources','Resources used','');
+    if(t==='proof') html = f('proofShows','What this shows about me','“I can finish a hard thing.” “People trust me with the stage.”',true)
+      + pick('proofSize','How big', PROOF_SIZES, 'Any size counts. Small proof, kept every week, is how a belief changes.')
+      + f('proofSaw','Who saw it, or said so','a person, a result, a number — something outside my own head');
     if(t==='memory') html = f('installed','What this installed in me','The belief, fear, pattern, or capability this event left behind.',true);
     if(t==='letter') html = pick('direction','Direction', [['future','to my future self'],['past','to my past self'],['frompast','from my past self, to now']])
       + `<div class="faint" style="font-size:.8rem">A letter to next year sits at next year's date. To seal one properly — hidden until its day — use “Seal a letter” from the Letters journal.</div>`;

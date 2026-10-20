@@ -191,7 +191,7 @@ function md(src){
 
 /* ---------- hashtags: any substantive entry can carry them ---------- */
 const TAG_RE = /(^|[\s(])#([\p{L}\p{N}][\p{L}\p{N}_-]{1,31})/gu;
-const TAGGABLE = ['reflection','memory','lifeevent','media','writing','synchronicity','manifestation','gratitude','dream','question','quote','letter','artifact','progress'];
+const TAGGABLE = ['reflection','memory','lifeevent','media','writing','synchronicity','manifestation','gratitude','dream','question','quote','letter','artifact','progress','proof'];
 function parseTags(text){ const out = []; if(!text) return out; for(const m of String(text).matchAll(TAG_RE)) out.push(m[2].toLowerCase()); return out; }
 function normTags(list){ return [...new Set((list||[]).map(t => String(t).replace(/^#/,'').trim().toLowerCase()).filter(Boolean))]; }
 function entryTags(e){ return normTags([...(e.tags||[]), ...parseTags(e.title), ...parseTags(e.body)]); }

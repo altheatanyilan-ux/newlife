@@ -98,7 +98,7 @@ function migratePurpose(){
 }
 /* Affirmation and Memento are read in the Theatre and in the sacred space.
    Contemplation, Belief and Resistance (later modules) are journals. */
-const LIFE_KINDS = [['affirmation', 'Affirmation', '“'], ['memento', 'Memento', '⌛'],
+const LIFE_KINDS = [['proof', 'Proof', '✺'], ['affirmation', 'Affirmation', '“'], ['memento', 'Memento', '⌛'],
   ['contemplation', 'Contemplation', '◎'], ['belief', 'Belief', '⚓'], ['resistance', 'Resistance', '↺'], ['betlog', 'Bet log', '⚄']];
 ['affirmation', 'memento', 'betlog'].forEach(t => { if(typeof JOURNAL_HIDDEN !== 'undefined' && !JOURNAL_HIDDEN.includes(t)) JOURNAL_HIDDEN.push(t); });
 LIFE_KINDS.forEach(([t, n, ic]) => { if(!ENTRY_TYPES.some(x => x[0] === t)) ENTRY_TYPES.push([t, n, ic]); });

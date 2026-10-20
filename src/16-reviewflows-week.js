@@ -50,11 +50,12 @@ function weekWrittenHTML(wk){
     return `<div class="ww-goal"><div class="ww-t serif">${esc(o.text)}${where ? ` <span class="mono faint">· ${esc(where)}</span>` : ''}</div>
       ${refs.length ? `<ul class="ww-work">${refs.map(r => `<li class="${r.done ? 'done' : ''}"><button class="ww-tick" data-wwt="${esc(r.id)}" aria-label="${r.done ? 'not done' : 'done'}">${r.done ? '✓' : ''}</button><span>${esc(r.text)}</span></li>`).join('')}</ul>` : '<p class="faint sm" style="margin:2px 0">Nothing was put under it.</p>'}
       ${wwReflectHTML(n, 'g:' + o.id, 'what happened with this?')}
-      <div class="ww-carry">${carried ? '<span class="mono faint">carried to next week ✓</span>' : `<button class="tbtn" data-wwcarry="${esc(o.id)}">carry it to next week${open ? ` (${open} open)` : ''} →</button>`}</div></div>`;
+      <div class="ww-carry">${n.proofed && n.proofed['g:' + o.id] ? '<span class="mono faint">kept as proof ✓</span>' : `<button class="tbtn" data-wwproof="g:${esc(o.id)}">keep as proof ✺</button>`}${carried ? '<span class="mono faint">carried to next week ✓</span>' : `<button class="tbtn" data-wwcarry="${esc(o.id)}">carry it to next week${open ? ` (${open} open)` : ''} →</button>`}</div></div>`;
   }).join('');
   const winHTML = wins.map(w => `<div class="ww-goal"><div class="ww-t serif">${esc(w.text)}</div>${w.why ? `<p class="faint sm" style="margin:0">${esc(w.why)}</p>` : ''}
       ${(w.evidence || []).length ? `<div class="wk-ev">${w.evidence.map(ev => `<span class="wk-ev-b" title="${esc(fmtDate(ev.at, 'med'))}"><span class="wk-ev-t">${esc(ev.text)}</span></span>`).join('')}</div>` : '<p class="faint sm" style="margin:2px 0">No evidence was added.</p>'}
-      ${wwReflectHTML(n, 'w:' + (w.id || w.text), 'did this week turn out to be a win in this way?')}</div>`).join('');
+      ${wwReflectHTML(n, 'w:' + (w.id || w.text), 'did this week turn out to be a win in this way?')}
+      <div class="ww-carry">${n.proofed && n.proofed['w:' + (w.id || w.text)] ? '<span class="mono faint">kept as proof ✓</span>' : `<button class="tbtn" data-wwproof="w:${esc(w.id || w.text)}">keep as proof ✺</button>`}</div></div>`).join('');
   const riskHTML = risks.map(r => `<div class="ww-goal"><div class="ww-t">${esc(r.text)}</div>${r.prevent ? `<p class="faint sm" style="margin:0">You planned: ${esc(r.prevent)}</p>` : ''}
       <div class="ww-ref"><input class="inp sm ww-note" data-wwn="r:${esc(r.id || r.text)}" value="${esc(n.notes['r:' + (r.id || r.text)] || '')}" placeholder="did it come? did the plan hold?" maxlength="400"></div></div>`).join('');
   return bar + (p.theme && p.theme.trim() ? `<p class="ww-theme serif">“${esc(p.theme.trim())}”</p>` : '')
@@ -92,6 +93,13 @@ function weekWrittenStep(){
           n.verdicts[key] = n.verdicts[key] === v ? '' : v; save(); x.parentNode.querySelectorAll('[data-wwv]').forEach(c => c.classList.toggle('on', c === x && !!n.verdicts[key])); sound('click'); });
         body.querySelectorAll('[data-wwn]').forEach(x => x.oninput = () => { const n = wwNotes(_ww.wk, true); n.notes[x.dataset.wwn] = x.value; save(); });
         body.querySelectorAll('[data-wwt]').forEach(x => x.onclick = () => { const r = findTaskRef(x.dataset.wwt); if(!r) return; setTaskDone(r.id, !r.done); draw(); });
+        body.querySelectorAll('[data-wwproof]').forEach(x => x.onclick = () => {
+          const key = x.dataset.wwproof, pl = weekPlanSeen(_ww.wk), n = wwNotes(_ww.wk, true), gid = key.slice(2);
+          const g = key[0] === 'g' ? (pl.outcomes || []).find(o => o.id === gid) : weekWins(pl).find(w => (w.id || w.text) === gid);
+          if(!g) return; const done = key[0] === 'g' ? (g.taskIds || []).map(id => findTaskRef(id)).filter(r => r && r.done).map(r => r.text) : [];
+          const ev = key[0] === 'w' ? (g.evidence || []).map(e => e.text) : [];
+          const e = proofKeep({title: g.text, body: [done.length ? 'Done: ' + done.join('; ') : '', ev.length ? 'Evidence: ' + ev.join('; ') : '', n.notes[key] || ''].filter(Boolean).join('\n'), day: addDays(_ww.wk, 6) > today() ? today() : addDays(_ww.wk, 6), source: 'weekly review'});
+          if(e){ n.proofed = n.proofed || {}; n.proofed[key] = e.id; save(); toast('Kept as proof.', 3000); sound('success'); draw(); } });
         body.querySelectorAll('[data-wwcarry]').forEach(x => x.onclick = () => {
           const o = (weekPlanSeen(_ww.wk).outcomes || []).find(g => g.id === x.dataset.wwcarry); if(!o) return;
           const made = weekCarryGoal(_ww.wk, o), n = wwNotes(_ww.wk, true); n.carried[o.id] = true; save();

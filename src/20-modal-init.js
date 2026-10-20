@@ -56,6 +56,7 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
   const MOOD_SCALE = [['heavy','heavy'],['low','low'],['level','level'],['light','light'],['luminous','luminous']];
   const BODY_PROMPTS = {
     gratitude:'What am I grateful for?',
+    proof:'What happened? Say what you did, plainly — no modesty, no “just”.',
     reflection:'Thinking on paper. Nobody is reading this but you, later.',
     dream:'What happened, before it fades. Present tense helps.',
     question:'Put the question in the title. This is the room around it.',
@@ -102,6 +103,9 @@ function openEntryModal({type='reflection', links={}, entryId=null, after=null, 
       + pick('status','Status', [['open','open'],['evolving','evolving'],['settled','settled'],['dissolved','dissolved']], 'Some questions dissolve rather than resolve — the framing was wrong.')
       + `<div class="faint" style="font-size:.8rem">Put the question itself in the title. Answers accumulate over time, from the journal.</div>`;
     if(t==='progress'||t==='nod') html = f('duration','Duration (minutes)','45') + f('resources','Resources used','');
+    if(t==='proof') html = f('proofShows','What this shows about me','“I can finish a hard thing.” “People trust me with the stage.”',true)
+      + pick('proofSize','How big', PROOF_SIZES, 'Any size counts. Small proof, kept every week, is how a belief changes.')
+      + f('proofSaw','Who saw it, or said so','a person, a result, a number — something outside my own head');
     if(t==='memory') html = f('installed','What this installed in me','The belief, fear, pattern, or capability this event left behind.',true);
     if(t==='letter') html = pick('direction','Direction', [['future','to my future self'],['past','to my past self'],['frompast','from my past self, to now']])
       + `<div class="faint" style="font-size:.8rem">A letter to next year sits at next year's date. To seal one properly — hidden until its day — use “Seal a letter” from the Letters journal.</div>`;

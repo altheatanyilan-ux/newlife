@@ -459,6 +459,7 @@ function rescueExitStep(ctx, id){
   }
   if(id === 'task') return rescueDone(ctx, 'task', rescueMakeTasks(text));
   if(id === 'question') return rescueDone(ctx, 'question', rescueMakeEntry(text, 'question'));
+  if(id === 'proof') return rescueDone(ctx, 'proof', rescueMakeEntry(text, 'proof'));
   if(id === 'mindset') return rescueDone(ctx, 'mindset', rescueKeepLine(text));
   if(id === 'goal'){
     const wk = weekStart(today()), p = weekPlanSeen(wk), goals = typeof weekGoalsNamed === 'function' ? weekGoalsNamed(p) : [];

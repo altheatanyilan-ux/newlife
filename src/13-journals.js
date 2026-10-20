@@ -129,6 +129,7 @@ routes.journals = function(root, params){
         ${otd.length?`<div class="otd rv"><div class="sc">On this day</div>${otd.slice(0,2).map(e=>`<div class="serif" style="font-size:1.05rem;margin-top:6px">${esc(fmtDate(e.occurredAt,'med'))} — ${esc(e.title||e.body.slice(0,120))}</div>`).join('')}</div>`:`<div class="otd rv"><div class="sc">On this day</div><div class="quote">No ${esc(j.name.toLowerCase())} from this day in earlier years. You're making them now.</div></div>`}
         <div class="jtools rv"><input class="inp" id="jq" placeholder="search title & body" value="${esc(S._jq||'')}"><input class="inp" type="date" id="jfrom" value="${from}" style="max-width:126px"><input class="inp" type="date" id="jto" value="${to}" style="max-width:126px"><select class="sel" id="jtag" style="max-width:158px"><option value="">any link</option>${dimOpts.map(([id,n])=>`<option value="${id}" ${tag===id?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="btn sm ghost" id="jRandom" title="random entry">🎲</button><span class="mono">${filtered.length} of ${all.length}</span><span class="jt-add" data-ctx-slot></span></div>
         ${type==='question'?'<p class="quote">Questions you are living with. They don\'t get archived; they sit open until an answer accumulates, or the framing turns out to have been wrong.</p>':''}
+        ${type==='proof' && typeof proofBannerHTML === 'function' ? proofBannerHTML() : ''}
         ${type==='dream'?dreamCalendarHTML() + dreamDictionaryHTML():''}
         ${type==='synchronicity'?'<p class="quote">Entries flagged “revisit later” resurface in the Today page prompts. Synchronicities often only make sense in retrospect.</p>':''}
         ${type==='manifestation'?'<p class="quote">Ask → It Is Given → Allow. When an intention arrives, offer it to the Vision Tree as fruit.</p>':''}
@@ -136,6 +137,7 @@ routes.journals = function(root, params){
         <div id="jList">${special ? '' : filtered.map(e=>entryCard(e)).join('')||'<div class="empty">Nothing here matches. Loosen the filters, or write something.</div>'}</div>
       </div>
     </div></div>`;
+  if(type === 'proof' && typeof bindProofBanner === 'function') bindProofBanner(root);
   const refilter = debounce(()=>{ S._jq = $('#jq').value; S._jfrom = $('#jfrom').value; S._jto = $('#jto').value; S._jtag = $('#jtag').value; rerender(); $('#jq')?.focus(); }, 300);
 
   if(special === 'letters') bindSealedLetters(root);
