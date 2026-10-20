@@ -53,8 +53,11 @@ function bbSummary(u){
 /* the questions of a dialog, wherever they are being staged (the overlay holds both the dialog and the stage) */
 function bbUnits(root, free){
   const skip = free ? '[hidden]' : '[hidden], details:not([open])';
-  return [...root.querySelectorAll(BB_UNIT)].filter(u => !u.parentElement.closest(BB_UNIT) && !u.hidden && u.style.display !== 'none' && !u.closest(skip)
+  const all = [...root.querySelectorAll(BB_UNIT)].filter(u => !u.parentElement.closest(BB_UNIT) && !u.hidden && u.style.display !== 'none' && !u.closest(skip)
     && u.querySelector('input:not([type=hidden]), textarea, select, .chip, [contenteditable], .dropzone, .deps, .dp-field, .chip-row, .ladder'));
+  /* what a dialog keeps folded away ("optional worksheet", "connect this entry") is asked last, after what matters */
+  const folded = u => !!u.closest('details:not([open])');
+  return all.filter(u => !folded(u)).concat(all.filter(folded));
 }
 /* A text box that sits outside any question (a title at the top of a form, usually) is made one: it is put in a
    wrapper that asks with its own placeholder. A few at most — more than that is not a form it understands. */
@@ -74,8 +77,8 @@ function bbQualifies(overlay, modal, free){
   return out;
 }
 function bbQualifies2(overlay, modal, free){
-  const units = bbUnits(overlay, free); if(units.length < 2 || units.length > 20) return null;
-  if(modal.querySelectorAll('textarea').length > 8) return null;
+  const units = bbUnits(overlay, free); if(units.length < 2 || units.length > 24) return null;
+  if(modal.querySelectorAll('textarea').length > 16) return null;
   const prim = [...modal.querySelectorAll('.btn.primary, button.primary')].filter(b => !b.closest(BB_UNIT) && !b.closest('.bb-stage'));
   if(!prim.length) return null;
   const parent = prim[0].parentElement;
@@ -121,7 +124,7 @@ function bbBuild(overlay){
     st.units.forEach((u, k) => { if(k === st.i) return; const sum = bbSummary(u), lab = bbLabelOf(u) || 'more';
       const c = document.createElement('button'); c.type = 'button'; c.className = 'bb-chip' + (sum ? '' : ' empty'); c.dataset.bbgo = k;
       c.style.setProperty('--d', (k * 0.05) + 's'); c.style.setProperty('--s', (0.92 + ((k * 37) % 17) / 100).toFixed(2)); c.style.setProperty('--b', (5.5 + (k * 13) % 5) + 's');
-      if(free){ const sp = BB_SPOTS[n % BB_SPOTS.length]; c.style.left = sp[0] + '%'; c.style.top = sp[1] + '%'; n++; }
+      if(free){ const sp = BB_SPOTS[n % BB_SPOTS.length]; c.style.setProperty('--x', sp[0] + '%'); c.style.top = sp[1] + '%'; n++; }
       c.textContent = sum ? `${bbCut(lab, 26)} · ${bbCut(sum, 30)}` : '＋ ' + bbCut(lab, 34);
       c.title = lab; st.sky.appendChild(c); });
     st.dots.innerHTML = st.units.map((u, k) => `<i class="${k === st.i ? 'on' : bbSummary(u) ? 'done' : ''}"></i>`).join('');
@@ -170,6 +173,9 @@ function bbBuild(overlay){
   /* something focused a question that is away (a save that wants a missing field): bring it forward */
   overlay.addEventListener('focusin', st.onFocus = ev => { const u = ev.target.closest && ev.target.closest('.bb-away'); if(!u) return; const k = st.units.indexOf(u); if(k >= 0) go(k); });
   overlay.addEventListener('input', st.onInput = () => { st.cloud.classList.remove('bb-breath'); void st.cloud.offsetWidth; st.cloud.classList.add('bb-breath'); }, true);
+  /* a Save that leaves the dialog open wants something: the empty bubbles pulse, so there is somewhere to look */
+  st.actions.addEventListener('click', () => setTimeout(() => { if(!overlay.isConnected || !st.stage.isConnected) return;
+    st.sky.querySelectorAll('.bb-chip.empty').forEach(c => { c.classList.remove('bb-nudge'); void c.offsetWidth; c.classList.add('bb-nudge'); }); }, 350));
   go(0);
   /* the dialog was drawn again under us (the type changed, a step moved on): build anew */
   st.mo = new MutationObserver(() => {

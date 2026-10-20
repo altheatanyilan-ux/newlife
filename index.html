@@ -13646,10 +13646,17 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
   background:radial-gradient(circle at 28% 22%,color-mix(in srgb,#fff 70%,var(--surface)),color-mix(in srgb,var(--surface) 86%,var(--page-accent,#b08968) 14%));
   box-shadow:0 7px 16px rgba(0,0,0,.08),inset 0 -3px 6px rgba(0,0,0,.04);animation:bbPop .55s cubic-bezier(.2,1.5,.4,1) var(--d,0s) both,bbBob 6.5s ease-in-out calc(var(--d,0s) + .6s) infinite}
 .bb-chip:hover{color:var(--text);transform:translateY(-2px)}.bb-chip.empty{background:transparent;box-shadow:none;border:1px dashed var(--line);opacity:.65}
-.bb-cloud{position:relative;width:min(540px,100%);padding:26px 34px 18px;margin-top:20px;border-radius:52% 48% 50% 50% / 38% 40% 60% 62%;
-  background:color-mix(in srgb,#fff 62%,var(--surface));filter:drop-shadow(0 14px 22px rgba(0,0,0,.12));text-align:left}
-.bb-cloud::before,.bb-cloud::after{content:'';position:absolute;z-index:-1;border-radius:50%;background:inherit}
-.bb-cloud::before{width:34%;height:62px;left:11%;top:-26px}.bb-cloud::after{width:42%;height:76px;right:9%;top:-34px}
+.bb-cloud,.bb-end{--bbc:color-mix(in srgb,var(--surface) 78%,#fff 22%);position:relative;isolation:isolate;box-sizing:border-box;width:min(560px,100%);margin-top:20px;padding:34px 40px 24px;border-radius:44px;text-align:left;background:none;max-width:100%}
+/* the body of the cloud is a blurred layer behind the words, so its edge fades instead of ending in a line; the words sit well inside the solid part */
+.bb-cloud::before,.bb-end::before{content:'';position:absolute;inset:-6px;z-index:-1;border-radius:60px;background:var(--bbc);filter:blur(14px);box-shadow:0 16px 44px rgba(130,100,70,.16)}
+.bb-cloud::after,.bb-end::after{content:'';position:absolute;z-index:-1;left:14%;right:12%;top:-26px;height:64px;border-radius:50%;background:var(--bbc);filter:blur(16px);opacity:.92}
+.bb-cloud *,.bb-end *{box-sizing:border-box}
+.bb-slot{min-width:0;max-width:100%;overflow-x:hidden;overflow-y:auto}
+.bb-slot .bb-cur{min-width:0;max-width:100%}.bb-slot .bb-cur *{max-width:100%;overflow-wrap:anywhere}
+.bb-slot .deps,.bb-slot .chip-row,.bb-slot .ladder,.bb-slot .thumbs,.bb-slot .typerow,.bb-slot .dp-field,.bb-slot .row,.bb-slot .grid{flex-wrap:wrap}
+.bb-slot .grid{display:flex;gap:8px}.bb-slot .dropzone{max-width:100%}
+.bb-slot input:not([type=checkbox]):not([type=radio]),.bb-slot select,.bb-slot textarea{width:100%;max-width:100%}
+.bb-ctl{max-width:100%}
 .bb-cloud.bb-in{animation:bbRise .75s cubic-bezier(.2,1.25,.3,1) both}
 .bb-cloud.bb-breath{animation:bbBreath .35s ease-out}
 .bb-cloud[hidden],.bb-end[hidden]{display:none}
@@ -13665,7 +13672,7 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .bb-enough,.bb-plain{border:0;background:transparent;color:var(--faint);font-size:.76rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px}.bb-enough:hover,.bb-plain:hover{color:var(--text)}
 .bb-plain{position:absolute;right:0;bottom:-4px}
 .bb-dots{display:flex;gap:6px;margin-top:4px}.bb-dots i{width:7px;height:7px;border-radius:50%;background:var(--line);transition:all .3s}.bb-dots i.done{background:color-mix(in srgb,var(--sage,#7f916a) 70%,var(--line))}.bb-dots i.on{width:18px;border-radius:6px;background:var(--page-accent,var(--terra))}
-.bb-end{text-align:center;margin-top:24px;animation:bbRise .7s cubic-bezier(.2,1.25,.3,1) both}.bb-end .serif{font-size:1.6rem;font-style:italic;margin:0 0 4px}
+.bb-end{text-align:center;animation:bbRise .7s cubic-bezier(.2,1.25,.3,1) both}.bb-end .serif{font-size:1.6rem;font-style:italic;margin:0 0 4px}
 .bb-away{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;opacity:0!important;pointer-events:none!important;margin:0!important;padding:0!important;border:0!important}
 .bb-hide{display:none!important}
 @keyframes bbRise{0%{transform:translateY(36px) scale(.5);opacity:0}55%{transform:translateY(-7px) scale(1.04);opacity:1}100%{transform:none;opacity:1}}
@@ -13684,15 +13691,18 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .bb-top{position:absolute;left:50%;transform:translateX(-50%);top:58px;width:min(900px,94vw);display:flex;justify-content:center;z-index:3}
 .bb-top .typerow{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin:0;max-height:104px;overflow:auto}
 .bb-stage-free .bb-sky{position:absolute;inset:0;pointer-events:none;display:block;min-height:0}
-.bb-stage-free .bb-chip{position:absolute;pointer-events:auto;transform:translate(-50%,-50%);max-width:min(240px,40vw);animation:bbPop .55s cubic-bezier(.2,1.5,.4,1) var(--d,0s) both,bbFloat var(--b,6s) ease-in-out calc(var(--d,0s) + .6s) infinite}
+.bb-stage-free .bb-chip{position:absolute;pointer-events:auto;transform:translate(-50%,-50%);max-width:min(230px,38vw);left:clamp(min(118px,20vw),var(--x,50%),calc(100% - min(118px,20vw)));animation:bbPopC .55s cubic-bezier(.2,1.5,.4,1) var(--d,0s) both,bbFloat var(--b,6s) ease-in-out calc(var(--d,0s) + .6s) infinite}
 .bb-stage-free .bb-chip:hover{transform:translate(-50%,-50%) scale(1.06)}
 .bb-stage-free .bb-cloud{width:min(620px,94vw);padding:34px 44px 22px;margin-top:0;z-index:2}
 .bb-stage-free .bb-slot{max-height:52vh;overflow:auto;padding:2px 4px}
-.bb-stage-free .bb-end{position:relative;z-index:2;margin-top:0;display:flex;flex-direction:column;align-items:center}
+.bb-stage-free .bb-end{position:relative;z-index:2;margin-top:0;display:flex;flex-direction:column;align-items:center;width:min(520px,94vw)}
 .bb-stage-free .bb-act{margin-top:16px;min-width:min(420px,90vw)}
 .bb-stage-free .bb-act .row,.bb-stage-free .bb-act{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
 .bb-stage-free .bb-dots{position:absolute;bottom:26px}.bb-stage-free .bb-plain{position:absolute;right:20px;bottom:20px}
 .bb-stage-free .bb-puff{opacity:.5}.bb-stage-free .bb-puff.p1{width:320px;height:200px;left:-60px;top:12%}.bb-stage-free .bb-puff.p2{width:380px;height:220px;right:-80px;top:48%}.bb-stage-free .bb-puff.p3{width:280px;height:180px;left:34%;bottom:-40px}
+@keyframes bbNudge{0%,100%{box-shadow:0 0 0 0 transparent}40%{box-shadow:0 0 0 7px color-mix(in srgb,var(--terra) 30%,transparent)}}
+.bb-chip.bb-nudge{animation-name:bbNudge;animation-duration:.9s;animation-iteration-count:2;animation-delay:0s}
+@keyframes bbPopC{0%{transform:translate(-50%,-50%) scale(.2);opacity:0}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes bbFloat{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 7px))}}
 @media (prefers-reduced-motion:reduce){.bb-stage-free .bb-chip{animation:none}}
 .bb-modes{display:flex;flex-direction:column;gap:6px}.bb-mode{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;cursor:pointer;color:var(--text)}
@@ -16149,8 +16159,11 @@ function bbSummary(u){
 /* the questions of a dialog, wherever they are being staged (the overlay holds both the dialog and the stage) */
 function bbUnits(root, free){
   const skip = free ? '[hidden]' : '[hidden], details:not([open])';
-  return [...root.querySelectorAll(BB_UNIT)].filter(u => !u.parentElement.closest(BB_UNIT) && !u.hidden && u.style.display !== 'none' && !u.closest(skip)
+  const all = [...root.querySelectorAll(BB_UNIT)].filter(u => !u.parentElement.closest(BB_UNIT) && !u.hidden && u.style.display !== 'none' && !u.closest(skip)
     && u.querySelector('input:not([type=hidden]), textarea, select, .chip, [contenteditable], .dropzone, .deps, .dp-field, .chip-row, .ladder'));
+  /* what a dialog keeps folded away ("optional worksheet", "connect this entry") is asked last, after what matters */
+  const folded = u => !!u.closest('details:not([open])');
+  return all.filter(u => !folded(u)).concat(all.filter(folded));
 }
 /* A text box that sits outside any question (a title at the top of a form, usually) is made one: it is put in a
    wrapper that asks with its own placeholder. A few at most — more than that is not a form it understands. */
@@ -16170,8 +16183,8 @@ function bbQualifies(overlay, modal, free){
   return out;
 }
 function bbQualifies2(overlay, modal, free){
-  const units = bbUnits(overlay, free); if(units.length < 2 || units.length > 20) return null;
-  if(modal.querySelectorAll('textarea').length > 8) return null;
+  const units = bbUnits(overlay, free); if(units.length < 2 || units.length > 24) return null;
+  if(modal.querySelectorAll('textarea').length > 16) return null;
   const prim = [...modal.querySelectorAll('.btn.primary, button.primary')].filter(b => !b.closest(BB_UNIT) && !b.closest('.bb-stage'));
   if(!prim.length) return null;
   const parent = prim[0].parentElement;
@@ -16217,7 +16230,7 @@ function bbBuild(overlay){
     st.units.forEach((u, k) => { if(k === st.i) return; const sum = bbSummary(u), lab = bbLabelOf(u) || 'more';
       const c = document.createElement('button'); c.type = 'button'; c.className = 'bb-chip' + (sum ? '' : ' empty'); c.dataset.bbgo = k;
       c.style.setProperty('--d', (k * 0.05) + 's'); c.style.setProperty('--s', (0.92 + ((k * 37) % 17) / 100).toFixed(2)); c.style.setProperty('--b', (5.5 + (k * 13) % 5) + 's');
-      if(free){ const sp = BB_SPOTS[n % BB_SPOTS.length]; c.style.left = sp[0] + '%'; c.style.top = sp[1] + '%'; n++; }
+      if(free){ const sp = BB_SPOTS[n % BB_SPOTS.length]; c.style.setProperty('--x', sp[0] + '%'); c.style.top = sp[1] + '%'; n++; }
       c.textContent = sum ? `${bbCut(lab, 26)} · ${bbCut(sum, 30)}` : '＋ ' + bbCut(lab, 34);
       c.title = lab; st.sky.appendChild(c); });
     st.dots.innerHTML = st.units.map((u, k) => `<i class="${k === st.i ? 'on' : bbSummary(u) ? 'done' : ''}"></i>`).join('');
@@ -16266,6 +16279,9 @@ function bbBuild(overlay){
   /* something focused a question that is away (a save that wants a missing field): bring it forward */
   overlay.addEventListener('focusin', st.onFocus = ev => { const u = ev.target.closest && ev.target.closest('.bb-away'); if(!u) return; const k = st.units.indexOf(u); if(k >= 0) go(k); });
   overlay.addEventListener('input', st.onInput = () => { st.cloud.classList.remove('bb-breath'); void st.cloud.offsetWidth; st.cloud.classList.add('bb-breath'); }, true);
+  /* a Save that leaves the dialog open wants something: the empty bubbles pulse, so there is somewhere to look */
+  st.actions.addEventListener('click', () => setTimeout(() => { if(!overlay.isConnected || !st.stage.isConnected) return;
+    st.sky.querySelectorAll('.bb-chip.empty').forEach(c => { c.classList.remove('bb-nudge'); void c.offsetWidth; c.classList.add('bb-nudge'); }); }, 350));
   go(0);
   /* the dialog was drawn again under us (the type changed, a step moved on): build anew */
   st.mo = new MutationObserver(() => {
