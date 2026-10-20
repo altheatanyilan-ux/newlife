@@ -13707,6 +13707,7 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 @media (prefers-reduced-motion:reduce){.bb-stage-free .bb-chip{animation:none}}
 .bb-modes{display:flex;flex-direction:column;gap:6px}.bb-mode{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;cursor:pointer;color:var(--text)}
 .bb-mode span{font-size:.8rem;color:var(--muted)}.bb-mode:hover{border-color:var(--muted)}.bb-mode.on{border-color:var(--terra);background:color-mix(in srgb,var(--terra) 9%,transparent)}
+.rs-canvas.gathering .rs-box{transition:left .55s cubic-bezier(.3,.9,.3,1),top .55s cubic-bezier(.3,.9,.3,1),background .15s,border-color .15s,opacity .5s}
 </style>
 
 </head>
@@ -110537,6 +110538,7 @@ function rescuePageHTML(s){
       <button class="tbtn" data-rs="ready" title="small things the room can do for you before a hard hour">Ready the room</button>
       <button class="tbtn" data-rs="tonight" id="rsTonightBtn" hidden title="what the sleep and time records say about tonight, in plain words">Tonight, from my records</button>
       <button class="tbtn" data-rs="coach" title="a question to answer on the page">Ask me something</button>
+      <button class="tbtn" data-rs="gather" title="bring the cards that are left close together, so they can be seen at once">Gather</button>
       <button class="tbtn" data-rs="bands" title="lay the page out by how soon each thing matters">Horizons</button>
       <button class="tbtn" data-rs="rail" title="what is on my plate, to bring onto the page">On my plate</button>
       <button class="tbtn" data-rs="pages">Pages</button>
@@ -110663,6 +110665,39 @@ function rescueSizeCanvas(root){
      as a box was dragged right would widen every column with it and the last one could never be reached. */
   if(_rs && _rs.ui.bands){ c.style.minWidth = ''; c.style.width = (st.clientWidth - 2) + 'px'; }
   else { c.style.width = ''; c.style.minWidth = Math.max(st.clientWidth - 2, maxX + 120) + 'px'; }
+}
+/* Letting cards go leaves the rest scattered. This brings them close together, in the order they were
+   read (top to bottom, left to right), starting where you are looking; with the horizons showing, each
+   stays in its own column and the column is closed up. Nothing is lost: it can be undone. */
+function rescueGather(root){
+  if(!_rs) return;
+  const canvas = rescueQ('#rsCanvas', root), stage = rescueQ('#rsStage', root); if(!canvas || !stage) return;
+  const items = [...canvas.querySelectorAll('.rs-box:not(.gone)')].filter(el => el.offsetWidth).map(el => ({el, b: rescueBoxOf(el.dataset.rsb), w: el.offsetWidth, h: el.offsetHeight, x0: el.offsetLeft, y0: el.offsetTop})).filter(i => i.b);
+  if(items.length < 2){ toast('Nothing to bring together yet.'); return; }
+  const before = items.map(i => [i.b, i.b.x, i.b.y]), GAP = 14, PAD = 22;
+  if(_rs.ui.bands){
+    const bands = [...canvas.querySelectorAll('.rs-band')], cols = bands.map(() => 64);
+    /* a card belongs to the horizon it was dropped on; one never placed there is read by its left edge */
+    const colOf = i => { let k = i.b.horizon ? bands.findIndex(bd => bd.dataset.hz === i.b.horizon) : -1; if(k < 0){ const lx = i.x0 + 12; k = bands.findIndex(bd => lx >= bd.offsetLeft && lx < bd.offsetLeft + bd.offsetWidth); } return k < 0 ? Math.min(bands.length - 1, Math.max(0, Math.floor(i.x0 / (canvas.clientWidth / bands.length)))) : k; };
+    items.sort((a, b) => a.y0 - b.y0 || a.x0 - b.x0).forEach(i => { const k = colOf(i); i.x = bands[k].offsetLeft + 10; i.y = cols[k]; cols[k] += i.h + GAP; });
+  } else {
+    const W = Math.max(360, stage.clientWidth - 24), left = stage.scrollLeft + PAD;
+    let x = left, y = stage.scrollTop + PAD, rowH = 0;
+    items.sort((a, b) => Math.round(a.y0 / 110) - Math.round(b.y0 / 110) || a.x0 - b.x0).forEach(i => {
+      if(x > left && x - left + i.w > W - PAD * 2){ x = left; y += rowH + GAP; rowH = 0; }
+      i.x = x; i.y = y; x += i.w + GAP; rowH = Math.max(rowH, i.h); });
+  }
+  canvas.classList.add('gathering');
+  items.forEach(i => { i.b.x = Math.round(i.x); i.b.y = Math.round(i.y); i.el.style.left = i.b.x + 'px'; i.el.style.top = i.b.y + 'px'; });
+  rescueTouch(_rs.sheet);
+  const t0 = performance.now(), follow = () => { rescueStrings(root); if(performance.now() - t0 < 700 && canvas.isConnected) requestAnimationFrame(follow); else { canvas.classList.remove('gathering'); rescueSizeCanvas(root); rescueStrings(root); } };
+  requestAnimationFrame(follow);
+  stage.scrollTo({left: 0, top: Math.max(0, Math.min(...items.map(i => i.y)) - PAD), behavior: 'smooth'});
+  sound('click');
+  toast('Brought together.', 6000, {label: 'undo', fn: () => {
+    canvas.classList.add('gathering');
+    before.forEach(([b, x, y]) => { b.x = x; b.y = y; const el = canvas.querySelector('[data-rsb="' + b.id + '"]'); if(el){ el.style.left = x + 'px'; el.style.top = y + 'px'; } });
+    rescueTouch(_rs.sheet); setTimeout(() => { canvas.classList.remove('gathering'); rescueSizeCanvas(root); rescueStrings(root); }, 650); }});
 }
 /* a thread between boxes that name the same thing the site holds */
 function rescueStrings(root){
@@ -110810,6 +110845,7 @@ function rescueBindPage(root){
         canvas.querySelectorAll('.rs-box').forEach(el => { const bx = rescueBoxOf(el.dataset.rsb), maxL = Math.max(0, canvas.clientWidth - el.offsetWidth - 6); if(bx && el.offsetLeft > maxL){ el.style.left = maxL + 'px'; bx.x = maxL; } }); rescueTouch(_rs.sheet); }
       rescueStrings(root); }
     else if(a === 'rail'){ const r = rescueQ('#rsRail', root); r.hidden = !r.hidden; S.settings.rescueRail = !r.hidden; save(); b.classList.toggle('on', !r.hidden); if(!r.hidden) rescueRailPaint(root); }
+    else if(a === 'gather') rescueGather(root);
     else if(a === 'coach') rescueCoachOpen(root);
     else if(a === 'tonight') rescueTonightFrame(root);
     else if(a === 'ready') rescueReadyShow(root, true);
