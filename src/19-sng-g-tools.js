@@ -350,22 +350,4 @@ SNG_TOOL_VIEWS['block-deck'] = {
   bind(host){ host.querySelector('#blockNext').onclick = () => { const u = sngUi(); let n; do { n = Math.floor(Math.random() * SNG_BLOCK_CARDS.length); } while(n === u.blockCard && SNG_BLOCK_CARDS.length > 1); u.blockCard = n; rerender(); }; }
 };
 
-/* ---------- the Metronome ---------- */
-let _sngMet = null;
-SNG_TOOL_VIEWS['metronome'] = {
-  html(){ const u = sngUi(); u.metBpm = u.metBpm || 90; u.metPer = u.metPer || 4;
-    return `<div class="card sng-met"><div class="sng-row"><button class="btn primary" id="metGo">${_sngMet ? '■ Stop' : '▶ Start'}</button>
-      <label class="mono faint">♩ <input class="inp mono sng-bpm" id="metBpm" type="number" min="30" max="260" value="${u.metBpm}"></label>
-      <button class="tbtn" id="metTap">tap</button>
-      <label class="mono faint">beats a bar <select class="inp" id="metPer">${[2, 3, 4, 6].map(n => `<option ${u.metPer === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div></div>`; },
-  bind(host){ const u = sngUi(); const q = s => host.querySelector(s);
-    const stop = () => { if(_sngMet){ clearInterval(_sngMet.timer); _sngMet = null; } };
-    q('#metGo').onclick = () => { if(_sngMet){ stop(); rerender(); return; }
-      const ctx = sngCtx(); if(!ctx) return; let next = ctx.currentTime + 0.05, n = 0;
-      _sngMet = {timer: setInterval(() => { while(next < ctx.currentTime + 0.12){ sngDrum(ctx, ctx.destination, n % u.metPer === 0 ? 'clave' : 'rimclick', next, n % u.metPer === 0 ? 0.9 : 0.6); next += 60 / u.metBpm; n++; } }, 25)};
-      rerender(); };
-    q('#metBpm').onchange = e => { u.metBpm = Math.max(30, Math.min(260, +e.target.value || 90)); };
-    q('#metPer').onchange = e => { u.metPer = +e.target.value; };
-    studioTapTempo(q('#metTap'), b => { u.metBpm = Math.max(30, Math.min(260, b)); q('#metBpm').value = u.metBpm; });
-  }
-};
+/* The metronome is not a desk any more: it is the bar under the tabs (19-sng-k-meter.js). */

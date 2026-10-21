@@ -768,7 +768,11 @@ The **📋 Today's practice** tab answers the only question a self-learner has �
 
 For writing original songs, words and music, as someone who plays the piano and sings. It is a curriculum and a workshop; production happens in a DAW — this room is everything before that. Every suggestion comes from rules you can read, and nothing is sent anywhere.
 
-**Before the first song** it asks two things: your **vocal range** (lowest and highest comfortable notes — *hear them* to check) so the tools can warn when a melody goes out of it, and **when you write** (morning, midday, evening, whenever).
+**Before the first song** it asks two things: your **vocal range** so the tools can warn when a melody goes out of it, and **when you write** (morning, midday, evening, whenever).
+
+**Your vocal range — scrolled to, or found.** The lowest and highest comfortable notes are two **wheels**: scroll (or press a note, or use ↑ ↓ and Page Up/Down) and each note **sounds as it lands**, so you can sing along and stop where it stops being comfortable. Between them it says how wide that is (*24 semitones — 2 octaves*) and which voice it sits like — a guide, not a label. **Find my range for me** does the finding: **Sing it** — press *Start listening* and sing a long "ah", slide down and hold your lowest comfortable note, then up and hold your highest; the microphone names the note you are holding (with how many cents sharp or flat) and remembers the lowest and highest you held steady for about half a second — it is analysed in the page and never recorded or sent anywhere. A keyboard strip fills in the span. It offers the extremes you reached and the **comfortable range** a little in from each end (2 semitones, which you can switch off) — the part the melody tools should keep inside. Or **By ear**, with no microphone: scroll to a note, hear it, and mark *this is my lowest* and *this is my highest*. After the first visit the range is a chip under the studio's title (*🎙 A2 – C5 change*) on every page. It is one range for both studios — setting it here sets it in the Jazz Studio too.
+
+**The metronome is a bar, not a desk.** Under the tabs on every page of the studio — Today, the Path, an exercise, any tool, the Seedbank, the Songbook — a slim bar holds **▶/■**, the tempo (**− / +**, the box, ↑↓ in it, or **tap**), a row of beat dots that flash in time, and the beats in a bar (2, 3, 4, 6; the first is the higher click). It keeps going as you move between pages of the studio and stops when you leave it; the tempo is remembered. An old link to the metronome desk lands in the studio.
 
 **Today** (the landing page) offers the next step: a ring for your 42 days of object writing (Pattison's six weeks), the next exercise, and your songs in progress.
 
@@ -806,7 +810,6 @@ Each exercise has a purpose, instructions, fields for what you make, a self-chec
 | 🎨 Colour a Word | One melody note, many chords: hear the word change. |
 | 📋 Song Desk | A song's brief, plot, boxes and sections; Stolpe's Ten Steps; the Rewrite Room checklist; versions. |
 | 🃏 Writer's-Block Deck | Stuck? Draw a technique card. |
-| ⏱ Metronome | A click and tap tempo. |
 
 **The Seedbank** keeps anything a tool makes — a line, a progression, a melody, a title — to be picked up later. **Songs** is your songbook (drafts and finished, with a print view). **The Listening Room** is for studying songs you admire.
 

@@ -30,8 +30,7 @@ const SNG_TOOLS = [
   {id: 'metaphor-lab', name: 'Metaphor Lab', icon: '💥', desc: 'Collisions, identity, keys, linking qualities'},
   {id: 'color-word', name: 'Colour a Word', icon: '🎨', desc: 'One melody note, many chords: hear the word change'},
   {id: 'song-desk', name: 'Song Desk', icon: '📋', desc: 'Brief, plot, boxes, sections, the rewrite'},
-  {id: 'block-deck', name: 'Writer\'s-Block Deck', icon: '🃏', desc: 'Stuck? Draw a technique card'},
-  {id: 'metronome', name: 'Metronome', icon: '⏱', desc: 'A click, tap tempo'}];
+  {id: 'block-deck', name: 'Writer\'s-Block Deck', icon: '🃏', desc: 'Stuck? Draw a technique card'}];
 const sngToolName = id => (SNG_TOOLS.find(t => t.id === id) || {name: id}).name;
 
 routes.songwriting = function(root, params){
@@ -47,6 +46,7 @@ routes.songwriting = function(root, params){
   if(a === 'ex' && b){ const ex = sngExercise(b); if(ex){ u.tab = 'path'; body = sngExerciseHTML(ex); crumb = 'ex'; } }
   else if(a === 'stage' && b != null){ u.tab = 'path'; body = sngStageHTML(+b); }
   else if(a === 'capstone'){ u.tab = 'path'; body = sngCapstoneHTML(); }
+  else if(a === 'tool' && b === 'metronome'){ u.tab = 'studio'; }   /* an old link: the metronome is the bar now */
   else if(a === 'tool' && b){ u.tab = 'studio'; u.tool = b; if(b === 'song-desk') u.songId = null; body = sngToolHTML(b); }
   else if(a === 'song' && b){ u.tab = 'songs'; u.tool = 'song-desk'; sngUiSong(b); body = sngToolHTML('song-desk'); }
   else if(SNG_TABS.some(t => t[0] === a)){ u.tab = a; }
@@ -54,9 +54,10 @@ routes.songwriting = function(root, params){
   if(!body) body = sngTabHTML(u.tab);
   root.innerHTML = `<div class="page sng-page">
     <div class="sng-head"><div><h1 class="serif">Songwriting Studio</h1>
-      <p class="muted sng-lede">A path of exercises and a workbench for writing songs — words and music — at the piano. Everything you make can go in the Seedbank; production happens in your DAW.</p></div>
+      <p class="muted sng-lede">A path of exercises and a workbench for writing songs — words and music — at the piano. Everything you make can go in the Seedbank; production happens in your DAW.</p>${sngRangeChipHTML()}</div>
       ${sngRingHTML(st.owDates.length)}</div>
     <div class="tabs sng-tabs" role="tablist">${SNG_TABS.map(([k, n]) => `<button class="tab${u.tab === k ? ' on' : ''}" role="tab" aria-selected="${u.tab === k}" data-sngtab="${k}">${n}</button>`).join('')}</div>
+    ${sngMetBarHTML()}
     <div class="sng-body" data-sngview="${esc(crumb || u.tab)}">${body}</div>
   </div>`;
   bindSongwriting(root);
@@ -92,23 +93,18 @@ function sngOnboard(root){
       <p class="muted">Two things the tools will use, both changeable later.</p>
       <h3>1. Your vocal range</h3>
       ${fromJazz ? '<p class="faint studio-from">From your Jazz Studio settings — change them here and both studios follow.</p>' : ''}
-      <p class="muted">At the piano, from middle C sing down until the tone goes, then up until you strain. The melody tools keep inside these, and warn you when a line goes outside.</p>
-      <div class="sng-row"><label>Lowest comfortable note <input class="inp mono" id="sngLow" value="${esc(st.profile.lowNote)}" placeholder="C3"></label>
-        <label>Highest <input class="inp mono" id="sngHigh" value="${esc(st.profile.highNote)}" placeholder="C5"></label>
-        <button class="tbtn" id="sngHearRange">hear them</button></div>
+      <p class="muted">Scroll each wheel to the lowest and highest note you sing comfortably — or let the microphone find them for you. The melody tools keep inside these, and warn you when a line goes outside.</p>
+      ${sngRangeHTML(sngMidiOf(st.profile.lowNote) || 48, sngMidiOf(st.profile.highNote) || 72)}
       <h3>2. When you write</h3>
       <p class="muted">Object writing works best first thing in the morning, before the day has opinions.</p>
       <div class="sng-row">${['morning', 'midday', 'evening', 'whenever'].map(t => `<label class="chip"><input type="radio" name="sngWhen" value="${t}" ${st.profile.dailyTime === t ? 'checked' : ''}> ${t}</label>`).join('')}</div>
       <p class="muted sng-sources">The exercises are paraphrased from ${SNG_SOURCES.slice(0, 6).map(esc).join('; ')}, with the source named on each. The Chord-Scale Map is general jazz pedagogy.</p>
       <button class="btn primary" id="sngGo">Open the studio</button>
     </div></div>`;
-  const hear = root.querySelector('#sngHearRange');
-  hear.onclick = () => { const lo = sngMidiOf(root.querySelector('#sngLow').value), hi = sngMidiOf(root.querySelector('#sngHigh').value);
-    if(lo == null || hi == null){ toast('Write notes like C3 and G4.'); return; }
-    sngPlayMelody([{midi: lo, t: 0, d: 1}, {midi: hi, t: 1.2, d: 1}], 80, {tone: 'piano'}); };
+  const rng = sngRangeBind(root, {lo: sngMidiOf(st.profile.lowNote) || 48, hi: sngMidiOf(st.profile.highNote) || 72});
   root.querySelector('#sngGo').onclick = () => {
-    const lo = root.querySelector('#sngLow').value.trim(), hi = root.querySelector('#sngHigh').value.trim();
-    if(sngMidiOf(lo) == null || sngMidiOf(hi) == null || sngMidiOf(lo) >= sngMidiOf(hi)){ toast('The lowest note has to be a note (like C3), and below the highest.'); return; }
+    const v = rng.get(), lo = sngMidiName(v.lo), hi = sngMidiName(v.hi);
+    if(v.lo >= v.hi){ toast('The top note has to be above the bottom one.'); return; }
     const when = (root.querySelector('input[name="sngWhen"]:checked') || {}).value || 'morning';
     Object.assign(st.profile, {lowNote: lo, highNote: hi, dailyTime: when, onboarded: true});
     if(typeof studioSetVocalRange === 'function') studioSetVocalRange(lo, hi);
@@ -285,6 +281,8 @@ function bindSongwriting(root){
   if(typeof bindHabFixtures === 'function') bindHabFixtures(root, () => { saveNow(); rerender(); });
   $$('[data-sngtab]', root).forEach(b => b.onclick = () => navigate('#/songwriting/' + (b.dataset.sngtab === 'today' ? '' : b.dataset.sngtab)));
   const on = (sel, fn) => { const n = root.querySelector(sel); if(n) n.onclick = fn; };
+  if(typeof sngMetBind === 'function') sngMetBind(root);
+  const rc = root.querySelector('[data-sngrange]'); if(rc) rc.onclick = () => sngRangeModal();
   /* Today */
   on('[data-sngrotd]', () => { const s = SNG_STYLES[Math.floor(Math.random() * SNG_STYLES.length)]; st.lab.styleId = s.id; st.lab.bpm = s.defaultBpm; saveNow();
     toast(`Rhythm of the day: ${esc(s.name)}. Improvise a melody over it.`); navigate('#/songwriting/tool/chord-lab'); });
