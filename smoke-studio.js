@@ -109,7 +109,7 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
   yes('and the notice does not come back', await p.$('[data-studio-rangenote]') === null && await ev(() => studioState().vocalRangeNoticeSeen));
   await ev(() => { jazzState().settings.vocalRange = null; sngState().profile.onboarded = false; sngState().profile.lowNote = 'C3'; sngState().profile.highNote = 'C5'; studioSetVocalRange('E3', 'E5'); sngState().profile.onboarded = false; saveNow(); });
   await go('#/songwriting');
-  yes('Songwriting\'s first-visit card starts from the Jazz range and says so', await ev(() => document.querySelector('#sngLow') && document.querySelector('#sngLow').value === 'E3' && /From your Jazz Studio settings/.test(document.body.textContent)));
+  yes('Songwriting\'s first-visit card starts from the Jazz range and says so', await ev(() => document.querySelector('#sngRangeNames') && /^E3 –/.test(document.querySelector('#sngRangeNames').textContent) && /From your Jazz Studio settings/.test(document.body.textContent)));
   await ev(() => { sngState().profile.onboarded = true; saveNow(); });
 
   console.log('\n9. a progression, across the door and back');

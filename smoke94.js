@@ -66,7 +66,7 @@ const ok = (n, cond, detail) => { console.log((cond ? '  ok   ' : '  FAIL ') + n
   /* Values, People, the Skill Tree and Finance are one Identity room now;
      Time is a view of Today; the Knowledge Tree joined */
   ok('Identity holds the Identity room, Purpose, Retreat, the Lived Record, the Knowledge Tree, Learning Studio and the Study Deck',
-     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['identityRoom','purpose','retreat','journals','tree','studio','study']),
+     nav.zones[1]?.name === 'Identity' && JSON.stringify(nav.zones[1].pages) === JSON.stringify(['identityRoom','purpose','retreat','rescue','journals','tree','studio','study']),
      JSON.stringify(nav.zones[1]));
   ok('both zones fold', await page.evaluate(() => document.querySelectorAll('.zone [data-zoneh]').length === 2), 'no');
   ok('nothing is left loose at the bottom', nav.loose.length === 0, JSON.stringify(nav.loose));

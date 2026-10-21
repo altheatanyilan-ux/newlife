@@ -63,8 +63,8 @@ const yes = (n,c,g='') => c ? ok(n) : no(n, typeof g === 'string' ? g : JSON.str
 
   console.log('\n2. first visit, and Today');
   await go('#/songwriting');
-  yes('the first visit asks for the vocal range and when you write', !!(await p.$('#sngLow')) && !!(await p.$('input[name="sngWhen"]')));
-  await p.fill('#sngLow', 'G2'); await p.fill('#sngHigh', 'D4'); await p.click('#sngGo'); await p.waitForTimeout(600);
+  yes('the first visit asks for the vocal range and when you write', (await p.$$('.sng-wheel-list')).length === 2 && !!(await p.$('input[name="sngWhen"]')));
+  await p.evaluate(() => { document.querySelector('[data-wheel="lo"] .sng-wh[data-m="43"]').click(); document.querySelector('[data-wheel="hi"] .sng-wh[data-m="62"]').click(); }); await p.waitForTimeout(700); await p.click('#sngGo'); await p.waitForTimeout(600);
   const T = await p.evaluate(() => ({prof: sngState().profile, tabs: [...document.querySelectorAll('[data-sngtab]')].map(b => b.textContent.trim()),
     morning: !!document.querySelector('.sng-morning'), next: (document.querySelector('.sng-next b') || {}).textContent, warm: !!document.querySelector('[data-sngrotd]')}));
   is('  it keeps them', [T.prof.lowNote, T.prof.highNote, T.prof.onboarded], ['G2', 'D4', true]);
