@@ -42,7 +42,7 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   yes('with no stretch set, the week’s stage focus is the one', st && st.source === 'stage' && /first draft/.test(st.focus), st);
   yes('and the strip says which stage', /stage 1 of 2/.test(await q(() => document.querySelector('.fp-strip').textContent)));
   console.log('\nsaying it back');
-  await q(() => { S.focusPlan.periods = [{id: 'x', focus: 'the Ravel — nothing else', from: today(), to: addDays(today(), 9), why: 'because', notNow: ['booklet'], fromTime: '', toTime: ''}]; S.focusPlan.ack = ''; saveNow(); fpMoment(fpNow()); });
+  await q(() => { S.focusPlan.periods = [{id: 'x', focus: 'the Ravel — nothing else', from: today(), to: addDays(today(), 9), why: 'because', notNow: ['booklet'], fromTime: '', toTime: ''}]; S.focusPlan.ack = ''; saveNow(); document.querySelectorAll('.overlay').forEach(o => o.remove()); fpMoment(fpNow()); });
   await p.waitForTimeout(500);
   yes('a card says it back and asks to say it to yourself', await q(() => /I am only doing the Ravel/.test((document.querySelector('.modal') || {textContent: ''}).textContent) && /Yes — only this/.test(document.querySelector('.modal').textContent)));
   yes('and counts as shown for today', await q(() => S.focusPlan.ack.endsWith(today())));
