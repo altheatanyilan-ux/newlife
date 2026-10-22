@@ -13778,6 +13778,43 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .sng-fr-keys{display:flex;height:34px;gap:1px;margin:6px 0 10px;align-items:flex-end}
 .sng-fr-keys i{flex:1;background:var(--line);height:60%;border-radius:2px 2px 0 0}.sng-fr-keys i.blk{height:38%;background:color-mix(in srgb,var(--text) 22%,var(--line))}
 .sng-fr-keys i.in{background:color-mix(in srgb,var(--sage,#7f916a) 70%,var(--line))}.sng-fr-keys i.now{background:var(--terra);height:100%}
+.rs-carry{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:7;width:min(680px,calc(100% - 40px));max-height:calc(100% - 100px);display:flex;flex-direction:column;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 18px 44px rgba(0,0,0,.14)}
+.rs-carry-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}.rs-carry-h .serif{font-size:1.2rem;font-style:italic}.rs-carry-h .mono{flex:1;text-align:right}
+.rs-carry-set{display:flex;gap:6px;align-items:center;margin:4px 0 8px}
+.rs-carry-scroll{overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px}
+.rs-carry-gh{display:flex;align-items:baseline;gap:6px;font-size:.84rem;margin-bottom:4px;flex-wrap:wrap}.rs-carry-gh .tbtn{margin-left:auto}
+.rs-carry-r{display:flex;gap:10px;align-items:flex-start;justify-content:space-between;padding:6px 0;border-top:1px solid color-mix(in srgb,var(--line) 60%,transparent)}
+.rs-carry-t{flex:1;min-width:0;font-size:.92rem;line-height:1.4;overflow-wrap:anywhere}
+.rs-carry-seg{display:flex;flex:none;border:1px solid var(--line);border-radius:999px;overflow:hidden}.rs-carry-seg button{border:0;background:transparent;padding:3px 10px;font-size:.74rem;color:var(--muted);cursor:pointer}
+.rs-carry-seg button.on{background:color-mix(in srgb,var(--terra) 18%,transparent);color:var(--text)}.rs-carry-seg button[data-rcact="letgo"].on{background:color-mix(in srgb,#6f7f99 22%,transparent)}
+.rs-carry-f{display:flex;align-items:center;gap:8px;margin-top:10px}
+.rs-badge{display:inline-block;min-width:1.3em;padding:0 5px;margin-left:4px;border-radius:999px;background:var(--terra);color:#fff;font-size:.68rem;font-weight:600;text-align:center}
+/* right now: the one thing */
+.fp-strip{position:sticky;top:0;z-index:35;display:flex;align-items:center;gap:6px;margin:0 0 12px;padding:5px 8px 5px 6px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c,#b08968) 45%,var(--line));background:color-mix(in srgb,var(--surface) 86%,var(--c,#b08968) 14%);backdrop-filter:blur(8px);box-shadow:0 6px 18px rgba(0,0,0,.07);width:fit-content;max-width:100%}
+.fp-strip.small{padding:2px 4px}
+.fp-strip-b{display:flex;align-items:baseline;gap:10px;border:0;background:transparent;cursor:pointer;color:var(--text);padding:2px 8px;min-width:0;text-align:left}
+.fp-k{font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap}.fp-t{font-size:1.02rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}.fp-u{font-size:.72rem;color:var(--faint);white-space:nowrap}
+.fp-x,.fp-pill{border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:1rem;line-height:1;padding:2px 6px;border-radius:999px}.fp-x:hover{color:var(--text)}.fp-pill{font-size:.8rem;color:var(--text)}
+@media (max-width:700px){.fp-strip-b{flex-wrap:wrap;gap:2px 8px}.fp-t{max-width:70vw}}
+.fp-hero{border:1px solid color-mix(in srgb,var(--c,#b08968) 50%,var(--line));border-left:6px solid var(--c,#b08968);border-radius:16px;padding:16px 20px;margin:0 0 16px;background:linear-gradient(135deg,color-mix(in srgb,var(--c,#b08968) 13%,var(--surface)),var(--surface))}
+.fp-hero.empty{border-style:dashed;border-left-width:1px;background:transparent}
+.fp-hero h2{margin:2px 0 4px;font-size:clamp(1.5rem,4vw,2.3rem);font-weight:500;line-height:1.2}.fp-big{font-weight:500;line-height:1.2}
+.fp-hero-u{font-size:.8rem;color:var(--muted);margin:0 0 8px}.fp-why{font-style:italic;margin:0 0 8px;color:var(--muted)}
+.fp-wait{margin:6px 0 8px}.fp-wait ul{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px}.fp-wait li{font-size:.86rem;font-style:italic;font-weight:300;color:var(--faint)}
+.fp-hero-f{gap:10px;align-items:center;margin-top:8px}
+.fp-say{font-size:1.02rem;margin:12px 0 6px}
+.fp-tl{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.fp-ticks{position:relative;height:18px;margin-bottom:4px}.fp-ticks span{position:absolute;font-family:var(--mono);font-size:.64rem;color:var(--faint);white-space:nowrap}
+.fp-rows{position:relative;display:flex;flex-direction:column;gap:5px;padding:2px 0;min-height:36px}
+.fp-today{position:absolute;top:0;bottom:0;width:0;border-left:1.5px dashed var(--terra);z-index:2;pointer-events:none}
+.fp-row{position:relative;height:26px}.fp-bar{position:absolute;top:0;height:100%;border-radius:8px;background:color-mix(in srgb,var(--c) 70%,var(--surface));color:#fff;font-size:.78rem;display:flex;align-items:center;padding:0 8px;overflow:hidden;white-space:nowrap;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.fp-bar span{overflow:hidden;text-overflow:ellipsis}.fp-bar:hover{filter:brightness(1.08)}.fp-bar.narrow{color:transparent;text-shadow:none}
+.fp-row.stage .fp-bar{background:color-mix(in srgb,#9aa3ad 40%,var(--surface));color:var(--text);text-shadow:none;border:1px dashed color-mix(in srgb,#9aa3ad 60%,transparent)}
+.fp-sep{margin:6px 0 0;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase}.fp-empty{padding:8px 4px;font-size:.86rem;color:var(--faint)}
+.fp-f{display:flex;flex-direction:column;gap:3px;margin:8px 0;font-size:.82rem;color:var(--muted)}
+.fp-presets{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:4px 0}
+.fp-dates{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:6px 0}.fp-dates label{display:flex;flex-direction:column;gap:3px;font-size:.78rem;color:var(--muted)}
+.fp-dates input[type=time]{width:8.4rem}.fp-dates input[type=date]{width:10.5rem}.fp-dates .row{flex-wrap:nowrap}
 </style>
 
 </head>
@@ -14525,7 +14562,7 @@ function renderRoute(){
      which meant everything below the fold had finished animating before it
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
-  try { decoratePageHead(main); mountContextAdd(main); reveal(main); ScrollFX.scan(main);
+  try { decoratePageHead(main); mountContextAdd(main); if(typeof focusStripMount === 'function') focusStripMount(main); reveal(main); ScrollFX.scan(main);
         Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton();
         if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit();
         if(typeof paintRemindFloat === 'function') paintRemindFloat(); }
@@ -14572,7 +14609,7 @@ function rerender(){
   main.innerHTML=''; PageEntryConfig.clear();
   try { pageRouteFn(name)(main, params); }
   catch(err){ console.error('rerender failed', err); routeFailure(err); holdScroll(y); return; }
-  try { decoratePageHead(main); mountContextAdd(main);
+  try { decoratePageHead(main); mountContextAdd(main); if(typeof focusStripMount === 'function') focusStripMount(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
     Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main);
@@ -18808,7 +18845,7 @@ const DB_SCHEMA = {          // primary key first, then indexes — Dexie syntax
    build.js refuses to build a state key that is saved by nothing now, so it
    cannot happen quietly again. */
 const META_KEYS = ['settings','rehearsal','reviews','valueOrder','valueOrderHistory','places','journals','negLast','finance','plans','reviewLog',
-  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','cloud','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview','purpose','purposeImprint','valuesImprint','museState','zogTarget','journeyOverride','zogStreak','studio'];
+  'planning','content','contentVault','wsDaily','wsRead','runLog','weekPlans','monthPlans','monthReviews','position','dailyRhythm','stillness','reviewEntries','reviewPrefs','time','musicianship','japanese','study','habitAccounts','sync','cloud','jazz','songwriting','listen','sdSummary','sdPending','treePrefs','brand','projectsPremigration','anPrefs','habitAreaNotes','lsPrefs','nudgeDismiss','dutySettings','dutyDismiss','promptState','sysReview','focusPlan','purpose','purposeImprint','valuesImprint','museState','zogTarget','journeyOverride','zogStreak','studio'];
 const ARRAY_STORES = ['stages','threads','tensions','values','valueSnapshots','visions','skills','projects','nods','ideas','habits','entries','reminders','visionEras','tasks','boards','people','events','accounts','txns','budgets','finGoals','chapters','turns','threadsN','interactions','mediaQueue','mediaLists','mediaRecs','compost','incomeStreams','spendCategories','scores','timeEntries','treeNodes','treeAliases','treeLinks','treeGrafts','treePositions','treeLeaves','treeInbox','treeReviews','treePredictions','treeExperiments','treeChunks','treeQuestions','treeRetrievals','treeMistakes','treePageRevisions','treeKolb','analyses','writeups','takes','performanceNotes','ambiguities','omrReviews','lsBoards','lsChips','lsGrafts','lsPlacements','lsGroups','lsSnapshots','lsQuestions','lsRecalls','lsSessions','timeBlocks','wins','dutyLog','timeIntentions','perfGoals','practiceLog','strengths','strengthSnapshots','strengthRankHistory','affirmations','beliefs','bets','retreats','negativeValues','masterValues','zoneItems','flowClues','breaks','habitsToDrop','alignmentChecks','convergence','rescueSheets','rescueBank'];
 
 /* ---------- MiniDexie: Dexie-compatible subset over IndexedDB ---------- */
@@ -23958,6 +23995,7 @@ routes.today = function(root, params = []){
   root.innerHTML = `<div class="page today-page">
 
     ${todayMilestonesHTML()}
+    ${typeof fpTodayHTML === 'function' ? fpTodayHTML() : ''}
     ${typeof wantsTodayHTML === 'function' ? wantsTodayHTML() : ''}
 
     <!-- header -->
@@ -24334,6 +24372,7 @@ routes.today = function(root, params = []){
   /* morning theatre */
   bindTheatre(root);
   if(typeof bindWantsSection === 'function') bindWantsSection(root);
+  if(typeof bindFpToday === 'function') bindFpToday(root);
   /* and the stillness practice under it — without this the section drew
      perfectly and every button in it was dead */
   if(typeof bindStillness === 'function') bindStillness(root);
@@ -46820,7 +46859,7 @@ function openWeeklyPlan(d = today()){
       <div class="row wp-stage-add" style="gap:6px;flex-wrap:wrap;margin-top:10px">
         ${rows.length ? '' : [1, 2, 3].map(n => `<button class="btn sm" data-wpsplit="${n}">${
           n === 1 ? 'one stage — the whole week' : `${n === 2 ? 'two' : 'three'} stages`}</button>`).join('')}
-        <button class="btn sm ghost" id="wpAddPeriod">＋ a stage</button></div>${threadsHTML()}`;
+        <button class="btn sm ghost" id="wpAddPeriod">＋ a stage</button><button class="btn sm ghost" id="wpFocusAhead" title="set one thing to focus on for any stretch of time, weeks or months ahead">plan further ahead →</button></div>${threadsHTML()}`;
   };
 
   const recapHTML = () => { const named = weekGoalsNamed(p);
@@ -46927,6 +46966,7 @@ function openWeeklyPlan(d = today()){
       const [i, how] = b.dataset.wpthset.split(':'), t = p.threads[+i]; if(!t) return;
       t.days = how === 'all' ? wkDays.slice() : how === 'wd' ? wkDays.slice(0, 5) : [];
       draw(); });
+    const fAhead = m.querySelector('#wpFocusAhead'); if(fAhead) fAhead.onclick = () => { read(); saveNow(); if(typeof fpPlanOpen === 'function') fpPlanOpen(); };
     const addPer = m.querySelector('#wpAddPeriod');
     if(addPer) addPer.onclick = () => { read();
       const last = p.periods.reduce((a, x) => x.to > a ? x.to : a, '');
@@ -47167,6 +47207,226 @@ function openMonthlyReview(d = today()){
   m.querySelectorAll('[data-mrms]').forEach(c => c.onchange = () => { mp.milestones[+c.dataset.mrms].done = c.checked; saveNow(); c.closest('.pick-row').classList.toggle('on', c.checked); });
   m.querySelector('#mrSave').onclick = () => { mr.note = m.querySelector('#mrNote').value.trim(); mr.closedAt = today(); saveNow(); m.remove(); sound('success'); toast('Month reviewed.'); rerender(); };
   attachDictationIn(m);
+}
+/* ============================================================
+   RIGHT NOW — the one thing, for this stretch of time
+
+   A plan that says "finish these by Friday" asks a promise the future may
+   not let you keep. What can be promised is attention: *for this stretch, the
+   only thing I give myself to is this.* So the plan here is stretches of
+   time, each with a single focus — a week, a fortnight, a month, planned as far
+   ahead as you like — and nothing about whether the work will be done.
+
+   Where it comes from. Two places, one answer:
+     the focus plan   dated stretches you set here, any length, any distance
+                      ahead (S.focusPlan.periods): {from, to, [fromTime, toTime],
+                      focus, why, notNow[]}
+     the week's stages the stages of a week plan (weekly plan → "the week in
+                      stages"), when a stage has a focus
+   Where two stretches cover today the shorter wins (the more specific);
+   a dated stretch beats a week's stage. What is "right now" is read each time,
+   never stored.
+
+   How it reminds. A slim strip at the top of every page says it ("right now ·
+   the Ravel · until Fri 25 Oct · stage 2 of 3"); the first open of each day (and
+   whenever a new stretch begins) a short card says it back and asks you to say it
+   to yourself; Today has it large, with what can wait; and while the house is
+   open, now and then, one quiet line leans in. Each of those can be turned
+   down in Settings → Right now.
+   ============================================================ */
+const FP_COLORS = ['#b08968', '#7f916a', '#a0727e', '#6b7d9c', '#d4a44c', '#8a6f9e', '#c47832', '#4a8f8a'];
+let _fpCollapsed = false, _fpLastWhisper = Date.now(), _fpMomentShown = false;
+function fpState(){
+  const f = S.focusPlan = S.focusPlan && typeof S.focusPlan === 'object' ? S.focusPlan : {};
+  f.periods = Array.isArray(f.periods) ? f.periods : [];
+  f.ack = typeof f.ack === 'string' ? f.ack : '';
+  f.prefs = Object.assign({strip: true, moment: 'daily', remind: 45}, f.prefs && typeof f.prefs === 'object' ? f.prefs : {});
+  f.periods.forEach(p => { p.id = p.id || uid(); p.focus = String(p.focus || ''); p.why = String(p.why || ''); p.notNow = Array.isArray(p.notNow) ? p.notNow : []; p.fromTime = p.fromTime || ''; p.toTime = p.toTime || ''; });
+  return f;
+}
+const fpColorOf = id => FP_COLORS[[...String(id)].reduce((n, c) => n + c.charCodeAt(0), 0) % FP_COLORS.length];
+const fpHM = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const fpSpan = p => Math.round((Date.parse(p.to) - Date.parse(p.from)) / 864e5) + 1;
+const fpOn = (p, day, hm) => !!p.from && !!p.to && p.from <= day && day <= p.to && (!p.fromTime || !p.toTime || (hm >= p.fromTime && hm < p.toTime));
+function fpUntil(p){
+  const T = today(), w = p.fromTime && p.toTime ? ` · ${p.fromTime}–${p.toTime}` : '';
+  const when = p.to === T ? 'until tonight' : p.to === addDays(T, 1) ? 'until tomorrow' : 'until ' + fmtDate(p.to, 'short');
+  return when + w;
+}
+/* what the stretch is, wherever it came from */
+function fpNow(){
+  const T = today(), hm = fpHM(), f = fpState();
+  const act = f.periods.filter(p => p.focus.trim() && fpOn(p, T, hm)).sort((a, b) => fpSpan(a) - fpSpan(b) || b.from.localeCompare(a.from));
+  if(act[0]){ const p = act[0], all = f.periods.filter(x => x.focus.trim()).sort((a, b) => a.from.localeCompare(b.from)), k = all.indexOf(p);
+    return {id: 'p:' + p.id, source: 'plan', focus: p.focus.trim(), why: p.why, notNow: p.notNow, from: p.from, to: p.to, fromTime: p.fromTime, toTime: p.toTime, color: fpColorOf(p.id), until: fpUntil(p), ref: p}; }
+  try {
+    const wp = weekPlanSeen(weekStart(T)), st = typeof weekPeriodOn === 'function' ? weekPeriodOn(wp, T) : null;
+    const said = st && ((st.focus || '').trim() || (st.name || '').trim());
+    if(st && said){ const per = typeof weekPeriods === 'function' ? weekPeriods(wp) : [], k = per.indexOf(st);
+      return {id: 's:' + (st.id || st.from), source: 'stage', focus: (st.focus || '').trim() || (st.name || '').trim(), why: '', notNow: [], from: st.from, to: st.to, color: fpColorOf(st.id || st.from), until: 'until ' + (st.to === T ? 'tonight' : fmtDate(st.to, 'short')) + (per.length > 1 && k >= 0 ? ` · stage ${k + 1} of ${per.length}` : ''), ref: st}; }
+  } catch(e){}
+  return null;
+}
+/* the next stretch that begins after today */
+function fpNext(){
+  const T = today(), c = [];
+  fpState().periods.filter(p => p.focus.trim() && p.from > T).forEach(p => c.push({from: p.from, focus: p.focus.trim()}));
+  try { const wp = weekPlanSeen(weekStart(T)); (typeof weekPeriods === 'function' ? weekPeriods(wp) : []).filter(x => x.from > T && ((x.focus || '').trim() || (x.name || '').trim())).forEach(x => c.push({from: x.from, focus: (x.focus || '').trim() || x.name})); } catch(e){}
+  c.sort((a, b) => a.from.localeCompare(b.from)); return c[0] || null;
+}
+
+/* ---------- the strip, on every page ---------- */
+function focusStripMount(main){
+  document.querySelectorAll('.fp-strip').forEach(n => n.remove());
+  const f = fpState(); if(!f.prefs.strip || !main) return;
+  if(typeof pageFocusOn === 'function' && pageFocusOn()) return;
+  const now = fpNow(); if(!now) return;
+  if(main.querySelector('.fp-hero')) return;     /* Today says it large already */
+  const el = document.createElement('div'); el.className = 'fp-strip' + (_fpCollapsed ? ' small' : ''); el.setAttribute('role', 'status'); el.style.setProperty('--c', now.color);
+  el.innerHTML = _fpCollapsed
+    ? `<button class="fp-pill" data-fp="expand" title="right now: ${esc(now.focus)}">◎ <span>${esc(now.focus.length > 34 ? now.focus.slice(0, 33) + '…' : now.focus)}</span></button>`
+    : `<button class="fp-strip-b" data-fp="open" title="right now — open the focus plan"><span class="fp-k mono">right now</span><b class="fp-t serif">${esc(now.focus)}</b><span class="fp-u mono">${esc(now.until)}</span></button><button class="fp-x" data-fp="collapse" aria-label="make this small" title="make this small">–</button>`;
+  main.prepend(el);
+  el.onclick = ev => { const b = ev.target.closest('[data-fp]'); if(!b) return;
+    if(b.dataset.fp === 'open') fpPlanOpen(); else if(b.dataset.fp === 'collapse'){ _fpCollapsed = true; focusStripMount(main); } else { _fpCollapsed = false; focusStripMount(main); } };
+  fpMomentLater();
+}
+
+/* ---------- the card that says it back ---------- */
+function fpMomentLater(){
+  if(_fpMomentShown) return; _fpMomentShown = true;
+  let tries = 0;
+  const go = () => {
+    const f = fpState(), now = fpNow(); if(!now || f.prefs.moment === 'off' || isLateNight() || document.hidden) return;
+    const key = now.id + (f.prefs.moment === 'daily' ? '|' + today() : '');
+    if(f.ack === key || (f.prefs.moment === 'change' && f.ack.split('|')[0] === now.id)) return;
+    /* the house has other things to say first: the morning card, a first visit, a dialog already open */
+    if(document.querySelector('#modals .overlay, #frGo, .morning-card') && tries++ < 6){ setTimeout(go, 6000); return; }
+    fpMoment(now);
+  };
+  setTimeout(go, 4500);
+}
+function fpMoment(now){
+  const f = fpState(), nx = fpNext();
+  f.ack = now.id + '|' + today(); saveNow();
+  const m = openModal(`<div data-nobubbles><p class="mono faint" style="margin:0">right now</p>
+    <h2 class="serif fp-big" style="--c:${esc(now.color)}">${esc(now.focus)}</h2>
+    <p class="muted" style="margin:0 0 10px">${esc(now.until)}</p>
+    ${now.why ? `<p class="serif" style="font-style:italic;margin:0 0 10px">${esc(now.why)}</p>` : ''}
+    ${now.notNow && now.notNow.length ? `<div class="fp-wait"><span class="mono faint">for now, this can wait</span><ul>${now.notNow.map(x => `<li><s>${esc(x)}</s></li>`).join('')}</ul></div>` : ''}
+    <p class="fp-say">Say it to yourself: <b>“${esc(now.until.replace(/^until /, 'Until '))}, I am only doing ${esc(now.focus)}.”</b></p>
+    ${nx ? `<p class="faint sm">Then, from ${esc(fmtDate(nx.from, 'short'))}: ${esc(nx.focus)}.</p>` : ''}
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:12px"><button class="btn ghost" id="fpChange">Change it</button><button class="btn primary" id="fpOk">Yes — only this</button></div></div>`, 'narrow');
+  m.querySelector('#fpOk').onclick = () => { m.remove(); sound('success'); };
+  m.querySelector('#fpChange').onclick = () => { m.remove(); fpPlanOpen(); };
+}
+
+/* ---------- a quiet line, now and then ---------- */
+function fpTick(){
+  const f = fpState(), mins = +f.prefs.remind || 0; if(!mins || document.hidden || isLateNight()) return;
+  if(Date.now() - _fpLastWhisper < mins * 60000) return;
+  if(document.querySelector('#modals .overlay')) return;
+  const now = fpNow(); if(!now) return;
+  _fpLastWhisper = Date.now(); toast(`Right now: only ${now.focus}.`, 6500);
+}
+setInterval(fpTick, 60000);
+document.addEventListener('visibilitychange', () => { if(!document.hidden && Date.now() - _fpLastWhisper > 25 * 60000){ setTimeout(fpTick, 1200); } });
+
+/* ---------- Today, large ---------- */
+function fpTodayHTML(){
+  const now = fpNow(), nx = fpNext();
+  if(!now) return `<section class="fp-hero empty rv"><span class="mono faint">right now</span><h2 class="serif faint">No single focus is set for now.</h2>
+    <p class="muted" style="margin:0 0 10px;max-width:60ch">Not what must be finished — the one thing to give your attention to for a stretch, planned as far ahead as you like.</p>
+    <button class="btn primary" data-fpplan>Set one →</button></section>`;
+  return `<section class="fp-hero rv" style="--c:${esc(now.color)}"><span class="mono faint">right now</span>
+    <h2 class="serif fp-big">${esc(now.focus)}</h2>
+    <p class="mono fp-hero-u">${esc(now.until)}${now.source === 'stage' ? ' · from the week’s stages' : ''}</p>
+    ${now.why ? `<p class="serif fp-why">${esc(now.why)}</p>` : ''}
+    ${now.notNow && now.notNow.length ? `<div class="fp-wait"><span class="mono faint">for now, this can wait</span><ul>${now.notNow.map(x => `<li><s>${esc(x)}</s></li>`).join('')}</ul></div>` : ''}
+    <div class="row fp-hero-f"><button class="btn sm" data-fpplan>plan ahead</button>${now.source === 'plan' ? '<button class="btn sm ghost" data-fpedit>change this</button>' : ''}${nx ? `<span class="faint sm">then, from ${esc(fmtDate(nx.from, 'short'))}: ${esc(nx.focus)}</span>` : ''}</div></section>`;
+}
+function bindFpToday(root){
+  root.querySelectorAll('[data-fpplan]').forEach(b => b.onclick = () => fpPlanOpen());
+  root.querySelectorAll('[data-fpedit]').forEach(b => b.onclick = () => { const n = fpNow(); fpPlanOpen(n && n.source === 'plan' ? {edit: n.ref.id} : {}); });
+}
+
+/* ---------- the plan ahead ---------- */
+function fpOverlaps(p){ return fpState().periods.filter(x => x.id !== p.id && x.focus.trim() && x.from <= p.to && p.from <= x.to); }
+function fpPlanHTML(st){
+  const f = fpState(), T = today(), days = st.weeks * 7, end = addDays(st.start, days - 1), pct = d => Math.max(0, Math.min(100, (Math.round((Date.parse(d) - Date.parse(st.start)) / 864e5) / days) * 100));
+  const inWin = (a, b) => b >= st.start && a <= end;
+  const bar = (p, cls, go) => { const a = p.from < st.start ? st.start : p.from, z = p.to > end ? end : p.to, l = pct(a), w = Math.max(1.2, pct(addDays(z, 1)) - l), label = (p.focus || p.name || '').trim();
+    return `<div class="fp-row ${cls}"><div class="fp-bar${w < 14 ? ' narrow' : ''}" ${go} style="left:${l}%;width:${w}%;--c:${esc(p._c || fpColorOf(p.id || p.from))}" title="${esc(label)} · ${esc(fmtDate(p.from, 'short'))} – ${esc(fmtDate(p.to, 'short'))}"><span>${esc(label)}</span></div></div>`; };
+  const plan = f.periods.filter(p => p.focus.trim() && inWin(p.from, p.to)).sort((a, b) => a.from.localeCompare(b.from));
+  const stages = []; try { Object.keys(S.weekPlans || {}).forEach(wk => { const wp = weekPlanSeen(wk); (typeof weekPeriods === 'function' ? weekPeriods(wp) : []).forEach(x => { if(((x.focus || '').trim() || (x.name || '').trim()) && inWin(x.from, x.to)) stages.push(Object.assign({}, x, {_wk: wk, _c: '#9aa3ad'})); }); }); } catch(e){}
+  stages.sort((a, b) => a.from.localeCompare(b.from));
+  const ticks = []; for(let i = 0; i < st.weeks; i++){ const d = addDays(st.start, i * 7); if(st.weeks <= 14 || i % 4 === 0) ticks.push(`<span style="left:${(i / st.weeks) * 100}%">${esc(fmtDate(d, 'short'))}</span>`); }
+  const e = f.periods.find(x => x.id === st.edit) || null, v = e || {id: '', focus: '', from: st.draft && st.draft.from || T, to: st.draft && st.draft.to || addDays(T, 6), fromTime: '', toTime: '', why: '', notNow: []};
+  const overlap = e ? fpOverlaps(e) : [];
+  return `<h2 class="serif" style="margin:0">Right now — the one thing, planned ahead</h2>
+    <p class="muted" style="font-size:.9rem;margin:4px 0 12px">Not what has to be finished. For each stretch of time, the <b>one thing</b> you will give your attention to — and let the rest wait. Plan it a week, a month or a season ahead. Where two stretches meet, the shorter one wins.</p>
+    <div class="fp-tl"><div class="row between" style="margin-bottom:6px"><span class="row" style="gap:6px"><button class="tbtn" data-fpshift="-4">‹ earlier</button><button class="tbtn" data-fpshift="0">this week</button><button class="tbtn" data-fpshift="4">later ›</button></span>
+      <span class="row" style="gap:6px">${[8, 12, 26, 52].map(n => `<button class="chip sm${st.weeks === n ? ' on' : ''}" data-fpweeks="${n}">${n === 52 ? 'a year' : n === 26 ? '6 months' : n + ' weeks'}</button>`).join('')}</span></div>
+      <div class="fp-ticks">${ticks.join('')}</div>
+      <div class="fp-rows"><i class="fp-today" style="left:${pct(T)}%"></i>${plan.map(p => bar(p, 'plan', `data-fpbar="${esc(p.id)}"`)).join('') || '<div class="fp-empty">No stretch planned in this window — add one below.</div>'}
+        ${stages.length ? `<div class="fp-sep mono faint">from the week plans</div>${stages.map(p => bar(p, 'stage', `data-fpstage="${esc(p._wk)}"`)).join('')}` : ''}</div></div>
+    <div class="fp-form" data-fpform="${esc(v.id)}"><h3 class="serif" style="margin:12px 0 6px">${e ? 'Change this stretch' : 'A new stretch'}</h3>
+      <label class="fp-f"><span>The one thing</span><input class="inp serif-lg" id="fpFocus" maxlength="120" value="${esc(v.focus)}" placeholder="e.g. the Ravel — nothing else"></label>
+      <div class="fp-presets"><span class="mono faint">dates</span>${[['this week', 'tw'], ['next week', 'nw'], ['next 2 weeks', 'n2'], ['this month', 'tm'], ['next month', 'nm']].map(([t, k]) => `<button class="chip sm" data-fppre="${k}">${t}</button>`).join('')}</div>
+      <div class="fp-dates"><label><span>from</span><input class="inp" type="date" id="fpFrom" value="${esc(v.from)}"></label><label><span>to</span><input class="inp" type="date" id="fpTo" value="${esc(v.to)}"></label>
+        <label><span>only between <i class="faint">(optional)</i></span><span class="row" style="gap:4px"><input class="inp" type="time" id="fpFt" value="${esc(v.fromTime)}"><input class="inp" type="time" id="fpTt" value="${esc(v.toTime)}"></span></label></div>
+      <label class="fp-f"><span>Why this, in a line <i class="faint">(optional)</i></span><input class="inp" id="fpWhy" maxlength="160" value="${esc(v.why)}" placeholder="what it is for"></label>
+      <label class="fp-f"><span>What can wait meanwhile <i class="faint">(one per line, optional)</i></span><textarea class="ta" id="fpNot" style="min-height:56px" placeholder="the things I will not give my attention to in this stretch">${esc(v.notNow.join('\n'))}</textarea></label>
+      <p class="faint sm" id="fpOv">${overlap.length ? 'This overlaps ' + overlap.map(x => '“' + esc(x.focus) + '”').join(', ') + ' — on the days they share, the shorter stretch is the focus.' : ''}</p>
+      <div class="row" style="gap:8px;justify-content:flex-end;flex-wrap:wrap">${e ? '<button class="btn sm ghost danger" id="fpDel">delete</button><button class="btn sm ghost" id="fpNew">a new one instead</button>' : ''}<button class="btn primary" id="fpSave">${e ? 'Save changes' : 'Add this stretch'}</button></div></div>`;
+}
+function fpPlanOpen(opts = {}){
+  const st = {weeks: 12, start: weekStart(today()), edit: opts.edit || '', draft: null};
+  const m = openModal('<div data-nobubbles id="fpWrap"></div>', 'wide');
+  const wrap = m.querySelector('#fpWrap');
+  const draw = () => { wrap.innerHTML = fpPlanHTML(st); wire(); };
+  const refresh = () => { try { rerender(); } catch(e){} };
+  const wire = () => {
+    wrap.querySelectorAll('[data-fpshift]').forEach(b => b.onclick = () => { const k = +b.dataset.fpshift; st.start = k ? addDays(st.start, k * 7) : weekStart(today()); draw(); });
+    wrap.querySelectorAll('[data-fpweeks]').forEach(b => b.onclick = () => { st.weeks = +b.dataset.fpweeks; draw(); });
+    wrap.querySelectorAll('[data-fpbar]').forEach(b => b.onclick = () => { st.edit = b.dataset.fpbar; draw(); wrap.querySelector('.fp-form').scrollIntoView({block: 'nearest', behavior: 'smooth'}); });
+    wrap.querySelectorAll('[data-fpstage]').forEach(b => b.onclick = () => { m.remove(); openWeeklyPlan(b.dataset.fpstage); });
+    wrap.querySelectorAll('[data-fppre]').forEach(b => b.onclick = () => { const T = today(), wk = weekStart(T), k = b.dataset.fppre; let a, z;
+      if(k === 'tw'){ a = T; z = addDays(wk, 6); } else if(k === 'nw'){ a = addDays(wk, 7); z = addDays(wk, 13); } else if(k === 'n2'){ a = addDays(wk, 7); z = addDays(wk, 20); }
+      else if(k === 'tm'){ a = T; const d = parseDay(T); z = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()).padStart(2, '0')}`; }
+      else { const d = parseDay(T), n = new Date(d.getFullYear(), d.getMonth() + 1, 1); a = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-01`; z = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate()).padStart(2, '0')}`; }
+      wrap.querySelector('#fpFrom').value = a; wrap.querySelector('#fpTo').value = z; });
+    const nw = wrap.querySelector('#fpNew'); if(nw) nw.onclick = () => { st.edit = ''; draw(); };
+    const del = wrap.querySelector('#fpDel'); if(del) del.onclick = () => { const f = fpState(), back = spliceOut(f.periods, x => x.id === st.edit); st.edit = ''; saveNow(); draw(); refresh(); toast('Taken out.', 6000, {label: 'undo', fn: () => { back(); saveNow(); refresh(); }}); };
+    const ov = () => { const a = wrap.querySelector('#fpFrom').value, z = wrap.querySelector('#fpTo').value; const o = a && z ? fpOverlaps({id: st.edit, from: a, to: z}) : [];
+      wrap.querySelector('#fpOv').innerHTML = o.length ? 'This overlaps ' + o.map(x => '“' + esc(x.focus) + '”').join(', ') + ' — on the days they share, the shorter stretch is the focus.' : ''; };
+    ['#fpFrom', '#fpTo'].forEach(s => { const i = wrap.querySelector(s); if(i) i.onchange = ov; });
+    wrap.querySelector('#fpSave').onclick = () => {
+      const focus = wrap.querySelector('#fpFocus').value.trim(), from = wrap.querySelector('#fpFrom').value, to = wrap.querySelector('#fpTo').value;
+      if(!focus){ toast('Name the one thing.'); wrap.querySelector('#fpFocus').focus(); return; }
+      if(!from || !to || to < from){ toast('The last day has to be on or after the first.'); return; }
+      const ft = wrap.querySelector('#fpFt').value, tt = wrap.querySelector('#fpTt').value;
+      if((ft && !tt) || (!ft && tt)){ toast('Give both times, or neither.'); return; }
+      const f = fpState(), rec = f.periods.find(x => x.id === st.edit) || (() => { const r = {id: uid()}; f.periods.push(r); return r; })();
+      Object.assign(rec, {focus, from, to, fromTime: ft, toTime: tt, why: wrap.querySelector('#fpWhy').value.trim(), notNow: wrap.querySelector('#fpNot').value.split('\n').map(x => x.trim()).filter(Boolean)});
+      f.ack = ''; saveNow(); sound('success'); st.edit = ''; st.start = weekStart(from) < st.start || from > addDays(st.start, st.weeks * 7 - 1) ? weekStart(from) : st.start; draw(); refresh();
+      toast(`Set: ${focus}.`, 3500); };
+  };
+  draw();
+}
+const fpSettingsHTML = () => { const p = fpState().prefs;
+  return `<div class="card rv" id="fpCard"><h3>Right now — the one focus</h3>
+    <p class="muted" style="font-size:.85rem;margin:0 0 6px">The single thing for the stretch you are in, from the focus plan (and the week’s stages). Planned in Today → <i>Right now</i>, or from the strip.</p>
+    <div class="opt"><div><b>The strip</b><div class="d">A slim line at the top of every page: right now · the one thing · until when.</div></div><label class="toggle ${p.strip ? 'on' : ''}" id="sFpStrip"><span class="sw"></span></label></div>
+    <div class="opt"><div><b>A card that says it back</b><div class="d">On the first open of each day, or only when a new stretch begins — a short card that asks you to say it to yourself.</div></div>
+      <select class="sel" style="width:auto" id="sFpMoment">${[['daily', 'every day'], ['change', 'when a stretch begins'], ['off', 'never']].map(([v, t]) => `<option value="${v}" ${p.moment === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
+    <div class="opt"><div><b>A quiet line now and then</b><div class="d">While the house is open, one short line — <i>Right now: only …</i> — leans in at the edge. Not at night.</div></div>
+      <select class="sel" style="width:auto" id="sFpRemind">${[[0, 'never'], [25, 'every 25 min'], [45, 'every 45 min'], [90, 'every 90 min']].map(([v, t]) => `<option value="${v}" ${+p.remind === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div></div>`; };
+function bindFpSettings(root){
+  const r = root || document, f = fpState();
+  const s = r.querySelector('#sFpStrip'); if(s) s.onclick = () => { f.prefs.strip = !f.prefs.strip; s.classList.toggle('on', f.prefs.strip); saveNow(); };
+  const m = r.querySelector('#sFpMoment'); if(m) m.onchange = () => { f.prefs.moment = m.value; saveNow(); };
+  const q = r.querySelector('#sFpRemind'); if(q) q.onchange = () => { f.prefs.remind = +q.value; saveNow(); };
 }
 /* ============================================================
    HABIT MECHANICS, GUIDED REVIEWS, PATTERNS
@@ -51038,6 +51298,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Photo size on upload</b><div class="d">Long edge in pixels. Larger keeps more detail and uses more space.</div></div><select class="sel" style="width:auto" id="sPhotoMax">${[1200,1600,2400,4000].map(n=>`<option value="${n}" ${(S.settings.photoMax||1600)===n?'selected':''}>${n}px${n===1600?' (default)':''}</option>`).join('')}</select></div>
       <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
+    ${typeof fpSettingsHTML === 'function' ? fpSettingsHTML() : ''}
     ${typeof bubblesSettingsHTML === 'function' ? bubblesSettingsHTML() : ''}
     ${typeof rescueSettingsHTML === 'function' ? rescueSettingsHTML() : ''}
     ${typeof rescueGateSettingsHTML === 'function' ? rescueGateSettingsHTML() : ''}
@@ -51181,6 +51442,7 @@ routes.settings = function(root){
   if(typeof bindCloudSection === 'function') bindCloudSection(document);
   if(typeof bindRescueSettings === 'function') bindRescueSettings(document);
   if(typeof bindBubblesSettings === 'function') bindBubblesSettings(document);
+  if(typeof bindFpSettings === 'function') bindFpSettings(document);
   if(typeof bindRescueGateSettings === 'function') bindRescueGateSettings(document);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });
@@ -110732,7 +110994,8 @@ routes.rescue = function(root, params){
   _rs.timers.push(setInterval(() => rescueTickClock(root), 20000));
   rescueWhisperLater(root, 40000);
   const gated = typeof rescueGateInit === 'function' && rescueGateInit(root);
-  if(typeof rescueReadyShow === 'function'){ if(!gated){ _rs.gateReadyDone = true; rescueReadyShow(root); } rescueCareLater(root, (24 + Math.random() * 8) * 60000); }
+  if(typeof rescueReadyShow === 'function'){ if(!gated) rescueAfterGate(root); rescueCareLater(root, (24 + Math.random() * 8) * 60000); }
+  if(typeof rescueCarryBtn === 'function') rescueCarryBtn(root);
   const first = root.querySelector('.rs-hint'); if(first && !rescueLive(s).length) first.hidden = false;
   if(!rescueLive(s).length) { const c = root.querySelector('#rsCanvas'); if(c) c.focus(); }
 };
@@ -110760,6 +111023,7 @@ function rescuePageHTML(s){
       <button class="tbtn" data-rs="ready" title="small things the room can do for you before a hard hour">Ready the room</button>
       <button class="tbtn" data-rs="tonight" id="rsTonightBtn" hidden title="what the sleep and time records say about tonight, in plain words">Tonight, from my records</button>
       <button class="tbtn" data-rs="coach" title="a question to answer on the page">Ask me something</button>
+      <button class="tbtn" data-rs="carry" hidden title="cards from earlier pages that were never settled — bring them here, let them go, or leave them">From earlier pages <b class="rs-badge"></b></button>
       <button class="tbtn" data-rs="gather" title="bring the cards that are left close together, so they can be seen at once">Gather</button>
       <button class="tbtn" data-rs="bands" title="lay the page out by how soon each thing matters">Horizons</button>
       <button class="tbtn" data-rs="rail" title="what is on my plate, to bring onto the page">On my plate</button>
@@ -111068,6 +111332,7 @@ function rescueBindPage(root){
       rescueStrings(root); }
     else if(a === 'rail'){ const r = rescueQ('#rsRail', root); r.hidden = !r.hidden; S.settings.rescueRail = !r.hidden; save(); b.classList.toggle('on', !r.hidden); if(!r.hidden) rescueRailPaint(root); }
     else if(a === 'gather') rescueGather(root);
+    else if(a === 'carry') rescueCarryShow(root, true);
     else if(a === 'coach') rescueCoachOpen(root);
     else if(a === 'tonight') rescueTonightFrame(root);
     else if(a === 'ready') rescueReadyShow(root, true);
@@ -111260,7 +111525,7 @@ function rescueLand(root){
       <label class="pd-q"><span class="k">Something I am putting down</span>
         <textarea class="ta" id="rlDown" style="min-height:48px" placeholder="what can wait, or was never mine">${esc(s.landing && s.landing.putDown || '')}</textarea></label>
       <label class="pd-q"><span class="k">How I feel now, in a word (optional)</span><input class="inp" id="rlFeel" style="max-width:14rem"></label>
-      ${un.length ? `<p class="faint sm">${un.length} thing${un.length === 1 ? ' is' : 's are'} not sorted yet. They stay on the page, and the next morning you will be offered them once.</p>` : ''}
+      ${un.length ? `<p class="faint sm">${un.length} thing${un.length === 1 ? ' is' : 's are'} not sorted yet. They stay on the page, and the next page you open offers them to you again — to bring along, let go or leave.</p>` : ''}
       ${sleep ? `<p class="faint sm">Tonight’s question about sleeping is on this page — if it is still open, the first box above is a good place to settle it.</p>` : ''}
     </div>
     <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn ghost" id="rlNo">Not yet</button><button class="btn primary" id="rlGo">Land</button></div>`, 'narrow');
@@ -111756,12 +112021,15 @@ function rescueSettingsHTML(){
   return `<div class="card rv" id="rescueCard"><h3>Overwhelm rescue space</h3>
     <div class="opt"><div><b>A line that leans in</b><div class="d">Once in a while a short, gentle line fades in at the edge of the page \u2014 chosen by what the page is about, from the starters and from the lines you have kept. Never twice running, never a command, gone after a few seconds.</div></div>
       <label class="toggle ${on ? 'on' : ''}" id="sRescueW"><span class="sw"></span></label></div>
+    <div class="opt"><div><b>Cards from earlier pages</b><div class="d">A new page opens with a short review of the cards from earlier pages that were never sent anywhere or let go — to bring along, let go or leave. Turn off to start every page blank (the header button still brings the review back).</div></div>
+      <label class="toggle ${(S.settings || {}).rescueCarry !== false ? 'on' : ''}" id="sRescueCarry"><span class="sw"></span></label></div>
     <div class="opt"><div><b>The question bank</b><div class="d">${rescueBankAll().length} questions (${RESCUE_STARTER.length} that ship with the house). Have a stronger AI write many more ahead of time from a prompt built from this house, and paste them in.</div></div>
       <button class="btn sm" id="sRescueBank">Open the bank</button></div>
     ${typeof rescueCareSettingsHTML === 'function' ? rescueCareSettingsHTML() : ''}</div>`;
 }
 function bindRescueSettings(root){
   const w = (root || document).querySelector('#sRescueW'); if(w) w.onclick = () => { S.settings.rescueWhispers = !(S.settings.rescueWhispers !== false); w.classList.toggle('on', S.settings.rescueWhispers !== false); saveNow(); };
+  const cy = (root || document).querySelector('#sRescueCarry'); if(cy) cy.onclick = () => { S.settings.rescueCarry = !(S.settings.rescueCarry !== false); cy.classList.toggle('on', S.settings.rescueCarry !== false); saveNow(); };
   const b = (root || document).querySelector('#sRescueBank'); if(b) b.onclick = () => rescueBankDialog();
   if(typeof bindRescueCareSettings === 'function') bindRescueCareSettings(root);
 }
@@ -112346,7 +112614,7 @@ function rescueGateClose(root){
     save();
   }
   rescueGateShut(root); rescueGateTether(root);
-  if(typeof rescueReadyShow === 'function' && !_rs.gateReadyDone){ _rs.gateReadyDone = true; rescueReadyShow(root); }
+  if(!_rs.gateReadyDone) rescueAfterGate(root);
   const c = root.querySelector('#rsCanvas'); if(c && !(g && g.status === 'sprint')) c.focus();
 }
 
@@ -112726,6 +112994,110 @@ function bindRescueGateSettings(root){
   const r = root || document;
   const a = r.querySelector('#sGate'); if(a) a.onchange = () => { S.settings.rescueGate = a.value; saveNow(); };
   const b = r.querySelector('#sGateCap'); if(b) b.onchange = () => { S.settings.rescueGateCap = +b.value; saveNow(); };
+}
+/* ============================================================
+   FROM EARLIER PAGES — what was never settled comes with you
+
+   A card that was never sent anywhere or let go is still a thing on your mind,
+   and a new page used to start blank, so it had to be found on the old page or
+   typed in again. Now a new page opens with a short review of every card from
+   earlier pages that is still open — grouped by page, newest first — and for
+   each one a choice: bring it here, let it go, or leave it where it is. One
+   press applies them all. Brought cards keep their words, their face and the
+   horizon they were on, are laid out tidily below whatever is already on the
+   page, and are marked on the old page as carried (so they are not offered
+   twice). "From earlier pages" in the header opens it whenever you like, and
+   it can be undone.
+
+   A card is open when it has words and has not been sent anywhere
+   (a task, a thread, a person…), let go, or carried.
+   ============================================================ */
+const rescueOpenCards = s => (s.boxes || []).filter(b => (b.text || '').trim() && !b.fate && !(b.exits || []).length);
+function rescueCarryPool(){
+  const cur = _rs && _rs.sheet, from = addDays(today(), -60);
+  return rescueSheets().filter(s => s !== cur && s.id !== (cur && cur.id) && (s.day || '') >= from).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    .map(s => ({s, cards: rescueOpenCards(s)})).filter(g => g.cards.length);
+}
+const rescueCarryCount = () => rescueCarryPool().reduce((n, g) => n + g.cards.length, 0);
+function rescueCarryBtn(root){
+  const b = root.querySelector('[data-rs="carry"]'); if(!b) return;
+  const n = rescueCarryCount(); b.hidden = !n; const c = b.querySelector('.rs-badge'); if(c) c.textContent = n;
+}
+/* what happens once the gate (if any) is through: the earlier cards are reviewed, then the room is readied */
+function rescueAfterGate(root){
+  if(!_rs) return; rescueCarryBtn(root);
+  const s = _rs.sheet;
+  if((S.settings || {}).rescueCarry !== false && !s.landing && !rescueLive(s).length && !s.carrySeen && rescueCarryCount()){ rescueCarryShow(root, false); return; }
+  if(typeof rescueReadyShow === 'function'){ _rs.gateReadyDone = true; rescueReadyShow(root); }
+}
+function rescueCarryShow(root, force){
+  if(!_rs) return;
+  root.querySelectorAll('.rs-carry').forEach(n => n.remove());
+  const pool = rescueCarryPool(); if(!pool.length){ if(force) toast('Nothing is left open on the earlier pages.'); return; }
+  root.querySelectorAll('.rs-ready').forEach(n => n.remove());
+  const act = {}; pool.forEach(g => g.cards.forEach(b => { act[g.s.id + '|' + b.id] = 'bring'; }));
+  const total = Object.keys(act).length, d = document.createElement('div'); d.className = 'rs-carry'; d.setAttribute('role', 'region'); d.setAttribute('aria-label', 'from earlier pages');
+  const when = s => s.day === today() ? 'earlier today' : s.day === addDays(today(), -1) ? 'yesterday' : fmtDate(s.day, 'short');
+  d.innerHTML = `<div class="rs-carry-h"><span class="serif">From earlier pages</span><span class="mono faint" id="rcN"></span><button class="rs-ready-x" data-rc="later" aria-label="not now" title="not now">×</button></div>
+    <p class="faint sm" style="margin:0 0 6px">${total} card${total === 1 ? '' : 's'} that never went anywhere. Say what each should do; nothing moves until you press the button.</p>
+    <div class="rs-carry-set"><span class="mono faint">all</span><button class="chip sm" data-rcall="bring">bring here</button><button class="chip sm" data-rcall="letgo">let go</button><button class="chip sm" data-rcall="leave">leave</button></div>
+    <div class="rs-carry-scroll">${pool.map(g => `<div class="rs-carry-g"><div class="rs-carry-gh"><b>${esc(when(g.s))}</b><span class="faint"> · ${esc(rescueTitle(g.s))}${g.s.landing ? ' · landed' : ''}</span><button class="tbtn" data-rcopen="${esc(g.s.id)}">open that page</button></div>
+      ${g.cards.map(b => `<div class="rs-carry-r" data-rcid="${esc(g.s.id + '|' + b.id)}"><span class="rs-carry-t">${b.kind === 'question' && b.q ? `<i class="faint">${esc((b.q.text || '').slice(0, 60))}</i> ` : ''}${esc(b.text.trim().replace(/\s+/g, ' ').slice(0, 220))}</span>
+        <span class="rs-carry-seg"><button class="on" data-rcact="bring">bring</button><button data-rcact="letgo">let go</button><button data-rcact="leave">leave</button></span></div>`).join('')}</div>`).join('')}</div>
+    <div class="rs-carry-f"><button class="btn sm primary" data-rc="apply" id="rcGo"></button><span class="grow"></span><button class="tbtn" data-rc="later">not now</button></div>`;
+  root.querySelector('#rsStage').parentNode.appendChild(d);
+  const count = () => { const v = Object.values(act), b = v.filter(x => x === 'bring').length, l = v.filter(x => x === 'letgo').length;
+    d.querySelector('#rcN').textContent = `${b} to bring · ${l} to let go · ${v.length - b - l} left`;
+    const go = d.querySelector('#rcGo'); go.textContent = b || l ? `Apply${b ? ' — bring ' + b + ' here' : ''}${l ? (b ? ', ' : ' — ') + 'let ' + l + ' go' : ''}` : 'Leave them all'; };
+  const paint = () => d.querySelectorAll('.rs-carry-r').forEach(r => r.querySelectorAll('[data-rcact]').forEach(b => b.classList.toggle('on', b.dataset.rcact === act[r.dataset.rcid])));
+  d.addEventListener('click', ev => {
+    const a = ev.target.closest('[data-rcact]'), all = ev.target.closest('[data-rcall]'), r = ev.target.closest('[data-rc]'), op = ev.target.closest('[data-rcopen]');
+    if(a){ const row = a.closest('.rs-carry-r'); act[row.dataset.rcid] = a.dataset.rcact; paint(); count(); return; }
+    if(all){ Object.keys(act).forEach(k => { act[k] = all.dataset.rcall; }); paint(); count(); return; }
+    if(op){ navigate('#/rescue/' + op.dataset.rcopen); return; }
+    if(!r) return;
+    if(r.dataset.rc === 'later'){ _rs.sheet.carrySeen = true; d.remove(); if(typeof rescueReadyShow === 'function'){ _rs.gateReadyDone = true; rescueReadyShow(root); } return; }
+    if(r.dataset.rc === 'apply'){ rescueCarryApply(root, pool, act); d.remove(); }
+  });
+  count();
+}
+/* the choices, made: one undo for the lot */
+function rescueCarryApply(root, pool, act){
+  const s = _rs.sheetNow ? _rs.sheetNow() : _rs.sheet, undo = [], made = [], now = new Date().toISOString();
+  let nb = 0, nl = 0;
+  pool.forEach(g => g.cards.forEach(old => {
+    const a = act[g.s.id + '|' + old.id]; if(a === 'bring'){
+      const b = rescueBoxNew(s, 40, 40, old.text); ['font', 'ink', 'horizon', 'kind', 'q', 'w', 'h'].forEach(k => { if(old[k] !== undefined) b[k] = JSON.parse(JSON.stringify(old[k])); });
+      b.refs = (old.refs || []).slice(); b.from = {sheet: g.s.id, box: old.id, at: now}; made.push(b);
+      const was = {fate: old.fate, exits: (old.exits || []).slice()}; const rec = {kind: 'carried', label: 'carried to a newer page', at: now, snippet: (old.text || '').slice(0, 140)};
+      old.fate = 'carried'; old.exits = (old.exits || []).concat(rec); old.carriedTo = s.id; g.s.updatedAt = now; undo.push(() => { old.fate = was.fate; old.exits = was.exits; delete old.carriedTo; }); nb++;
+    } else if(a === 'letgo'){
+      const was = {fate: old.fate, exits: (old.exits || []).slice()}; old.fate = 'letgo'; old.exits = (old.exits || []).concat({kind: 'letgo', label: 'let go', at: now, snippet: (old.text || '').slice(0, 140)}); g.s.updatedAt = now;
+      undo.push(() => { old.fate = was.fate; old.exits = was.exits; }); nl++;
+    }
+  }));
+  s.carrySeen = true; rescueTouch(s); saveNow();
+  rescuePaintAll(root);
+  if(made.length){ rescueCarryPlace(root, made); }
+  rescueCarryBtn(root);
+  if(made.length || nl) toast(`${nb ? 'Brought ' + nb + ' here' : ''}${nb && nl ? ', ' : ''}${nl ? 'let ' + nl + ' go' : ''}.`, 8000, {label: 'undo', fn: () => {
+    undo.forEach(f => f()); made.forEach(b => { const i = s.boxes.indexOf(b); if(i >= 0) s.boxes.splice(i, 1); }); rescueTouch(s); saveNow(); rescuePaintAll(root); rescueSizeCanvas(root); rescueCarryBtn(root); }});
+  else if(typeof rescueReadyShow === 'function'){ _rs.gateReadyDone = true; rescueReadyShow(root); }
+}
+/* brought cards are laid out in tidy rows below whatever is already there (each in its column with the horizons showing) */
+function rescueCarryPlace(root, made){
+  const canvas = rescueQ('#rsCanvas', root), stage = rescueQ('#rsStage', root); if(!canvas || !stage) return;
+  const ids = new Set(made.map(b => b.id)), all = [...canvas.querySelectorAll('.rs-box:not(.gone)')];
+  if(_rs.ui.bands){ rescueGather(root); return; }
+  const fresh = all.filter(el => ids.has(el.dataset.rsb)), old = all.filter(el => !ids.has(el.dataset.rsb));
+  const GAP = 14, PAD = 22, W = Math.max(360, stage.clientWidth - 24);
+  let y = old.length ? Math.max(...old.map(el => el.offsetTop + el.offsetHeight)) + 36 : PAD, x = PAD, rowH = 0;
+  fresh.forEach(el => { const w = el.offsetWidth, h = el.offsetHeight;
+    if(x > PAD && x + w > W - PAD){ x = PAD; y += rowH + GAP; rowH = 0; }
+    const b = rescueBoxOf(el.dataset.rsb); if(b){ b.x = Math.round(x); b.y = Math.round(y); } el.style.left = Math.round(x) + 'px'; el.style.top = Math.round(y) + 'px';
+    x += w + GAP; rowH = Math.max(rowH, h); });
+  rescueTouch(_rs.sheet); rescueSizeCanvas(root); rescueStrings(root);
+  stage.scrollTo({top: Math.max(0, y - 80), behavior: 'smooth'});
 }
 /* ============================================================
    SCORE STUDY — the model. The analysis layer of the Repertoire room.

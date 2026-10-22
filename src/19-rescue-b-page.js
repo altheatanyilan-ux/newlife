@@ -41,7 +41,8 @@ routes.rescue = function(root, params){
   _rs.timers.push(setInterval(() => rescueTickClock(root), 20000));
   rescueWhisperLater(root, 40000);
   const gated = typeof rescueGateInit === 'function' && rescueGateInit(root);
-  if(typeof rescueReadyShow === 'function'){ if(!gated){ _rs.gateReadyDone = true; rescueReadyShow(root); } rescueCareLater(root, (24 + Math.random() * 8) * 60000); }
+  if(typeof rescueReadyShow === 'function'){ if(!gated) rescueAfterGate(root); rescueCareLater(root, (24 + Math.random() * 8) * 60000); }
+  if(typeof rescueCarryBtn === 'function') rescueCarryBtn(root);
   const first = root.querySelector('.rs-hint'); if(first && !rescueLive(s).length) first.hidden = false;
   if(!rescueLive(s).length) { const c = root.querySelector('#rsCanvas'); if(c) c.focus(); }
 };
@@ -69,6 +70,7 @@ function rescuePageHTML(s){
       <button class="tbtn" data-rs="ready" title="small things the room can do for you before a hard hour">Ready the room</button>
       <button class="tbtn" data-rs="tonight" id="rsTonightBtn" hidden title="what the sleep and time records say about tonight, in plain words">Tonight, from my records</button>
       <button class="tbtn" data-rs="coach" title="a question to answer on the page">Ask me something</button>
+      <button class="tbtn" data-rs="carry" hidden title="cards from earlier pages that were never settled — bring them here, let them go, or leave them">From earlier pages <b class="rs-badge"></b></button>
       <button class="tbtn" data-rs="gather" title="bring the cards that are left close together, so they can be seen at once">Gather</button>
       <button class="tbtn" data-rs="bands" title="lay the page out by how soon each thing matters">Horizons</button>
       <button class="tbtn" data-rs="rail" title="what is on my plate, to bring onto the page">On my plate</button>
@@ -377,6 +379,7 @@ function rescueBindPage(root){
       rescueStrings(root); }
     else if(a === 'rail'){ const r = rescueQ('#rsRail', root); r.hidden = !r.hidden; S.settings.rescueRail = !r.hidden; save(); b.classList.toggle('on', !r.hidden); if(!r.hidden) rescueRailPaint(root); }
     else if(a === 'gather') rescueGather(root);
+    else if(a === 'carry') rescueCarryShow(root, true);
     else if(a === 'coach') rescueCoachOpen(root);
     else if(a === 'tonight') rescueTonightFrame(root);
     else if(a === 'ready') rescueReadyShow(root, true);
@@ -569,7 +572,7 @@ function rescueLand(root){
       <label class="pd-q"><span class="k">Something I am putting down</span>
         <textarea class="ta" id="rlDown" style="min-height:48px" placeholder="what can wait, or was never mine">${esc(s.landing && s.landing.putDown || '')}</textarea></label>
       <label class="pd-q"><span class="k">How I feel now, in a word (optional)</span><input class="inp" id="rlFeel" style="max-width:14rem"></label>
-      ${un.length ? `<p class="faint sm">${un.length} thing${un.length === 1 ? ' is' : 's are'} not sorted yet. They stay on the page, and the next morning you will be offered them once.</p>` : ''}
+      ${un.length ? `<p class="faint sm">${un.length} thing${un.length === 1 ? ' is' : 's are'} not sorted yet. They stay on the page, and the next page you open offers them to you again — to bring along, let go or leave.</p>` : ''}
       ${sleep ? `<p class="faint sm">Tonight’s question about sleeping is on this page — if it is still open, the first box above is a good place to settle it.</p>` : ''}
     </div>
     <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn ghost" id="rlNo">Not yet</button><button class="btn primary" id="rlGo">Land</button></div>`, 'narrow');

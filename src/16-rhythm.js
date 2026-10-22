@@ -1548,7 +1548,7 @@ function openWeeklyPlan(d = today()){
       <div class="row wp-stage-add" style="gap:6px;flex-wrap:wrap;margin-top:10px">
         ${rows.length ? '' : [1, 2, 3].map(n => `<button class="btn sm" data-wpsplit="${n}">${
           n === 1 ? 'one stage — the whole week' : `${n === 2 ? 'two' : 'three'} stages`}</button>`).join('')}
-        <button class="btn sm ghost" id="wpAddPeriod">＋ a stage</button></div>${threadsHTML()}`;
+        <button class="btn sm ghost" id="wpAddPeriod">＋ a stage</button><button class="btn sm ghost" id="wpFocusAhead" title="set one thing to focus on for any stretch of time, weeks or months ahead">plan further ahead →</button></div>${threadsHTML()}`;
   };
 
   const recapHTML = () => { const named = weekGoalsNamed(p);
@@ -1655,6 +1655,7 @@ function openWeeklyPlan(d = today()){
       const [i, how] = b.dataset.wpthset.split(':'), t = p.threads[+i]; if(!t) return;
       t.days = how === 'all' ? wkDays.slice() : how === 'wd' ? wkDays.slice(0, 5) : [];
       draw(); });
+    const fAhead = m.querySelector('#wpFocusAhead'); if(fAhead) fAhead.onclick = () => { read(); saveNow(); if(typeof fpPlanOpen === 'function') fpPlanOpen(); };
     const addPer = m.querySelector('#wpAddPeriod');
     if(addPer) addPer.onclick = () => { read();
       const last = p.periods.reduce((a, x) => x.to > a ? x.to : a, '');

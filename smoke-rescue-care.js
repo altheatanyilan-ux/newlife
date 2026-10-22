@@ -10,7 +10,7 @@ const yes = (n, c, g = '') => c ? console.log('  ok   ' + n) : (bad++, console.l
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + path.join(__dirname, 'index.html')); await p.waitForTimeout(1500);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(1800); }
-  await p.evaluate(() => { S.settings.rescueGate = 'off'; saveNow(); }); /* the gate has its own smoke */
+  await p.evaluate(() => { S.settings.rescueGate = 'off'; S.settings.rescueCarry = false; saveNow(); }); /* the gate has its own smoke */
   await p.evaluate(() => { document.querySelectorAll('.overlay,.toast').forEach(n => n.remove()); location.hash = '#/rescue'; }); await p.waitForTimeout(900);
 
   console.log('\n1. the pack');

@@ -12,7 +12,7 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   await p.goto(FILE); await p.waitForTimeout(1200);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
   const q = (f, a) => p.evaluate(f, a);
-  await q(() => { S.settings.rescueGate = 'off'; S.purpose = S.purpose || {}; delete S.purpose.wants; saveNow(); location.hash = '#/today/in'; }); await p.waitForTimeout(1200);
+  await q(() => { S.settings.rescueGate = 'off'; S.settings.rescueCarry = false; S.purpose = S.purpose || {}; delete S.purpose.wants; saveNow(); location.hash = '#/today/in'; }); await p.waitForTimeout(1200);
   yes('it lives on Today’s Looking inward page, with a way to write it', !!(await p.$('#t-wants')) && /write it/.test(await q(() => document.querySelector('[data-wnedit]').textContent)));
   await p.click('[data-wnedit]'); await p.waitForTimeout(300);
   yes('the editor opens in place, with an example to follow', !!(await p.$('#wnEditHost [data-wnexample]')));

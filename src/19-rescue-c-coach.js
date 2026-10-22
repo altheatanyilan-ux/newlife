@@ -363,12 +363,15 @@ function rescueSettingsHTML(){
   return `<div class="card rv" id="rescueCard"><h3>Overwhelm rescue space</h3>
     <div class="opt"><div><b>A line that leans in</b><div class="d">Once in a while a short, gentle line fades in at the edge of the page \u2014 chosen by what the page is about, from the starters and from the lines you have kept. Never twice running, never a command, gone after a few seconds.</div></div>
       <label class="toggle ${on ? 'on' : ''}" id="sRescueW"><span class="sw"></span></label></div>
+    <div class="opt"><div><b>Cards from earlier pages</b><div class="d">A new page opens with a short review of the cards from earlier pages that were never sent anywhere or let go — to bring along, let go or leave. Turn off to start every page blank (the header button still brings the review back).</div></div>
+      <label class="toggle ${(S.settings || {}).rescueCarry !== false ? 'on' : ''}" id="sRescueCarry"><span class="sw"></span></label></div>
     <div class="opt"><div><b>The question bank</b><div class="d">${rescueBankAll().length} questions (${RESCUE_STARTER.length} that ship with the house). Have a stronger AI write many more ahead of time from a prompt built from this house, and paste them in.</div></div>
       <button class="btn sm" id="sRescueBank">Open the bank</button></div>
     ${typeof rescueCareSettingsHTML === 'function' ? rescueCareSettingsHTML() : ''}</div>`;
 }
 function bindRescueSettings(root){
   const w = (root || document).querySelector('#sRescueW'); if(w) w.onclick = () => { S.settings.rescueWhispers = !(S.settings.rescueWhispers !== false); w.classList.toggle('on', S.settings.rescueWhispers !== false); saveNow(); };
+  const cy = (root || document).querySelector('#sRescueCarry'); if(cy) cy.onclick = () => { S.settings.rescueCarry = !(S.settings.rescueCarry !== false); cy.classList.toggle('on', S.settings.rescueCarry !== false); saveNow(); };
   const b = (root || document).querySelector('#sRescueBank'); if(b) b.onclick = () => rescueBankDialog();
   if(typeof bindRescueCareSettings === 'function') bindRescueCareSettings(root);
 }

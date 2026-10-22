@@ -12,7 +12,7 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   await p.goto(FILE); await p.waitForTimeout(1200);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
   const q = (f, a) => p.evaluate(f, a);
-  await q(() => { S.settings.rescueGate = 'off'; saveNow(); location.hash = '#/rescue/new'; }); await p.waitForTimeout(1500);
+  await q(() => { S.settings.rescueGate = 'off'; S.settings.rescueCarry = false; saveNow(); location.hash = '#/rescue/new'; }); await p.waitForTimeout(1500);
   if(await p.$('.rs-ready-x')) await p.click('.rs-ready-x');
   await q(() => { const spots = [[60, 80], [820, 60], [300, 520], [900, 480], [100, 900], [700, 1000]];
     spots.forEach(([x, y], i) => { const n = _rs.newBox(x, y); n.ta.value = 'thought number ' + (i + 1) + ' with a few more words in it'; n.b.text = n.ta.value; rescueFit(n.ta); n.el.style.left = x + 'px'; n.el.style.top = y + 'px'; n.b.x = x; n.b.y = y; });

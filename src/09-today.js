@@ -536,6 +536,7 @@ routes.today = function(root, params = []){
   root.innerHTML = `<div class="page today-page">
 
     ${todayMilestonesHTML()}
+    ${typeof fpTodayHTML === 'function' ? fpTodayHTML() : ''}
     ${typeof wantsTodayHTML === 'function' ? wantsTodayHTML() : ''}
 
     <!-- header -->
@@ -912,6 +913,7 @@ routes.today = function(root, params = []){
   /* morning theatre */
   bindTheatre(root);
   if(typeof bindWantsSection === 'function') bindWantsSection(root);
+  if(typeof bindFpToday === 'function') bindFpToday(root);
   /* and the stillness practice under it — without this the section drew
      perfectly and every button in it was dead */
   if(typeof bindStillness === 'function') bindStillness(root);

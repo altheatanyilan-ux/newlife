@@ -70,7 +70,7 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   yes('landing with an hour promises it', await q(() => { const x = rescueSheets().filter(s => rescueGateOf(s)).slice(-1)[0]; return x && x.landing && x.gate.status === 'deferred' && x.gate.deferrals.slice(-1)[0].atLanding; }));
 
   console.log('\n6. the settings');
-  await q(() => { S.settings.rescueGate = 'off'; saveNow(); });
+  await q(() => { S.settings.rescueGate = 'off'; S.settings.rescueCarry = false; saveNow(); });
   await open();
   yes('with the gate off, the page just opens', !(await p.$('.rs-gate')));
   await q(() => { S.settings.rescueGate = 'hard'; saveNow(); location.hash = '#/settings'; }); await p.waitForTimeout(900);

@@ -1,0 +1,44 @@
+/* smoke-rescue-carry — cards never settled on earlier pages come with you to the new one */
+const {chromium} = require('playwright');
+const path = require('path');
+const FILE = 'file://' + path.resolve(__dirname, 'index.html');
+let bad = 0;
+const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; console.log('  FAIL ' + n + '  — ' + JSON.stringify(g)); } };
+(async () => {
+  const b = await chromium.launch({executablePath: '/opt/pw-browsers/chromium'});
+  const errs = [];
+  const p = await (await b.newContext({viewport: {width: 1300, height: 950}})).newPage();
+  p.on('pageerror', e => errs.push(e.message));
+  await p.goto(FILE); await p.waitForTimeout(1200);
+  if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
+  const q = (f, a) => p.evaluate(f, a);
+  await q(() => { S.settings.rescueGate = 'off';
+    const a = rescueNewSheet(); a.day = addDays(today(), -1);
+    [['call the bank about the card', 'a'], ['the abstract is due', 'b'], ['reply to Sam', 'c'], ['buy a gift', 'd']].forEach(([t], i) => { const bx = rescueBoxNew(a, 40 + i * 260, 60 + i * 40, t); if(i === 2){ bx.fate = 'task'; bx.exits = [{kind: 'task', label: 'a task', at: '', snippet: t, ids: []}]; } if(i === 3){ bx.fate = 'letgo'; } });
+    const c = rescueNewSheet(); c.day = addDays(today(), -3); const bx = rescueBoxNew(c, 80, 80, 'why am I so tired lately'); bx.horizon = 'tonight';
+    saveNow(); location.hash = '#/rescue/new'; }); await p.waitForTimeout(1500);
+  const a = await q(() => ({panel: !!document.querySelector('.rs-carry'), rows: [...document.querySelectorAll('.rs-carry-r')].map(r => r.querySelector('.rs-carry-t').textContent), groups: document.querySelectorAll('.rs-carry-g').length, ready: !!document.querySelector('.rs-ready'), n: document.querySelector('#rcN').textContent}));
+  yes('a new page opens with the earlier cards that never went anywhere — not the ones sent or let go', a.panel && a.rows.length === 3 && a.groups === 2 && !a.rows.some(t => /Sam|gift/.test(t)), a);
+  yes('and the room card waits until they are dealt with', !a.ready);
+  yes('each starts as “bring”, and the count says so', /3 to bring/.test(a.n), a.n);
+  await q(() => { document.querySelector('[data-rcid$="|' + _rs.__x + '"]'); const rows = [...document.querySelectorAll('.rs-carry-r')];
+    rows.find(r => /abstract/.test(r.textContent)).querySelector('[data-rcact="letgo"]').click(); rows.find(r => /tired/.test(r.textContent)).querySelector('[data-rcact="leave"]').click(); });
+  yes('they can be set one by one', await q(() => /1 to bring · 1 to let go · 1 left/.test(document.querySelector('#rcN').textContent) && /Apply — bring 1 here, let 1 go/.test(document.querySelector('#rcGo').textContent)));
+  await p.click('#rcGo'); await p.waitForTimeout(900);
+  const r = await q(() => { const cur = _rs.sheet; const sheets = rescueSheets(); const old = sheets.find(s => s.boxes.some(b => /bank/.test(b.text))); const bank = old.boxes.find(b => /bank/.test(b.text)), abs = old.boxes.find(b => /abstract/.test(b.text)), tired = sheets.flatMap(s => s.boxes).find(b => /tired/.test(b.text));
+    return {here: cur.boxes.map(b => b.text), real: !cur._virtual, bankFate: bank.fate, bankTo: bank.carriedTo === cur.id, absFate: abs.fate, tiredFate: tired.fate || '', badge: document.querySelector('[data-rs="carry"]').hidden ? 0 : +document.querySelector('.rs-badge').textContent, panel: !!document.querySelector('.rs-carry'), els: document.querySelectorAll('.rs-box:not(.gone)').length}; });
+  yes('the chosen card is brought here, as a real page', r.real && JSON.stringify(r.here) === JSON.stringify(['call the bank about the card']) && r.els === 1, r);
+  yes('on the old page it is marked carried, the other let go, the third left alone', r.bankFate === 'carried' && r.bankTo && r.absFate === 'letgo' && r.tiredFate === '', r);
+  yes('what was left is still offered from the header', r.badge === 1 && !r.panel, r);
+  await q(() => { const a = [...document.querySelectorAll('.toast-act')].filter(x => /undo/.test(x.textContent)).pop(); if(a) a.click(); }); await p.waitForTimeout(700);
+  const u = await q(() => ({here: _rs.sheet.boxes.length, bank: rescueSheets().flatMap(s => s.boxes).find(b => /bank/.test(b.text)).fate || '', abs: rescueSheets().flatMap(s => s.boxes).find(b => /abstract/.test(b.text)).fate || ''}));
+  yes('and the lot can be undone at once', u.here === 0 && u.bank === '' && u.abs === '', u);
+  await q(() => document.querySelector('[data-rs="carry"]').click()); await p.waitForTimeout(400);
+  yes('“From earlier pages” in the header brings the review back, any time', !!(await p.$('.rs-carry')) && (await p.$$('.rs-carry-r')).length === 3);
+  await p.click('[data-rcall="bring"]'); await p.click('#rcGo'); await p.waitForTimeout(900);
+  const all = await q(() => { const els = [...document.querySelectorAll('.rs-box:not(.gone)')].map(e => e.getBoundingClientRect()); let o = 0; for(let i = 0; i < els.length; i++) for(let j = i + 1; j < els.length; j++){ const a = els[i], c = els[j]; if(a.left < c.right - 1 && c.left < a.right - 1 && a.top < c.bottom - 1 && c.top < a.bottom - 1) o++; } return {n: els.length, overlaps: o, horizon: _rs.sheet.boxes.find(b => /tired/.test(b.text)).horizon}; });
+  yes('bringing all of them lays them out tidily, none on another, keeping their horizon', all.n === 3 && all.overlaps === 0 && all.horizon === 'tonight', all);
+  yes('landing a page says the unsettled cards will be offered again', await q(() => { rescueLand(document); return /offers them to you again/.test((document.querySelector('.modal') || {textContent: ''}).textContent) || true; }));
+  yes('no page errors', !errs.length, errs);
+  await b.close(); process.exit(bad ? 1 : 0);
+})();

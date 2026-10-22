@@ -12,7 +12,7 @@ const yes = (n, c, g='') => { if(c) console.log('  ok   ' + n); else { bad++; co
   await p.goto(FILE); await p.waitForTimeout(1200);
   if(await p.$('#frGo')){ await p.click('#frGo'); await p.waitForTimeout(2200); }
   const q = (f, a) => p.evaluate(f, a);
-  await q(() => { S.settings.rescueGate = 'off'; saveNow(); location.hash = '#/journals/proof'; }); await p.waitForTimeout(1000);
+  await q(() => { S.settings.rescueGate = 'off'; S.settings.rescueCarry = false; saveNow(); location.hash = '#/journals/proof'; }); await p.waitForTimeout(1000);
   yes('Proof is a journal in the sidebar', !!(await p.$('.jnav [data-go="#/journals/proof"]')) && /Proof/.test(await q(() => document.querySelector('.jnav .active').textContent)));
   yes('with an invitation while it is empty', /Nothing yet/.test(await q(() => document.querySelector('.pf-banner').textContent)));
   await q(() => { openEntryModal({type: 'proof'}); }); await p.waitForTimeout(700);

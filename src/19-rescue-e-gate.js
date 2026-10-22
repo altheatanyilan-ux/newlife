@@ -153,7 +153,7 @@ function rescueGateClose(root){
     save();
   }
   rescueGateShut(root); rescueGateTether(root);
-  if(typeof rescueReadyShow === 'function' && !_rs.gateReadyDone){ _rs.gateReadyDone = true; rescueReadyShow(root); }
+  if(!_rs.gateReadyDone) rescueAfterGate(root);
   const c = root.querySelector('#rsCanvas'); if(c && !(g && g.status === 'sprint')) c.focus();
 }
 
