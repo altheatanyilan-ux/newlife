@@ -1218,6 +1218,20 @@ The house is designed so that you record something **once**, in the place it nat
 - **Time things with the one clock** rather than keeping separate notes of how long you spent.
 - **Use Additional** for anything a record has no box for, rather than bending another field.
 
+## The record keeper — holding yourself to using the house
+
+A house you do not write in is a house you are not using. The record keeper (Settings → *The record keeper*; off until you choose, and it offers itself once) asks for the few things that make the rest true, and holds you to them.
+
+**What is owed.** *When you woke* (by 10:00), *what today is for* — three things and how it starts (by 12:00), *when you slept last night*, *how yesterday ended* in a line (by 12:00), *one line about today* (by 20:00, kept as a Reflection), and, the morning after a late night, *last night* (below). Every time is a dial in Settings. It only asks about yesterday if you were in the house yesterday, and never for days before you turned it on.
+
+**Gentle** puts a strip at the top of every page — *on the record · 2 owed* — that opens the forms. **Strict** also closes the rooms you choose (Settings lists them: the making rooms, Identity, Tree, Studio, Study by default) while anything is owed: the door shows a small lock and opening it shows the forms instead of the room. Write the record there and the room opens. Today, the Lived Record, the rescue, Settings, the ledger and the export are never closed.
+
+**Borrowing.** A closed room can be borrowed for twenty minutes by writing, in a sentence of your own (twenty characters at least, after a short wait), why it cannot wait. You get three a week (a dial). Each borrow is kept with what you said and shows in **the ledger**. Easing the mode down while something is owed also asks why, and is kept.
+
+**The night watch.** After the hour the day ends (your sleep time, 23:00 if never set) — whenever the house is open and visible — it asks *what are you doing?* Going to bed records the bedtime, asks for tomorrow's first move and what is allowed not to get done, then darkens the screen (coming back to it costs a sentence). *Something that has to be done tonight* asks what, and what actually goes wrong if it waits until morning, time-boxes it, and comes back. *Nothing in particular*, and every return after a time-box or a "still here", is a harder question — *why are you still on the laptop? what are you avoiding? who do you become tomorrow if you stay up?* — answered in writing before you can say *still here* (and the gap shrinks: 40, 30, 20, 15, 10 minutes). In strict mode, after midnight the rooms close whatever else is true.
+
+**The morning after.** If you were on 30 or more minutes past the hour, or said something had to be done, the next morning owes a record: what you were doing, *did it absolutely need to be done that night?* (yes / part / no), and what changes tonight. The ledger (`#/accountability`) shows the day's records, four marks a day for fourteen days (woke · planned · closed · slept), each night with what you said and what you answered, and the borrows.
+
 ## 26. Rhythms: a day, a week, a month, a year
 
 A suggestion, not a rule — take what helps.

@@ -123,6 +123,7 @@ routes.settings = function(root){
       <div class="opt"><div><b>Clear all data</b><div class="d">Erases everything in this browser and restores the placeholder content. Export first.</div></div><button class="btn danger" id="sClear">Clear all data</button></div>
     </div>
     ${typeof fpSettingsHTML === 'function' ? fpSettingsHTML() : ''}
+    ${typeof rkSettingsHTML === 'function' ? rkSettingsHTML() : ''}
     ${typeof bubblesSettingsHTML === 'function' ? bubblesSettingsHTML() : ''}
     ${typeof rescueSettingsHTML === 'function' ? rescueSettingsHTML() : ''}
     ${typeof rescueGateSettingsHTML === 'function' ? rescueGateSettingsHTML() : ''}
@@ -267,6 +268,7 @@ routes.settings = function(root){
   if(typeof bindRescueSettings === 'function') bindRescueSettings(document);
   if(typeof bindBubblesSettings === 'function') bindBubblesSettings(document);
   if(typeof bindFpSettings === 'function') bindFpSettings(document);
+  if(typeof bindRkSettings === 'function') bindRkSettings(document);
   if(typeof bindRescueGateSettings === 'function') bindRescueGateSettings(document);
   const lb = daysSinceBackup(); $('#lastBackupLine').textContent = lb === null ? 'No backup exported yet from this browser.' : `Last backup: ${lb === 0 ? 'today' : lb + ' days ago'}.`;
   $('#sExport').onclick = () => exportToJSON().then(() => { toast('Backup exported.'); rerender(); });

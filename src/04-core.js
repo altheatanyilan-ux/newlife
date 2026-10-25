@@ -482,7 +482,7 @@ function renderRoute(){
      which meant everything below the fold had finished animating before it
      was ever seen. They wait for the scroll now; tweenAll stays for the
      panels and modals, which have no scroll to wait for. */
-  try { decoratePageHead(main); mountContextAdd(main); if(typeof focusStripMount === 'function') focusStripMount(main); reveal(main); ScrollFX.scan(main);
+  try { decoratePageHead(main); mountContextAdd(main); if(typeof focusStripMount === 'function') focusStripMount(main); if(typeof rkMount === 'function') rkMount(main); reveal(main); ScrollFX.scan(main);
         Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main); backupBanner(); updateBackButton();
         if(typeof paintPfExit === 'function' && pageFocusOn()) paintPfExit();
         if(typeof paintRemindFloat === 'function') paintRemindFloat(); }
@@ -520,6 +520,7 @@ function holdScroll(y){
    drawn as the desk instead — the stopwatch, today's tasks and the Focus
    section — which is the whole of what doing the plan needs (19-page-focus). */
 function pageRouteFn(name){
+  if(typeof rkGate === 'function'){ const g = rkGate(name); if(g) return g; }
   if(typeof focusDeskOn === 'function' && focusDeskOn(name)) return renderFocusDesk;
   return routes[name] || routes.today;
 }
@@ -529,7 +530,7 @@ function rerender(){
   main.innerHTML=''; PageEntryConfig.clear();
   try { pageRouteFn(name)(main, params); }
   catch(err){ console.error('rerender failed', err); routeFailure(err); holdScroll(y); return; }
-  try { decoratePageHead(main); mountContextAdd(main); if(typeof focusStripMount === 'function') focusStripMount(main);
+  try { decoratePageHead(main); mountContextAdd(main); if(typeof focusStripMount === 'function') focusStripMount(main); if(typeof rkMount === 'function') rkMount(main);
     if(typeof attachDictationIn === 'function') attachDictationIn(main);
     $$('.rv', main).forEach(n=>n.classList.add('in')); tweenAll(main); ScrollFX.scan(main);
     Kinetic.scan(main); Kinetic.flourish(main); Kinetic.typed(main);
