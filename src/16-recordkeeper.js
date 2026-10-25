@@ -64,6 +64,7 @@ function rkState(){
   if(!a.nights || typeof a.nights !== 'object') a.nights = {};
   if(!Array.isArray(a.borrowLog)) a.borrowLog = [];
   if(!a.traces || typeof a.traces !== 'object') a.traces = {};
+  if(!a.presence || typeof a.presence !== 'object') a.presence = {};
   if(a.pass === undefined) a.pass = 0;
   if(a.offered === undefined) a.offered = '';
   return a;
@@ -216,10 +217,16 @@ function rkQuick(r, box, after){
       if(v.length < 6){ toast('A line — a few words at least.'); return; }
       const rv = dayReview(r.day); rv.note = rv.note ? rv.note + ' · ' + v : v; rv.closedAt = rv.closedAt || nowHM(); rv.closedLate = true; done(); };
   } else if(r.id === 'trace'){
-    box.innerHTML = head + `<textarea class="inp" rows="2" data-rk="t" placeholder="What I did, or noticed, so far today"></textarea><div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn primary" data-rk="ok">Write it</button></div>`;
+    const moods = typeof MOOD_TAGS !== 'undefined' ? MOOD_TAGS : [];
+    box.innerHTML = head + `<textarea class="inp" rows="3" data-rk="t" placeholder="What I did, how it went, what I felt — in my own words"></textarea>
+      <div class="rk-radio" style="margin:8px 0"><span class="muted">How diligent was I?</span>${[1, 2, 3, 4, 5].map(n => `<label><input type="radio" name="rkDil" value="${n}"> ${n}</label>`).join('')}<span class="faint" style="font-size:.76rem">1 drifted · 5 did what I said</span></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><select class="sel" data-rk="mood" style="width:auto"><option value="">mostly feeling…</option>${moods.map(m => `<option>${esc(m)}</option>`).join('')}</select>
+        <input class="inp" data-rk="avoid" placeholder="what I put off or avoided (optional)" style="flex:1;min-width:12rem"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="btn primary" data-rk="ok">Write it</button></div>`;
     box.querySelector('[data-rk=ok]').onclick = () => { const v = box.querySelector('[data-rk=t]').value.trim();
       if(v.length < 8){ toast('A sentence or two.'); return; }
-      S.entries.push({id: uid(), type: 'reflection', title: 'Day so far', body: v, occurredAt: r.day, createdAt: new Date().toISOString(), media: [], links: {stages: [], substages: [], threads: [], values: [], visions: [], skills: [], projects: [], people: []}, people: [], places: [], emotions: [], tags: ['record-keeper'], confidence: '', extra: {}});
+      const dil = +((box.querySelector('input[name=rkDil]:checked') || {}).value || 0), mood = box.querySelector('[data-rk=mood]').value, avoid = box.querySelector('[data-rk=avoid]').value.trim();
+      S.entries.push({id: uid(), type: 'reflection', title: 'Day so far', body: v, occurredAt: r.day, createdAt: new Date().toISOString(), media: [], links: {stages: [], substages: [], threads: [], values: [], visions: [], skills: [], projects: [], people: []}, people: [], places: [], emotions: mood ? [mood] : [], tags: ['record-keeper', 'daily-statement'], confidence: '', extra: {diligence: dil || null, avoided: avoid, statement: true}});
       a.traces[r.day] = true; done(); };
   } else if(r.id === 'late'){
     const n = rkNight(r.day) || {}, over = rkOver(n.last || '', rkCutoff()), said = (n.need || []).map(x => x.what).join('; ');
@@ -234,6 +241,11 @@ function rkQuick(r, box, after){
       if(what.length < 5 || fix.length < 5 || !need){ toast('All three — what, whether it had to be, and what changes.'); return; }
       const nn = rkNight(r.day, true); nn.debrief = {at: new Date().toISOString(), what, need, fix}; done(); };
   }
+}
+/* the day's line, any time — the same form the record asks for, without waiting to be owed */
+function rkSayToday(after){
+  const m = openModal('<h2>Say something about today</h2><div id="rkSay"></div>', 'narrow');
+  rkQuick({id: 'trace', label: 'Today, in my own words', day: today(), due: rkState().traceBy, hint: 'What you did, how diligent you were, what you felt, what you avoided. It is kept as a Reflection, and goes in the analysis export.'}, m.querySelector('#rkSay'), () => { m.remove(); sound('success'); toast('Written.'); if(after) after(); });
 }
 function rkOwedModal(){
   const owed = rkOwed(); if(!owed.length){ toast('Nothing owed. The record is up to date.'); return; }
@@ -372,6 +384,7 @@ routes.accountability = function(root){
   const rules = rkRules();
   root.innerHTML = `<div class="page-head"><div><span class="mono faint">the record keeper</span><h1 class="serif">The ledger</h1>
       <p class="muted" style="margin:0;max-width:62ch">Mode: <b>${esc(a.mode)}</b>${a.mode === 'off' ? '' : ` · the day ends at ${esc(rkCutoffHM())} · ${rkBorrowsLeft()} borrow${rkBorrowsLeft() === 1 ? '' : 's'} left this week`}. <a href="#/settings">Change it in Settings.</a></p></div></div>
+    <div class="row" style="gap:8px;margin:0 0 12px;flex-wrap:wrap"><button class="btn primary" id="rkSay">Say something about today</button><button class="btn" id="rkAx">Download my record for an AI…</button></div>
     <div class="card rv"><h3>Today</h3>${rules.filter(r => r.id !== 'late').map(r => { const st = r.open ? 'owed' : (r.id === 'wake' ? dayWakeHM(r.day) : r.id === 'bed' ? dayBedHM(r.day) : r.id === 'plan' ? rkPlanned(r.day) : r.id === 'close' ? ((S.reviewLog || {})[r.day] || {}).closedAt : rkTraced(r.day)) ? 'done' : 'not due';
       return `<div class="rk-row ${st.replace(' ', '')}"><span>${esc(r.label)}</span><span class="mono">${st === 'done' ? '✓' : st === 'owed' ? 'owed' : 'by ' + esc(r.due)}</span></div>`; }).join('')}
       <div style="margin-top:10px"><button class="btn sm" id="rkWrite">${rkOwed().length ? 'Write what’s owed' : 'All on the record'}</button></div></div>
@@ -387,12 +400,15 @@ routes.accountability = function(root){
       : '<p class="muted" style="margin:0">No nights on the record yet. The watch starts after ' + esc(rkCutoffHM()) + '.</p>'}</div>
     <div class="card rv"><h3>Borrowed time</h3>${a.borrowLog.length ? a.borrowLog.slice().reverse().slice(0, 12).map(b => `<div class="rk-night"><span class="mono faint">${esc(b.at.slice(0, 16).replace('T', ' '))} · ${b.mins}m</span><div style="font-size:.88rem">${esc(b.reason)}</div></div>`).join('') : '<p class="muted" style="margin:0">None. ' + (used.length ? '' : 'A clean ledger.') + '</p>'}</div>`;
   const w = root.querySelector('#rkWrite'); if(w) w.onclick = () => rkOwedModal();
+  root.querySelector('#rkSay').onclick = () => rkSayToday(() => rerender());
+  root.querySelector('#rkAx').onclick = () => analysisOpen();
 };
 
 /* ---------- settings ---------- */
 const rkSettingsHTML = () => { const a = rkState();
   return `<div class="card rv" id="rkCard"><h3>The record keeper — holding myself to it</h3>
     <p class="muted" style="font-size:.85rem;margin:0 0 6px">If the day’s few records aren’t written, the rooms for making things close (strict) or a strip says so (gentle). After the hour the day ends it asks what you’re doing, and whether it had to be done tonight. <a href="#/accountability">The ledger</a></p>
+    <div class="opt"><div><b>Say something about today · download my record</b><div class="d">The day’s line (how diligent, what I felt, what I avoided), and one file — the days, sleep, when I was in the house, what I wrote, what I never touched — to give an AI.</div></div><span class="row" style="gap:6px"><button class="btn sm" id="sRkSay">Say it</button><button class="btn sm primary" id="sRkAx">Download…</button></span></div>
     <div class="opt"><div><b>How hard it holds</b><div class="d">Off · gentle: reminders and the night questions · strict: the chosen rooms close while anything is owed, and after midnight.</div></div>
       <select class="sel" style="width:auto" id="sRkMode">${[['off', 'off'], ['gentle', 'gentle'], ['strict', 'strict']].map(([v, t]) => `<option value="${v}" ${a.mode === v ? 'selected' : ''}>${t}</option>`).join('')}</select></div>
     <div class="opt"><div><b>The day ends at</b><div class="d">The night watch begins here. Empty uses your sleep time (${esc((S.settings || {}).sleepTime || '23:00')}).</div></div><input class="inp" type="time" id="sRkCut" value="${esc(a.cutoff)}" style="width:110px"></div>
@@ -419,6 +435,8 @@ function bindRkSettings(root){
       a.borrowLog.push({at: new Date().toISOString(), week: weekStart(today()), reason: `eased ${a.mode} → ${to}: ${v}`, mins: 0, owed: rkOwed().map(x => x.id)}); m.remove(); apply(); };
   };
   [['#sRkCut', 'cutoff'], ['#sRkWake', 'wakeBy'], ['#sRkPlan', 'planBy'], ['#sRkTrace', 'traceBy']].forEach(([sel, k]) => { const i = r.querySelector(sel); if(i) i.onchange = () => { a[k] = i.value || (k === 'cutoff' ? '' : a[k]); saveNow(); }; });
+  const sy = r.querySelector('#sRkSay'); if(sy) sy.onclick = () => rkSayToday();
+  const ax = r.querySelector('#sRkAx'); if(ax) ax.onclick = () => analysisOpen();
   const q = r.querySelector('#sRkQ'); if(q) q.onclick = () => { a.questions = !a.questions; q.classList.toggle('on', a.questions); saveNow(); };
   const b = r.querySelector('#sRkBor'); if(b) b.onchange = () => { a.borrows = +b.value; saveNow(); };
   r.querySelectorAll('[data-rkroom]').forEach(c => c.onchange = () => { const k = c.dataset.rkroom; a.rooms = a.rooms.filter(x => x !== k); if(c.checked) a.rooms.push(k); saveNow(); });
