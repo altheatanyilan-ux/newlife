@@ -91,10 +91,10 @@ const yes = (n,c,g='') => c ? ok(n) : no(n,g);
   const shown = await p.evaluate(() => ({doc: document.getElementById('sxCard').srcdoc, btns: [...document.querySelectorAll('.sx-ans')].map(b => b.querySelector('.nm').textContent),
     ivls: [...document.querySelectorAll('.sx-ans .ivl')].map(x => x.textContent)}));
   yes('Space shows the answer', /back \d/.test(shown.doc));
-  is('  four buttons', shown.btns, ['Again', 'Hard', 'Good', 'Easy']);
+  is('  three buttons, named for how it went', shown.btns, ['Didn’t get it', 'Barely', 'Got it']);
   yes('  each with the interval it would give', shown.ivls.every(Boolean), JSON.stringify(shown.ivls));
   await p.keyboard.press('Space'); await p.keyboard.press('Space'); await p.waitForTimeout(500);
-  is('  Space again, and again, does nothing more: it only ever shows the answer (no rating, no undo toast)', await p.evaluate(() => [SD.revlog.length, !!document.querySelector('.sx-undo'), document.querySelectorAll('.sx-ans').length]), [before, false, 4]);
+  is('  Space again, and again, does nothing more: it only ever shows the answer (no rating, no undo toast)', await p.evaluate(() => [SD.revlog.length, !!document.querySelector('.sx-undo'), document.querySelectorAll('.sx-ans').length]), [before, false, 3]);
   await p.keyboard.press('3'); await p.waitForTimeout(700);
   const after = await p.evaluate(() => ({n: SD.revlog.length, last: SD.revlog[SD.revlog.length - 1]}));
   is('Good (3) writes one review', after.n - before, 1);

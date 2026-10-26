@@ -9,7 +9,8 @@
 
    Keys (all remappable, see the shortcuts sheet with ?):
      Space / Enter  show the answer, then Good
-     1 2 3 4        Again, Hard, Good, Easy
+     1 2 3          Didn't get it, Barely, Got it (three buttons, the default)
+     1 2 3 4        Again, Hard, Good, Easy (four buttons, from the … menu)
      Ctrl/⌘+Z       undo
      Ctrl/⌘+1…7     flag          *   mark the note
      -              bury          @ or !  suspend
@@ -18,6 +19,10 @@
    Hard — the card follows the finger and the answer fades in as you go.
    ============================================================ */
 
+/* Three answers, not four, and named for what happened rather than for what to tell the scheduler. Choosing among Again / Hard / Good / Easy on every card is a decision about the memory model; "how did that go?" is a question you can answer without thinking. 1 is Again, 2 is Hard, 3 is Good — Easy is folded into Good (the scheduler still decides how long). Four buttons come back from the card's … menu. */
+const sdThree = () => !sdSettings().fourButtons;
+const SD_THREE = {1: ['Didn’t get it', 'see it again soon'], 2: ['Barely', 'show me a bit later'], 3: ['Got it', 'no need to see it for a while']};
+const sdRateName = r => sdThree() ? (SD_THREE[r > 3 ? 3 : r] || SD_THREE[3])[0] : ['', 'Again', 'Hard', 'Good', 'Easy'][r];
 function sdUi(){ return S._sd = S._sd || {view: 'decks', deckId: null, cardId: null, shown: false, typed: '', started: 0, session: null, token: 0}; }
 
 routes.study = async function(root, params){
@@ -276,10 +281,10 @@ function sdPaintBar(root, c){
   const ui = sdUi(), bar = root.querySelector('#sxBar'); if(!bar) return;
   if(!ui.shown){ bar.innerHTML = `<button class="btn sx-show" id="sxShow">Show answer <kbd>Space</kbd></button>`; bar.querySelector('#sxShow').onclick = () => sdReveal(root); return; }
   const prev = sdPreviewAll(c);
-  const names = [null, 'Again', 'Hard', 'Good', 'Easy'];
-  bar.innerHTML = [1, 2, 3, 4].map(r => { const nx = prev[r]; const when = nx.queue === 1 ? new Date(nx.due * 1000) : sdDayToDate(nx.due);
+  const names = [null, 'Again', 'Hard', 'Good', 'Easy'], three = sdThree();
+  bar.innerHTML = (three ? [1, 2, 3] : [1, 2, 3, 4]).map(r => { const nx = prev[r]; const when = nx.queue === 1 ? new Date(nx.due * 1000) : sdDayToDate(nx.due);
     return `<button class="sx-ans r${r}" data-sxans="${r}" title="${when.toLocaleString(undefined, {dateStyle: 'medium', timeStyle: nx.queue === 1 ? 'short' : undefined})}">
-      <span class="ivl">${sdIvlText(c, nx)}</span><span class="nm">${names[r]}</span><kbd>${r}</kbd></button>`; }).join('');
+      <span class="ivl">${sdIvlText(c, nx)}</span><span class="nm">${three ? SD_THREE[r][0] : names[r]}</span>${three ? `<span class="sub">${SD_THREE[r][1]}</span>` : ''}<kbd>${r}</kbd></button>`; }).join('');
   bar.querySelectorAll('[data-sxans]').forEach(b => b.onclick = () => sdRate(root, +b.dataset.sxans));
 }
 function sdReveal(root){
@@ -289,6 +294,7 @@ function sdReveal(root){
 }
 async function sdRate(root, rating){
   const ui = sdUi(), c = SD.cards.get(ui.cardId); if(!c || !ui.shown || ui.rating) return;
+  if(sdThree() && rating === 4) rating = 3;
   ui.rating = true;
   const btn = root.querySelector(`[data-sxans="${rating}"]`); if(btn) btn.classList.add('pressed');
   const ms = Date.now() - ui.started;
@@ -301,8 +307,7 @@ async function sdRate(root, rating){
     await new Promise(r => setTimeout(r, 220));
   }
   if(sdSettings().sounds) sdTick(rating);
-  const labels = {1: 'Again', 2: 'Hard', 3: 'Good', 4: 'Easy'};
-  sdUndoToast(`Rated ${labels[rating]}`, async () => { await sdUndo(); sess.answered = Math.max(0, sess.answered - 1); sdShowNext(root); });
+  sdUndoToast(sdThree() ? `${sdRateName(rating)} — ${SD_THREE[rating][1]}` : `Rated ${sdRateName(rating)}`, async () => { await sdUndo(); sess.answered = Math.max(0, sess.answered - 1); sdShowNext(root); });
   ui.rating = false;
   /* the timebox: a gentle word every N minutes */
   const tb = sdSettings().timeboxMin;
@@ -385,7 +390,7 @@ function sdBindReview(root){
   wrap.addEventListener('touchmove', e => { if(!dragging) return; const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
     wrap.style.transform = `translate(${dx * 0.6}px, ${dy * 0.4}px) rotate(${dx / 40}deg)`;
     const dist = Math.hypot(dx, dy), r = sw[dirOf(dx, dy)];
-    label.textContent = ui.shown && dist > 40 ? ['', 'Again', 'Hard', 'Good', 'Easy'][r] : ''; label.style.opacity = Math.min(1, dist / 120); }, {passive: true});
+    label.textContent = ui.shown && dist > 40 ? sdRateName(r) : ''; label.style.opacity = Math.min(1, dist / 120); }, {passive: true});
   wrap.addEventListener('touchend', e => { if(!dragging) return; dragging = false;
     const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy, dist = Math.hypot(dx, dy);
     wrap.style.transform = ''; label.textContent = '';
@@ -394,7 +399,8 @@ function sdBindReview(root){
   root.querySelector('#sxMore').onclick = e => sdMenu(e.currentTarget, [
     ['Edit (E)', () => act('edit')], ['Card info (I)', () => act('info')], ['Flag…', () => act('flag1')], ['Mark note (*)', () => act('mark')],
     ['Bury (-)', () => act('bury')], ['Suspend (@)', () => act('suspend')], ['Replay audio (R)', () => act('replay')],
-    ['Scratchpad (W)', () => act('scratch')], ['Focus (F)', () => act('focus')], ['Undo (Ctrl+Z)', () => act('undo')]]);
+    ['Scratchpad (W)', () => act('scratch')], ['Focus (F)', () => act('focus')], ['Undo (Ctrl+Z)', () => act('undo')],
+    [sdThree() ? 'Use four buttons (Again · Hard · Good · Easy)' : 'Use three buttons (didn’t get it · barely · got it)', () => { const st = sdSettings(); st.fourButtons = !st.fourButtons; sdTouch('misc', st); const c = SD.cards.get(sdUi().cardId); if(c && sdUi().shown) sdPaintBar(root, c); toast(st.fourButtons ? 'Four buttons.' : 'Three buttons.'); }]]);
   sdGamepad(root);
 }
 function sdHandleKey(root, k){

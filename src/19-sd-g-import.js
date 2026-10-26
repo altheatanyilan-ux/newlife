@@ -443,48 +443,93 @@ async function sdImportJson(text){
   await sdFlush(); return n;
 }
 
-/* ---------- the import page ---------- */
+/* ---------- the import page ----------
+   There is no Import button. Dropping files — on this page, on the deck list, or
+   anywhere in Study — or choosing them, imports them at once, one after another,
+   with the settings below (kept between drops). A spreadsheet (.csv/.tsv/.txt)
+   is the one thing that still asks, because its columns have to be matched to
+   fields by someone. */
+const SD_IMPORT_EXT = /\.(apkg|colpkg|json|csv|tsv|txt)$/i;
+const sdImportPrefs = () => sdMisc('importPrefs', () => ({withSchedule: true, noteTypeMerge: 'id', onUpdate: 'newer', deckPrefix: ''}));
+function sdIngestPanel(){
+  let el = document.getElementById('sdIng');
+  if(!el){ el = document.createElement('div'); el.id = 'sdIng'; el.className = 'sx-ing'; el.setAttribute('role', 'status'); document.body.appendChild(el); }
+  return el;
+}
+let _sdIngBusy = false;
+async function sdIngest(files){
+  files = [...files].filter(f => f && SD_IMPORT_EXT.test(f.name));
+  if(!files.length){ toast('Those aren’t files Study can import — .apkg, .colpkg, .json, .csv.'); return; }
+  const queue = files.slice();
+  if(_sdIngBusy){ (sdIngest._wait = sdIngest._wait || []).push(...queue); return; }
+  _sdIngBusy = true;
+  const panel = sdIngestPanel(), rows = files.map(f => ({name: f.name, state: 'waiting', stage: '', f: 0, sum: null, err: ''}));
+  const draw = () => { panel.innerHTML = `<div class="sx-ing-h"><b>Importing</b><button class="sx-ing-x" aria-label="close">×</button></div>` + rows.map(r => `<div class="sx-ing-r ${r.state}"><div class="row between"><span>${esc(r.name)}</span><span class="mono faint">${r.state === 'done' ? '✓' : r.state === 'error' ? 'failed' : r.state === 'waiting' ? 'waiting' : Math.round(r.f * 100) + '%'}</span></div>
+      ${r.state === 'working' ? `<i style="width:${Math.round(r.f * 100)}%"></i><span class="faint">${esc(r.stage)}</span>` : ''}
+      ${r.sum ? `<div class="faint">${r.sum.notesAdded} notes added${r.sum.notesUpdated ? ', ' + r.sum.notesUpdated + ' updated' : ''}${r.sum.notesSkipped ? ', ' + r.sum.notesSkipped + ' already here' : ''} · ${r.sum.cards} cards${r.sum.media ? ' · ' + r.sum.media + ' media' : ''}${r.sum.revlog ? ' · ' + r.sum.revlog + ' reviews' : ''}</div>${r.sum.warnings.length ? `<div class="faint">${esc(r.sum.warnings[0])}${r.sum.warnings.length > 1 ? ' (+' + (r.sum.warnings.length - 1) + ' more)' : ''}</div>` : ''}${r.sum.conflicts.length ? `<button class="btn sm" data-sdconf="${rows.indexOf(r)}">${r.sum.conflicts.length} notes differ — go through them</button>` : ''}` : ''}
+      ${r.err ? `<div class="li-err">${esc(r.err)}</div>` : ''}</div>`).join('');
+    panel.querySelector('.sx-ing-x').onclick = () => panel.remove();
+    panel.querySelectorAll('[data-sdconf]').forEach(b => b.onclick = () => sdConflicts(rows[+b.dataset.sdconf].sum.conflicts)); };
+  draw();
+  const csv = [];
+  for(let i = 0; i < files.length; i++){
+    const f = files[i], r = rows[i], o = Object.assign({}, sdImportPrefs());
+    r.state = 'working'; draw();
+    try {
+      if(/\.(apkg|colpkg)$/i.test(f.name)){
+        r.sum = await sdImportAnki(f, {withSchedule: o.withSchedule, noteTypeMerge: o.noteTypeMerge, onUpdate: o.onUpdate, deckPrefix: (o.deckPrefix || '').trim()}, (t, fr) => { r.stage = t; r.f = fr; draw(); });
+      } else if(/\.json$/i.test(f.name)){
+        const n = await sdImportJson(await f.text()); r.sum = {notesAdded: n, notesUpdated: 0, notesSkipped: 0, cards: 0, media: 0, revlog: 0, warnings: [], conflicts: []}; sdSummarise();
+      } else { csv.push(f); r.state = 'done'; r.sum = null; r.stage = 'opens a column-matching dialog'; draw(); continue; }
+      r.state = 'done'; r.f = 1;
+    } catch(e){ r.state = 'error'; r.err = e.message || 'The import failed.'; console.warn(e); }
+    draw();
+  }
+  _sdIngBusy = false;
+  const ok = rows.filter(r => r.state === 'done' && r.sum), added = ok.reduce((s, r) => s + r.sum.notesAdded + r.sum.notesUpdated, 0);
+  if(ok.length) sdSummarise();
+  const needs = rows.some(r => r.state === 'error' || (r.sum && (r.sum.warnings.length || r.sum.conflicts.length)));
+  if(!needs && !csv.length) setTimeout(() => { if(panel.isConnected && !panel.matches(':hover')) panel.remove(); }, 7000);
+  if(csv.length){ if(csv.length > 1) toast(`${csv.length} spreadsheets — they each need their columns matched; doing the first now, drop the others after.`, 7000); sdCsvDialog(await csv[0].text(), csv[0].name); }
+  const hash = parseHash();
+  if(hash.name === 'study' && ok.length && (!hash.params[0] || hash.params[0] === 'import')) rerender();
+  const more = sdIngest._wait; if(more && more.length){ sdIngest._wait = []; sdIngest(more); }
+}
+/* anywhere in Study, a dropped deck is imported; one on its way to a card's editor is that editor's */
+let _sdDropDepth = 0;
+(function(){
+  const inStudy = () => { try { return parseHash().name === 'study'; } catch(e){ return false; } };
+  const hasFiles = e => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
+  const hint = on => document.body.classList.toggle('sx-dropping', on);
+  document.addEventListener('dragenter', e => { if(inStudy() && hasFiles(e)){ _sdDropDepth++; hint(true); } });
+  document.addEventListener('dragleave', e => { if(inStudy() && hasFiles(e)){ _sdDropDepth = Math.max(0, _sdDropDepth - 1); if(!_sdDropDepth) hint(false); } });
+  document.addEventListener('dragover', e => { if(inStudy() && hasFiles(e)) e.preventDefault(); });
+  document.addEventListener('drop', e => { _sdDropDepth = 0; hint(false);
+    if(!inStudy() || !hasFiles(e) || e.defaultPrevented) return;
+    const files = [...e.dataTransfer.files]; if(!files.some(f => SD_IMPORT_EXT.test(f.name))) return;
+    e.preventDefault(); sdIngest(files); });
+})();
 function sdImportRoute(root){
+  const o = sdImportPrefs();
   root.innerHTML = `<div class="page sx-page">${sdNav('import')}
     <h1 class="serif">Import</h1>
-    <section class="sx-drop" id="imDrop" tabindex="0"><p><b>Drop an Anki deck here</b> — .apkg or .colpkg, from any Anki version — or a .csv / .txt / .json.</p>
-      <input type="file" id="imFile" accept=".apkg,.colpkg,.csv,.tsv,.txt,.json"><div class="faint">Everything is read on this device. Nothing is uploaded.</div></section>
-    <section class="sx-card2" id="imOpts" hidden>
-      <label class="sx-chk"><input type="checkbox" id="imSched" checked> include scheduling and review history (off: import as new cards)</label>
-      <label class="sx-opt"><span>Note types</span><select class="sel" id="imNt"><option value="id">merge with the same note type when it has the same fields</option><option value="copy">always make copies</option></select></label>
-      <label class="sx-opt"><span>Notes already here (same GUID)</span><select class="sel" id="imUpd"><option value="newer">keep whichever was changed more recently</option><option value="mine">keep mine</option><option value="theirs">take theirs</option><option value="ask">ask me about each</option></select></label>
-      <label class="sx-opt"><span>Put its decks inside</span><input class="inp" id="imPrefix" placeholder="(top level)"></label>
-      <button class="btn primary" id="imGo">Import</button>
-    </section>
-    <div class="sx-import-prog" id="imProg" hidden><span id="imStage"></span><i id="imBar"></i></div>
+    <section class="sx-drop" id="imDrop" tabindex="0"><p><b>Drop Anki decks anywhere here</b> — .apkg or .colpkg, from any Anki version, as many as you like — or a .json backup. They’re imported the moment you let go. A .csv / .txt asks you to match its columns.</p>
+      <input type="file" id="imFile" multiple accept=".apkg,.colpkg,.csv,.tsv,.txt,.json"><div class="faint">Everything is read on this device. Nothing is uploaded.</div></section>
+    <details class="sx-card2" id="imOpts"${o.custom ? ' open' : ''}><summary><b>How imports are done</b> <span class="faint">— applies to the next drop</span></summary>
+      <label class="sx-chk"><input type="checkbox" id="imSched" ${o.withSchedule ? 'checked' : ''}> include scheduling and review history (off: import as new cards)</label>
+      <label class="sx-opt"><span>Note types</span><select class="sel" id="imNt"><option value="id" ${o.noteTypeMerge === 'id' ? 'selected' : ''}>merge with the same note type when it has the same fields</option><option value="copy" ${o.noteTypeMerge === 'copy' ? 'selected' : ''}>always make copies</option></select></label>
+      <label class="sx-opt"><span>Notes already here (same GUID)</span><select class="sel" id="imUpd">${[['newer', 'keep whichever was changed more recently'], ['mine', 'keep mine'], ['theirs', 'take theirs'], ['ask', 'ask me about each']].map(([v, t]) => `<option value="${v}" ${o.onUpdate === v ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label class="sx-opt"><span>Put its decks inside</span><input class="inp" id="imPrefix" placeholder="(top level)" value="${esc(o.deckPrefix || '')}"></label>
+    </details>
     <div id="imOut"></div>
     <section class="sx-card2"><h3>History</h3>${(sdMisc('imports', () => ({list: []})).list || []).slice(-8).reverse().map(x => `<div class="faint">${new Date(x.date).toLocaleString()} · ${esc(x.file)} · ${x.format || ''} · ${x.notesAdded} notes added, ${x.notesUpdated} updated, ${x.cards} cards, ${x.media} media</div>`).join('') || '<p class="faint">Nothing imported yet.</p>'}</section>
   </div>`;
   const inp = root.querySelector('#imFile'), drop = root.querySelector('#imDrop');
-  let file = null;
-  const pick = f => { file = f; if(!f) return; if(/\.(apkg|colpkg)$/i.test(f.name)){ root.querySelector('#imOpts').hidden = false; drop.querySelector('p').innerHTML = `<b>${esc(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB`; }
-    else if(/\.json$/i.test(f.name)) f.text().then(async t => { try { const n = await sdImportJson(t); toast(`${n} notes restored.`); sdSummarise(); } catch(e){ toast(e.message, 6000); } });
-    else f.text().then(t => sdCsvDialog(t, f.name)); };
-  inp.onchange = () => pick(inp.files[0]);
-  drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
-  drop.ondragleave = () => drop.classList.remove('over');
-  drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); pick(e.dataTransfer.files[0]); };
-  root.querySelector('#imGo').onclick = async () => {
-    if(!file) return;
-    const prog = root.querySelector('#imProg'); prog.hidden = false;
-    const stage = root.querySelector('#imStage'), bar = root.querySelector('#imBar');
-    try {
-      const sum = await sdImportAnki(file, {withSchedule: root.querySelector('#imSched').checked, noteTypeMerge: root.querySelector('#imNt').value,
-        onUpdate: root.querySelector('#imUpd').value, deckPrefix: root.querySelector('#imPrefix').value.trim()}, (t, f) => { stage.textContent = t; bar.style.width = Math.round(f * 100) + '%'; });
-      root.querySelector('#imOut').innerHTML = `<section class="sx-card2 sx-summary"><h3 class="serif">Imported</h3>
-        <div class="sx-sumgrid"><div><b>${sum.notesAdded}</b>notes added</div><div><b>${sum.notesUpdated}</b>updated</div><div><b>${sum.notesSkipped}</b>unchanged</div><div><b>${sum.cards}</b>cards</div><div><b>${sum.media}</b>media files</div><div><b>${sum.revlog}</b>reviews</div></div>
-        <p class="faint">${esc(sum.format === 'latest' ? 'Latest Anki format' : sum.format === 'legacy2' ? 'Anki 2.1 (legacy 2)' : 'Anki 2.0 (legacy 1)')}</p>
-        ${sum.warnings.length ? `<ul class="faint">${sum.warnings.slice(0, 10).map(w => `<li>${esc(w)}</li>`).join('')}</ul>` : ''}
-        ${sum.conflicts.length ? `<p>${sum.conflicts.length} notes differ from yours. <button class="btn sm" id="imConf">Go through them</button></p>` : ''}
-        <a class="btn primary" href="#/study">To the decks</a></section>`;
-      const cb = root.querySelector('#imConf'); if(cb) cb.onclick = () => sdConflicts(sum.conflicts);
-    } catch(e){ stage.textContent = e.message; stage.classList.add('li-err'); console.warn(e); }
-  };
+  const keep = () => { Object.assign(o, {withSchedule: root.querySelector('#imSched').checked, noteTypeMerge: root.querySelector('#imNt').value, onUpdate: root.querySelector('#imUpd').value, deckPrefix: root.querySelector('#imPrefix').value, custom: true}); sdTouch('misc', o); };
+  ['#imSched', '#imNt', '#imUpd', '#imPrefix'].forEach(sel => { const el = root.querySelector(sel); el.onchange = keep; if(sel === '#imPrefix') el.oninput = keep; });
+  inp.onchange = () => { const fs = [...inp.files]; inp.value = ''; if(fs.length) sdIngest(fs); };
+  drop.onclick = e => { if(e.target !== inp) inp.click(); };
+  drop.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); inp.click(); } };
 }
 function sdConflicts(list){
   let i = 0;

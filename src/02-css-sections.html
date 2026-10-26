@@ -13172,6 +13172,16 @@ html[data-theme="dark"]{--studio-ramp-fill:#d9bc84}
 .rk-rooms{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;margin-top:8px}.rk-rooms label{display:flex;gap:6px;align-items:center;cursor:pointer}
 a.rk-shut{opacity:.42}a.rk-shut .lbl::after{content:" \1F512";font-size:.7em}a.rk-shut .ico{filter:grayscale(1)}
 @media (max-width:640px){.rk-lock h1{font-size:1.6rem}}
+
+/* study: dropping a deck imports it */
+.sx-ing{position:fixed;right:18px;bottom:18px;z-index:9500;width:min(360px,calc(100vw - 36px));background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 40px rgba(0,0,0,.18);padding:10px 12px;display:grid;gap:8px;font-size:.86rem}
+.sx-ing-h{display:flex;justify-content:space-between;align-items:center}.sx-ing-x{border:0;background:transparent;font-size:1.1rem;cursor:pointer;color:var(--muted)}
+.sx-ing-r{display:grid;gap:3px;padding-top:6px;border-top:1px solid var(--line)}.sx-ing-r i{display:block;height:3px;border-radius:3px;background:var(--sx-due,var(--terra));transition:width .2s}
+.sx-ing-r.error .li-err{color:var(--danger,#a8523f)}
+body.sx-dropping .sx-page{outline:2px dashed var(--muted);outline-offset:-8px;border-radius:18px}
+body.sx-dropping .sx-page::after{content:"Drop to import";position:fixed;left:50%;top:42%;transform:translateX(-50%);padding:12px 20px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:0 10px 30px rgba(0,0,0,.15);font-size:1.05rem;pointer-events:none;z-index:50}
+
+.sx-ans .sub{display:block;font-size:.68rem;opacity:.75;margin-top:1px;font-weight:400;letter-spacing:0}
 </style>
 
 </head>
