@@ -304,7 +304,7 @@ function pqBind(box, T = today(), list){
   if(!box) return;
   const q = list || _pqCur;
   const done = () => { sound('click'); pqRepaint(); };
-  box.querySelectorAll('[data-pqgo]').forEach(b => b.onclick = ev => { const it = q[+b.dataset.pqgo]; if(it && it.go){ ev.stopPropagation(); it.go[1](); if(it.source === 'block') setTimeout(pqRepaint, 50); } });
+  box.querySelectorAll('[data-pqgo]').forEach(b => b.onclick = ev => { const it = q[+b.dataset.pqgo]; if(it && it.go){ ev.stopPropagation(); it.go[1](); if(it.source === 'block' || it.source === 'remind'){ if(it.source === 'remind') sound('success'); setTimeout(pqRepaint, 50); } } });
   box.querySelectorAll('[data-pqact]').forEach(b => b.onclick = () => { const [i, j] = b.dataset.pqact.split(':').map(Number); const it = q[i]; if(it && it.acts && it.acts[j]){ it.acts[j][1](); done(); } });
   box.querySelectorAll('[data-pqlater]').forEach(b => b.onclick = () => { const it = q[+b.dataset.pqlater]; if(it){ pqLater(it); done(); } });
   box.querySelectorAll('[data-pqnot]').forEach(b => b.onclick = () => { const it = q[+b.dataset.pqnot]; if(it){ pqNotToday(it); done(); } });
